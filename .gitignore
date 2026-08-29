@@ -1,0 +1,15 @@
+node_modules/
+.gstack/
+.env
+.env.local
+*.log
+dist/
+build/
+# Generated HTML maps
+transitline/docs/*.html
+# Submodules
+bot/
+depot/
+monorepo/
+registry/
+template-mod/
