@@ -1,0 +1,355 @@
+{
+  "formatVersion": 1,
+  "model": "gravity",
+  "points": [
+    {
+      "id": "cbd",
+      "name": "Central Business District",
+      "location": [
+        0,
+        0
+      ],
+      "residents": 900,
+      "jobs": 42000,
+      "kind": "commercial"
+    },
+    {
+      "id": "inner-1",
+      "location": [
+        0.02,
+        0
+      ],
+      "residents": 14000,
+      "jobs": 9500,
+      "kind": "mixed"
+    },
+    {
+      "id": "inner-2",
+      "location": [
+        0.01,
+        0.01732
+      ],
+      "residents": 14000,
+      "jobs": 9500,
+      "kind": "mixed"
+    },
+    {
+      "id": "inner-3",
+      "location": [
+        -0.01,
+        0.01732
+      ],
+      "residents": 14000,
+      "jobs": 9500,
+      "kind": "mixed"
+    },
+    {
+      "id": "inner-4",
+      "location": [
+        -0.02,
+        0
+      ],
+      "residents": 14000,
+      "jobs": 9500,
+      "kind": "mixed"
+    },
+    {
+      "id": "inner-5",
+      "location": [
+        -0.01,
+        -0.01732
+      ],
+      "residents": 14000,
+      "jobs": 9500,
+      "kind": "mixed"
+    },
+    {
+      "id": "inner-6",
+      "location": [
+        0.01,
+        -0.01732
+      ],
+      "residents": 14000,
+      "jobs": 9500,
+      "kind": "mixed"
+    },
+    {
+      "id": "mid-1",
+      "location": [
+        0.04347,
+        0.01165
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-2",
+      "location": [
+        0.03182,
+        0.03182
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-3",
+      "location": [
+        0.01165,
+        0.04347
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-4",
+      "location": [
+        -0.01165,
+        0.04347
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-5",
+      "location": [
+        -0.03182,
+        0.03182
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-6",
+      "location": [
+        -0.04347,
+        0.01165
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-7",
+      "location": [
+        -0.04347,
+        -0.01165
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-8",
+      "location": [
+        -0.03182,
+        -0.03182
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-9",
+      "location": [
+        -0.01165,
+        -0.04347
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-10",
+      "location": [
+        0.01165,
+        -0.04347
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-11",
+      "location": [
+        0.03182,
+        -0.03182
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "mid-12",
+      "location": [
+        0.04347,
+        -0.01165
+      ],
+      "residents": 21000,
+      "jobs": 3400,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-1",
+      "location": [
+        0.06495,
+        0.0375
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-2",
+      "location": [
+        0.0375,
+        0.06495
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-3",
+      "location": [
+        0,
+        0.075
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-4",
+      "location": [
+        -0.0375,
+        0.06495
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-5",
+      "location": [
+        -0.06495,
+        0.0375
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-6",
+      "location": [
+        -0.075,
+        0
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-7",
+      "location": [
+        -0.06495,
+        -0.0375
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-8",
+      "location": [
+        -0.0375,
+        -0.06495
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-9",
+      "location": [
+        0,
+        -0.075
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-10",
+      "location": [
+        0.0375,
+        -0.06495
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-11",
+      "location": [
+        0.06495,
+        -0.0375
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    },
+    {
+      "id": "outer-12",
+      "location": [
+        0.075,
+        0
+      ],
+      "residents": 12000,
+      "jobs": 1100,
+      "kind": "residential"
+    }
+  ],
+  "attractors": [
+    {
+      "id": "airport",
+      "name": "Ringfield Airport",
+      "kind": "airport",
+      "location": [
+        -0.082,
+        0.012
+      ],
+      "capacity": 18000,
+      "maxDistance": null,
+      "residentialSplit": 0
+    },
+    {
+      "id": "university",
+      "name": "North Hill University",
+      "kind": "university",
+      "location": [
+        0.008,
+        0.052
+      ],
+      "capacity": 26000,
+      "maxDistance": 30000,
+      "residentialSplit": 0.2
+    },
+    {
+      "id": "stadium",
+      "name": "Riverside Stadium",
+      "kind": "stadium",
+      "location": [
+        0.036,
+        -0.041
+      ],
+      "capacity": 4200,
+      "maxDistance": 25000,
+      "residentialSplit": 0
+    }
+  ]
+}

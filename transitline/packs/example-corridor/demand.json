@@ -1,0 +1,241 @@
+{
+  "formatVersion": 1,
+  "model": "matrix",
+  "calendar": {
+    "dayTypes": [
+      {
+        "id": "weekday",
+        "name": "평일",
+        "weight": 5
+      },
+      {
+        "id": "saturday",
+        "name": "토요일",
+        "weight": 1
+      },
+      {
+        "id": "holiday",
+        "name": "일요일·공휴일",
+        "weight": 1
+      }
+    ],
+    "periods": [
+      {
+        "id": "early",
+        "name": "Early",
+        "startMinute": 240,
+        "endMinute": 420
+      },
+      {
+        "id": "am_peak",
+        "name": "Morning peak",
+        "startMinute": 420,
+        "endMinute": 560
+      },
+      {
+        "id": "midday",
+        "name": "Midday",
+        "startMinute": 560,
+        "endMinute": 1020
+      },
+      {
+        "id": "pm_peak",
+        "name": "Evening peak",
+        "startMinute": 1020,
+        "endMinute": 1200
+      },
+      {
+        "id": "evening",
+        "name": "Evening",
+        "startMinute": 1200,
+        "endMinute": 1500
+      }
+    ],
+    "factors": {
+      "weekday": {
+        "early": 0.3,
+        "am_peak": 2.6,
+        "midday": 0.8,
+        "pm_peak": 2.3,
+        "evening": 0.7
+      },
+      "saturday": {
+        "early": 0.2,
+        "am_peak": 0.9,
+        "midday": 1.2,
+        "pm_peak": 1.1,
+        "evening": 0.8
+      },
+      "holiday": {
+        "early": 0.1,
+        "am_peak": 0.6,
+        "midday": 1.1,
+        "pm_peak": 0.9,
+        "evening": 0.6
+      }
+    }
+  },
+  "points": [
+    {
+      "id": "s1",
+      "name": "Westgate",
+      "location": [
+        -0.05,
+        0
+      ],
+      "kind": "mixed"
+    },
+    {
+      "id": "s2",
+      "name": "Foundry",
+      "location": [
+        -0.03,
+        0
+      ],
+      "kind": "mixed"
+    },
+    {
+      "id": "s3",
+      "name": "Old Town",
+      "location": [
+        -0.01,
+        0
+      ],
+      "kind": "mixed"
+    },
+    {
+      "id": "s4",
+      "name": "Central",
+      "location": [
+        0.01,
+        0
+      ],
+      "kind": "commercial"
+    },
+    {
+      "id": "s5",
+      "name": "Riverside",
+      "location": [
+        0.03,
+        0
+      ],
+      "kind": "mixed"
+    },
+    {
+      "id": "s6",
+      "name": "Eastfield",
+      "location": [
+        0.05,
+        0
+      ],
+      "kind": "mixed"
+    }
+  ],
+  "flows": [
+    {
+      "from": "s1",
+      "to": "s4",
+      "trips": 867,
+      "dayType": "weekday",
+      "period": "am_peak"
+    },
+    {
+      "from": "s4",
+      "to": "s1",
+      "trips": 867,
+      "dayType": "weekday",
+      "period": "pm_peak"
+    },
+    {
+      "from": "s1",
+      "to": "s4",
+      "trips": 303,
+      "dayType": "saturday",
+      "period": "midday"
+    },
+    {
+      "from": "s2",
+      "to": "s4",
+      "trips": 1300,
+      "dayType": "weekday",
+      "period": "am_peak"
+    },
+    {
+      "from": "s4",
+      "to": "s2",
+      "trips": 1300,
+      "dayType": "weekday",
+      "period": "pm_peak"
+    },
+    {
+      "from": "s2",
+      "to": "s4",
+      "trips": 455,
+      "dayType": "saturday",
+      "period": "midday"
+    },
+    {
+      "from": "s3",
+      "to": "s4",
+      "trips": 2600,
+      "dayType": "weekday",
+      "period": "am_peak"
+    },
+    {
+      "from": "s4",
+      "to": "s3",
+      "trips": 2600,
+      "dayType": "weekday",
+      "period": "pm_peak"
+    },
+    {
+      "from": "s3",
+      "to": "s4",
+      "trips": 910,
+      "dayType": "saturday",
+      "period": "midday"
+    },
+    {
+      "from": "s5",
+      "to": "s4",
+      "trips": 2600,
+      "dayType": "weekday",
+      "period": "am_peak"
+    },
+    {
+      "from": "s4",
+      "to": "s5",
+      "trips": 2600,
+      "dayType": "weekday",
+      "period": "pm_peak"
+    },
+    {
+      "from": "s5",
+      "to": "s4",
+      "trips": 910,
+      "dayType": "saturday",
+      "period": "midday"
+    },
+    {
+      "from": "s6",
+      "to": "s4",
+      "trips": 1300,
+      "dayType": "weekday",
+      "period": "am_peak"
+    },
+    {
+      "from": "s4",
+      "to": "s6",
+      "trips": 1300,
+      "dayType": "weekday",
+      "period": "pm_peak"
+    },
+    {
+      "from": "s6",
+      "to": "s4",
+      "trips": 455,
+      "dayType": "saturday",
+      "period": "midday"
+    }
+  ]
+}

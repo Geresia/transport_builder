@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "id": "example-corridor",
+  "name": "Corridor",
+  "version": "0.1.0",
+  "bbox": [-0.06, -0.01, 0.06, 0.01],
+  "origin": [0.0, 0.0],
+  "data": {
+    "license": "CC0-1.0",
+    "attribution": [],
+    "sources": []
+  },
+  "files": {
+    "demand": "demand.json"
+  }
+}

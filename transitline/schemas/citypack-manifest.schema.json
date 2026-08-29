@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://transitline.dev/schemas/citypack-manifest.schema.json",
+  "title": "CityPack Manifest",
+  "type": "object",
+  "required": ["formatVersion", "id", "name", "version", "bbox", "origin", "data", "files"],
+  "additionalProperties": true,
+  "properties": {
+    "formatVersion": { "const": 1 },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "Stable slug. Also the pack directory name."
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^\d+\.\d+\.\d+$" },
+    "bbox": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "[minLon, minLat, maxLon, maxLat] in WGS84."
+    },
+    "origin": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[lon, lat] anchor for the engine's local metric projection."
+    },
+    "data": {
+      "type": "object",
+      "required": ["license", "attribution", "sources"],
+      "additionalProperties": false,
+      "properties": {
+        "license": {
+          "type": "string",
+          "description": "SPDX identifier, or 'proprietary'. Drives attribution UI and the Rule 3 boundary check.",
+          "examples": ["CC0-1.0", "ODbL-1.0", "CDLA-Permissive-2.0", "proprietary"]
+        },
+        "attribution": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Strings the engine must display. May be empty only for CC0-1.0."
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "license"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "url": { "type": "string" },
+              "license": { "type": "string" },
+              "retrieved": { "type": "string", "format": "date" },
+              "note": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "object",
+      "required": ["demand"],
+      "additionalProperties": false,
+      "properties": {
+        "demand": { "type": "string" },
+        "obstacles": { "type": "string" },
+        "basemap": { "type": "string" }
+      },
+      "description": "Relative paths. An absent key means that layer is not present."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "data": { "properties": { "license": { "not": { "const": "CC0-1.0" } } } } }
+      },
+      "then": {
+        "properties": { "data": { "properties": { "attribution": { "minItems": 1 } } } },
+        "description": "Any pack that is not CC0 must carry at least one attribution string."
+      }
+    }
+  ]
+}

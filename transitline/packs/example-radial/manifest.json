@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "id": "example-radial",
+  "name": "Ringfield",
+  "version": "0.1.0",
+  "bbox": [-0.09, -0.09, 0.09, 0.09],
+  "origin": [0.0, 0.0],
+  "data": {
+    "license": "CC0-1.0",
+    "attribution": [],
+    "sources": []
+  },
+  "files": {
+    "demand": "demand.json"
+  }
+}

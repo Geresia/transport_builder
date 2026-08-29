@@ -1,0 +1,314 @@
+<!--
+  행정동 인구밀도 지도 템플릿 — 지역 무관.
+  build-density-page.mjs 가 데이터·지역명 자리표시자를 채운 뒤,
+  나온 파일에서 CONFIG.view 한 값만 손으로 조정:
+       view : 지도 뷰포트. build-metro-demand.mjs 가 찍는 meta.bbox [w,s,e,n] 로 시작해
+              서쪽/남쪽 바다 여백이 넓으면 직접 조여서 씀.
+  나머지(제목·행정동 수·범례 문구·정합성 문구·통계·시도 태그)는 데이터에서 자동.
+-->
+<title>__REGION__ 인구밀도</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F4F6F7; --surface:#FFFFFF; --surface-2:#EDF1F2;
+  --ink:#0F171C; --ink-2:#44535D; --ink-3:#77878F;
+  --line:#DBE3E5; --line-2:#C4D0D3;
+  --accent:#C2622A;
+  --r1:#E6EFEF; --r2:#C4DEE0; --r3:#9BC9CE; --r4:#6FB2BA;
+  --r5:#47969F; --r6:#2C7783; --r7:#1B5A66; --r8:#0D3D48;
+  --sea:#E8EEEF;
+  --shadow:0 1px 2px rgba(15,23,28,.05),0 8px 24px -12px rgba(15,23,28,.18);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C1114; --surface:#141B1F; --surface-2:#1B2429;
+  --ink:#E7EEF0; --ink-2:#9CAEB5; --ink-3:#6B7D85;
+  --line:#232F35; --line-2:#31414A;
+  --accent:#E08A4C;
+  --r1:#16272B; --r2:#1B3B42; --r3:#215059; --r4:#2A6771;
+  --r5:#357F8A; --r6:#4A9BA5; --r7:#71B9C1; --r8:#A6D8DC;
+  --sea:#0F1619;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  --bg:#0C1114; --surface:#141B1F; --surface-2:#1B2429;
+  --ink:#E7EEF0; --ink-2:#9CAEB5; --ink-3:#6B7D85;
+  --line:#232F35; --line-2:#31414A;
+  --accent:#E08A4C;
+  --r1:#16272B; --r2:#1B3B42; --r3:#215059; --r4:#2A6771;
+  --r5:#357F8A; --r6:#4A9BA5; --r7:#71B9C1; --r8:#A6D8DC;
+  --sea:#0F1619;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+  line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1280px;margin:0 auto;padding:40px 28px 64px}
+h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.02em}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+header{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between;
+  padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);font-family:"IBM Plex Mono",monospace;margin-bottom:10px}
+h1{font-size:clamp(30px,4.4vw,46px);font-weight:700;line-height:1.05}
+.sub{color:var(--ink-2);font-size:15px;margin-top:10px;max-width:56ch}
+.stamp{display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:right}
+.stamp .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.stamp .v{font-size:13px;color:var(--ink-2)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:26px}
+.stat{background:var(--surface);padding:16px 18px}
+.stat .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  font-family:"IBM Plex Mono",monospace;margin-bottom:7px}
+.stat .v{font-size:26px;font-weight:600;line-height:1.1;letter-spacing:-.025em}
+.stat .u{font-size:12px;color:var(--ink-3);margin-left:3px;font-weight:400}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(268px,.85fr);gap:22px;align-items:start}
+@media(max-width:940px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.card-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;
+  align-items:baseline;gap:12px}
+.card-h h2{font-size:14px;font-weight:600}
+.card-h .note{font-size:11.5px;color:var(--ink-3)}
+.mapbox{position:relative;background:var(--sea);border-radius:0 0 12px 12px;overflow:hidden}
+svg.map{display:block;width:100%;height:auto}
+path.d{stroke:var(--surface);stroke-width:.22;stroke-linejoin:round;cursor:pointer}
+path.d:hover,path.d.on{stroke:var(--accent);stroke-width:1.4;paint-order:stroke}
+.tip{position:absolute;pointer-events:none;opacity:0;transition:opacity .1s;
+  background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:9px 12px;
+  box-shadow:var(--shadow);font-size:12.5px;min-width:170px;z-index:5}
+.tip.on{opacity:1}
+.tip .n{font-weight:600;margin-bottom:6px;font-size:13px}
+.tip .row{display:flex;justify-content:space-between;gap:16px;color:var(--ink-2)}
+.tip .row b{color:var(--ink);font-weight:500}
+
+.legend{padding:16px 18px}
+.ramp{display:flex;height:13px;border-radius:3px;overflow:hidden;margin-bottom:7px}
+.ramp i{flex:1}
+.scale{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-3);
+  font-family:"IBM Plex Mono",monospace;border-top:1px solid var(--line);padding-top:5px}
+.legend .cap{font-size:11.5px;color:var(--ink-2);margin-top:10px;line-height:1.55}
+
+.list{padding:8px 0}
+.lrow{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;padding:7px 18px}
+.lrow:hover{background:var(--surface-2)}
+.lrow .nm{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow .nm small{color:var(--ink-3);font-size:11px}
+.lrow .vv{font-size:12px;font-weight:500}
+.bar{grid-column:1/-1;height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:2px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 18px;text-align:right;border-bottom:1px solid var(--line)}
+th{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:500;
+  font-family:"IBM Plex Mono",monospace}
+th:first-child,td:first-child{text-align:left}
+tbody tr:last-child td{border-bottom:none}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px}
+
+footer{margin-top:30px;padding-top:20px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--ink-3);line-height:1.75}
+footer b{color:var(--ink-2);font-weight:500}
+footer a{color:var(--ink-2)}
+.warn{margin-top:22px;padding:12px 15px;background:var(--surface-2);border-left:2px solid var(--accent);
+  border-radius:0 6px 6px 0;font-size:11.5px;color:var(--ink-2);line-height:1.65}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div>
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="title"></h1>
+    <p class="sub">주민등록 인구를 행정동 경계 면적으로 나눈 값. 노선을 어디에 그을지 판단하려면 총인구가 아니라 ㎢당 인구가 필요합니다.</p>
+  </div>
+  <div class="stamp">
+    <div><div class="k">인구 기준</div><div class="v mono" id="asof"></div></div>
+    <div><div class="k">경계 자료</div><div class="v mono">admdongkor</div></div>
+  </div>
+</header>
+
+<div class="stats" id="stats"></div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <div class="card-h"><h2>행정동별 인구밀도</h2><span class="note">마우스를 올리면 상세</span></div>
+      <div class="mapbox" id="mapbox"></div>
+    </div>
+    <div class="card" style="margin-top:22px">
+      <div class="card-h"><h2>시·군·구별 비교</h2><span class="note">밀도는 행정동 중앙값</span></div>
+      <table><thead><tr><th>시·군·구</th><th>행정동</th><th>인구</th><th>중앙 밀도</th></tr></thead>
+      <tbody id="sgg"></tbody></table>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-h"><h2>밀도 구간</h2><span class="note">8분위</span></div>
+      <div class="legend">
+        <div class="ramp" id="ramp"></div>
+        <div class="scale" id="scale"></div>
+        <p class="cap" id="legendcap"></p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:22px">
+      <div class="card-h"><h2>최고 밀도 12</h2><span class="note">인/㎢</span></div>
+      <div class="list" id="top"></div>
+    </div>
+    <div class="card" style="margin-top:22px">
+      <div class="card-h"><h2>최저 밀도 6</h2><span class="note">인/㎢</span></div>
+      <div class="list" id="bot"></div>
+    </div>
+  </div>
+</div>
+
+<div class="warn" id="caveat"></div>
+
+<footer>
+  <div><b>행정동 경계</b> — 통계청 통계지리정보서비스(SGIS) 개방 자료를 바탕으로 보정·시계열 확장한 <a href="https://github.com/vuski/admdongkor">vuski/admdongkor</a>. SGIS 원자료 <b>공공누리 제1유형(출처표시)</b>, 저장소 가공물 <b>CC BY 4.0</b>.</div>
+  <div style="margin-top:5px"><b>인구</b> — 행정안전부 「지역별(행정동) 성별 연령별 주민등록 인구수」, <a href="https://www.data.go.kr/data/15097972/fileData.do">공공데이터포털</a>. <b>이용허락범위 제한 없음</b>.</div>
+  <div style="margin-top:5px">두 자료 모두 상업적 이용과 변형이 허용되지만, <b>출처표시는 조건 없이 의무</b>입니다.</div>
+</footer>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+// ── region 은 build-density-page.mjs 가 채움. view 만 손으로 조정 ──────
+const CONFIG = {
+  region: "__REGION__",
+  view: { w: 128.79, s: 34.96, e: 129.31, n: 35.41 }, // meta.bbox [w,s,e,n] 로 시작, 여백 넓으면 조여서
+};
+// ────────────────────────────────────────────────────────────────────
+
+const DATA = JSON.parse(document.getElementById("data").textContent);
+const F = DATA.features, M = DATA.meta;
+const nf = (n) => n.toLocaleString("ko-KR");
+const shortName = (n) => { const p = n.split(" "); return { dong: p.at(-1), sgg: p.length > 2 ? p.at(-2) : p[0] }; };
+
+document.title = `${CONFIG.region} 인구밀도`;
+document.getElementById("title").textContent = `${CONFIG.region} 인구밀도`;
+document.getElementById("eyebrow").textContent = `${F[0]?.sd || CONFIG.region} — 행정동 ${nf(F.length)}`;
+document.getElementById("asof").textContent = M.asOf || "";
+const cs = getComputedStyle(document.documentElement);
+const RAMP = ["--r1","--r2","--r3","--r4","--r5","--r6","--r7","--r8"].map((v) => cs.getPropertyValue(v).trim());
+
+const withD = F.filter((f) => f.d !== null);
+const sorted = withD.map((f) => f.d).sort((a, b) => a - b);
+const NB = 8;
+const cuts = Array.from({ length: NB - 1 }, (_, i) => sorted[Math.floor(((i + 1) / NB) * (sorted.length - 1))]);
+const binOf = (d) => { let i = 0; while (i < cuts.length && d >= cuts[i]) i++; return i; };
+const colorOf = (d) => (d === null ? cs.getPropertyValue("--surface-2").trim() : RAMP[binOf(d)]);
+
+const totalPop = withD.reduce((a, f) => a + f.p, 0);
+const med = sorted[sorted.length >> 1];
+document.getElementById("stats").innerHTML = [
+  ["총 인구", nf(totalPop), "명"],
+  ["행정동", nf(F.length), "개"],
+  ["중앙값 밀도", nf(med), "인/㎢"],
+  ["최고 밀도", nf(sorted[sorted.length - 1]), "인/㎢"],
+].map(([k, v, u]) => `<div class="stat"><div class="k">${k}</div><div class="v mono">${v}<span class="u">${u}</span></div></div>`).join("");
+
+const VIEW = CONFIG.view;
+const LAT0 = (VIEW.s + VIEW.n) / 2, KX = Math.cos((LAT0 * Math.PI) / 180);
+const W = 1000, H = Math.round((W * (VIEW.n - VIEW.s)) / ((VIEW.e - VIEW.w) * KX));
+const px = (lon) => ((lon - VIEW.w) / (VIEW.e - VIEW.w)) * W;
+const py = (lat) => ((VIEW.n - lat) / (VIEW.n - VIEW.s)) * H;
+
+let offscreen = 0;
+const paths = F.map((f, i) => {
+  let d = "", visible = false;
+  for (const poly of f.g) for (const ring of poly) {
+    d += "M" + ring.map((p) => px(p[0]).toFixed(1) + "," + py(p[1]).toFixed(1)).join("L") + "Z";
+    if (ring.some((p) => p[0] >= VIEW.w && p[0] <= VIEW.e && p[1] >= VIEW.s && p[1] <= VIEW.n)) visible = true;
+  }
+  if (!visible) offscreen++;
+  return `<path class="d" data-i="${i}" fill="${colorOf(f.d)}" fill-rule="evenodd" d="${d}"></path>`;
+}).join("");
+
+document.getElementById("mapbox").innerHTML =
+  `<svg class="map" viewBox="0 0 ${W} ${H}" role="img" aria-label="${CONFIG.region} 행정동 인구밀도 지도">${paths}</svg><div class="tip" id="tip"></div>`;
+
+const tip = document.getElementById("tip"), box = document.getElementById("mapbox");
+let cur = null;
+box.addEventListener("mousemove", (e) => {
+  const t = e.target.closest("path.d");
+  if (!t) { tip.classList.remove("on"); if (cur) { cur.classList.remove("on"); cur = null; } return; }
+  if (cur !== t) { if (cur) cur.classList.remove("on"); cur = t; cur.classList.add("on"); }
+  const f = F[+t.dataset.i];
+  tip.innerHTML = `<div class="n">${f.n}</div>
+    <div class="row"><span>인구</span><b class="mono">${nf(f.p)}명</b></div>
+    <div class="row"><span>면적</span><b class="mono">${f.a.toFixed(2)}㎢</b></div>
+    <div class="row"><span>밀도</span><b class="mono">${nf(f.d)}/㎢</b></div>`;
+  const r = box.getBoundingClientRect();
+  let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14;
+  if (x + 195 > r.width) x = e.clientX - r.left - 195;
+  if (y + 110 > r.height) y = e.clientY - r.top - 110;
+  tip.style.left = x + "px"; tip.style.top = y + "px"; tip.classList.add("on");
+});
+box.addEventListener("mouseleave", () => { tip.classList.remove("on"); if (cur) { cur.classList.remove("on"); cur = null; } });
+
+{
+  const asc = withD.slice().sort((a, b) => a.d - b.d);
+  const lo = shortName(asc[0].n), hi = shortName(asc.at(-1).n);
+  const ratio = Math.round(asc.at(-1).d / Math.max(1, asc[0].d));
+  document.getElementById("legendcap").innerHTML =
+    `구간은 <b>8분위(quantile)</b>입니다. 밀도가 ${nf(asc[0].d)}/㎢(${lo.sgg} ${lo.dong})부터 ` +
+    `${nf(asc.at(-1).d)}/㎢(${hi.sgg} ${hi.dong})까지 ${nf(ratio)}배 벌어져 있어, ` +
+    `등간격 눈금으로는 고밀도 지역이 한 덩어리로 뭉개집니다.`;
+}
+
+document.getElementById("ramp").innerHTML = RAMP.map((c) => `<i style="background:${c}"></i>`).join("");
+document.getElementById("scale").innerHTML =
+  [`<span>${nf(sorted[0])}</span>`, ...cuts.map((c) => `<span>${nf(c)}</span>`), `<span>${nf(sorted[sorted.length - 1])}</span>`].join("");
+
+const rank = (arr, max) => arr.map((f) => {
+  const s = shortName(f.n);
+  return `<div class="lrow" title="${f.n}">
+    <span class="nm">${s.dong} <small>${s.sgg}</small></span>
+    <span class="vv mono">${nf(f.d)}</span>
+    <span class="bar"><i style="width:${Math.max(2, (100 * f.d) / max)}%;background:${colorOf(f.d)}"></i></span>
+  </div>`;
+}).join("");
+const desc = withD.slice().sort((a, b) => b.d - a.d);
+document.getElementById("top").innerHTML = rank(desc.slice(0, 12), desc[0].d);
+document.getElementById("bot").innerHTML = rank(withD.slice().sort((a, b) => a.d - b.d).slice(0, 6), desc[0].d);
+
+const multiSido = new Set(withD.map((f) => f.sd)).size > 1; // 여러 시도 스코프면 구·군에 시도 태그
+const SIDO_SHORT = {
+  서울특별시: "서울", 부산광역시: "부산", 대구광역시: "대구", 인천광역시: "인천",
+  광주광역시: "광주", 대전광역시: "대전", 울산광역시: "울산", 세종특별자치시: "세종",
+  경기도: "경기", 강원특별자치도: "강원", 강원도: "강원", 충청북도: "충북", 충청남도: "충남",
+  전라북도: "전북", 전북특별자치도: "전북", 전라남도: "전남", 경상북도: "경북", 경상남도: "경남",
+  제주특별자치도: "제주",
+};
+const shortSido = (s) => SIDO_SHORT[s] || s.replace(/(특별시|광역시|특별자치시|특별자치도|자치도|도)$/, "");
+const sggRows = [...new Set(withD.map((f) => f.sg))].map((s) => {
+  const g = withD.filter((f) => f.sg === s), ds = g.map((f) => f.d).sort((a, b) => a - b);
+  return { s, sd: g[0].sd, n: g.length, pop: g.reduce((a, f) => a + f.p, 0), m: ds[ds.length >> 1] };
+}).sort((a, b) => b.m - a.m);
+document.getElementById("sgg").innerHTML = sggRows.map((r) =>
+  `<tr><td><span class="swatch" style="background:${colorOf(r.m)}"></span>${r.s}${multiSido ? ` <small style="color:var(--ink-3)">${shortSido(r.sd)}</small>` : ""}</td>
+    <td class="n">${nf(r.n)}</td><td class="n">${nf(r.pop)}</td><td class="n">${nf(r.m)}</td></tr>`).join("");
+
+{
+  const bcount = M.boundaries ?? M.boundaries_metro;
+  const nb = M.boundaries_without_population || 0, np = M.population_rows_without_boundary || 0;
+  const fold = M.folded_chuljangso
+    ? ` 경계 없는 출장소 인구 ${nf(M.folded_chuljangso)}명은 상위 읍/면에 합산했습니다.` : "";
+  const join = (nb + np === 0)
+    ? `행정동 경계 ${nf(bcount)}개 전부에 인구가 1:1로 결합되었습니다(양방향 미결합 0건).${fold}`
+    : `행정동 경계 ${nf(bcount)}개 중 ${nf((M.rendered ?? bcount) - nb)}개에 인구가 결합되었습니다.${fold} 경계 없는 인구 ${nf(np)}건은 집계에서 제외했습니다.`;
+  document.getElementById("caveat").innerHTML =
+    `<b>데이터 정합성</b> — ${join}
+     경계는 원본 대비 ${M.reduction} 단순화했으나(허용오차 약 35m), <b>면적과 밀도는 단순화 전 원본 좌표로 계산</b>했습니다.
+     ${offscreen > 0 ? `${offscreen}개 동은 표시 범위 밖이라 지도에 보이지 않습니다 — 집계에는 포함됩니다.` : ""}`;
+}
+</script>

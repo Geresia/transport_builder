@@ -1,0 +1,10 @@
+{
+  "name": "transitline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate": "node scripts/validate-all.mjs",
+    "regen": "node packs/example-radial/generate.mjs && node packs/example-corridor/generate.mjs"
+  }
+}
