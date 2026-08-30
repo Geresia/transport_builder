@@ -142,9 +142,22 @@ description "<지역> N개 행정동의 주민등록 인구밀도 지도 — 노
 
 ## 3. 시·군·구 간 이동 플로우 지도
 
-2단계 데이터 확보 시: 자치구·군 간 OD 를 집계해 플로우 맵. 수도권 스크래치패드의
-`build_map.mjs` + `map_slim.json` + `map_template.html` 패턴 재사용 (72 시군구 → 부산 16 구·군).
-warm 램프, 뷰포트는 §1 의 bbox.
+2단계 데이터 확보 시: 자치구·군 간 OD 를 집계해 플로우 맵. warm 램프, 뷰포트는 §1 의 bbox.
+
+**부산 사례 (2026-08-30, KOSIS 통근통학 기반) — 이게 표준 레시피:**
+- 빌드 `scratchpad/pb/build_busanflow.mjs`. 입력 = `mun.json`(전국 시군구 경계, southkorea-maps,
+  구 KOSIS 코드 — 부산 `21*`, 경남 `38*`; `97c82ded` 스크래치패드에 있음) + `commute_od_busan.csv`.
+- **KOSIS "행렬" CSV 파싱 함정:** 축에 시도 rollup(부산광역시)과 그 자식 구(중구…)가 같은 열에 섞여
+  있고, 부산·울산에 `중구/서구/동구/남구/북구` 이름이 겹친다. → dict 금지. **행 순서대로 걸으며
+  시도 컨텍스트 추적**, leaf 만 합산. `미상`·`기타` 는 시도마다 하나씩 + 전국 하나 = 여러 번 나옴.
+- **검산 (필수, 이거 하나로 파싱 전체 검증):** 각 origin 의 `계` 행 == Σ(rollup 아닌 모든 dest 행).
+- 출력 `busan-flow.json` (top-level `vb`, `sgg[{n,cx,cy}]`, `shapes`, `flows{oi:{total,arr:[[di,v]]}}`).
+  범위 밖 목적지(울산·타 경남)는 `EXT = sgg.length` 한 칸으로 합산.
+- 렌더 = `busan-flow.tpl.html` (map_template.html 에서 시간 슬라이더·목적 토글 제거한 정적판).
+  `__DATA__` 치환 → `docs/<region>-flow.html`. 거주지 클릭 → choropleth + 상위 7 플로우선(ink+halo).
+- **시점 주의문 필수:** 인구총조사는 5년 주기라 최신도 몇 년 전. 그 사이 개통한 노선 회랑은
+  "개통 전 잠재수요"로 명시 (부산: 2010 → 4호선·경전철 2011·동해선 2016 이전).
+- 대구 `commute_od_daegu` 는 2020이지만 목적지=유형 요약이라 OD 매트릭스 아님 → 대구 §3 는 다른 표 필요.
 
 ## 4. 타깃 행정동 심층 프로파일
 
