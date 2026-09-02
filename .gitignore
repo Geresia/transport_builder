@@ -5,8 +5,12 @@ node_modules/
 *.log
 dist/
 build/
-# Generated HTML maps
+# Generated HTML maps — 기본은 제외(빌드 산출물이고 덩치가 크다)
 transitline/docs/*.html
+# 단, 배포판 지도는 커밋한다. 클론해서 바로 열 수 있어야 하고,
+# 들어간 데이터가 전부 공개 라이선스라 저장소가 공개로 바뀌어도 안전하다.
+!transitline/docs/korea-density-game.html
+# korea-density.html(연구판)은 SGIS 집계구가 들어있어 제외 상태를 유지한다.
 # Submodules
 bot/
 depot/
