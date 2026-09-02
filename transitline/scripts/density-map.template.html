@@ -195,7 +195,6 @@ const shortName = (n) => { const p = n.split(" "); return { dong: p.at(-1), sgg:
 
 document.title = `${CONFIG.region} 인구밀도`;
 document.getElementById("title").textContent = `${CONFIG.region} 인구밀도`;
-document.getElementById("eyebrow").textContent = `${F[0]?.sd || CONFIG.region} — 행정동 ${nf(F.length)}`;
 document.getElementById("asof").textContent = M.asOf || "";
 const cs = getComputedStyle(document.documentElement);
 const RAMP = ["--r1","--r2","--r3","--r4","--r5","--r6","--r7","--r8"].map((v) => cs.getPropertyValue(v).trim());
@@ -290,6 +289,14 @@ const SIDO_SHORT = {
   제주특별자치도: "제주",
 };
 const shortSido = (s) => SIDO_SHORT[s] || s.replace(/(특별시|광역시|특별자치시|특별자치도|자치도|도)$/, "");
+
+// 스코프가 여러 시도에 걸치면 첫 동의 시도명만 쓰면 거짓말이 된다 (대전권 =
+// 대전+세종+계룡). 실제로 포함된 시도를 모두 적는다.
+{
+  const sidos = [...new Set(F.map((f) => f.sd))].map(shortSido);
+  document.getElementById("eyebrow").textContent =
+    `${sidos.join(" · ") || CONFIG.region} — 행정동 ${nf(F.length)}`;
+}
 const sggRows = [...new Set(withD.map((f) => f.sg))].map((s) => {
   const g = withD.filter((f) => f.sg === s), ds = g.map((f) => f.d).sort((a, b) => a - b);
   return { s, sd: g[0].sd, n: g.length, pop: g.reduce((a, f) => a + f.p, 0), m: ds[ds.length >> 1] };

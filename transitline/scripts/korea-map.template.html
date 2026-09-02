@@ -1,0 +1,918 @@
+<title>대한민국 인구 지도</title>
+<meta name="description" content="전국 16개 시도 → 3,558개 행정동 → 동별 연령·성별까지 파고드는 인구 지도">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F4F6F7; --surface:#FFFFFF; --surface-2:#EDF1F2;
+  --ink:#0F171C; --ink-2:#44535D; --ink-3:#77878F;
+  --line:#DBE3E5; --line-2:#C4D0D3;
+  --accent:#C2622A;
+  --r1:#E6EFEF; --r2:#C4DEE0; --r3:#9BC9CE; --r4:#6FB2BA;
+  --r5:#47969F; --r6:#2C7783; --r7:#1B5A66; --r8:#0D3D48;
+  --sea:#E8EEEF; --dim:#E3E8E9;
+  --male:#2C7783; --female:#C2622A;
+  --shadow:0 1px 2px rgba(15,23,28,.05),0 8px 24px -12px rgba(15,23,28,.18);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C1114; --surface:#141B1F; --surface-2:#1B2429;
+  --ink:#E7EEF0; --ink-2:#9CAEB5; --ink-3:#6B7D85;
+  --line:#232F35; --line-2:#31414A;
+  --accent:#E08A4C;
+  --r1:#16272B; --r2:#1B3B42; --r3:#215059; --r4:#2A6771;
+  --r5:#357F8A; --r6:#4A9BA5; --r7:#71B9C1; --r8:#A6D8DC;
+  --sea:#0F1619; --dim:#151D21;
+  --male:#4A9BA5; --female:#E08A4C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  --bg:#0C1114; --surface:#141B1F; --surface-2:#1B2429;
+  --ink:#E7EEF0; --ink-2:#9CAEB5; --ink-3:#6B7D85;
+  --line:#232F35; --line-2:#31414A;
+  --accent:#E08A4C;
+  --r1:#16272B; --r2:#1B3B42; --r3:#215059; --r4:#2A6771;
+  --r5:#357F8A; --r6:#4A9BA5; --r7:#71B9C1; --r8:#A6D8DC;
+  --sea:#0F1619; --dim:#151D21;
+  --male:#4A9BA5; --female:#E08A4C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+  line-height:1.55;-webkit-font-smoothing:antialiased;margin:0}
+.wrap{max-width:1340px;margin:0 auto;padding:34px 24px 56px}
+h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.02em}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+header{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between;
+  padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);font-family:"IBM Plex Mono",monospace;margin-bottom:9px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:700;line-height:1.05}
+.sub{color:var(--ink-2);font-size:14.5px;margin-top:9px;max-width:56ch}
+.stamp{display:flex;flex-direction:column;gap:5px;align-items:flex-end;text-align:right}
+.stamp .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.stamp .v{font-size:12.5px;color:var(--ink-2)}
+
+.crumb{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;margin-bottom:14px}
+.crumb button{font:inherit;font-size:13px;border:1px solid var(--line-2);background:var(--surface);
+  color:var(--ink-2);padding:5px 12px;border-radius:99px;cursor:pointer}
+.crumb button:hover{border-color:var(--accent);color:var(--ink)}
+.crumb button[disabled]{background:var(--surface-2);color:var(--ink-3);cursor:default;border-style:dashed}
+.crumb .sep{color:var(--ink-3)}
+.crumb .cur{font-weight:600;color:var(--ink);padding:5px 2px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:18px}
+.stat{background:var(--surface);padding:14px 16px}
+.stat .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  font-family:"IBM Plex Mono",monospace;margin-bottom:6px}
+.stat .v{font-size:24px;font-weight:600;line-height:1.1;letter-spacing:-.025em}
+.stat .u{font-size:12px;color:var(--ink-3);margin-left:3px;font-weight:400}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,.9fr);gap:20px;align-items:start}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.card+.card{margin-top:18px}
+.card-h{padding:13px 17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;
+  align-items:baseline;gap:12px}
+.card-h h2{font-size:13.5px;font-weight:600}
+.card-h .note{font-size:11.5px;color:var(--ink-3)}
+
+.mapbox{position:relative;background:var(--sea);border-radius:0 0 12px 12px;overflow:hidden}
+svg.map{display:block;width:100%;height:auto}
+path.d{stroke:var(--surface);stroke-width:.2;stroke-linejoin:round;cursor:pointer;transition:fill .15s}
+path.d.dim{fill:var(--dim)!important;stroke:var(--dim);cursor:default}
+path.d.on{stroke:var(--accent);stroke-width:1.3;paint-order:stroke}
+path.d.sel{stroke:var(--ink);stroke-width:1.6;paint-order:stroke}
+path.s{stroke:var(--surface);stroke-width:1.1;stroke-linejoin:round;cursor:pointer;transition:fill .15s}
+path.s.on{stroke:var(--accent);stroke-width:2;paint-order:stroke}
+rect.insetbox{fill:none;stroke:var(--line-2);stroke-width:1;stroke-dasharray:3 3}
+text.insetlab{fill:var(--ink-3);font:600 11px "IBM Plex Sans KR";letter-spacing:.04em}
+tspan.insetzoom{fill:var(--ink-3);font-family:"IBM Plex Mono",monospace;font-weight:400}
+.tip{position:absolute;pointer-events:none;opacity:0;transition:opacity .1s;background:var(--surface);
+  border:1px solid var(--line-2);border-radius:8px;padding:9px 12px;box-shadow:var(--shadow);
+  font-size:12.5px;min-width:170px;z-index:5}
+.tip.on{opacity:1}
+.tip .n{font-weight:600;margin-bottom:6px;font-size:13px}
+.tip .row{display:flex;justify-content:space-between;gap:16px;color:var(--ink-2)}
+.tip .row b{color:var(--ink);font-weight:500}
+.tip .hintx{margin-top:6px;color:var(--accent);font-size:11px;font-weight:600}
+
+.legend{padding:15px 17px}
+.ramp{display:flex;height:12px;border-radius:3px;overflow:hidden;margin-bottom:6px}
+.ramp i{flex:1}
+.scale{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-3);
+  font-family:"IBM Plex Mono",monospace;border-top:1px solid var(--line);padding-top:5px}
+.legend .cap{font-size:11.5px;color:var(--ink-2);margin-top:9px;line-height:1.55}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 17px;text-align:right;border-bottom:1px solid var(--line)}
+th{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:500;
+  font-family:"IBM Plex Mono",monospace}
+th:first-child,td:first-child{text-align:left}
+tbody tr:last-child td{border-bottom:none}
+tbody tr.clickable{cursor:pointer}
+tbody tr.clickable:hover{background:var(--surface-2)}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px}
+.scroll{max-height:420px;overflow-y:auto}
+
+/* 동 상세 */
+.pyr{display:flex;flex-direction:column;gap:3px;padding:14px 17px}
+.prow{display:grid;grid-template-columns:1fr 52px 1fr;align-items:center}
+.pcell{display:flex;align-items:center;height:15px}
+.pcell.l{justify-content:flex-end}
+.pbar{height:100%;border-radius:2px;min-width:1px}
+.pbar.m{background:var(--male)} .pbar.f{background:var(--female)}
+.plab{text-align:center;font-size:10px;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+.paxis{display:flex;justify-content:space-between;padding:6px 17px 0;border-top:1px solid var(--line);
+  margin-top:8px;font-size:10.5px;color:var(--ink-3)}
+.pkey{display:flex;gap:14px;font-size:11.5px;color:var(--ink-3)}
+.pkey i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-top:1px solid var(--line)}
+.mini div{background:var(--surface);padding:11px 17px}
+.mini .k{font-size:10.5px;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+.mini .v{font-size:17px;font-weight:600}
+.empty{padding:26px 17px;color:var(--ink-3);font-size:13px;text-align:center;line-height:1.7}
+
+/* 집계구 상세 미니맵 */
+.mmwrap{position:relative;padding:12px 17px 0}
+svg.mm{display:block;width:100%;height:auto;border-radius:6px;background:var(--surface-2)}
+/* 논밭 집계구는 전부 최저 구간이라 면끼리 구별이 안 된다. 경계선을 배경색이 아니라
+   --line 으로 그어야 "여기도 집계구가 여러 개"라는 게 보인다. */
+path.mm-cell{stroke:var(--line);stroke-width:.4;stroke-linejoin:round}
+path.mm-outline{fill:none;stroke:var(--ink-3);stroke-width:1.1;stroke-dasharray:4 3;opacity:.75}
+text.mm-lab{fill:var(--ink);font:600 10px "IBM Plex Mono",monospace;paint-order:stroke;
+  stroke:var(--surface);stroke-width:2.5px;stroke-linejoin:round}
+.mmtip{position:absolute;pointer-events:none;opacity:0;transition:opacity .1s;background:var(--surface);
+  border:1px solid var(--line-2);border-radius:7px;padding:5px 9px;box-shadow:var(--shadow);
+  font-size:11.5px;white-space:nowrap;transform:translate(-50%,-135%);z-index:4}
+.mmramp{display:flex;height:9px;border-radius:2px;overflow:hidden;margin:8px 17px 0}
+.mmramp i{flex:1}
+.mmfoot{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-3);
+  font-family:"IBM Plex Mono",monospace;padding:4px 17px 0}
+.mmcap{font-size:11px;color:var(--ink-2);padding:8px 17px 14px;line-height:1.6}
+
+/* 생활이동 */
+.fwrap{position:relative;padding:12px 17px 0}
+svg.fm{display:block;width:100%;height:auto;border-radius:6px;background:var(--surface-2);
+  cursor:grab;touch-action:none}
+svg.fm.grabbing{cursor:grabbing}
+.fzoom{position:absolute;right:26px;top:21px;display:flex;flex-direction:column;gap:4px}
+.fzoom button{width:26px;height:26px;padding:0;font:inherit;font-size:14px;line-height:1;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);
+  border-radius:6px;cursor:pointer}
+.fzoom button:hover{border-color:var(--accent);color:var(--ink)}
+/* 땅이 패널 배경(--surface-2)과 구별돼야 지도로 읽힌다. --dim 은 배경보다 어두워서
+   확대하면 육지가 구멍처럼 보인다. */
+path.f-base{fill:var(--line);stroke:var(--surface-2);stroke-width:.5;stroke-linejoin:round}
+path.f-line{fill:none;stroke:var(--accent);stroke-linecap:round;opacity:.6}
+circle.f-org{fill:var(--accent);stroke:var(--surface);stroke-width:2}
+circle.f-dst{fill:var(--r7);stroke:var(--surface);stroke-width:1}
+.fctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:11px 17px 0}
+.fseg{display:flex;border:1px solid var(--line-2);border-radius:99px;overflow:hidden}
+.fseg button{font:inherit;font-size:11.5px;border:0;background:var(--surface);color:var(--ink-2);
+  padding:4px 11px;cursor:pointer}
+.fseg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.fctl input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+.fhour{font-family:"IBM Plex Mono",monospace;font-size:12px;font-variant-numeric:tabular-nums;
+  color:var(--ink);min-width:74px;text-align:right}
+.frow{display:grid;grid-template-columns:20px 1fr auto;gap:9px;align-items:baseline;
+  padding:5px 17px 0;font-size:12.5px}
+.frow .rk{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);text-align:right}
+.frow .bar{grid-column:2/-1;height:3px;border-radius:2px;background:var(--accent);opacity:.45;margin-bottom:3px}
+.frow b{font-weight:500}
+.frow .v{font-family:"IBM Plex Mono",monospace;color:var(--ink-2);font-variant-numeric:tabular-nums;font-size:11.5px}
+.frow.self b{color:var(--ink-2)}
+.fhead{display:flex;justify-content:space-between;padding:12px 17px 2px;font-size:10.5px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+.fcap{font-size:11px;color:var(--ink-2);padding:9px 17px 14px;line-height:1.6}
+
+footer{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--ink-3);line-height:1.75}
+footer b{color:var(--ink-2);font-weight:500} footer a{color:var(--ink-2)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div>
+    <div class="eyebrow" id="eyebrow">대한민국 — 행정동 3,558</div>
+    <h1>대한민국 인구 지도</h1>
+    <p class="sub">시도를 누르면 그 지역 행정동으로, 동을 누르면 연령·성별 구조까지 내려갑니다.</p>
+  </div>
+  <div class="stamp">
+    <div><div class="k">인구 기준</div><div class="v mono">2026-07-31</div></div>
+    <div><div class="k">경계 자료</div><div class="v mono">admdongkor</div></div>
+  </div>
+</header>
+
+<nav class="crumb" id="crumb"></nav>
+<div class="stats" id="stats"></div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <div class="card-h"><h2 id="maptitle">전국 행정동 인구밀도</h2><span class="note" id="maphint">시도를 클릭하세요</span></div>
+      <div class="mapbox" id="mapbox"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2 id="tabletitle">시도별 비교</h2><span class="note">밀도는 행정동 중앙값</span></div>
+      <div class="scroll">
+        <table><thead><tr><th id="th0">시도</th><th>행정동</th><th>인구</th><th>중앙 밀도</th></tr></thead>
+        <tbody id="tbl"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-h"><h2>밀도 구간</h2><span class="note">8분위</span></div>
+      <div class="legend">
+        <div class="ramp" id="ramp"></div><div class="scale" id="scale"></div>
+        <p class="cap" id="legcap"></p>
+      </div>
+    </div>
+    <div class="card" id="dongcard">
+      <div class="card-h"><h2 id="dongtitle">동 상세</h2><span class="note" id="dongnote"></span></div>
+      <div id="dongbody"><p class="empty">지도에서 <b>시도 → 행정동</b> 순으로 누르면<br>그 동네의 연령·성별 구조가 여기 나옵니다.</p></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div><b>행정동 경계</b> — 통계청 SGIS 개방자료 기반 <a href="https://github.com/vuski/admdongkor">vuski/admdongkor</a>. 공공누리 제1유형 / 가공물 CC BY 4.0.</div>
+  <div style="margin-top:5px"><b>인구·연령</b> — 행정안전부 「지역별(행정동) 성별 연령별 주민등록 인구수」 2026-07, <a href="https://www.data.go.kr/data/15097972/fileData.do">공공데이터포털</a>. 이용허락범위 제한 없음.</div>
+  <div style="margin-top:5px" id="footflow" hidden><b>생활이동</b> — 서울 열린데이터광장 「수도권 생활이동(출발-도착지 기준)」 <a href="https://data.seoul.go.kr/dataList/OA-22300/F/1/datasetView.do">OA-22300</a>, KT 추정. 2026-06 평일 2일 평균, 내국인.</div>
+  <div style="margin-top:5px" id="footgrid" hidden><b>1km 격자</b> — 국가데이터처 「SGIS 격자 통계 및 경계」 2024, <a href="https://www.data.go.kr/data/15141768/fileData.do">공공데이터포털</a>. 이용허락범위 제한 없음. 분포는 격자, 총량은 위 주민등록에 맞춰 보정(raking)했습니다.</div>
+  <div style="margin-top:5px" id="footoa" hidden><b>집계구</b> — 통계청 SGIS 집계구 경계 2025-06-30 + 집계구별 인구(2024 등록센서스). 총량은 위 주민등록에 맞춰 보정(raking)했습니다. <b>비영리 연구·교육 목적 승인자료 — 재배포 금지.</b></div>
+  <div style="margin-top:5px" id="foot3"></div>
+</footer>
+</div>
+
+<script id="mapdata" type="application/json">__DATA__</script>
+<script id="agedata" type="application/json">__AGE__</script>
+<script id="sidodata" type="application/json">__SIDO__</script>
+<script id="oadata" type="application/json">__OA__</script>
+<script id="flowdata" type="application/json">__FLOW__</script>
+<script>
+"use strict";
+const DATA = JSON.parse(document.getElementById("mapdata").textContent);
+const AGE  = JSON.parse(document.getElementById("agedata").textContent);
+const SIDO = JSON.parse(document.getElementById("sidodata").textContent);
+const F = DATA.features;
+const nf = (n) => Math.round(n).toLocaleString("ko-KR");
+const cs = getComputedStyle(document.documentElement);
+const RAMP = ["--r1","--r2","--r3","--r4","--r5","--r6","--r7","--r8"].map((v) => cs.getPropertyValue(v).trim());
+
+// Quantile bins over the whole country: density runs from a few people per ㎢ in
+// mountain 면 to 50,000+ in Seoul, so equal-interval or log both collapse the cities.
+const withD = F.filter((f) => f.d !== null);
+const sortedD = withD.map((f) => f.d).sort((a, b) => a - b);
+const cuts = Array.from({ length: 7 }, (_, i) => sortedD[Math.floor(((i + 1) / 8) * (sortedD.length - 1))]);
+const binOf = (d) => { let i = 0; while (i < cuts.length && d >= cuts[i]) i++; return i; };
+const colorOf = (d) => (d == null ? cs.getPropertyValue("--surface-2").trim() : RAMP[binOf(d)]);
+
+const SIDO_SHORT = {"서울특별시":"서울","부산광역시":"부산","대구광역시":"대구","인천광역시":"인천",
+  "대전광역시":"대전","울산광역시":"울산","세종특별자치시":"세종","경기도":"경기",
+  "강원특별자치도":"강원","충청북도":"충북","충청남도":"충남","전북특별자치도":"전북",
+  "전남광주통합특별시":"전남·광주","경상북도":"경북","경상남도":"경남","제주특별자치도":"제주"};
+const shortSido = (s) => SIDO_SHORT[s] || s;
+// metro.json 의 n 은 "서울특별시 종로구 사직동" 형태 전체 이름뿐이라 앞머리를 벗긴다.
+// 세종처럼 시군구가 비는 경우까지 감안해 접두어를 지우고 남는 걸 쓴다.
+const dongName = (f) => {
+  let t = f.n;
+  if (f.sd && t.startsWith(f.sd)) t = t.slice(f.sd.length).trim();
+  if (f.sg && t.startsWith(f.sg)) t = t.slice(f.sg.length).trim();
+  return t || f.n;
+};
+
+// ---- projection ----
+// 본토+제주만 한 틀에 담고, 서해5도(백령·대청)와 울릉·독도는 미국 지도가 알래스카·
+// 하와이를 다루듯 모서리 인셋으로 뺀다. 그대로 두면 경도 124.6~131.9 를 다 담느라
+// 한반도가 손톱만 해진다.
+const VIEW = { w: 125.55, e: 129.75, s: 33.06, n: 38.65 };
+const KX = Math.cos(((VIEW.s + VIEW.n) / 2 * Math.PI) / 180);
+const W = 1000, H = Math.round((W * (VIEW.n - VIEW.s)) / ((VIEW.e - VIEW.w) * KX));
+const px = (lon) => ((lon - VIEW.w) / (VIEW.e - VIEW.w)) * W;
+const py = (lat) => ((VIEW.n - lat) / (VIEW.n - VIEW.s)) * H;
+
+// 인셋: 경위도 박스를 화면 박스에 따로 그린다. 축척이 본토와 다르므로 배율을 라벨에 적는다.
+const INSETS = [
+  { key: "seo", label: "서해5도", src: { w: 124.58, e: 124.80, s: 37.72, n: 38.00 }, dst: { x: 26, y: 46, w: 150 } },
+  { key: "ull", label: "울릉도", src: { w: 130.78, e: 130.97, s: 37.42, n: 37.57 }, dst: { x: 0, y: 46, w: 150 } },
+];
+for (const ins of INSETS) {
+  const kx = Math.cos(((ins.src.s + ins.src.n) / 2 * Math.PI) / 180);
+  ins.dst.h = (ins.dst.w * (ins.src.n - ins.src.s)) / ((ins.src.e - ins.src.w) * kx);
+  if (ins.key === "ull") ins.dst.x = W - ins.dst.w - 26;
+  ins.px = (lon) => ins.dst.x + ((lon - ins.src.w) / (ins.src.e - ins.src.w)) * ins.dst.w;
+  ins.py = (lat) => ins.dst.y + ((ins.src.n - lat) / (ins.src.n - ins.src.s)) * ins.dst.h;
+  ins.zoom = (ins.dst.w / (ins.src.e - ins.src.w)) / (W / (VIEW.e - VIEW.w));
+}
+const insetFor = (lon, lat) =>
+  INSETS.find((i) => lon >= i.src.w && lon <= i.src.e && lat >= i.src.s && lat <= i.src.n) || null;
+
+// 링이 어느 틀에 속하는지 첫 점으로 정하고 그 틀의 투영으로 전부 그린다.
+function ringPath(ring) {
+  const ins = insetFor(ring[0][0], ring[0][1]);
+  const X = ins ? ins.px : px, Y = ins ? ins.py : py;
+  return "M" + ring.map((p) => X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join("L") + "Z";
+}
+const shapePath = (g) => g.map((poly) => poly.map(ringPath).join("")).join("");
+
+const dongPaths = F.map((f, i) =>
+  `<path class="d" data-i="${i}" fill="${colorOf(f.d)}" fill-rule="evenodd" d="${shapePath(f.g)}"></path>`).join("");
+const sidoPaths = SIDO.map((s2, i) =>
+  `<path class="s" data-s="${i}" fill="${colorOf(s2.med)}" fill-rule="evenodd" d="${shapePath(s2.g)}"></path>`).join("");
+const insetFrames = INSETS.map((i) =>
+  `<rect class="insetbox" x="${(i.dst.x - 6).toFixed(1)}" y="${(i.dst.y - 6).toFixed(1)}" width="${(i.dst.w + 12).toFixed(1)}" height="${(i.dst.h + 12).toFixed(1)}" rx="4"></rect>` +
+  `<text class="insetlab" x="${(i.dst.x - 5).toFixed(1)}" y="${(i.dst.y - 11).toFixed(1)}">${i.label} <tspan class="insetzoom">×${i.zoom.toFixed(0)}</tspan></text>`).join("");
+
+const box = document.getElementById("mapbox");
+box.innerHTML = `<svg class="map" id="svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="대한민국 인구밀도"><g id="gSido">${sidoPaths}</g><g id="gDong" style="display:none">${dongPaths}</g><g id="gInset">${insetFrames}</g></svg><div class="tip" id="tip"></div>`;
+const svg = document.getElementById("svg"), tip = document.getElementById("tip");
+const els = [...svg.querySelectorAll("path.d")];
+const sels = [...svg.querySelectorAll("path.s")];
+const gSido = document.getElementById("gSido"), gDong = document.getElementById("gDong");
+const sidoIdx = new Map(SIDO.map((s2, i) => [s2.sd, i]));
+
+// group by 시도 / 시군구
+const bySido = new Map(), bySgg = new Map();
+F.forEach((f, i) => {
+  if (!bySido.has(f.sd)) bySido.set(f.sd, []);
+  bySido.get(f.sd).push(i);
+  const key = f.sd + "|" + f.sg;
+  if (!bySgg.has(key)) bySgg.set(key, []);
+  bySgg.get(key).push(i);
+});
+function bboxOf(idxs) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const i of idxs) for (const poly of F[i].g) for (const ring of poly) for (const p of ring) {
+    if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0];
+    if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1];
+  }
+  return [x0, y0, x1, y1];
+}
+
+// ---- state ----
+let level = 0;            // 0 전국 / 1 시도 / 2 동선택
+let curSido = null, curDong = -1, hoverEl = null;
+
+function setView(idxs) {
+  if (!idxs) { svg.setAttribute("viewBox", `0 0 ${W} ${H}`); return; }
+  const [x0, y0, x1, y1] = bboxOf(idxs);
+  const padX = (x1 - x0) * 0.06 + 0.02, padY = (y1 - y0) * 0.06 + 0.02;
+  const a = px(x0 - padX), b = py(y1 + padY), c = px(x1 + padX), e = py(y0 - padY);
+  svg.setAttribute("viewBox", `${a.toFixed(1)} ${b.toFixed(1)} ${(c - a).toFixed(1)} ${(e - b).toFixed(1)}`);
+}
+
+function render() {
+  // 전국에서는 녹인 시도 폴리곤만, 시도를 고르면 그 시도의 행정동만 그린다.
+  // 두 레이어를 겹쳐 두고 토글해야 클릭 판정이 서로 안 섞인다.
+  // SVG 에는 hidden 속성이 안 먹으므로 display 로 켜고 끈다.
+  gSido.style.display = curSido ? "none" : "";
+  gDong.style.display = curSido ? "" : "none";
+  if (curSido) {
+    const inScope = new Set(bySido.get(curSido));
+    els.forEach((el, i) => {
+      el.style.display = inScope.has(i) ? "" : "none";
+      el.classList.toggle("sel", i === curDong);
+    });
+  }
+  sels.forEach((el, i) => el.classList.toggle("sel", false));
+  setView(curSido ? bySido.get(curSido) : null);
+
+  document.getElementById("maptitle").textContent =
+    curSido ? `${shortSido(curSido)} 행정동 인구밀도` : "전국 행정동 인구밀도";
+  document.getElementById("maphint").textContent =
+    curSido ? "행정동을 클릭하세요" : "시도를 클릭하세요";
+
+  // breadcrumb
+  const c = document.getElementById("crumb");
+  let h = `<button ${curSido ? "" : "disabled"} onclick="goNational()">전국</button>`;
+  if (curSido) {
+    h += `<span class="sep">›</span><button ${curDong < 0 ? "disabled" : ""} onclick="goSido()">${shortSido(curSido)}</button>`;
+  }
+  if (curDong >= 0) h += `<span class="sep">›</span><span class="cur">${F[curDong].sg} ${dongName(F[curDong])}</span>`;
+  c.innerHTML = h;
+
+  renderStats();
+  renderTable();
+  renderLegend();
+}
+
+function scopeIdx() { return curSido ? bySido.get(curSido) : F.map((_, i) => i); }
+
+function renderStats() {
+  const idxs = scopeIdx().filter((i) => F[i].d !== null);
+  const pop = idxs.reduce((a, i) => a + F[i].p, 0);
+  const ds = idxs.map((i) => F[i].d).sort((a, b) => a - b);
+  const top = idxs.reduce((a, i) => (F[i].d > F[a].d ? i : a), idxs[0]);
+  document.getElementById("stats").innerHTML = [
+    ["총 인구", nf(pop), "명"],
+    ["행정동", nf(idxs.length), "개"],
+    ["중앙값 밀도", nf(ds[ds.length >> 1]), "인/㎢"],
+    ["최고 밀도", nf(F[top].d), `인/㎢ · ${dongName(F[top])}`],
+  ].map(([k, v, u]) => `<div class="stat"><div class="k">${k}</div><div class="v mono">${v}<span class="u">${u}</span></div></div>`).join("");
+  document.getElementById("eyebrow").textContent =
+    (curSido ? shortSido(curSido) : "대한민국") + ` — 행정동 ${nf(idxs.length)}`;
+}
+
+function renderTable() {
+  const th0 = document.getElementById("th0"), tt = document.getElementById("tabletitle");
+  let rows;
+  if (!curSido) {
+    tt.textContent = "시도별 비교"; th0.textContent = "시도";
+    rows = [...bySido].map(([sd, idxs]) => {
+      const g = idxs.filter((i) => F[i].d !== null);
+      const ds = g.map((i) => F[i].d).sort((a, b) => a - b);
+      return { key: sd, label: shortSido(sd), n: g.length, pop: g.reduce((a, i) => a + F[i].p, 0), m: ds[ds.length >> 1] };
+    });
+  } else {
+    tt.textContent = `${shortSido(curSido)} 시·군·구별 비교`; th0.textContent = "시·군·구";
+    rows = [...bySgg].filter(([k]) => k.startsWith(curSido + "|")).map(([k, idxs]) => {
+      const g = idxs.filter((i) => F[i].d !== null);
+      const ds = g.map((i) => F[i].d).sort((a, b) => a - b);
+      return { key: k, label: k.split("|")[1], n: g.length, pop: g.reduce((a, i) => a + F[i].p, 0), m: ds[ds.length >> 1] };
+    });
+  }
+  rows.sort((a, b) => b.m - a.m);
+  document.getElementById("tbl").innerHTML = rows.map((r) =>
+    `<tr class="${curSido ? "" : "clickable"}" ${curSido ? "" : `onclick="goSido('${r.key}')"`}>
+      <td><span class="swatch" style="background:${colorOf(r.m)}"></span>${r.label}</td>
+      <td class="n">${nf(r.n)}</td><td class="n">${nf(r.pop)}</td><td class="n">${nf(r.m)}</td></tr>`).join("");
+}
+
+function renderLegend() {
+  document.getElementById("ramp").innerHTML = RAMP.map((c) => `<i style="background:${c}"></i>`).join("");
+  document.getElementById("scale").innerHTML =
+    [`<span>${nf(sortedD[0])}</span>`, ...cuts.map((c) => `<span>${nf(c)}</span>`), `<span>${nf(sortedD[sortedD.length - 1])}</span>`].join("");
+  document.getElementById("legcap").innerHTML =
+    `구간은 <b>전국 8분위</b>입니다. 시도를 바꿔도 색 기준은 그대로라 <b>지역끼리 바로 비교</b>됩니다. ` +
+    `밀도가 ${nf(sortedD[0])}부터 ${nf(sortedD[sortedD.length - 1])}까지 ${Math.round(sortedD[sortedD.length - 1] / Math.max(1, sortedD[0])).toLocaleString("ko-KR")}배 벌어져 등간격 눈금으로는 도시가 한 덩어리로 뭉개집니다.`;
+}
+
+// ---- 집계구 (통계청 최소 통계구역, 인구 약 500명 단위) ----
+// 지오메트리는 varint 블롭 하나에 들어있고, 동을 처음 열 때 그 동 몫만 디코딩한다.
+const OA = JSON.parse(document.getElementById("oadata").textContent);
+const OABUF = Uint8Array.from(atob(OA.blob), (c) => c.charCodeAt(0));
+// 배포판(--no-oa)은 집계구가 통째로 빠진다. 승인조건이 비영리 연구·교육 한정이라
+// 상업 배포본에는 넣을 수 없다. 그때는 이 섹션 자체가 없는 것처럼 굴어야 한다.
+const HAS_OA = Object.keys(OA.index).length > 0;
+// 같은 패널이 두 소스를 그린다. 집계구(연구판)는 인구 500명 단위라 도심까지 잘게 쪼개지고,
+// 1km 격자(배포판)는 칸 크기가 같아 비교가 쉬운 대신 작은 동은 담지 못한다.
+const OA_GRID = OA.kind === "1km 격자";
+const OA_UNIT = OA_GRID ? "1km 격자" : "집계구";
+const OA_CNT = OA_GRID ? "칸" : "개";
+if (HAS_OA) document.getElementById(OA_GRID ? "footgrid" : "footoa").hidden = false;
+const oaCache = new Map();
+function readOA(code) {
+  if (oaCache.has(code)) return oaCache.get(code);
+  const meta = OA.index[code]; if (!meta) return null;
+  let p = meta.at;
+  const rv = () => { let x = 0, s = 0, b; do { b = OABUF[p++]; x |= (b & 127) << s; s += 7; } while (b & 128); return x >>> 0; };
+  const rz = () => { const v = rv(); return (v >>> 1) ^ -(v & 1); };
+  const [ox, oy] = meta.o;
+  const cells = [], n = rv();
+  for (let i = 0; i < n; i++) {
+    const pop = rv(), den = rv(), nameId = rv(), nPoly = rv();
+    const rings = [];
+    for (let a = 0; a < nPoly; a++) {
+      const nRing = rv(), poly = [];
+      for (let b = 0; b < nRing; b++) {
+        const nPt = rv(), ring = new Array(nPt);
+        let x = 0, y = 0;
+        for (let k = 0; k < nPt; k++) { x += rz(); y += rz(); ring[k] = [(x + ox) / 1e4, (y + oy) / 1e4]; }
+        poly.push(ring);
+      }
+      rings.push(poly);
+    }
+    cells.push({ p: pop, d: den, nm: nameId ? OA.names[nameId - 1] : null, rings });
+  }
+  oaCache.set(code, cells);
+  return cells;
+}
+
+function drawOA(f) {
+  const meta = OA.index[f.c];
+  const host = document.getElementById("oabox");
+  if (!host) return;
+  if (!HAS_OA) { host.innerHTML = ""; return; }
+  // 상세가 없는 동은 14개뿐이지만, 아무 설명 없이 패널이 사라지면 고장으로 보인다.
+  if (!meta) {
+    // 없는 이유가 소스마다 다르다. 고장으로 보이지 않게 그 이유를 적는다.
+    const why = OA_GRID
+      ? `격자 한 칸이 <b>1km</b>인데 이 동은 ${f.a == null ? "그보다 작아" : `<b>${f.a.toFixed(1)}㎢</b>라`} 안쪽을 나눌 수 없습니다.<br>
+         작은 동은 <b>동 자체가 이미 촘촘해서</b> 더 쪼갤 필요도 없습니다.`
+      : `인구가 적어 <b>집계구가 1개</b>뿐이거나(농촌 면),<br>
+         2024년 등록센서스 시점에 <b>아직 입주 전</b>이던 신축 단지입니다.`;
+    host.innerHTML = `
+      <div class="card-h" style="border-top:1px solid var(--line)"><h2>이 동네 어디에 사나</h2></div>
+      <p class="empty">${why}</p>`;
+    return;
+  }
+  const cells = readOA(f.c);
+
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const p of f.g.flat(2)) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+  const PAD = (x1 - x0) * 0.04 + 0.001; x0 -= PAD; x1 += PAD; y0 -= PAD; y1 += PAD;
+  const W = 560, KX = Math.cos((y0 + y1) / 2 * Math.PI / 180);
+  const H = Math.max(190, Math.min(760, Math.round(W * (y1 - y0) / ((x1 - x0) * KX))));
+  const px = (lo) => ((lo - x0) / (x1 - x0)) * W, py = (la) => ((y1 - la) / (y1 - y0)) * H;
+  const dstr = (rings) => rings.map((poly) => poly.map((r) =>
+    "M" + r.map((p) => px(p[0]).toFixed(1) + "," + py(p[1]).toFixed(1)).join("L") + "Z").join("")).join("");
+
+  const maxD = Math.max(...cells.map((q) => q.d)), minD = Math.min(...cells.map((q) => q.d));
+  const cs = getComputedStyle(document.documentElement);
+  const RAMP = ["--r1","--r2","--r3","--r4","--r5","--r6","--r7","--r8"].map((v) => cs.getPropertyValue(v).trim());
+  // 한 동 안에서 논밭 100/㎢ 부터 아파트 35,000/㎢ 까지 벌어진다. 선형·sqrt 는 마을이
+  // 다 옅어지고 log 는 논밭이 과하게 진해진다. v^0.4 가 셋 다 산다.
+  const col = (v) => RAMP[Math.max(0, Math.min(7, Math.floor(Math.pow(v / maxD, 0.4) * 8)))];
+  const centre = (q) => { const pts = q.rings.flat(2);
+    return [pts.reduce((a, p) => a + px(p[0]), 0) / pts.length, pts.reduce((a, p) => a + py(p[1]), 0) / pts.length]; };
+
+  let svg = "";
+  cells.forEach((q, i) => {
+    svg += `<path class="mm-cell" data-i="${i}" fill="${col(q.d)}" fill-rule="evenodd" d="${dstr(q.rings)}"/>`;
+  });
+  for (const poly of f.g) for (const r of poly)
+    svg += `<path class="mm-outline" d="M${r.map((p) => px(p[0]).toFixed(1) + "," + py(p[1]).toFixed(1)).join("L")}Z"/>`;
+  // 진한 곳 몇 개만 라벨. 이미 놓인 라벨과 겹치면 건너뛴다.
+  const placed = [];
+  for (const q of cells.slice().sort((a, b) => b.d - a.d)) {
+    if (placed.length >= 3 || q.d < maxD * 0.25) break;
+    const [cx, cy] = centre(q);
+    if (placed.some((p) => Math.abs(p[0] - cx) < 46 && Math.abs(p[1] - cy) < 13)) continue;
+    placed.push([cx, cy]);
+    svg += `<text class="mm-lab" x="${cx.toFixed(1)}" y="${(cy + 3).toFixed(1)}" text-anchor="middle">${q.nm || nf(q.d)}</text>`;
+  }
+
+  const nEmpty = cells.filter((q) => q.d < 200).length;
+  host.innerHTML = `
+    <div class="card-h" style="border-top:1px solid var(--line)">
+      <h2>이 동네 어디에 사나</h2>
+      <span class="note">${OA_UNIT} ${nf(meta.n)}${OA_CNT} · 평균 ${nf(meta.gp / meta.n)}명</span>
+    </div>
+    <div class="mmwrap">
+      <svg class="mm" id="mmsvg" viewBox="0 0 ${W} ${H}">${svg}</svg>
+      <div class="mmtip" id="mmtip"></div>
+    </div>
+    <div class="mmramp">${RAMP.map((c) => `<i style="background:${c}"></i>`).join("")}</div>
+    <div class="mmfoot"><span>${nf(minD)}</span><span>명/㎢</span><span>${nf(maxD)}</span></div>
+    <p class="mmcap">점선이 행정동 경계, 조각 하나가 ${OA_GRID
+        ? "<b>1km 격자</b> 한 칸입니다. 어디서나 칸 크기가 같아 칸끼리 바로 비교됩니다. 대신 1km보다 잘게는 못 봅니다"
+        : "<b>집계구</b>(통계청이 인구 약 500명 단위로 그은 최소 통계구역)입니다. 사람이 많은 곳일수록 잘게 쪼개져서, 궁금한 곳일수록 해상도가 올라갑니다"}.
+      가장 진한 곳이 <b>${nf(maxD)}명/㎢</b>인데 ${nEmpty}${OA_CNT}는 200명/㎢ 미만입니다.
+      색은 <b>이 동 안에서의 상대값</b>이라 다른 동과 비교하면 안 됩니다.
+      ${OA_GRID ? "" : "라벨은 <b>수도권만 건물 이름</b>(OSM 수집 범위)이고, 그 밖의 지역은 밀도 숫자입니다."}</p>`;
+
+  const mm = document.getElementById("mmsvg"), tip = document.getElementById("mmtip");
+  mm.addEventListener("pointermove", (e) => {
+    const t = e.target.closest("path.mm-cell");
+    if (!t) { tip.style.opacity = 0; return; }
+    const q = cells[+t.dataset.i];
+    tip.textContent = (q.nm ? q.nm + " · " : "") + `${nf(q.d)}명/㎢ · ${nf(q.p)}명`;
+    const r = mm.parentElement.getBoundingClientRect();
+    tip.style.left = (e.clientX - r.left) + "px";
+    tip.style.top = (e.clientY - r.top) + "px";
+    tip.style.opacity = 1;
+  });
+  mm.addEventListener("pointerleave", () => { tip.style.opacity = 0; });
+}
+
+// ---- 생활이동 (KT·서울시 수도권 생활이동, 어디서 어디로) ----
+// flow2.json 은 자기만의 좌표계(vb)를 들고 다닌다. 전국 지도의 투영과 무관하게
+// 그 안에서 그대로 그리면 되므로 재투영이 없다. 커버리지는 수도권뿐이다.
+const FLOW = JSON.parse(document.getElementById("flowdata").textContent);
+const HAS_FLOW = !!(FLOW.dests && FLOW.dests.length);
+if (HAS_FLOW) document.getElementById("footflow").hidden = false;
+
+const FBUF = HAS_FLOW ? Uint8Array.from(atob(FLOW.blob), (c) => c.charCodeAt(0)) : new Uint8Array(0);
+const DESTKEY = new Map();                       // 목적지 키 -> dests 인덱스
+const ORIGIN_AT = new Map();                     // dests 인덱스 -> blob 안의 출발지 순번
+if (HAS_FLOW) {
+  FLOW.dests.forEach((d, i) => DESTKEY.set(d.k, i));
+  FLOW.originList.forEach((di, oi) => ORIGIN_AT.set(di, oi));
+}
+
+// blob 에는 출발지별 색인이 없다. 처음 쓸 때 한 번만 훑어 오프셋을 만들어 둔다.
+let FOFF = null;
+function flowOffsets() {
+  if (FOFF) return FOFF;
+  FOFF = new Array(FLOW.originList.length);
+  let p = 0;
+  const rv = () => { let x = 0, s = 0, b; do { b = FBUF[p++]; x |= (b & 127) << s; s += 7; } while (b & 128); return x >>> 0; };
+  for (let o = 0; o < FOFF.length; o++) {
+    FOFF[o] = p;
+    for (let k = 0; k < 72; k++) { const n = rv(); for (let j = 0; j < n; j++) { rv(); rv(); } }
+  }
+  return FOFF;
+}
+// 한 출발지의 [시(0~23)][목적(0전체 1출근 2등교)] 블록을 읽는다.
+function flowOf(oi, h, pk) {
+  let p = flowOffsets()[oi];
+  const rv = () => { let x = 0, s = 0, b; do { b = FBUF[p++]; x |= (b & 127) << s; s += 7; } while (b & 128); return x >>> 0; };
+  const skip = h * 3 + pk;
+  for (let k = 0; k < skip; k++) { const n = rv(); for (let j = 0; j < n; j++) { rv(); rv(); } }
+  const n = rv(), out = [];
+  let d = 0;
+  for (let j = 0; j < n; j++) { d += rv(); out.push([d, rv()]); }
+  return out;
+}
+
+// 이 동의 이동 출발지 찾기. 서울은 행정동, 그 밖은 시군구까지만 (OA-22300 원본 한계).
+function flowOriginFor(f) {
+  if (!HAS_FLOW) return null;
+  if (f.sd === "서울특별시") {
+    const di = DESTKEY.get(f.c.slice(0, 8));
+    if (di != null && ORIGIN_AT.has(di)) return { dong: true, oi: ORIGIN_AT.get(di), di };
+  }
+  let oc = f.c.slice(0, 5);
+  if (oc.startsWith("41")) oc = String(Math.floor(+oc / 10) * 10);   // 경기 일반구 -> 시
+  if (oc === "44131" || oc === "44133") oc = "44130";                // 천안 구 -> 시
+  if (FLOW.sggFlows[oc]) return { dong: false, code: oc, di: FLOW.sggOrigins[oc] };
+  return null;
+}
+
+// 이동 지도의 밑그림: 경기·인천 시군구는 flow2 가 들고 있는 path, 서울 행정동은
+// metro.json 을 flow2 좌표계로 투영해서 만든다(둘 다 같은 VIEW 기준).
+const FVIEW = { w: 126.24, e: 127.98, s: 36.42, n: 38.36 };
+const fpx = (lon) => ((lon - FVIEW.w) / (FVIEW.e - FVIEW.w)) * FLOW.vb[0];
+const fpy = (lat) => ((FVIEW.n - lat) / (FVIEW.n - FVIEW.s)) * FLOW.vb[1];
+let FBASE = null;
+function flowBase() {
+  if (FBASE !== null) return FBASE;
+  let s = "";
+  for (const d of FLOW.dests) if (d.s === 0 && d.p) s += `<path class="f-base" d="${d.p}"/>`;
+  for (const f of F) {
+    if (f.sd !== "서울특별시") continue;
+    for (const poly of f.g) for (const r of poly)
+      s += `<path class="f-base" d="M${r.map((p) => fpx(p[0]).toFixed(1) + "," + fpy(p[1]).toFixed(1)).join("L")}Z"/>`;
+  }
+  return (FBASE = s);
+}
+
+let fHour = 8, fPurp = 0;                        // 기본은 아침 8시·전체
+const PURP = ["전체", "출근", "등교"];
+function flowEntries(org) {
+  const pick = (h) => org.dong ? flowOf(org.oi, h, fPurp) : ((FLOW.sggFlows[org.code][h] || [[], [], []])[fPurp] || []);
+  if (fHour < 24) return pick(fHour);
+  const m = new Map();                           // 24 = 하루 전체
+  for (let h = 0; h < 24; h++) for (const [d, v] of pick(h)) m.set(d, (m.get(d) || 0) + v);
+  return [...m.entries()];
+}
+
+function drawFlow(f) {
+  const host = document.getElementById("flowbox");
+  if (!host) return;
+  const org = flowOriginFor(f);
+  if (!org) {
+    if (!HAS_FLOW) { host.innerHTML = ""; return; }
+    host.innerHTML = `
+      <div class="card-h" style="border-top:1px solid var(--line)"><h2>어디로 가나</h2></div>
+      <p class="empty">이 동은 이동 자료가 없습니다.<br>생활이동은 <b>수도권</b>만 조사됩니다.</p>`;
+    return;
+  }
+  let fUser = null;   // 사용자가 직접 확대·이동한 뷰. null 이면 이동 범위에 자동으로 맞춘다.
+  let fCur = null;    // 지금 그려진 뷰 (확대·드래그 계산의 기준)
+  host.innerHTML = `
+    <div class="card-h" style="border-top:1px solid var(--line)">
+      <h2>어디로 가나</h2>
+      <span class="note">${org.dong ? "행정동 단위" : "시군구 단위"}</span>
+    </div>
+    <div class="fctl">
+      <div class="fseg" id="fpurp">${PURP.map((p, i) =>
+        `<button type="button" data-p="${i}" aria-pressed="${i === fPurp}">${p}</button>`).join("")}</div>
+    </div>
+    <div class="fctl">
+      <input type="range" id="fhour" min="0" max="24" value="${fHour}" aria-label="시간대">
+      <span class="fhour" id="fhourlab"></span>
+    </div>
+    <div class="fwrap">
+      <svg class="fm" id="fmsvg" viewBox="0 0 ${FLOW.vb[0]} ${FLOW.vb[1]}"></svg>
+      <div class="fzoom">
+        <button type="button" id="fzin"  title="확대">+</button>
+        <button type="button" id="fzout" title="축소">−</button>
+        <button type="button" id="fzfit" title="이동 범위에 맞추기">⤢</button>
+      </div>
+    </div>
+    <div id="flist"></div>
+    <p class="fcap">KT 추정 이동인구입니다. <b>출근(7~9시)만 신뢰구간이 좋고</b>, 등교는 과소·기타로 몰립니다.
+      서울은 행정동, <b>경기·인천은 시군구까지만</b> 나옵니다 — 원본이 그 단위입니다.
+      지도는 <b>휠·드래그</b>로 확대·이동하고, ⤢ 를 누르면 이동 범위에 다시 맞춰집니다.</p>`;
+
+  host.querySelector("#fpurp").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-p]"); if (!b) return;
+    fPurp = +b.dataset.p;
+    // drawFlow 를 다시 부르면 확대 상태가 날아간다. 버튼만 갱신하고 다시 그린다.
+    host.querySelectorAll("#fpurp button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    paint();
+  });
+  const hr = host.querySelector("#fhour");
+  hr.addEventListener("input", () => { fHour = +hr.value; paint(); });
+
+  // ---- 확대·이동 ----
+  const fsvg = host.querySelector("#fmsvg");
+  const MINW = 8, MAXW = FLOW.vb[0] * 1.3;
+  const zoomAt = (ux, uy, factor) => {
+    const v = fCur; if (!v) return;
+    const w = Math.max(MINW, Math.min(MAXW, v.w * factor)), h = w / (v.w / v.h);
+    fUser = { x: ux - (ux - v.x) * (w / v.w), y: uy - (uy - v.y) * (h / v.h), w, h };
+    paint();
+  };
+  const atPointer = (e) => {
+    const r = fsvg.getBoundingClientRect(), v = fCur;
+    return [v.x + ((e.clientX - r.left) / r.width) * v.w, v.y + ((e.clientY - r.top) / r.height) * v.h];
+  };
+  fsvg.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const [ux, uy] = atPointer(e);
+    zoomAt(ux, uy, e.deltaY > 0 ? 1.2 : 1 / 1.2);
+  }, { passive: false });
+  host.querySelector("#fzin").addEventListener("click", () => zoomAt(fCur.x + fCur.w / 2, fCur.y + fCur.h / 2, 1 / 1.4));
+  host.querySelector("#fzout").addEventListener("click", () => zoomAt(fCur.x + fCur.w / 2, fCur.y + fCur.h / 2, 1.4));
+  host.querySelector("#fzfit").addEventListener("click", () => { fUser = null; paint(); });
+
+  let drag = null;
+  fsvg.addEventListener("pointerdown", (e) => {
+    drag = { sx: e.clientX, sy: e.clientY, v: { ...fCur } };
+    fsvg.setPointerCapture(e.pointerId); fsvg.classList.add("grabbing");
+  });
+  fsvg.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const r = fsvg.getBoundingClientRect();
+    fUser = { x: drag.v.x - (e.clientX - drag.sx) / r.width * drag.v.w,
+              y: drag.v.y - (e.clientY - drag.sy) / r.height * drag.v.h,
+              w: drag.v.w, h: drag.v.h };
+    paint();
+  });
+  const endDrag = () => { drag = null; fsvg.classList.remove("grabbing"); };
+  fsvg.addEventListener("pointerup", endDrag);
+  fsvg.addEventListener("pointercancel", endDrag);
+
+  const SHOWN = 40;                                // 지도에 그리는 목적지 수
+  function paint() {
+    document.getElementById("fhourlab").textContent = fHour === 24 ? "하루 전체" : `${String(fHour).padStart(2, "0")}시`;
+    const ent = flowEntries(org).slice().sort((a, b) => b[1] - a[1]);
+    const O = FLOW.dests[org.di];
+    const max = ent.length ? ent[0][1] : 1;
+    const drawn = ent.slice(0, SHOWN).filter(([di]) => {
+      const D = FLOW.dests[di]; return D && D.cx != null && di !== org.di;
+    });
+
+    // 수도권 전체를 담으면 이동이 가운데 점 하나로 뭉친다. 실제로 선이 닿는
+    // 범위에 맞춰 뷰박스를 조인다(=줌인).
+    let x0 = O.cx, x1 = O.cx, y0 = O.cy, y1 = O.cy;
+    for (const [di] of drawn) {
+      const D = FLOW.dests[di];
+      if (D.cx < x0) x0 = D.cx; if (D.cx > x1) x1 = D.cx;
+      if (D.cy < y0) y0 = D.cy; if (D.cy > y1) y1 = D.cy;
+    }
+    const MIN = 70;                                // 너무 좁으면 과하게 확대된다
+    let aw = Math.max(x1 - x0, MIN), ah = Math.max(y1 - y0, MIN);
+    const cxm = (x0 + x1) / 2, cym = (y0 + y1) / 2;
+    aw *= 1.22; ah *= 1.22;                        // 여백
+    const AS = 1.05;                               // 패널에 맞는 가로:세로
+    if (aw / ah < AS) aw = ah * AS; else ah = aw / AS;
+    const auto = { x: cxm - aw / 2, y: cym - ah / 2, w: aw, h: ah };
+
+    const V = fUser || auto;
+    fCur = V;
+    const { x: vx, y: vy, w, h } = V;
+    const k = w / FLOW.vb[0];                      // 확대된 만큼 선을 가늘게 = 화면상 두께 유지
+
+    let s = flowBase();
+    // 굵기는 sqrt 로. 선형이면 1위가 화면을 덮고 나머지가 안 보인다.
+    for (const [di, v] of drawn) {
+      const D = FLOW.dests[di];
+      s += `<path class="f-line" stroke-width="${((1 + 7 * Math.sqrt(v / max)) * k).toFixed(2)}" d="M${O.cx},${O.cy}L${D.cx},${D.cy}"/>`;
+    }
+    for (const [di, v] of drawn) {
+      const D = FLOW.dests[di];
+      s += `<circle class="f-dst" cx="${D.cx}" cy="${D.cy}" r="${((2 + 5 * Math.sqrt(v / max)) * k).toFixed(2)}" stroke-width="${(1 * k).toFixed(2)}"/>`;
+    }
+    s += `<circle class="f-org" cx="${O.cx}" cy="${O.cy}" r="${(7 * k).toFixed(2)}" stroke-width="${(2 * k).toFixed(2)}"/>`;
+    const svg = document.getElementById("fmsvg");
+    svg.setAttribute("viewBox", `${vx.toFixed(1)} ${vy.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`);
+    svg.innerHTML = s;
+
+    const tot = ent.reduce((a, x) => a + x[1], 0);
+    const rows = ent.slice(0, 12).map(([di, v], i) => {
+      const D = FLOW.dests[di];
+      const self = di === org.di;
+      return `<div class="frow${self ? " self" : ""}">
+        <span class="rk">${i + 1}</span>
+        <span><b>${D ? D.nm : "?"}</b>${self ? ' <span style="color:var(--ink-3)">지역 내</span>' : ""}</span>
+        <span class="v">${nf(v)}명 · ${tot ? (100 * v / tot).toFixed(1) : 0}%</span>
+        <span class="bar" style="width:${tot ? (100 * v / max).toFixed(1) : 0}%"></span></div>`;
+    }).join("");
+    document.getElementById("flist").innerHTML = rows
+      ? `<div class="fhead"><span>${O.nm} 에서 →</span><span>합계 ${nf(tot)}명</span></div>${rows}`
+      : `<p class="empty">이 시간대에는 기준치(5명) 넘는 이동이 없습니다.</p>`;
+  }
+  paint();
+}
+
+// ---- 동 상세 ----
+const B5 = ["0–4","5–9","10–14","15–19","20–24","25–29","30–34","35–39","40–44","45–49",
+            "50–54","55–59","60–64","65–69","70–74","75–79","80–84","85–89","90–94","95–99","100+"];
+function showDong(i) {
+  curDong = i;
+  const f = F[i], a = AGE[f.c];
+  document.getElementById("dongtitle").textContent = `${f.sg} ${dongName(f)}`;
+  document.getElementById("dongnote").textContent = shortSido(f.sd);
+  const body = document.getElementById("dongbody");
+  if (!a) {
+    body.innerHTML = `<p class="empty">이 동은 연령 자료가 없습니다.</p><div id="oabox"></div><div id="flowbox"></div>`;
+    drawOA(f); drawFlow(f); render(); return;
+  }
+  const T = a.tm + a.tf;
+  let o65 = 0; for (let k = 13; k < 21; k++) o65 += a.m[k] + a.f[k];
+  let y15 = 0; for (let k = 0; k < 3; k++) y15 += a.m[k] + a.f[k];
+  const max = Math.max(...a.m, ...a.f);
+  const bars = B5.map((lab, k) => `
+    <div class="prow">
+      <div class="pcell l"><div class="pbar m" style="width:${(a.m[k] / max * 100).toFixed(1)}%" title="${lab}세 남 ${nf(a.m[k])}명"></div></div>
+      <div class="plab">${lab}</div>
+      <div class="pcell"><div class="pbar f" style="width:${(a.f[k] / max * 100).toFixed(1)}%" title="${lab}세 여 ${nf(a.f[k])}명"></div></div>
+    </div>`).reverse().join("");
+  body.innerHTML = `
+    <div class="mini">
+      <div><div class="k">인구</div><div class="v mono">${nf(T)}</div></div>
+      <div><div class="k">밀도</div><div class="v mono">${f.d == null ? "—" : nf(f.d)}</div></div>
+      <div><div class="k">중위연령</div><div class="v mono">${a.med}세</div></div>
+      <div><div class="k">65세 이상</div><div class="v mono">${(o65 / T * 100).toFixed(1)}%</div></div>
+      <div><div class="k">성비 (여100:남)</div><div class="v mono">${(a.tm / a.tf * 100).toFixed(1)}</div></div>
+      <div><div class="k">유소년 0–14</div><div class="v mono">${(y15 / T * 100).toFixed(1)}%</div></div>
+    </div>
+    <div class="card-h" style="border-top:1px solid var(--line)">
+      <h2>인구 피라미드</h2>
+      <span class="pkey"><span><i style="background:var(--male)"></i>남</span><span><i style="background:var(--female)"></i>여</span></span>
+    </div>
+    <div class="pyr">${bars}</div>
+    <div class="paxis"><span>남 ←</span><span>면적 ${f.a == null ? "—" : f.a.toFixed(2)}㎢</span><span>→ 여</span></div>
+    <div id="oabox"></div>
+    <div id="flowbox"></div>`;
+  drawOA(f);
+  drawFlow(f);
+  render();
+}
+
+// ---- navigation ----
+window.goNational = () => { curSido = null; curDong = -1; level = 0; render(); };
+window.goSido = (sd) => { if (sd) curSido = sd; curDong = -1; level = 1; render(); };
+
+svg.addEventListener("click", (e) => {
+  if (!curSido) {
+    const t = e.target.closest("path.s");
+    if (!t) return;
+    curSido = SIDO[+t.dataset.s].sd; curDong = -1; render();
+    return;
+  }
+  const t = e.target.closest("path.d");
+  if (!t || t.style.display === "none") return;
+  showDong(+t.dataset.i);
+});
+svg.addEventListener("mousemove", (e) => {
+  const t = e.target.closest(curSido ? "path.d" : "path.s");
+  if (!t || t.style.display === "none") {
+    tip.classList.remove("on");
+    if (hoverEl) { hoverEl.classList.remove("on"); hoverEl = null; }
+    return;
+  }
+  if (hoverEl !== t) { if (hoverEl) hoverEl.classList.remove("on"); hoverEl = t; hoverEl.classList.add("on"); }
+  if (!curSido) {
+    const s2 = SIDO[+t.dataset.s];
+    tip.innerHTML = `<div class="n">${shortSido(s2.sd)}</div>
+       <div class="row"><span>인구</span><b class="mono">${nf(s2.p)}명</b></div>
+       <div class="row"><span>행정동</span><b class="mono">${nf(s2.n)}개</b></div>
+       <div class="row"><span>중앙 밀도</span><b class="mono">${nf(s2.med)}/㎢</b></div>
+       <div class="hintx">클릭 → 시·군·구와 동 펼치기</div>`;
+  } else {
+    const f = F[+t.dataset.i];
+    tip.innerHTML = `<div class="n">${f.sg} ${dongName(f)}</div>
+       <div class="row"><span>인구</span><b class="mono">${nf(f.p)}명</b></div>
+       <div class="row"><span>면적</span><b class="mono">${f.a == null ? "—" : f.a.toFixed(2)}㎢</b></div>
+       <div class="row"><span>밀도</span><b class="mono">${f.d == null ? "—" : nf(f.d)}/㎢</b></div>
+       <div class="hintx">클릭 → 연령·성별 구조</div>`;
+  }
+  const r = box.getBoundingClientRect();
+  let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14;
+  if (x + 200 > r.width) x = e.clientX - r.left - 200;
+  if (y + 130 > r.height) y = e.clientY - r.top - 130;
+  tip.style.left = x + "px"; tip.style.top = y + "px"; tip.classList.add("on");
+});
+svg.addEventListener("mouseleave", () => {
+  tip.classList.remove("on");
+  if (hoverEl) { hoverEl.classList.remove("on"); hoverEl = null; }
+});
+
+document.getElementById("foot3").innerHTML =
+  `행정동 ${nf(F.length)}개 · 총 ${nf(F.reduce((a, f) => a + f.p, 0))}명. 경계는 원본 대비 ${DATA.meta.reduction} 단순화(허용오차 약 35m)했으나 <b>면적과 밀도는 단순화 전 원본 좌표</b>로 계산했습니다. ` +
+  `서해5도(백령·대청)와 울릉·독도(울릉읍)는 본토에서 멀어 <b>모서리 인셋</b>으로 따로 그렸습니다 — 인셋의 축척은 본토와 다릅니다(라벨의 ×배율).`;
+
+render();
+</script>

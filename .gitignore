@@ -13,3 +13,12 @@ depot/
 monorepo/
 registry/
 template-mod/
+
+# 승인 조건부 데이터 — 비영리 연구·교육 한정, 국외반출/재배포 금지.
+# SGIS 집계구, 도로명주소 건물DB·좌표·도형. 절대 커밋 금지.
+sgis/
+juso/
+oa_*.json
+*.shp
+*.dbf
+*.shx
