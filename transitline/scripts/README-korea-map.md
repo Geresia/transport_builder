@@ -44,6 +44,38 @@ node build-korea-map.mjs ../docs/korea-density.html               # 연구판
 - `--no-oa` 상세분포 아예 제외
 - `--no-flow` 생활이동 제외
 
+## 갈래가 둘이다 — 헷갈리지 말 것
+
+같은 데이터로 만드는 지도가 두 종류다. **서로 독립이고, 고쳐도 상대에 안 옮는다.**
+
+| | SVG 판 | 베이스맵 판 |
+|---|---|---|
+| 파일 | `docs/korea-density*.html` | `docs/korea-basemap.html` |
+| 원본 | `scripts/korea-map.template.html` | 그 HTML 자체 (템플릿 없음) |
+| 배경 | 없음 (경계선만) | **OSM 도로·건물** (MapLibre + pmtiles) |
+| 여는 법 | 더블클릭 | **HTTP 필요** (`py -m http.server`) |
+| 데이터 | HTML 안에 인라인 | 옆 파일들을 fetch |
+| 아티팩트 | 가능 (16MB 한도) | **불가** — CSP 가 타일 fetch 를 막음 |
+| 배포 | claude.ai / git | 자체 호스팅 (Cloudflare R2) |
+
+### 베이스맵 판 (`docs/korea-basemap.html`)
+
+**이 파일이 유일한 원본이다.** 복사본을 따로 만들지 말 것 — 한 번 갈라지면 고친 게 서로 안 옮는다.
+
+기능: 시도 레이어(z8 미만) → 행정동 → 동 클릭 시 오른쪽 패널(인구 피라미드 · 1km 격자 상세 ·
+생활이동). 격자와 이동선은 **실제 지도 위에** 그린다.
+
+```bash
+node build-r2-bundle.mjs        # 업로드 묶음을 transitline/r2/ 에 모은다
+cd ../r2 && py -m http.server 8099
+```
+
+R2 버킷에 `transitline/r2/` 내용을 올리면 배포된다. `korea.pmtiles`(720MB)는 한 번만 올리면 된다.
+
+**⚠️ R2 는 공개 버킷이라 집계구를 올리면 공개 재배포가 된다.** 상세분포는 1km 격자만 쓴다.
+
+없는 데이터 파일은 그 기능만 조용히 빠지므로, 일부만 올려도 지도는 뜬다.
+
 ## 아티팩트 한도
 
 claude.ai 아티팩트는 **16MB**. 배포판(11.5MB)은 들어가고 연구판(22.5MB)은 못 들어간다.

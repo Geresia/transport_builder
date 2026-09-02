@@ -1,0 +1,450 @@
+<!--
+  전국 상세 베이스맵 + 분석 오버레이 (korea-basemap.html 확장판).
+
+  korea-basemap.html 이 하던 것: MapLibre 벡터 베이스맵 + 행정동 인구밀도 choropleth.
+  여기에 SVG 판(korea-density.html)의 분석 기능을 실제 지도 위로 옮겼다.
+    · 시도 레이어 (z8 미만에서만) → 줌인하면 행정동으로 넘어감
+    · 동 클릭 → 오른쪽 패널: 인구 피라미드
+    · 1km 격자 상세 — 그 동 안 인구분포를 실제 도로·건물 위에 바둑판으로
+    · 생활이동 — 어디로 가는지 실제 지도 위에 선으로
+
+  ⚠️ 집계구(SGIS 승인자료)는 여기 넣지 않았다. R2 공개 버킷은 누구나 받을 수 있어
+  공개 재배포가 되기 때문. 대신 1km 격자(공공데이터포털 15141768, 이용허락 제한 없음)를 쓴다.
+  정밀도는 낮다 — 남사읍 유효밀도 격자 5,437 vs 집계구 30,146.
+
+  같이 올릴 파일 (없으면 그 기능만 조용히 빠진다):
+    korea.pmtiles          720MB  베이스맵 타일
+    korea-demand.geojson   4.1MB  행정동 경계+인구
+    korea-sido.geojson     0.6MB  시도 경계
+    korea-age.json         0.7MB  동별 연령·성별
+    korea-grid.json        3.0MB  1km 격자 상세
+    korea-flow.json        3.0MB  생활이동
+
+  file:// 로는 안 열린다(fetch 차단). HTTP 로 띄울 것: npx serve
+
+  라이선스: 베이스맵 OpenStreetMap © / ODbL — 파생물에 share-alike + 출처표기 의무.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>대한민국 상세 지도 — 인구·이동</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<style>
+  html,body{margin:0;height:100%;background:#0c1114;color:#e7eef0;
+    font-family:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif}
+  #map{position:absolute;inset:0}
+  .panel{position:absolute;z-index:2;background:rgba(20,27,31,.94);
+    border:1px solid #232f35;border-radius:10px;
+    box-shadow:0 8px 24px -12px rgba(0,0,0,.7);font-size:12.5px;line-height:1.5}
+  #legend{top:12px;left:12px;max-width:270px;padding:12px 14px}
+  #legend h1{font-size:14px;margin:0 0 6px}
+  #legend label{display:flex;align-items:center;gap:7px;margin:8px 0 6px;cursor:pointer}
+  .ramp{display:flex;height:11px;border-radius:3px;overflow:hidden;margin:6px 0 3px}
+  .ramp i{flex:1}
+  .scale{display:flex;justify-content:space-between;font-size:9.5px;color:#6b7d85;
+    font-family:"IBM Plex Mono",ui-monospace,monospace}
+  .cap{color:#9caeb5;margin-top:8px;font-size:11px}
+  .cap a{color:#9caeb5}
+
+  #side{top:12px;right:12px;bottom:12px;width:330px;display:none;flex-direction:column;overflow:hidden}
+  #side.on{display:flex}
+  .sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+    padding:12px 14px;border-bottom:1px solid #232f35;flex:none}
+  .sh h2{font-size:14px;margin:0}
+  .sh .sg{font-size:11px;color:#6b7d85}
+  .sh button{font:inherit;font-size:16px;line-height:1;border:0;background:none;color:#6b7d85;cursor:pointer;padding:0 2px}
+  .sh button:hover{color:#e7eef0}
+  .sb{overflow-y:auto;padding-bottom:10px}
+  .mini{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#232f35}
+  .mini div{background:#141b1f;padding:9px 14px}
+  .mini .k{font-size:10px;color:#6b7d85;font-family:"IBM Plex Mono",monospace}
+  .mini .v{font-size:16px;font-weight:600}
+  .sec{padding:11px 14px 4px;border-top:1px solid #232f35;margin-top:8px;
+    display:flex;justify-content:space-between;align-items:baseline}
+  .sec h3{font-size:12px;margin:0}
+  .sec .note{font-size:10.5px;color:#6b7d85}
+  .pyr{padding:4px 14px 10px}
+  .prow{display:grid;grid-template-columns:1fr 44px 1fr;align-items:center;height:11px}
+  .pcell{display:flex;height:8px} .pcell.l{justify-content:flex-end}
+  .pbar{height:100%;border-radius:2px;min-width:1px}
+  .pbar.m{background:#4a9ba5} .pbar.f{background:#e08a4c}
+  .plab{text-align:center;font-size:9px;color:#6b7d85;font-family:"IBM Plex Mono",monospace}
+  .seg{display:flex;border:1px solid #31414a;border-radius:99px;overflow:hidden;margin:0 14px}
+  .seg button{flex:1;font:inherit;font-size:11px;border:0;background:#141b1f;color:#9caeb5;padding:4px 0;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:#e08a4c;color:#1a1207}
+  .hr{display:flex;gap:9px;align-items:center;padding:8px 14px 4px}
+  .hr input{flex:1;accent-color:#e08a4c}
+  .hr span{font-family:"IBM Plex Mono",monospace;font-size:11.5px;min-width:62px;text-align:right}
+  .frow{display:grid;grid-template-columns:18px 1fr auto;gap:8px;align-items:baseline;padding:3px 14px 0;font-size:12px}
+  .frow .rk{font-family:"IBM Plex Mono",monospace;font-size:10px;color:#6b7d85;text-align:right}
+  .frow .v{font-family:"IBM Plex Mono",monospace;font-size:11px;color:#9caeb5}
+  .frow .bar{grid-column:2/-1;height:2px;background:#e08a4c;opacity:.45;border-radius:2px;margin-bottom:2px}
+  .empty{padding:14px;color:#6b7d85;font-size:11.5px;text-align:center;line-height:1.7}
+  @media(max-width:760px){#side{left:12px;width:auto;top:auto;height:52%}#legend{max-width:190px}}
+</style>
+
+<div id="map"></div>
+
+<div class="panel" id="legend">
+  <h1>대한민국 인구밀도</h1>
+  <div>행정동 3,558개 · 51,072,491명 (2026-07-31)</div>
+  <label><input type="checkbox" id="toggle" checked> 밀도 오버레이</label>
+  <div class="ramp" id="ramp"></div>
+  <div class="scale" id="scale"></div>
+  <div class="cap">인/㎢, 전국 8분위. 동을 누르면 오른쪽에 상세가 열립니다.<br>
+    베이스맵 &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> 기여자 · ODbL ·
+    타일 <a href="https://protomaps.com">Protomaps</a> ·
+    경계 <a href="https://github.com/vuski/admdongkor">admdongkor</a> ·
+    인구 행정안전부 · 격자 국가데이터처 SGIS · 이동 서울 열린데이터광장 OA-22300.</div>
+</div>
+
+<div class="panel" id="side">
+  <div class="sh">
+    <div><h2 id="dname">—</h2><div class="sg" id="dsg"></div></div>
+    <button type="button" id="dclose" title="닫기">×</button>
+  </div>
+  <div class="sb" id="sbody"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/dist/pmtiles.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@protomaps/basemaps@5.7.2/dist/basemaps.js"></script>
+<script>
+const TILES = "pmtiles://https://pub-77c6e5ed25a849dfa0d813c87b265b10.r2.dev/korea.pmtiles";
+const ASSETS = "https://protomaps.github.io/basemaps-assets";
+const RAMP = ["#16272B","#1B3B42","#215059","#2A6771","#357F8A","#4A9BA5","#71B9C1","#A6D8DC"];
+const OSM_ATTR = '<a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a> contributors, ODbL';
+const nf = (n) => Math.round(Number(n)).toLocaleString("ko-KR");
+
+// 아직 안 올라간 파일이 있어도 그 기능만 빠지고 지도는 살아야 한다.
+const jsonCache = {};
+function loadJSON(url) {
+  if (!(url in jsonCache))
+    jsonCache[url] = fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  return jsonCache[url];
+}
+
+let src;
+if (TILES.startsWith("pmtiles://")) {
+  const proto = new pmtiles.Protocol();
+  maplibregl.addProtocol("pmtiles", proto.tile);
+  src = { type: "vector", url: TILES, attribution: OSM_ATTR };
+} else if (TILES.endsWith(".json")) {
+  src = { type: "vector", url: TILES };
+} else {
+  src = { type: "vector", tiles: [TILES], maxzoom: 15, attribution: OSM_ATTR };
+}
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: { version: 8, glyphs: ASSETS + "/fonts/{fontstack}/{range}.pbf",
+    sprite: ASSETS + "/sprites/v4/dark", sources: { protomaps: src },
+    layers: basemaps.layers("protomaps", basemaps.namedFlavor("dark"), { lang: "ko" }) },
+  center: [126.99, 37.55], zoom: 9.5,
+  maxBounds: [[123.8, 32.6], [132.4, 39.1]],
+  antialias: false, renderWorldCopies: false, fadeDuration: 0,
+});
+map.addControl(new maplibregl.NavigationControl());
+map.addControl(new maplibregl.ScaleControl());
+
+let sel = null;                                   // 선택된 동 코드
+
+map.on("load", async () => {
+  map.setPaintProperty("buildings", "fill-color", "#2b333b");
+  map.setPaintProperty("buildings", "fill-opacity",
+    ["interpolate", ["linear"], ["zoom"], 12, 0.55, 15, 0.95]);
+  const firstSymbol = map.getStyle().layers.find((l) => l.type === "symbol")?.id;
+
+  // 군사시설 마스킹 (국내 지도 서비스와 같은 처리)
+  map.addLayer({ id: "mil-mask", source: "protomaps", "source-layer": "landuse", type: "fill",
+    minzoom: 8, filter: ["in", ["get", "kind"], ["literal", ["military", "naval_base"]]],
+    paint: { "fill-color": "#1f1f1f", "fill-opacity": 1, "fill-antialias": false } });
+
+  const fc = await loadJSON("./korea-demand.geojson");
+  if (!fc) { document.getElementById("legend").insertAdjacentHTML("beforeend",
+    '<div class="cap" style="color:#e08a4c">korea-demand.geojson 을 불러오지 못했습니다.</div>'); return; }
+  map.addSource("demand", { type: "geojson", data: fc });
+
+  const ds = fc.features.map((f) => f.properties.d).filter((d) => d != null).sort((a, b) => a - b);
+  const cuts = Array.from({ length: 7 }, (_, i) => ds[Math.floor(((i + 1) / 8) * (ds.length - 1))]);
+  const stepColor = ["step", ["get", "d"], RAMP[0]];
+  cuts.forEach((c, i) => stepColor.push(c, RAMP[i + 1]));
+
+  // 시도는 멀리서만. 줌인하면 행정동으로 넘어간다.
+  const sido = await loadJSON("./korea-sido.geojson");
+  if (sido) {
+    map.addSource("sido", { type: "geojson", data: sido });
+    map.addLayer({ id: "sido-fill", source: "sido", type: "fill", maxzoom: 8,
+      paint: { "fill-color": ["step", ["get", "med"], RAMP[0], ...cuts.flatMap((c, i) => [c, RAMP[i + 1]])],
+        "fill-opacity": 0.5, "fill-antialias": false } }, firstSymbol);
+    map.addLayer({ id: "sido-line", source: "sido", type: "line", maxzoom: 8,
+      paint: { "line-color": "#0c1114", "line-width": 0.8, "line-opacity": 0.6 } }, firstSymbol);
+  }
+
+  map.addLayer({ id: "demand-fill", source: "demand", type: "fill", minzoom: 7,
+    paint: { "fill-color": stepColor, "fill-antialias": false,
+      "fill-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 11, 0.42, 14, 0.22] } }, firstSymbol);
+  map.addLayer({ id: "demand-line", source: "demand", type: "line", minzoom: 9,
+    paint: { "line-color": "#0c1114", "line-width": 0.4, "line-opacity": 0.45 } }, firstSymbol);
+  map.addLayer({ id: "demand-sel", source: "demand", type: "line", filter: ["==", ["get", "c"], ""],
+    paint: { "line-color": "#e08a4c", "line-width": 2, "line-dasharray": [3, 2] } }, firstSymbol);
+
+  // 격자 상세 + 이동선은 빈 소스로 미리 깔고, 동을 고를 때 채운다.
+  const EMPTY = { type: "FeatureCollection", features: [] };
+  map.addSource("grid", { type: "geojson", data: EMPTY });
+  map.addLayer({ id: "grid-fill", source: "grid", type: "fill",
+    paint: { "fill-color": ["get", "col"], "fill-opacity": 0.78, "fill-antialias": false } }, firstSymbol);
+  map.addLayer({ id: "grid-line", source: "grid", type: "line",
+    paint: { "line-color": "#0c1114", "line-width": 0.5, "line-opacity": 0.5 } }, firstSymbol);
+
+  map.addSource("flow", { type: "geojson", data: EMPTY });
+  map.addLayer({ id: "flow-line", source: "flow", type: "line",
+    layout: { "line-cap": "round" },
+    paint: { "line-color": "#e08a4c", "line-opacity": 0.6, "line-width": ["get", "w"] } });
+  map.addSource("flowpt", { type: "geojson", data: EMPTY });
+  map.addLayer({ id: "flow-pt", source: "flowpt", type: "circle",
+    paint: { "circle-color": "#71b9c1", "circle-radius": ["get", "r"],
+      "circle-stroke-color": "#0c1114", "circle-stroke-width": 1 } });
+
+  document.getElementById("ramp").innerHTML = RAMP.map((c) => `<i style="background:${c}"></i>`).join("");
+  document.getElementById("scale").innerHTML =
+    [ds[0], ...cuts, ds[ds.length - 1]].map((v) => `<span>${nf(v)}</span>`).join("");
+  document.getElementById("toggle").addEventListener("change", (e) => {
+    const v = e.target.checked ? "visible" : "none";
+    for (const id of ["demand-fill", "demand-line", "sido-fill", "sido-line"])
+      if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", v);
+  });
+
+  map.on("click", "demand-fill", (e) => openDong(e.features[0].properties));
+  map.on("click", "sido-fill", (e) => map.fitBounds(bboxOf(e.features[0]), { padding: 40 }));
+  for (const id of ["demand-fill", "sido-fill"]) {
+    map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));
+  }
+  document.getElementById("dclose").addEventListener("click", closeDong);
+});
+
+function bboxOf(f) {
+  let x0 = 180, y0 = 90, x1 = -180, y1 = -90;
+  const walk = (a) => { if (typeof a[0] === "number") {
+      if (a[0] < x0) x0 = a[0]; if (a[0] > x1) x1 = a[0];
+      if (a[1] < y0) y0 = a[1]; if (a[1] > y1) y1 = a[1];
+    } else a.forEach(walk); };
+  walk(f.geometry.coordinates);
+  return [[x0, y0], [x1, y1]];
+}
+
+// ---------- 1km 격자 (korea-grid.json, 집계구판과 같은 varint 포맷) ----------
+function decodeGrid(G, code) {
+  const meta = G.index[code]; if (!meta) return null;
+  const buf = G._buf || (G._buf = Uint8Array.from(atob(G.blob), (c) => c.charCodeAt(0)));
+  let p = meta.at;
+  const rv = () => { let x = 0, s = 0, b; do { b = buf[p++]; x |= (b & 127) << s; s += 7; } while (b & 128); return x >>> 0; };
+  const rz = () => { const v = rv(); return (v >>> 1) ^ -(v & 1); };
+  const [ox, oy] = meta.o, out = [], n = rv();
+  for (let i = 0; i < n; i++) {
+    const pop = rv(), den = rv(); rv();                 // 지명 id — 격자엔 없음
+    const nPoly = rv(), polys = [];
+    for (let a = 0; a < nPoly; a++) {
+      const nRing = rv(), rings = [];
+      for (let b = 0; b < nRing; b++) {
+        const nPt = rv(), ring = new Array(nPt);
+        let x = 0, y = 0;
+        for (let k = 0; k < nPt; k++) { x += rz(); y += rz(); ring[k] = [(x + ox) / 1e4, (y + oy) / 1e4]; }
+        rings.push(ring);
+      }
+      polys.push(rings);
+    }
+    out.push({ p: pop, d: den, polys });
+  }
+  return { cells: out, meta };
+}
+
+// ---------- 생활이동 (korea-flow.json) ----------
+// flow2 좌표는 자기 화면좌표계(vb)다. 실제 지도에 얹으려면 원래 VIEW 로 되돌린다.
+const FV = { w: 126.24, e: 127.98, s: 36.42, n: 38.36 };
+function flowLngLat(F, cx, cy) {
+  return [FV.w + (cx / F.vb[0]) * (FV.e - FV.w), FV.n - (cy / F.vb[1]) * (FV.n - FV.s)];
+}
+function flowOffsets(F) {
+  if (F._off) return F._off;
+  const buf = F._buf || (F._buf = Uint8Array.from(atob(F.blob), (c) => c.charCodeAt(0)));
+  const off = new Array(F.originList.length);
+  let p = 0;
+  const rv = () => { let x = 0, s = 0, b; do { b = buf[p++]; x |= (b & 127) << s; s += 7; } while (b & 128); return x >>> 0; };
+  for (let o = 0; o < off.length; o++) {
+    off[o] = p;
+    for (let k = 0; k < 72; k++) { const n = rv(); for (let j = 0; j < n; j++) { rv(); rv(); } }
+  }
+  return (F._off = off);
+}
+function flowBlock(F, oi, h, pk) {
+  const off = flowOffsets(F);            // _buf 도 여기서 만들어진다. 순서 주의.
+  const buf = F._buf;
+  let p = off[oi];
+  const rv = () => { let x = 0, s = 0, b; do { b = buf[p++]; x |= (b & 127) << s; s += 7; } while (b & 128); return x >>> 0; };
+  for (let k = 0, skip = h * 3 + pk; k < skip; k++) { const n = rv(); for (let j = 0; j < n; j++) { rv(); rv(); } }
+  const n = rv(), out = []; let d = 0;
+  for (let j = 0; j < n; j++) { d += rv(); out.push([d, rv()]); }
+  return out;
+}
+function flowOrigin(F, props) {
+  if (!F._key) { F._key = new Map(); F.dests.forEach((d, i) => F._key.set(d.k, i));
+    F._at = new Map(); F.originList.forEach((di, oi) => F._at.set(di, oi)); }
+  if (props.sd === "서울특별시") {
+    const di = F._key.get(String(props.c).slice(0, 8));
+    if (di != null && F._at.has(di)) return { dong: true, oi: F._at.get(di), di };
+  }
+  let oc = String(props.c).slice(0, 5);
+  if (oc.startsWith("41")) oc = String(Math.floor(+oc / 10) * 10);
+  if (oc === "44131" || oc === "44133") oc = "44130";
+  if (F.sggFlows[oc]) return { dong: false, code: oc, di: F.sggOrigins[oc] };
+  return null;
+}
+
+// ---------- 동 상세 ----------
+const B5 = ["0–4","5–9","10–14","15–19","20–24","25–29","30–34","35–39","40–44","45–49",
+            "50–54","55–59","60–64","65–69","70–74","75–79","80–84","85–89","90–94","95–99","100+"];
+let fHour = 8, fPurp = 0;
+const PURP = ["전체", "출근", "등교"];
+
+function closeDong() {
+  sel = null;
+  document.getElementById("side").classList.remove("on");
+  const E = { type: "FeatureCollection", features: [] };
+  for (const s of ["grid", "flow", "flowpt"]) if (map.getSource(s)) map.getSource(s).setData(E);
+  if (map.getLayer("demand-sel")) map.setFilter("demand-sel", ["==", ["get", "c"], ""]);
+  if (map.getLayer("demand-fill")) map.setFilter("demand-fill", null);
+}
+
+async function openDong(props) {
+  sel = String(props.c);
+  document.getElementById("side").classList.add("on");
+  document.getElementById("dname").textContent = props.n ? String(props.n).split(" ").slice(2).join(" ") || props.n : "—";
+  document.getElementById("dsg").textContent = [props.sd, props.sg].filter(Boolean).join(" · ");
+  map.setFilter("demand-sel", ["==", ["get", "c"], sel]);
+
+  const body = document.getElementById("sbody");
+  body.innerHTML = `
+    <div class="mini">
+      <div><div class="k">인구</div><div class="v">${nf(props.p)}</div></div>
+      <div><div class="k">밀도</div><div class="v">${nf(props.d)}</div></div>
+      <div><div class="k">면적</div><div class="v">${Number(props.a).toFixed(2)}㎢</div></div>
+      <div><div class="k">유효밀도</div><div class="v" id="edv">—</div></div>
+    </div>
+    <div id="agebox"></div><div id="gridbox"></div><div id="flowbox"></div>`;
+
+  drawAge(props);
+  drawGrid(props);
+  drawFlow(props);
+}
+
+async function drawAge(props) {
+  const AGE = await loadJSON("./korea-age.json");
+  const host = document.getElementById("agebox"); if (!host) return;
+  const a = AGE && AGE[sel];
+  if (!a) { host.innerHTML = `<div class="sec"><h3>인구 피라미드</h3></div><p class="empty">연령 자료 없음</p>`; return; }
+  const T = a.tm + a.tf, max = Math.max(...a.m, ...a.f);
+  let o65 = 0; for (let k = 13; k < 21; k++) o65 += a.m[k] + a.f[k];
+  host.innerHTML = `
+    <div class="sec"><h3>인구 피라미드</h3>
+      <span class="note">중위 ${a.med}세 · 65+ ${(o65 / T * 100).toFixed(1)}%</span></div>
+    <div class="pyr">${B5.map((lab, k) => `
+      <div class="prow">
+        <div class="pcell l"><div class="pbar m" style="width:${(a.m[k] / max * 100).toFixed(1)}%"></div></div>
+        <div class="plab">${lab}</div>
+        <div class="pcell"><div class="pbar f" style="width:${(a.f[k] / max * 100).toFixed(1)}%"></div></div>
+      </div>`).reverse().join("")}</div>`;
+}
+
+async function drawGrid(props) {
+  const G = await loadJSON("./korea-grid.json");
+  const host = document.getElementById("gridbox"); if (!host) return;
+  const got = G && decodeGrid(G, sel);
+  if (!got) {
+    host.innerHTML = `<div class="sec"><h3>이 동네 어디에 사나</h3></div>
+      <p class="empty">${G ? `격자 한 칸이 <b>1km</b>인데 이 동은 ${Number(props.a).toFixed(1)}㎢라<br>안쪽을 나눌 수 없습니다.` : "격자 자료 없음"}</p>`;
+    return;
+  }
+  const { cells, meta } = got;
+  const maxD = Math.max(...cells.map((c) => c.d));
+  // 한 동 안에서 논밭과 아파트가 수백 배 벌어진다. v^0.4 가 둘 다 살린다.
+  const col = (v) => RAMP[Math.max(0, Math.min(7, Math.floor(Math.pow(v / maxD, 0.4) * 8)))];
+  map.getSource("grid").setData({ type: "FeatureCollection", features: cells.map((c) => ({
+    type: "Feature", properties: { col: col(c.d), d: c.d, p: Math.round(c.p) },
+    geometry: { type: "MultiPolygon", coordinates: c.polys } })) });
+  // 아래 깔린 동 choropleth 를 빼야 격자 색이 안 흐려진다.
+  map.setFilter("demand-fill", ["!=", ["get", "c"], sel]);
+
+  const ed = Math.round(cells.reduce((a, c) => a + c.p * c.d, 0) / cells.reduce((a, c) => a + c.p, 0));
+  const edv = document.getElementById("edv"); if (edv) edv.textContent = nf(ed);
+  host.innerHTML = `
+    <div class="sec"><h3>이 동네 어디에 사나</h3><span class="note">1km 격자 ${nf(meta.n)}칸</span></div>
+    <p class="empty" style="text-align:left;color:#9caeb5">지도 위에 칸이 깔렸습니다. 가장 진한 칸이
+      <b>${nf(maxD)}명/㎢</b>, 가장 옅은 칸이 <b>${nf(Math.min(...cells.map((c) => c.d)))}명/㎢</b>.
+      단순밀도 ${nf(props.d)} 는 이걸 평평하게 편 값이라, 사람이 실제로 겪는 밀도(유효밀도
+      <b>${nf(ed)}</b>)와 다릅니다. 색은 이 동 안에서의 상대값입니다.</p>`;
+}
+
+async function drawFlow(props) {
+  const F = await loadJSON("./korea-flow.json");
+  const host = document.getElementById("flowbox"); if (!host) return;
+  const org = F && flowOrigin(F, props);
+  if (!org) {
+    host.innerHTML = `<div class="sec"><h3>어디로 가나</h3></div>
+      <p class="empty">${F ? "생활이동은 <b>수도권</b>만 조사됩니다." : "이동 자료 없음"}</p>`;
+    return;
+  }
+  host.innerHTML = `
+    <div class="sec"><h3>어디로 가나</h3>
+      <span class="note">${org.dong ? "행정동" : "시군구"} 단위</span></div>
+    <div class="seg" id="fpurp">${PURP.map((p, i) =>
+      `<button type="button" data-p="${i}" aria-pressed="${i === fPurp}">${p}</button>`).join("")}</div>
+    <div class="hr"><input type="range" id="fhour" min="0" max="24" value="${fHour}"><span id="fhlab"></span></div>
+    <div id="flist"></div>`;
+  host.querySelector("#fpurp").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-p]"); if (!b) return;
+    fPurp = +b.dataset.p;
+    host.querySelectorAll("#fpurp button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    paintFlow(F, org);
+  });
+  const hr = host.querySelector("#fhour");
+  hr.addEventListener("input", () => { fHour = +hr.value; paintFlow(F, org); });
+  paintFlow(F, org);
+}
+
+function paintFlow(F, org) {
+  document.getElementById("fhlab").textContent = fHour === 24 ? "하루 전체" : `${String(fHour).padStart(2, "0")}시`;
+  const pick = (h) => org.dong ? flowBlock(F, org.oi, h, fPurp)
+                                : ((F.sggFlows[org.code][h] || [[], [], []])[fPurp] || []);
+  let ent;
+  if (fHour < 24) ent = pick(fHour);
+  else { const m = new Map();
+    for (let h = 0; h < 24; h++) for (const [d, v] of pick(h)) m.set(d, (m.get(d) || 0) + v);
+    ent = [...m.entries()]; }
+  ent.sort((a, b) => b[1] - a[1]);
+
+  const O = F.dests[org.di], from = flowLngLat(F, O.cx, O.cy);
+  const max = ent.length ? ent[0][1] : 1;
+  const lines = [], pts = [];
+  for (const [di, v] of ent.slice(0, 40)) {
+    const D = F.dests[di];
+    if (!D || D.cx == null || di === org.di) continue;
+    const to = flowLngLat(F, D.cx, D.cy);
+    lines.push({ type: "Feature", properties: { w: +(1 + 6 * Math.sqrt(v / max)).toFixed(2), v },
+      geometry: { type: "LineString", coordinates: [from, to] } });
+    pts.push({ type: "Feature", properties: { r: +(2.5 + 5 * Math.sqrt(v / max)).toFixed(2) },
+      geometry: { type: "Point", coordinates: to } });
+  }
+  map.getSource("flow").setData({ type: "FeatureCollection", features: lines });
+  map.getSource("flowpt").setData({ type: "FeatureCollection", features: pts });
+
+  const tot = ent.reduce((a, x) => a + x[1], 0);
+  document.getElementById("flist").innerHTML = ent.slice(0, 10).map(([di, v], i) => {
+    const D = F.dests[di], self = di === org.di;
+    return `<div class="frow"><span class="rk">${i + 1}</span>
+      <span>${D ? D.nm : "?"}${self ? ' <span style="color:#6b7d85">지역 내</span>' : ""}</span>
+      <span class="v">${nf(v)}명 · ${tot ? (100 * v / tot).toFixed(1) : 0}%</span>
+      <span class="bar" style="width:${tot ? (100 * v / max).toFixed(1) : 0}%"></span></div>`;
+  }).join("") || `<p class="empty">이 시간대엔 기준치(5명) 넘는 이동이 없습니다.</p>`;
+}
+</script>
