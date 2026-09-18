@@ -16,28 +16,88 @@ shape rather than hand-editing further.
 | `manifest.json`, `demand.json` | done — required by the format |
 | `obstacles.json` | done — 19,495 OSM building footprints, 4 hub districts only (Marunouchi/Tokyo Station/Ginza, Shinjuku, Shibuya, Ikebukuro), not city-wide |
 | `basemap` | **not present.** See below |
-| `demand.json[].jobs` | **not present.** Only `residents` (2020 census population per ward) — same gap the Korean packs have (`transitline/README.md` §"The open question for Phase 2") |
+| `kanto-region.json` | done — tier-1 satellite-city boundaries, see below |
+| `demand.json[].jobs` | **not present.** Only `residents` — same gap the Korean packs have (`transitline/README.md` §"The open question for Phase 2") |
 
-## Scope: 23 wards only, not all of 1都7県
+## Scope: 23 wards + tier-1 satellite cities, all with population now
 
-The source artifact's road/rail/river network and `kanto_region.json`
-(380 municipalities) cover the full Greater Tokyo area, matching this pack's
-`bbox`. But `demand.json` currently has points **only for Tokyo's 23 special
-wards** — no population data was sourced for the other 357 municipalities
-(Kanagawa/Saitama/Chiba/... cities) yet. Extending coverage means repeating
-§1 of `docs/region-map-playbook.md` for Japan: find a municipality-level
-population source for the outer prefectures, analogous to 행안부 주민등록
-인구 for Korea.
+`demand.json` has 242 points: the original 23 special wards plus 219 more
+covering Saitama/Chiba/Kanagawa and Tokyo's Tama area (added later, not part
+of the original hand-conversion).
 
-**`bbox` deliberately excludes 7 municipalities** legally part of 東京都 but
-with zero rail connectivity — 大島町・新島村・神津島村・三宅村・御蔵島村・
-八丈町・小笠原村 (Izu and Ogasawara island villages, one of them ~1,000km
-south of the mainland). `kanto_region.json` tags all of them `tier: 1`
-("핵심 생활권"), which is wrong — they're not reachable by rail at all. This
-is a pre-existing data-quality bug in the source artifact, inherited but
-**not fixed here** (out of scope for a data-restructuring pass); worth a
-one-line filter if that artifact or `kanto_region.json` is reused directly.
-Scope rule per the playbook: "지하철이 가는 모든 지역."
+`kanto-region.json` is a filtered copy of the source artifact's
+`kanto_region.json` (see "Where this data came from" below), kept to
+**tier 1 only** — the source's own 1都3県 (Tokyo + Saitama + Chiba +
+Kanagawa) tiering, roughly the Greater Tokyo analogue of Seoul's 수도권
+(서울+경기+인천). It originally had 226 records after excluding the 23
+special wards (already in `wards-reference.json`); **7 more were dropped**
+here — 大島町・新島村・神津島村・三宅村・御蔵島村・八丈町・小笠原村, the
+Izu/Ogasawara island municipalities the source artifact mistakenly tagged
+`tier: 1` despite having zero rail connectivity (one is ~1,000km from the
+mainland). This was a known bug the original hand-conversion pass had left
+unfixed ("worth a one-line filter if reused directly") — fixed now, since
+filling in population meant touching this file anyway. **219 records
+remain.**
+
+`demand.json`'s new points carry `code` (the 5-digit JIS local-government
+code, matching `kanto-region.json`'s `code`) rather than the 6-digit
+`jisCode` the original 23 wards use — the two pipelines used different
+numbering conventions, kept as-is rather than normalized. Each new point
+also carries `popDate`, since the population figures are **not all the same
+vintage**:
+
+- 141 points (regular cities/towns/villages) → **2020年国勢調査**
+  (`popDate: "2020"`), from Wikipedia's "List of cities in Saitama/Chiba/
+  Kanagawa Prefecture by population" pages plus individual lookups (official
+  town sites and 総務省統計局/千葉県 publications) for the 12 small towns/
+  villages below those pages' 10,000-population cutoff.
+- 4 points (鋸南町・長南町・大多喜町・長柄町) → `popDate: "2020-derived"` —
+  not directly stated anywhere found; back-calculated from 千葉県's official
+  "令和2年国勢調査 結果速報" PDF, which publishes each town's population
+  *change* (前回比 decrease amount + rate) rather than the raw 2020 figure.
+  `prev = decrease/rate; pop2020 = prev - decrease`. Cross-checks the initial
+  (now-replaced) figures for these four within 0.5%.
+- 74 points (30 Tokyo Tama-area municipalities + the 44 wards of designated
+  cities さいたま市/千葉市/横浜市/川崎市/相模原市, which `kanto-region.json`
+  already splits into wards, not one point per city) → `popDate: "2026-08"`,
+  i.e. **推計人口 as of 2026-08-01**, from each city's Japanese Wikipedia
+  article (city-level for the wards, and Wikipedia's dedicated
+  "東京都の人口統計" article for Tama) — these render a live current-estimate
+  template, not the 2020 census. Getting these as 2020-census figures instead
+  would mean pulling e-Stat's actual census tables rather than Wikipedia's
+  infobox-style tables, not attempted here.
+
+All figures were cross-checked against each city's known total (e.g. summing
+Yokohama's 18 wards landed within 0.03% of the ~3.76M total quoted
+elsewhere in the same article) before being accepted.
+
+**Licensing caveat — resolved.** An earlier pass had pulled the 30 Tama
+points and 10 small Chiba/Kanagawa town figures from a "Local Opendata"
+aggregator site (figures-ranking.local-opendata.jp) whose own reuse terms
+were never found (no footer/About/terms page turned up anything). All of
+those have since been **replaced or independently re-confirmed**:
+Tama → Wikipedia's "東京都の人口統計" article (CC BY-SA 4.0, same figures'
+source as the ward breakdowns); the 10 small towns → either 千葉県's own
+statistics-course PDF (芝山町, and the four `2020-derived` towns above) or
+search-indexed citations of 総務省統計局's official 2020 census results
+(御宿町・真鶴町・山北町・中井町). Local Opendata is no longer a source this
+pack relies on — removed from `manifest.json`'s `data.sources`.
+
+`viewer.html` now renders `kanto-region.json` as a real choropleth (joined
+to `demand.json` via `code`), not the placeholder background layer it was
+before population existed — but its color ramp uses different break points
+than the 23-ward one, so the two aren't directly comparable by color alone
+(same 8-color ramp, different quantiles).
+
+`kanto-region.json` is not one of the format's defined file slots
+(`citypack-format.md` only names `demand`/`obstacles`/`basemap`) — it's
+referenced from `manifest.json`'s `files.region` as an additive,
+engine-ignorable key per the format's own versioning rule ("unknown keys
+must be ignored, never rejected"). Worth folding into the spec properly if
+another pack ends up needing the same "boundaries" shape outside `demand`.
+
+Scope rule per the playbook: "지하철이 가는 모든 지역" — matches here now
+that the islands are gone.
 
 ## The basemap gap (road / rail / river network)
 

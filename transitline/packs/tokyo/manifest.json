@@ -10,7 +10,8 @@
     "attribution": [
       "© OpenStreetMap contributors",
       "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
-      "人口: Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)"
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md"
     ],
     "sources": [
       {
@@ -27,11 +28,27 @@
         "name": "Special wards of Tokyo — population by ward (2020 census figures)",
         "url": "https://en.wikipedia.org/wiki/Special_wards_of_Tokyo",
         "license": "CC-BY-SA-4.0"
+      },
+      {
+        "name": "Wikipedia — List of cities in Saitama/Chiba/Kanagawa Prefecture by population, Tama area, \"東京都の人口統計\", and Japanese-language city articles for Saitama/Chiba/Yokohama/Kawasaki/Sagamihara ward breakdowns",
+        "url": "https://en.wikipedia.org/wiki/List_of_cities_in_Saitama_Prefecture_by_population",
+        "license": "CC-BY-SA-4.0"
+      },
+      {
+        "name": "総務省統計局 (Statistics Bureau of Japan) — 令和2年国勢調査 (2020 census) official results, cited for small Chiba/Kanagawa municipalities not covered by the Wikipedia lists (直接引用 via search-indexed citations, not a bulk file pull)",
+        "url": "https://www.stat.go.jp/data/kokusei/2020/kekka.html",
+        "license": "Japan government statistics — public, free commercial reuse per standard e-Stat/statistics terms"
+      },
+      {
+        "name": "千葉県総合企画部統計課 — 令和2年国勢調査 結果速報（千葉県）, used to cross-check/derive figures for 鋸南町・長南町・大多喜町・長柄町・芝山町",
+        "url": "https://www.pref.chiba.lg.jp/toukei/press/2021/documents/r02kokucho-sokuhou-gaiyou.pdf",
+        "license": "千葉県 official publication — public statistical release"
       }
     ]
   },
   "files": {
     "demand": "demand.json",
-    "obstacles": "obstacles.json"
+    "obstacles": "obstacles.json",
+    "region": "kanto-region.json"
   }
 }

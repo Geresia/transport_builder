@@ -300,6 +300,2853 @@
                        "kind":  "mixed",
                        "jisCode":  131164,
                        "area_km2":  12.95
+                   },
+                   {
+                       "id":  "kanto-11101",
+                       "name":  "さいたま市 西区",
+                       "location":  [
+                                        139.57576,
+                                        35.91401
+                                    ],
+                       "residents":  94343,
+                       "kind":  "mixed",
+                       "code":  "11101",
+                       "area_km2":  30.87,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-11102",
+                       "name":  "さいたま市 北区",
+                       "location":  [
+                                        139.60986,
+                                        35.93380
+                                    ],
+                       "residents":  148504,
+                       "kind":  "mixed",
+                       "code":  "11102",
+                       "area_km2":  13.04,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-11103",
+                       "name":  "さいたま市 大宮区",
+                       "location":  [
+                                        139.61925,
+                                        35.89909
+                                    ],
+                       "residents":  126249,
+                       "kind":  "mixed",
+                       "code":  "11103",
+                       "area_km2":  13.61,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-11104",
+                       "name":  "さいたま市 見沼区",
+                       "location":  [
+                                        139.66083,
+                                        35.92865
+                                    ],
+                       "residents":  167389,
+                       "kind":  "mixed",
+                       "code":  "11104",
+                       "area_km2":  33.38,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-11105",
+                       "name":  "さいたま市 中央区",
+                       "location":  [
+                                        139.62419,
+                                        35.87698
+                                    ],
+                       "residents":  104341,
+                       "kind":  "mixed",
+                       "code":  "11105",
+                       "area_km2":  5.1,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-11106",
+                       "name":  "さいたま市 桜区",
+                       "location":  [
+                                        139.60079,
+                                        35.86359
+                                    ],
+                       "residents":  99166,
+                       "kind":  "mixed",
+                       "code":  "11106",
+                       "area_km2":  17.18,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-11107",
+                       "name":  "さいたま市 浦和区",
+                       "location":  [
+                                        139.64793,
+                                        35.88219
+                                    ],
+                       "residents":  170319,
+                       "kind":  "mixed",
+                       "code":  "11107",
+                       "area_km2":  9.54,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-11108",
+                       "name":  "さいたま市 南区",
+                       "location":  [
+                                        139.65032,
+                                        35.84693
+                                    ],
+                       "residents":  197091,
+                       "kind":  "mixed",
+                       "code":  "11108",
+                       "area_km2":  18.68,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-11109",
+                       "name":  "さいたま市 緑区",
+                       "location":  [
+                                        139.69646,
+                                        35.88540
+                                    ],
+                       "residents":  133537,
+                       "kind":  "mixed",
+                       "code":  "11109",
+                       "area_km2":  27.55,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-11110",
+                       "name":  "さいたま市 岩槻区",
+                       "location":  [
+                                        139.70980,
+                                        35.94714
+                                    ],
+                       "residents":  110280,
+                       "kind":  "mixed",
+                       "code":  "11110",
+                       "area_km2":  49.63,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-11201",
+                       "name":  "川越市",
+                       "location":  [
+                                        139.47589,
+                                        35.90447
+                                    ],
+                       "residents":  354680,
+                       "kind":  "mixed",
+                       "code":  "11201",
+                       "area_km2":  106.05,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11202",
+                       "name":  "熊谷市",
+                       "location":  [
+                                        139.37025,
+                                        36.16015
+                                    ],
+                       "residents":  194439,
+                       "kind":  "mixed",
+                       "code":  "11202",
+                       "area_km2":  164.7,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11203",
+                       "name":  "川口市",
+                       "location":  [
+                                        139.72837,
+                                        35.83970
+                                    ],
+                       "residents":  594461,
+                       "kind":  "mixed",
+                       "code":  "11203",
+                       "area_km2":  61.29,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11206",
+                       "name":  "行田市",
+                       "location":  [
+                                        139.48342,
+                                        36.15105
+                                    ],
+                       "residents":  78671,
+                       "kind":  "mixed",
+                       "code":  "11206",
+                       "area_km2":  62.19,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11207",
+                       "name":  "秩父市",
+                       "location":  [
+                                        138.95413,
+                                        35.98114
+                                    ],
+                       "residents":  59706,
+                       "kind":  "mixed",
+                       "code":  "11207",
+                       "area_km2":  580.89,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11208",
+                       "name":  "所沢市",
+                       "location":  [
+                                        139.45420,
+                                        35.80278
+                                    ],
+                       "residents":  342535,
+                       "kind":  "mixed",
+                       "code":  "11208",
+                       "area_km2":  72.02,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11209",
+                       "name":  "飯能市",
+                       "location":  [
+                                        139.23524,
+                                        35.88335
+                                    ],
+                       "residents":  80391,
+                       "kind":  "mixed",
+                       "code":  "11209",
+                       "area_km2":  192.81,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11210",
+                       "name":  "加須市",
+                       "location":  [
+                                        139.60964,
+                                        36.14208
+                                    ],
+                       "residents":  111702,
+                       "kind":  "mixed",
+                       "code":  "11210",
+                       "area_km2":  135.42,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11211",
+                       "name":  "本庄市",
+                       "location":  [
+                                        139.14386,
+                                        36.20743
+                                    ],
+                       "residents":  78623,
+                       "kind":  "mixed",
+                       "code":  "11211",
+                       "area_km2":  87.78,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11212",
+                       "name":  "東松山市",
+                       "location":  [
+                                        139.39779,
+                                        36.04304
+                                    ],
+                       "residents":  91838,
+                       "kind":  "mixed",
+                       "code":  "11212",
+                       "area_km2":  65.42,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11214",
+                       "name":  "春日部市",
+                       "location":  [
+                                        139.76525,
+                                        35.98316
+                                    ],
+                       "residents":  229767,
+                       "kind":  "mixed",
+                       "code":  "11214",
+                       "area_km2":  66.62,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11215",
+                       "name":  "狭山市",
+                       "location":  [
+                                        139.41324,
+                                        35.86501
+                                    ],
+                       "residents":  148712,
+                       "kind":  "mixed",
+                       "code":  "11215",
+                       "area_km2":  48.56,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11216",
+                       "name":  "羽生市",
+                       "location":  [
+                                        139.55547,
+                                        36.17891
+                                    ],
+                       "residents":  52879,
+                       "kind":  "mixed",
+                       "code":  "11216",
+                       "area_km2":  60.89,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11217",
+                       "name":  "鴻巣市",
+                       "location":  [
+                                        139.51036,
+                                        36.07850
+                                    ],
+                       "residents":  116864,
+                       "kind":  "mixed",
+                       "code":  "11217",
+                       "area_km2":  69.2,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11218",
+                       "name":  "深谷市",
+                       "location":  [
+                                        139.26555,
+                                        36.17754
+                                    ],
+                       "residents":  141336,
+                       "kind":  "mixed",
+                       "code":  "11218",
+                       "area_km2":  144.06,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11219",
+                       "name":  "上尾市",
+                       "location":  [
+                                        139.58171,
+                                        35.96050
+                                    ],
+                       "residents":  227020,
+                       "kind":  "mixed",
+                       "code":  "11219",
+                       "area_km2":  45.54,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11221",
+                       "name":  "草加市",
+                       "location":  [
+                                        139.80254,
+                                        35.83963
+                                    ],
+                       "residents":  248037,
+                       "kind":  "mixed",
+                       "code":  "11221",
+                       "area_km2":  29.43,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11222",
+                       "name":  "越谷市",
+                       "location":  [
+                                        139.79076,
+                                        35.90126
+                                    ],
+                       "residents":  341765,
+                       "kind":  "mixed",
+                       "code":  "11222",
+                       "area_km2":  59.89,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11223",
+                       "name":  "蕨市",
+                       "location":  [
+                                        139.67580,
+                                        35.82651
+                                    ],
+                       "residents":  74326,
+                       "kind":  "mixed",
+                       "code":  "11223",
+                       "area_km2":  1.61,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11224",
+                       "name":  "戸田市",
+                       "location":  [
+                                        139.65805,
+                                        35.81344
+                                    ],
+                       "residents":  140868,
+                       "kind":  "mixed",
+                       "code":  "11224",
+                       "area_km2":  19.85,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11225",
+                       "name":  "入間市",
+                       "location":  [
+                                        139.37092,
+                                        35.81778
+                                    ],
+                       "residents":  145723,
+                       "kind":  "mixed",
+                       "code":  "11225",
+                       "area_km2":  42.99,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11227",
+                       "name":  "朝霞市",
+                       "location":  [
+                                        139.60238,
+                                        35.81222
+                                    ],
+                       "residents":  141036,
+                       "kind":  "mixed",
+                       "code":  "11227",
+                       "area_km2":  17.96,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11228",
+                       "name":  "志木市",
+                       "location":  [
+                                        139.57770,
+                                        35.83876
+                                    ],
+                       "residents":  75377,
+                       "kind":  "mixed",
+                       "code":  "11228",
+                       "area_km2":  9.83,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11229",
+                       "name":  "和光市",
+                       "location":  [
+                                        139.62299,
+                                        35.79515
+                                    ],
+                       "residents":  83997,
+                       "kind":  "mixed",
+                       "code":  "11229",
+                       "area_km2":  7.49,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11230",
+                       "name":  "新座市",
+                       "location":  [
+                                        139.55371,
+                                        35.79185
+                                    ],
+                       "residents":  166104,
+                       "kind":  "mixed",
+                       "code":  "11230",
+                       "area_km2":  27.61,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11231",
+                       "name":  "桶川市",
+                       "location":  [
+                                        139.55794,
+                                        36.01165
+                                    ],
+                       "residents":  74778,
+                       "kind":  "mixed",
+                       "code":  "11231",
+                       "area_km2":  26.73,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11232",
+                       "name":  "久喜市",
+                       "location":  [
+                                        139.65994,
+                                        36.08163
+                                    ],
+                       "residents":  150599,
+                       "kind":  "mixed",
+                       "code":  "11232",
+                       "area_km2":  78.97,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11233",
+                       "name":  "北本市",
+                       "location":  [
+                                        139.52133,
+                                        36.02547
+                                    ],
+                       "residents":  65228,
+                       "kind":  "mixed",
+                       "code":  "11233",
+                       "area_km2":  19.08,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11234",
+                       "name":  "八潮市",
+                       "location":  [
+                                        139.84298,
+                                        35.81835
+                                    ],
+                       "residents":  93412,
+                       "kind":  "mixed",
+                       "code":  "11234",
+                       "area_km2":  12.78,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11235",
+                       "name":  "富士見市",
+                       "location":  [
+                                        139.55117,
+                                        35.86610
+                                    ],
+                       "residents":  111881,
+                       "kind":  "mixed",
+                       "code":  "11235",
+                       "area_km2":  20.6,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11237",
+                       "name":  "三郷市",
+                       "location":  [
+                                        139.86379,
+                                        35.83299
+                                    ],
+                       "residents":  142177,
+                       "kind":  "mixed",
+                       "code":  "11237",
+                       "area_km2":  29.25,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11238",
+                       "name":  "蓮田市",
+                       "location":  [
+                                        139.64423,
+                                        35.99700
+                                    ],
+                       "residents":  61530,
+                       "kind":  "mixed",
+                       "code":  "11238",
+                       "area_km2":  30.98,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11239",
+                       "name":  "坂戸市",
+                       "location":  [
+                                        139.39820,
+                                        35.95696
+                                    ],
+                       "residents":  100300,
+                       "kind":  "mixed",
+                       "code":  "11239",
+                       "area_km2":  41.34,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11240",
+                       "name":  "幸手市",
+                       "location":  [
+                                        139.74374,
+                                        36.07503
+                                    ],
+                       "residents":  50095,
+                       "kind":  "mixed",
+                       "code":  "11240",
+                       "area_km2":  34.05,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11241",
+                       "name":  "鶴ヶ島市",
+                       "location":  [
+                                        139.40107,
+                                        35.93960
+                                    ],
+                       "residents":  70198,
+                       "kind":  "mixed",
+                       "code":  "11241",
+                       "area_km2":  16.62,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11242",
+                       "name":  "日高市",
+                       "location":  [
+                                        139.33915,
+                                        35.89815
+                                    ],
+                       "residents":  54591,
+                       "kind":  "mixed",
+                       "code":  "11242",
+                       "area_km2":  50.16,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11243",
+                       "name":  "吉川市",
+                       "location":  [
+                                        139.85429,
+                                        35.88759
+                                    ],
+                       "residents":  72028,
+                       "kind":  "mixed",
+                       "code":  "11243",
+                       "area_km2":  28.83,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11245",
+                       "name":  "ふじみ野市",
+                       "location":  [
+                                        139.50762,
+                                        35.85902
+                                    ],
+                       "residents":  113640,
+                       "kind":  "mixed",
+                       "code":  "11245",
+                       "area_km2":  13.47,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11246",
+                       "name":  "白岡市",
+                       "location":  [
+                                        139.67923,
+                                        36.01297
+                                    ],
+                       "residents":  52223,
+                       "kind":  "mixed",
+                       "code":  "11246",
+                       "area_km2":  19.66,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11301",
+                       "name":  "北足立郡 伊奈町",
+                       "location":  [
+                                        139.62112,
+                                        35.99312
+                                    ],
+                       "residents":  44848,
+                       "kind":  "mixed",
+                       "code":  "11301",
+                       "area_km2":  14.38,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11324",
+                       "name":  "入間郡 三芳町",
+                       "location":  [
+                                        139.51488,
+                                        35.83174
+                                    ],
+                       "residents":  38452,
+                       "kind":  "mixed",
+                       "code":  "11324",
+                       "area_km2":  16.43,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11326",
+                       "name":  "入間郡 毛呂山町",
+                       "location":  [
+                                        139.30552,
+                                        35.93684
+                                    ],
+                       "residents":  35379,
+                       "kind":  "mixed",
+                       "code":  "11326",
+                       "area_km2":  32.98,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11327",
+                       "name":  "入間郡 越生町",
+                       "location":  [
+                                        139.26583,
+                                        35.95141
+                                    ],
+                       "residents":  11042,
+                       "kind":  "mixed",
+                       "code":  "11327",
+                       "area_km2":  39.47,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11341",
+                       "name":  "比企郡 滑川町",
+                       "location":  [
+                                        139.35064,
+                                        36.07441
+                                    ],
+                       "residents":  19682,
+                       "kind":  "mixed",
+                       "code":  "11341",
+                       "area_km2":  31.51,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11342",
+                       "name":  "比企郡 嵐山町",
+                       "location":  [
+                                        139.31123,
+                                        36.06638
+                                    ],
+                       "residents":  17904,
+                       "kind":  "mixed",
+                       "code":  "11342",
+                       "area_km2":  31.53,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11343",
+                       "name":  "比企郡 小川町",
+                       "location":  [
+                                        139.24251,
+                                        36.05445
+                                    ],
+                       "residents":  28536,
+                       "kind":  "mixed",
+                       "code":  "11343",
+                       "area_km2":  60.04,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11346",
+                       "name":  "比企郡 川島町",
+                       "location":  [
+                                        139.49630,
+                                        35.97956
+                                    ],
+                       "residents":  19398,
+                       "kind":  "mixed",
+                       "code":  "11346",
+                       "area_km2":  39.82,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11347",
+                       "name":  "比企郡 吉見町",
+                       "location":  [
+                                        139.44981,
+                                        36.04154
+                                    ],
+                       "residents":  18196,
+                       "kind":  "mixed",
+                       "code":  "11347",
+                       "area_km2":  37.54,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11348",
+                       "name":  "比企郡 鳩山町",
+                       "location":  [
+                                        139.33426,
+                                        35.99063
+                                    ],
+                       "residents":  13581,
+                       "kind":  "mixed",
+                       "code":  "11348",
+                       "area_km2":  24.32,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11349",
+                       "name":  "比企郡 ときがわ町",
+                       "location":  [
+                                        139.22588,
+                                        35.99626
+                                    ],
+                       "residents":  10547,
+                       "kind":  "mixed",
+                       "code":  "11349",
+                       "area_km2":  56.41,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11361",
+                       "name":  "秩父郡 横瀬町",
+                       "location":  [
+                                        139.13147,
+                                        35.96390
+                                    ],
+                       "residents":  7979,
+                       "kind":  "mixed",
+                       "code":  "11361",
+                       "area_km2":  48.89,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11362",
+                       "name":  "秩父郡 皆野町",
+                       "location":  [
+                                        139.09440,
+                                        36.07557
+                                    ],
+                       "residents":  10888,
+                       "kind":  "mixed",
+                       "code":  "11362",
+                       "area_km2":  65.69,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11363",
+                       "name":  "秩父郡 長瀞町",
+                       "location":  [
+                                        139.11861,
+                                        36.12282
+                                    ],
+                       "residents":  6807,
+                       "kind":  "mixed",
+                       "code":  "11363",
+                       "area_km2":  29.1,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11365",
+                       "name":  "秩父郡 小鹿野町",
+                       "location":  [
+                                        138.91659,
+                                        36.02044
+                                    ],
+                       "residents":  10890,
+                       "kind":  "mixed",
+                       "code":  "11365",
+                       "area_km2":  164.03,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11369",
+                       "name":  "秩父郡 東秩父村",
+                       "location":  [
+                                        139.17995,
+                                        36.03584
+                                    ],
+                       "residents":  2709,
+                       "kind":  "mixed",
+                       "code":  "11369",
+                       "area_km2":  33.09,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11381",
+                       "name":  "児玉郡 美里町",
+                       "location":  [
+                                        139.16773,
+                                        36.16583
+                                    ],
+                       "residents":  11040,
+                       "kind":  "mixed",
+                       "code":  "11381",
+                       "area_km2":  28.45,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11383",
+                       "name":  "児玉郡 神川町",
+                       "location":  [
+                                        139.05584,
+                                        36.15829
+                                    ],
+                       "residents":  13380,
+                       "kind":  "mixed",
+                       "code":  "11383",
+                       "area_km2":  43.88,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11385",
+                       "name":  "児玉郡 上里町",
+                       "location":  [
+                                        139.13192,
+                                        36.25318
+                                    ],
+                       "residents":  30347,
+                       "kind":  "mixed",
+                       "code":  "11385",
+                       "area_km2":  30.07,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11408",
+                       "name":  "大里郡 寄居町",
+                       "location":  [
+                                        139.20751,
+                                        36.12029
+                                    ],
+                       "residents":  32386,
+                       "kind":  "mixed",
+                       "code":  "11408",
+                       "area_km2":  67.52,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11442",
+                       "name":  "南埼玉郡 宮代町",
+                       "location":  [
+                                        139.72054,
+                                        36.02186
+                                    ],
+                       "residents":  34163,
+                       "kind":  "mixed",
+                       "code":  "11442",
+                       "area_km2":  13.84,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11464",
+                       "name":  "北葛飾郡 杉戸町",
+                       "location":  [
+                                        139.75671,
+                                        36.03763
+                                    ],
+                       "residents":  43860,
+                       "kind":  "mixed",
+                       "code":  "11464",
+                       "area_km2":  29.49,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-11465",
+                       "name":  "北葛飾郡 松伏町",
+                       "location":  [
+                                        139.82204,
+                                        35.93549
+                                    ],
+                       "residents":  28272,
+                       "kind":  "mixed",
+                       "code":  "11465",
+                       "area_km2":  18.02,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12101",
+                       "name":  "千葉市 中央区",
+                       "location":  [
+                                        140.13310,
+                                        35.58432
+                                    ],
+                       "residents":  223652,
+                       "kind":  "mixed",
+                       "code":  "12101",
+                       "area_km2":  37.77,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-12102",
+                       "name":  "千葉市 花見川区",
+                       "location":  [
+                                        140.10359,
+                                        35.68347
+                                    ],
+                       "residents":  177638,
+                       "kind":  "mixed",
+                       "code":  "12102",
+                       "area_km2":  39.29,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-12103",
+                       "name":  "千葉市 稲毛区",
+                       "location":  [
+                                        140.12028,
+                                        35.64224
+                                    ],
+                       "residents":  160715,
+                       "kind":  "mixed",
+                       "code":  "12103",
+                       "area_km2":  17.23,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-12104",
+                       "name":  "千葉市 若葉区",
+                       "location":  [
+                                        140.21202,
+                                        35.60696
+                                    ],
+                       "residents":  144224,
+                       "kind":  "mixed",
+                       "code":  "12104",
+                       "area_km2":  85.32,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-12105",
+                       "name":  "千葉市 緑区",
+                       "location":  [
+                                        140.22148,
+                                        35.54583
+                                    ],
+                       "residents":  128048,
+                       "kind":  "mixed",
+                       "code":  "12105",
+                       "area_km2":  68.63,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-12106",
+                       "name":  "千葉市 美浜区",
+                       "location":  [
+                                        140.07214,
+                                        35.62955
+                                    ],
+                       "residents":  156848,
+                       "kind":  "mixed",
+                       "code":  "12106",
+                       "area_km2":  22.2,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-12202",
+                       "name":  "銚子市",
+                       "location":  [
+                                        140.77224,
+                                        35.75164
+                                    ],
+                       "residents":  58478,
+                       "kind":  "mixed",
+                       "code":  "12202",
+                       "area_km2":  84.38,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12203",
+                       "name":  "市川市",
+                       "location":  [
+                                        139.93268,
+                                        35.72642
+                                    ],
+                       "residents":  496943,
+                       "kind":  "mixed",
+                       "code":  "12203",
+                       "area_km2":  58.3,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12204",
+                       "name":  "船橋市",
+                       "location":  [
+                                        140.01413,
+                                        35.71652
+                                    ],
+                       "residents":  642972,
+                       "kind":  "mixed",
+                       "code":  "12204",
+                       "area_km2":  83.53,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12205",
+                       "name":  "館山市",
+                       "location":  [
+                                        139.86083,
+                                        34.97528
+                                    ],
+                       "residents":  45177,
+                       "kind":  "mixed",
+                       "code":  "12205",
+                       "area_km2":  111.32,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12206",
+                       "name":  "木更津市",
+                       "location":  [
+                                        139.99608,
+                                        35.37774
+                                    ],
+                       "residents":  136224,
+                       "kind":  "mixed",
+                       "code":  "12206",
+                       "area_km2":  139.68,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12207",
+                       "name":  "松戸市",
+                       "location":  [
+                                        139.92591,
+                                        35.78658
+                                    ],
+                       "residents":  498293,
+                       "kind":  "mixed",
+                       "code":  "12207",
+                       "area_km2":  63.28,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12208",
+                       "name":  "野田市",
+                       "location":  [
+                                        139.86463,
+                                        35.99315
+                                    ],
+                       "residents":  152674,
+                       "kind":  "mixed",
+                       "code":  "12208",
+                       "area_km2":  104.59,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12210",
+                       "name":  "茂原市",
+                       "location":  [
+                                        140.30304,
+                                        35.44650
+                                    ],
+                       "residents":  86821,
+                       "kind":  "mixed",
+                       "code":  "12210",
+                       "area_km2":  100.93,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12211",
+                       "name":  "成田市",
+                       "location":  [
+                                        140.36079,
+                                        35.81210
+                                    ],
+                       "residents":  132998,
+                       "kind":  "mixed",
+                       "code":  "12211",
+                       "area_km2":  220.63,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12212",
+                       "name":  "佐倉市",
+                       "location":  [
+                                        140.21285,
+                                        35.69792
+                                    ],
+                       "residents":  168858,
+                       "kind":  "mixed",
+                       "code":  "12212",
+                       "area_km2":  106.03,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12213",
+                       "name":  "東金市",
+                       "location":  [
+                                        140.34490,
+                                        35.57720
+                                    ],
+                       "residents":  58248,
+                       "kind":  "mixed",
+                       "code":  "12213",
+                       "area_km2":  91.28,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12215",
+                       "name":  "旭市",
+                       "location":  [
+                                        140.66247,
+                                        35.73389
+                                    ],
+                       "residents":  63788,
+                       "kind":  "mixed",
+                       "code":  "12215",
+                       "area_km2":  127.96,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12216",
+                       "name":  "習志野市",
+                       "location":  [
+                                        140.04740,
+                                        35.68376
+                                    ],
+                       "residents":  176306,
+                       "kind":  "mixed",
+                       "code":  "12216",
+                       "area_km2":  20.48,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12217",
+                       "name":  "柏市",
+                       "location":  [
+                                        140.00434,
+                                        35.85709
+                                    ],
+                       "residents":  426552,
+                       "kind":  "mixed",
+                       "code":  "12217",
+                       "area_km2":  114.59,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12218",
+                       "name":  "勝浦市",
+                       "location":  [
+                                        140.27196,
+                                        35.17477
+                                    ],
+                       "residents":  16938,
+                       "kind":  "mixed",
+                       "code":  "12218",
+                       "area_km2":  93.15,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12219",
+                       "name":  "市原市",
+                       "location":  [
+                                        140.14564,
+                                        35.42940
+                                    ],
+                       "residents":  269653,
+                       "kind":  "mixed",
+                       "code":  "12219",
+                       "area_km2":  373.81,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12220",
+                       "name":  "流山市",
+                       "location":  [
+                                        139.91170,
+                                        35.86162
+                                    ],
+                       "residents":  199960,
+                       "kind":  "mixed",
+                       "code":  "12220",
+                       "area_km2":  36.31,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12221",
+                       "name":  "八千代市",
+                       "location":  [
+                                        140.10694,
+                                        35.72710
+                                    ],
+                       "residents":  199597,
+                       "kind":  "mixed",
+                       "code":  "12221",
+                       "area_km2":  48.49,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12222",
+                       "name":  "我孫子市",
+                       "location":  [
+                                        140.06256,
+                                        35.87563
+                                    ],
+                       "residents":  130590,
+                       "kind":  "mixed",
+                       "code":  "12222",
+                       "area_km2":  41.26,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12223",
+                       "name":  "鴨川市",
+                       "location":  [
+                                        140.08123,
+                                        35.13126
+                                    ],
+                       "residents":  32149,
+                       "kind":  "mixed",
+                       "code":  "12223",
+                       "area_km2":  191.49,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12224",
+                       "name":  "鎌ケ谷市",
+                       "location":  [
+                                        139.99518,
+                                        35.76626
+                                    ],
+                       "residents":  109989,
+                       "kind":  "mixed",
+                       "code":  "12224",
+                       "area_km2":  18.68,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12225",
+                       "name":  "君津市",
+                       "location":  [
+                                        140.00877,
+                                        35.27146
+                                    ],
+                       "residents":  82249,
+                       "kind":  "mixed",
+                       "code":  "12225",
+                       "area_km2":  320.87,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12226",
+                       "name":  "富津市",
+                       "location":  [
+                                        139.89526,
+                                        35.22432
+                                    ],
+                       "residents":  42508,
+                       "kind":  "mixed",
+                       "code":  "12226",
+                       "area_km2":  199.37,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12227",
+                       "name":  "浦安市",
+                       "location":  [
+                                        139.90028,
+                                        35.64914
+                                    ],
+                       "residents":  171424,
+                       "kind":  "mixed",
+                       "code":  "12227",
+                       "area_km2":  18.59,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12228",
+                       "name":  "四街道市",
+                       "location":  [
+                                        140.17448,
+                                        35.67135
+                                    ],
+                       "residents":  93632,
+                       "kind":  "mixed",
+                       "code":  "12228",
+                       "area_km2":  29.84,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12229",
+                       "name":  "袖ケ浦市",
+                       "location":  [
+                                        140.02056,
+                                        35.41713
+                                    ],
+                       "residents":  63906,
+                       "kind":  "mixed",
+                       "code":  "12229",
+                       "area_km2":  91.56,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12230",
+                       "name":  "八街市",
+                       "location":  [
+                                        140.29804,
+                                        35.64029
+                                    ],
+                       "residents":  67480,
+                       "kind":  "mixed",
+                       "code":  "12230",
+                       "area_km2":  71.2,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12231",
+                       "name":  "印西市",
+                       "location":  [
+                                        140.17987,
+                                        35.80392
+                                    ],
+                       "residents":  102651,
+                       "kind":  "mixed",
+                       "code":  "12231",
+                       "area_km2":  126.07,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12232",
+                       "name":  "白井市",
+                       "location":  [
+                                        140.06729,
+                                        35.79763
+                                    ],
+                       "residents":  62470,
+                       "kind":  "mixed",
+                       "code":  "12232",
+                       "area_km2":  38.37,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12233",
+                       "name":  "富里市",
+                       "location":  [
+                                        140.33417,
+                                        35.72037
+                                    ],
+                       "residents":  49762,
+                       "kind":  "mixed",
+                       "code":  "12233",
+                       "area_km2":  54.75,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12234",
+                       "name":  "南房総市",
+                       "location":  [
+                                        139.90874,
+                                        35.00520
+                                    ],
+                       "residents":  35844,
+                       "kind":  "mixed",
+                       "code":  "12234",
+                       "area_km2":  228.69,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12235",
+                       "name":  "匝瑳市",
+                       "location":  [
+                                        140.56020,
+                                        35.71618
+                                    ],
+                       "residents":  35099,
+                       "kind":  "mixed",
+                       "code":  "12235",
+                       "area_km2":  102.34,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12236",
+                       "name":  "香取市",
+                       "location":  [
+                                        140.52394,
+                                        35.86012
+                                    ],
+                       "residents":  72427,
+                       "kind":  "mixed",
+                       "code":  "12236",
+                       "area_km2":  265.27,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12237",
+                       "name":  "山武市",
+                       "location":  [
+                                        140.40736,
+                                        35.62308
+                                    ],
+                       "residents":  48462,
+                       "kind":  "mixed",
+                       "code":  "12237",
+                       "area_km2":  149.81,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12238",
+                       "name":  "いすみ市",
+                       "location":  [
+                                        140.33939,
+                                        35.27041
+                                    ],
+                       "residents":  35571,
+                       "kind":  "mixed",
+                       "code":  "12238",
+                       "area_km2":  159.03,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12239",
+                       "name":  "大網白里市",
+                       "location":  [
+                                        140.34479,
+                                        35.50674
+                                    ],
+                       "residents":  48155,
+                       "kind":  "mixed",
+                       "code":  "12239",
+                       "area_km2":  59.92,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12322",
+                       "name":  "印旛郡 酒々井町",
+                       "location":  [
+                                        140.27654,
+                                        35.73002
+                                    ],
+                       "residents":  20760,
+                       "kind":  "mixed",
+                       "code":  "12322",
+                       "area_km2":  19.18,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12329",
+                       "name":  "印旛郡 栄町",
+                       "location":  [
+                                        140.23331,
+                                        35.84167
+                                    ],
+                       "residents":  20140,
+                       "kind":  "mixed",
+                       "code":  "12329",
+                       "area_km2":  28.16,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12342",
+                       "name":  "香取郡 神崎町",
+                       "location":  [
+                                        140.40502,
+                                        35.89264
+                                    ],
+                       "residents":  5816,
+                       "kind":  "mixed",
+                       "code":  "12342",
+                       "area_km2":  15.84,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12347",
+                       "name":  "香取郡 多古町",
+                       "location":  [
+                                        140.46471,
+                                        35.75950
+                                    ],
+                       "residents":  13748,
+                       "kind":  "mixed",
+                       "code":  "12347",
+                       "area_km2":  74.91,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12349",
+                       "name":  "香取郡 東庄町",
+                       "location":  [
+                                        140.66988,
+                                        35.81323
+                                    ],
+                       "residents":  13235,
+                       "kind":  "mixed",
+                       "code":  "12349",
+                       "area_km2":  42.34,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12403",
+                       "name":  "山武郡 九十九里町",
+                       "location":  [
+                                        140.42876,
+                                        35.52629
+                                    ],
+                       "residents":  14644,
+                       "kind":  "mixed",
+                       "code":  "12403",
+                       "area_km2":  22.13,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12409",
+                       "name":  "山武郡 芝山町",
+                       "location":  [
+                                        140.40694,
+                                        35.72451
+                                    ],
+                       "residents":  7033,
+                       "kind":  "mixed",
+                       "code":  "12409",
+                       "area_km2":  38.13,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12410",
+                       "name":  "山武郡 横芝光町",
+                       "location":  [
+                                        140.48655,
+                                        35.67054
+                                    ],
+                       "residents":  22091,
+                       "kind":  "mixed",
+                       "code":  "12410",
+                       "area_km2":  64.59,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12421",
+                       "name":  "長生郡 一宮町",
+                       "location":  [
+                                        140.37583,
+                                        35.35219
+                                    ],
+                       "residents":  11900,
+                       "kind":  "mixed",
+                       "code":  "12421",
+                       "area_km2":  19.91,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12422",
+                       "name":  "長生郡 睦沢町",
+                       "location":  [
+                                        140.30501,
+                                        35.35903
+                                    ],
+                       "residents":  6760,
+                       "kind":  "mixed",
+                       "code":  "12422",
+                       "area_km2":  34.08,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12423",
+                       "name":  "長生郡 長生村",
+                       "location":  [
+                                        140.34643,
+                                        35.40151
+                                    ],
+                       "residents":  13808,
+                       "kind":  "mixed",
+                       "code":  "12423",
+                       "area_km2":  29.81,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12424",
+                       "name":  "長生郡 白子町",
+                       "location":  [
+                                        140.37215,
+                                        35.44773
+                                    ],
+                       "residents":  10311,
+                       "kind":  "mixed",
+                       "code":  "12424",
+                       "area_km2":  26.74,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12426",
+                       "name":  "長生郡 長柄町",
+                       "location":  [
+                                        140.22523,
+                                        35.44399
+                                    ],
+                       "residents":  6726,
+                       "kind":  "mixed",
+                       "code":  "12426",
+                       "area_km2":  43.93,
+                       "popDate":  "2020-derived"
+                   },
+                   {
+                       "id":  "kanto-12427",
+                       "name":  "長生郡 長南町",
+                       "location":  [
+                                        140.25411,
+                                        35.37668
+                                    ],
+                       "residents":  7204,
+                       "kind":  "mixed",
+                       "code":  "12427",
+                       "area_km2":  64.36,
+                       "popDate":  "2020-derived"
+                   },
+                   {
+                       "id":  "kanto-12441",
+                       "name":  "夷隅郡 大多喜町",
+                       "location":  [
+                                        140.23009,
+                                        35.24865
+                                    ],
+                       "residents":  8900,
+                       "kind":  "mixed",
+                       "code":  "12441",
+                       "area_km2":  129.53,
+                       "popDate":  "2020-derived"
+                   },
+                   {
+                       "id":  "kanto-12443",
+                       "name":  "夷隅郡 御宿町",
+                       "location":  [
+                                        140.34237,
+                                        35.19408
+                                    ],
+                       "residents":  6874,
+                       "kind":  "mixed",
+                       "code":  "12443",
+                       "area_km2":  22.34,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-12463",
+                       "name":  "安房郡 鋸南町",
+                       "location":  [
+                                        139.88294,
+                                        35.13361
+                                    ],
+                       "residents":  7001,
+                       "kind":  "mixed",
+                       "code":  "12463",
+                       "area_km2":  45.56,
+                       "popDate":  "2020-derived"
+                   },
+                   {
+                       "id":  "kanto-13201",
+                       "name":  "八王子市",
+                       "location":  [
+                                        139.29367,
+                                        35.65893
+                                    ],
+                       "residents":  574439,
+                       "kind":  "mixed",
+                       "code":  "13201",
+                       "area_km2":  187.09,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13202",
+                       "name":  "立川市",
+                       "location":  [
+                                        139.40218,
+                                        35.71805
+                                    ],
+                       "residents":  189982,
+                       "kind":  "mixed",
+                       "code":  "13202",
+                       "area_km2":  24.46,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13203",
+                       "name":  "武蔵野市",
+                       "location":  [
+                                        139.56232,
+                                        35.70892
+                                    ],
+                       "residents":  151117,
+                       "kind":  "mixed",
+                       "code":  "13203",
+                       "area_km2":  9.94,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13204",
+                       "name":  "三鷹市",
+                       "location":  [
+                                        139.56698,
+                                        35.68756
+                                    ],
+                       "residents":  195476,
+                       "kind":  "mixed",
+                       "code":  "13204",
+                       "area_km2":  12.68,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13205",
+                       "name":  "青梅市",
+                       "location":  [
+                                        139.22589,
+                                        35.80183
+                                    ],
+                       "residents":  129125,
+                       "kind":  "mixed",
+                       "code":  "13205",
+                       "area_km2":  103.78,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13206",
+                       "name":  "府中市",
+                       "location":  [
+                                        139.47166,
+                                        35.67656
+                                    ],
+                       "residents":  264108,
+                       "kind":  "mixed",
+                       "code":  "13206",
+                       "area_km2":  32.53,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13207",
+                       "name":  "昭島市",
+                       "location":  [
+                                        139.36698,
+                                        35.70569
+                                    ],
+                       "residents":  117575,
+                       "kind":  "mixed",
+                       "code":  "13207",
+                       "area_km2":  16.21,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13208",
+                       "name":  "調布市",
+                       "location":  [
+                                        139.55374,
+                                        35.66232
+                                    ],
+                       "residents":  247230,
+                       "kind":  "mixed",
+                       "code":  "13208",
+                       "area_km2":  28.02,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13209",
+                       "name":  "町田市",
+                       "location":  [
+                                        139.41242,
+                                        35.57514
+                                    ],
+                       "residents":  422016,
+                       "kind":  "mixed",
+                       "code":  "13209",
+                       "area_km2":  75.49,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13210",
+                       "name":  "小金井市",
+                       "location":  [
+                                        139.51681,
+                                        35.70350
+                                    ],
+                       "residents":  129793,
+                       "kind":  "mixed",
+                       "code":  "13210",
+                       "area_km2":  10.32,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13211",
+                       "name":  "小平市",
+                       "location":  [
+                                        139.47306,
+                                        35.72721
+                                    ],
+                       "residents":  199493,
+                       "kind":  "mixed",
+                       "code":  "13211",
+                       "area_km2":  19.83,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13212",
+                       "name":  "日野市",
+                       "location":  [
+                                        139.40620,
+                                        35.66660
+                                    ],
+                       "residents":  190863,
+                       "kind":  "mixed",
+                       "code":  "13212",
+                       "area_km2":  23.39,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13213",
+                       "name":  "東村山市",
+                       "location":  [
+                                        139.46997,
+                                        35.75911
+                                    ],
+                       "residents":  152530,
+                       "kind":  "mixed",
+                       "code":  "13213",
+                       "area_km2":  17.02,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13214",
+                       "name":  "国分寺市",
+                       "location":  [
+                                        139.45793,
+                                        35.70335
+                                    ],
+                       "residents":  129191,
+                       "kind":  "mixed",
+                       "code":  "13214",
+                       "area_km2":  10.11,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13215",
+                       "name":  "国立市",
+                       "location":  [
+                                        139.43425,
+                                        35.68397
+                                    ],
+                       "residents":  77360,
+                       "kind":  "mixed",
+                       "code":  "13215",
+                       "area_km2":  8.97,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13218",
+                       "name":  "福生市",
+                       "location":  [
+                                        139.34029,
+                                        35.73074
+                                    ],
+                       "residents":  57348,
+                       "kind":  "mixed",
+                       "code":  "13218",
+                       "area_km2":  10.67,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13219",
+                       "name":  "狛江市",
+                       "location":  [
+                                        139.58187,
+                                        35.63584
+                                    ],
+                       "residents":  84110,
+                       "kind":  "mixed",
+                       "code":  "13219",
+                       "area_km2":  3.74,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13220",
+                       "name":  "東大和市",
+                       "location":  [
+                                        139.41789,
+                                        35.75030
+                                    ],
+                       "residents":  83213,
+                       "kind":  "mixed",
+                       "code":  "13220",
+                       "area_km2":  12.21,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13221",
+                       "name":  "清瀬市",
+                       "location":  [
+                                        139.51657,
+                                        35.77853
+                                    ],
+                       "residents":  75344,
+                       "kind":  "mixed",
+                       "code":  "13221",
+                       "area_km2":  10.68,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13222",
+                       "name":  "東久留米市",
+                       "location":  [
+                                        139.51467,
+                                        35.75405
+                                    ],
+                       "residents":  115852,
+                       "kind":  "mixed",
+                       "code":  "13222",
+                       "area_km2":  10.22,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13223",
+                       "name":  "武蔵村山市",
+                       "location":  [
+                                        139.38400,
+                                        35.75460
+                                    ],
+                       "residents":  69149,
+                       "kind":  "mixed",
+                       "code":  "13223",
+                       "area_km2":  13.74,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13224",
+                       "name":  "多摩市",
+                       "location":  [
+                                        139.43271,
+                                        35.63012
+                                    ],
+                       "residents":  141450,
+                       "kind":  "mixed",
+                       "code":  "13224",
+                       "area_km2":  21.08,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13225",
+                       "name":  "稲城市",
+                       "location":  [
+                                        139.49535,
+                                        35.63630
+                                    ],
+                       "residents":  95941,
+                       "kind":  "mixed",
+                       "code":  "13225",
+                       "area_km2":  13.82,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13227",
+                       "name":  "羽村市",
+                       "location":  [
+                                        139.31046,
+                                        35.75977
+                                    ],
+                       "residents":  53434,
+                       "kind":  "mixed",
+                       "code":  "13227",
+                       "area_km2":  10.15,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13228",
+                       "name":  "あきる野市",
+                       "location":  [
+                                        139.23345,
+                                        35.73484
+                                    ],
+                       "residents":  77030,
+                       "kind":  "mixed",
+                       "code":  "13228",
+                       "area_km2":  74.88,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13229",
+                       "name":  "西東京市",
+                       "location":  [
+                                        139.54105,
+                                        35.73751
+                                    ],
+                       "residents":  208784,
+                       "kind":  "mixed",
+                       "code":  "13229",
+                       "area_km2":  13.52,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13303",
+                       "name":  "西多摩郡 瑞穂町",
+                       "location":  [
+                                        139.35743,
+                                        35.77204
+                                    ],
+                       "residents":  31077,
+                       "kind":  "mixed",
+                       "code":  "13303",
+                       "area_km2":  18.23,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13305",
+                       "name":  "西多摩郡 日の出町",
+                       "location":  [
+                                        139.21529,
+                                        35.76265
+                                    ],
+                       "residents":  15829,
+                       "kind":  "mixed",
+                       "code":  "13305",
+                       "area_km2":  26.5,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13307",
+                       "name":  "西多摩郡 檜原村",
+                       "location":  [
+                                        139.11107,
+                                        35.71831
+                                    ],
+                       "residents":  1735,
+                       "kind":  "mixed",
+                       "code":  "13307",
+                       "area_km2":  107.24,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-13308",
+                       "name":  "西多摩郡 奥多摩町",
+                       "location":  [
+                                        139.06214,
+                                        35.82131
+                                    ],
+                       "residents":  4044,
+                       "kind":  "mixed",
+                       "code":  "13308",
+                       "area_km2":  220.16,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14101",
+                       "name":  "横浜市 鶴見区",
+                       "location":  [
+                                        139.67402,
+                                        35.51789
+                                    ],
+                       "residents":  298225,
+                       "kind":  "mixed",
+                       "code":  "14101",
+                       "area_km2":  25.1,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14102",
+                       "name":  "横浜市 神奈川区",
+                       "location":  [
+                                        139.61554,
+                                        35.48830
+                                    ],
+                       "residents":  254248,
+                       "kind":  "mixed",
+                       "code":  "14102",
+                       "area_km2":  24.21,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14103",
+                       "name":  "横浜市 西区",
+                       "location":  [
+                                        139.61775,
+                                        35.45690
+                                    ],
+                       "residents":  108599,
+                       "kind":  "mixed",
+                       "code":  "14103",
+                       "area_km2":  6.11,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14104",
+                       "name":  "横浜市 中区",
+                       "location":  [
+                                        139.64746,
+                                        35.43408
+                                    ],
+                       "residents":  154438,
+                       "kind":  "mixed",
+                       "code":  "14104",
+                       "area_km2":  23.18,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14105",
+                       "name":  "横浜市 南区",
+                       "location":  [
+                                        139.60250,
+                                        35.43108
+                                    ],
+                       "residents":  198910,
+                       "kind":  "mixed",
+                       "code":  "14105",
+                       "area_km2":  11.86,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14106",
+                       "name":  "横浜市 保土ケ谷区",
+                       "location":  [
+                                        139.57454,
+                                        35.46859
+                                    ],
+                       "residents":  203746,
+                       "kind":  "mixed",
+                       "code":  "14106",
+                       "area_km2":  20.14,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14107",
+                       "name":  "横浜市 磯子区",
+                       "location":  [
+                                        139.61299,
+                                        35.39091
+                                    ],
+                       "residents":  163695,
+                       "kind":  "mixed",
+                       "code":  "14107",
+                       "area_km2":  19.77,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14108",
+                       "name":  "横浜市 金沢区",
+                       "location":  [
+                                        139.61474,
+                                        35.34839
+                                    ],
+                       "residents":  191825,
+                       "kind":  "mixed",
+                       "code":  "14108",
+                       "area_km2":  31.55,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14109",
+                       "name":  "横浜市 港北区",
+                       "location":  [
+                                        139.62766,
+                                        35.52975
+                                    ],
+                       "residents":  365441,
+                       "kind":  "mixed",
+                       "code":  "14109",
+                       "area_km2":  34.06,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14110",
+                       "name":  "横浜市 戸塚区",
+                       "location":  [
+                                        139.53650,
+                                        35.40710
+                                    ],
+                       "residents":  281098,
+                       "kind":  "mixed",
+                       "code":  "14110",
+                       "area_km2":  35.92,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14111",
+                       "name":  "横浜市 港南区",
+                       "location":  [
+                                        139.57719,
+                                        35.39882
+                                    ],
+                       "residents":  208695,
+                       "kind":  "mixed",
+                       "code":  "14111",
+                       "area_km2":  19.18,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14112",
+                       "name":  "横浜市 旭区",
+                       "location":  [
+                                        139.53191,
+                                        35.47622
+                                    ],
+                       "residents":  239402,
+                       "kind":  "mixed",
+                       "code":  "14112",
+                       "area_km2":  34.32,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14113",
+                       "name":  "横浜市 緑区",
+                       "location":  [
+                                        139.52861,
+                                        35.51220
+                                    ],
+                       "residents":  179975,
+                       "kind":  "mixed",
+                       "code":  "14113",
+                       "area_km2":  22.55,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14114",
+                       "name":  "横浜市 瀬谷区",
+                       "location":  [
+                                        139.48336,
+                                        35.48430
+                                    ],
+                       "residents":  120124,
+                       "kind":  "mixed",
+                       "code":  "14114",
+                       "area_km2":  13.99,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14115",
+                       "name":  "横浜市 栄区",
+                       "location":  [
+                                        139.56418,
+                                        35.36268
+                                    ],
+                       "residents":  118698,
+                       "kind":  "mixed",
+                       "code":  "14115",
+                       "area_km2":  18.18,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14116",
+                       "name":  "横浜市 泉区",
+                       "location":  [
+                                        139.50570,
+                                        35.42835
+                                    ],
+                       "residents":  149885,
+                       "kind":  "mixed",
+                       "code":  "14116",
+                       "area_km2":  24.54,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14117",
+                       "name":  "横浜市 青葉区",
+                       "location":  [
+                                        139.51376,
+                                        35.56059
+                                    ],
+                       "residents":  307381,
+                       "kind":  "mixed",
+                       "code":  "14117",
+                       "area_km2":  38.09,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14118",
+                       "name":  "横浜市 都筑区",
+                       "location":  [
+                                        139.58345,
+                                        35.54565
+                                    ],
+                       "residents":  213506,
+                       "kind":  "mixed",
+                       "code":  "14118",
+                       "area_km2":  27.93,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14131",
+                       "name":  "川崎市 川崎区",
+                       "location":  [
+                                        139.72695,
+                                        35.52825
+                                    ],
+                       "residents":  234937,
+                       "kind":  "mixed",
+                       "code":  "14131",
+                       "area_km2":  29.61,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14132",
+                       "name":  "川崎市 幸区",
+                       "location":  [
+                                        139.67802,
+                                        35.54559
+                                    ],
+                       "residents":  177212,
+                       "kind":  "mixed",
+                       "code":  "14132",
+                       "area_km2":  8.52,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14133",
+                       "name":  "川崎市 中原区",
+                       "location":  [
+                                        139.65060,
+                                        35.57834
+                                    ],
+                       "residents":  271383,
+                       "kind":  "mixed",
+                       "code":  "14133",
+                       "area_km2":  13.58,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14134",
+                       "name":  "川崎市 高津区",
+                       "location":  [
+                                        139.61330,
+                                        35.58900
+                                    ],
+                       "residents":  237954,
+                       "kind":  "mixed",
+                       "code":  "14134",
+                       "area_km2":  14.83,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14135",
+                       "name":  "川崎市 多摩区",
+                       "location":  [
+                                        139.56226,
+                                        35.61976
+                                    ],
+                       "residents":  230793,
+                       "kind":  "mixed",
+                       "code":  "14135",
+                       "area_km2":  22.2,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14136",
+                       "name":  "川崎市 宮前区",
+                       "location":  [
+                                        139.56971,
+                                        35.58384
+                                    ],
+                       "residents":  235384,
+                       "kind":  "mixed",
+                       "code":  "14136",
+                       "area_km2":  18.05,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14137",
+                       "name":  "川崎市 麻生区",
+                       "location":  [
+                                        139.49538,
+                                        35.60317
+                                    ],
+                       "residents":  179661,
+                       "kind":  "mixed",
+                       "code":  "14137",
+                       "area_km2":  20.15,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14151",
+                       "name":  "相模原市 緑区",
+                       "location":  [
+                                        139.18908,
+                                        35.57449
+                                    ],
+                       "residents":  164698,
+                       "kind":  "mixed",
+                       "code":  "14151",
+                       "area_km2":  244.7,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14152",
+                       "name":  "相模原市 中央区",
+                       "location":  [
+                                        139.36787,
+                                        35.56133
+                                    ],
+                       "residents":  268157,
+                       "kind":  "mixed",
+                       "code":  "14152",
+                       "area_km2":  36.61,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14153",
+                       "name":  "相模原市 南区",
+                       "location":  [
+                                        139.40969,
+                                        35.53054
+                                    ],
+                       "residents":  279305,
+                       "kind":  "mixed",
+                       "code":  "14153",
+                       "area_km2":  39.41,
+                       "popDate":  "2026-08"
+                   },
+                   {
+                       "id":  "kanto-14201",
+                       "name":  "横須賀市",
+                       "location":  [
+                                        139.64707,
+                                        35.25962
+                                    ],
+                       "residents":  388504,
+                       "kind":  "mixed",
+                       "code":  "14201",
+                       "area_km2":  102.24,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14203",
+                       "name":  "平塚市",
+                       "location":  [
+                                        139.31645,
+                                        35.35208
+                                    ],
+                       "residents":  258524,
+                       "kind":  "mixed",
+                       "code":  "14203",
+                       "area_km2":  68.53,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14204",
+                       "name":  "鎌倉市",
+                       "location":  [
+                                        139.54166,
+                                        35.33422
+                                    ],
+                       "residents":  172821,
+                       "kind":  "mixed",
+                       "code":  "14204",
+                       "area_km2":  44.29,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14205",
+                       "name":  "藤沢市",
+                       "location":  [
+                                        139.45337,
+                                        35.37353
+                                    ],
+                       "residents":  437155,
+                       "kind":  "mixed",
+                       "code":  "14205",
+                       "area_km2":  70.51,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14206",
+                       "name":  "小田原市",
+                       "location":  [
+                                        139.14567,
+                                        35.27102
+                                    ],
+                       "residents":  188986,
+                       "kind":  "mixed",
+                       "code":  "14206",
+                       "area_km2":  114.82,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14207",
+                       "name":  "茅ヶ崎市",
+                       "location":  [
+                                        139.40366,
+                                        35.34449
+                                    ],
+                       "residents":  242603,
+                       "kind":  "mixed",
+                       "code":  "14207",
+                       "area_km2":  33.84,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14208",
+                       "name":  "逗子市",
+                       "location":  [
+                                        139.59175,
+                                        35.30127
+                                    ],
+                       "residents":  56981,
+                       "kind":  "mixed",
+                       "code":  "14208",
+                       "area_km2":  14.43,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14210",
+                       "name":  "三浦市",
+                       "location":  [
+                                        139.63831,
+                                        35.17714
+                                    ],
+                       "residents":  42098,
+                       "kind":  "mixed",
+                       "code":  "14210",
+                       "area_km2":  27.22,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14211",
+                       "name":  "秦野市",
+                       "location":  [
+                                        139.22686,
+                                        35.39664
+                                    ],
+                       "residents":  162579,
+                       "kind":  "mixed",
+                       "code":  "14211",
+                       "area_km2":  102.75,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14212",
+                       "name":  "厚木市",
+                       "location":  [
+                                        139.32099,
+                                        35.46602
+                                    ],
+                       "residents":  223747,
+                       "kind":  "mixed",
+                       "code":  "14212",
+                       "area_km2":  98.35,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14213",
+                       "name":  "大和市",
+                       "location":  [
+                                        139.45357,
+                                        35.47484
+                                    ],
+                       "residents":  239269,
+                       "kind":  "mixed",
+                       "code":  "14213",
+                       "area_km2":  29.51,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14214",
+                       "name":  "伊勢原市",
+                       "location":  [
+                                        139.29960,
+                                        35.40911
+                                    ],
+                       "residents":  101839,
+                       "kind":  "mixed",
+                       "code":  "14214",
+                       "area_km2":  53.45,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14215",
+                       "name":  "海老名市",
+                       "location":  [
+                                        139.40683,
+                                        35.43968
+                                    ],
+                       "residents":  136581,
+                       "kind":  "mixed",
+                       "code":  "14215",
+                       "area_km2":  24.44,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14216",
+                       "name":  "座間市",
+                       "location":  [
+                                        139.40204,
+                                        35.48453
+                                    ],
+                       "residents":  132180,
+                       "kind":  "mixed",
+                       "code":  "14216",
+                       "area_km2":  16.85,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14217",
+                       "name":  "南足柄市",
+                       "location":  [
+                                        139.08502,
+                                        35.31098
+                                    ],
+                       "residents":  40859,
+                       "kind":  "mixed",
+                       "code":  "14217",
+                       "area_km2":  78.82,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14218",
+                       "name":  "綾瀬市",
+                       "location":  [
+                                        139.43372,
+                                        35.43992
+                                    ],
+                       "residents":  83964,
+                       "kind":  "mixed",
+                       "code":  "14218",
+                       "area_km2":  18.59,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14301",
+                       "name":  "三浦郡 葉山町",
+                       "location":  [
+                                        139.60013,
+                                        35.27116
+                                    ],
+                       "residents":  31627,
+                       "kind":  "mixed",
+                       "code":  "14301",
+                       "area_km2":  16.95,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14321",
+                       "name":  "高座郡 寒川町",
+                       "location":  [
+                                        139.38801,
+                                        35.37918
+                                    ],
+                       "residents":  48366,
+                       "kind":  "mixed",
+                       "code":  "14321",
+                       "area_km2":  13.88,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14341",
+                       "name":  "中郡 大磯町",
+                       "location":  [
+                                        139.27708,
+                                        35.31943
+                                    ],
+                       "residents":  31673,
+                       "kind":  "mixed",
+                       "code":  "14341",
+                       "area_km2":  14.32,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14342",
+                       "name":  "中郡 二宮町",
+                       "location":  [
+                                        139.24508,
+                                        35.30811
+                                    ],
+                       "residents":  27578,
+                       "kind":  "mixed",
+                       "code":  "14342",
+                       "area_km2":  9.8,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14361",
+                       "name":  "足柄上郡 中井町",
+                       "location":  [
+                                        139.22069,
+                                        35.33000
+                                    ],
+                       "residents":  9300,
+                       "kind":  "mixed",
+                       "code":  "14361",
+                       "area_km2":  21.49,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14362",
+                       "name":  "足柄上郡 大井町",
+                       "location":  [
+                                        139.16696,
+                                        35.33578
+                                    ],
+                       "residents":  17138,
+                       "kind":  "mixed",
+                       "code":  "14362",
+                       "area_km2":  13.79,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14363",
+                       "name":  "足柄上郡 松田町",
+                       "location":  [
+                                        139.12696,
+                                        35.39038
+                                    ],
+                       "residents":  10840,
+                       "kind":  "mixed",
+                       "code":  "14363",
+                       "area_km2":  38.54,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14364",
+                       "name":  "足柄上郡 山北町",
+                       "location":  [
+                                        139.06658,
+                                        35.42774
+                                    ],
+                       "residents":  9761,
+                       "kind":  "mixed",
+                       "code":  "14364",
+                       "area_km2":  225.29,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14366",
+                       "name":  "足柄上郡 開成町",
+                       "location":  [
+                                        139.12989,
+                                        35.33426
+                                    ],
+                       "residents":  18333,
+                       "kind":  "mixed",
+                       "code":  "14366",
+                       "area_km2":  3.77,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14382",
+                       "name":  "足柄下郡 箱根町",
+                       "location":  [
+                                        139.02708,
+                                        35.23433
+                                    ],
+                       "residents":  11303,
+                       "kind":  "mixed",
+                       "code":  "14382",
+                       "area_km2":  91.65,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14383",
+                       "name":  "足柄下郡 真鶴町",
+                       "location":  [
+                                        139.12015,
+                                        35.17540
+                                    ],
+                       "residents":  6722,
+                       "kind":  "mixed",
+                       "code":  "14383",
+                       "area_km2":  5.19,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14384",
+                       "name":  "足柄下郡 湯河原町",
+                       "location":  [
+                                        139.08031,
+                                        35.17181
+                                    ],
+                       "residents":  23433,
+                       "kind":  "mixed",
+                       "code":  "14384",
+                       "area_km2":  41.18,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14401",
+                       "name":  "愛甲郡 愛川町",
+                       "location":  [
+                                        139.29973,
+                                        35.53016
+                                    ],
+                       "residents":  39894,
+                       "kind":  "mixed",
+                       "code":  "14401",
+                       "area_km2":  32.07,
+                       "popDate":  "2020"
+                   },
+                   {
+                       "id":  "kanto-14402",
+                       "name":  "愛甲郡 清川村",
+                       "location":  [
+                                        139.21965,
+                                        35.48719
+                                    ],
+                       "residents":  3038,
+                       "kind":  "mixed",
+                       "code":  "14402",
+                       "area_km2":  73.76,
+                       "popDate":  "2020"
                    }
                ]
 }

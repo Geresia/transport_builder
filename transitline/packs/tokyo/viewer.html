@@ -1,0 +1,265 @@
+<!--
+  tokyo CityPack 빠른 뷰어. 파이프라인 산출물이 아니라 "지금 팩에 뭐가 들어있나" 확인용
+  1회성 도구 — korea-basemap.html 처럼 정식 유지보수 대상 아님.
+
+  읽는 파일 (전부 같은 폴더): manifest.json, demand.json, wards-reference.json, obstacles.json,
+  kanto-region.json
+  file:// 로는 fetch 가 막혀서 안 열림 — HTTP 로 띄울 것 (../docs/serve.ps1 -Root 이 폴더).
+
+  베이스맵은 표준 OSM 래스터 타일 (계정/키 불필요, 가벼운 조회용) 에 다크 필터.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tokyo CityPack — 뷰어</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<style>
+  html,body{margin:0;height:100%;background:#0c1114;color:#e7eef0;
+    font-family:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif}
+  #map{position:absolute;inset:0}
+  .panel{position:absolute;z-index:2;background:rgba(20,27,31,.94);
+    border:1px solid #232f35;border-radius:10px;
+    box-shadow:0 8px 24px -12px rgba(0,0,0,.7);font-size:12.5px;line-height:1.5}
+  #legend{top:12px;left:12px;max-width:280px;padding:12px 14px}
+  #legend h1{font-size:14px;margin:0 0 6px}
+  #legend label{display:flex;align-items:center;gap:7px;margin:8px 0 6px;cursor:pointer}
+  .ramp{display:flex;height:11px;border-radius:3px;overflow:hidden;margin:6px 0 3px}
+  .ramp i{flex:1}
+  .scale{display:flex;justify-content:space-between;font-size:9.5px;color:#6b7d85;
+    font-family:"IBM Plex Mono",ui-monospace,monospace}
+  .cap{color:#9caeb5;margin-top:8px;font-size:11px}
+  .cap a{color:#9caeb5}
+  .warn{color:#e08a4c}
+
+  #card{top:12px;right:12px;width:260px;display:none;padding:14px}
+  #card.on{display:block}
+  #card h2{font-size:14px;margin:0 0 2px}
+  #card .sub{font-size:11px;color:#6b7d85;margin-bottom:8px}
+  .mini{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#232f35;border-radius:6px;overflow:hidden}
+  .mini div{background:#141b1f;padding:8px 10px}
+  .mini .k{font-size:10px;color:#6b7d85;font-family:"IBM Plex Mono",monospace}
+  .mini .v{font-size:15px;font-weight:600}
+  @media(max-width:760px){#legend{max-width:200px}#card{width:200px}}
+</style>
+
+<div id="map"></div>
+
+<div class="panel" id="legend">
+  <h1>tokyo CityPack</h1>
+  <div id="meta">불러오는 중…</div>
+  <label><input type="checkbox" id="toggle-region" checked> 광역권 인구밀도 (사이타마·지바·가나가와·다마)</label>
+  <label><input type="checkbox" id="toggle-wards" checked> 구 인구밀도</label>
+  <div class="ramp" id="ramp"></div>
+  <div class="scale" id="scale"></div>
+  <label><input type="checkbox" id="toggle-obstacles" checked> 건물 footprint (4개 허브 지구만)</label>
+  <div class="cap" id="cap">manifest.json 불러오는 중…</div>
+</div>
+
+<div class="panel" id="card">
+  <h2 id="cname">—</h2>
+  <div class="sub" id="csub"></div>
+  <div class="mini">
+    <div><div class="k">인구</div><div class="v" id="cres">—</div></div>
+    <div><div class="k">밀도</div><div class="v" id="cden">—</div></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script>
+const RAMP = ["#16272B","#1B3B42","#215059","#2A6771","#357F8A","#4A9BA5","#71B9C1","#A6D8DC"];
+const nf = (n) => Math.round(Number(n)).toLocaleString("ja-JP");
+
+// 도쿄 23구 한글 표기 (jisCode 로 조인) — 베이스맵 타일 자체 라벨(도로명·지명)은
+// OSM raster 에 박혀 있어 여기서 못 바꾼다. 우리가 그리는 패널/범례만 한글화.
+const KO_NAMES = {
+  131211: "아다치구", 131181: "아라카와구", 131059: "분쿄구", 131016: "지요다구",
+  131024: "주오구", 131237: "에도가와구", 131199: "이타바시구", 131229: "가쓰시카구",
+  131172: "기타구", 131083: "고토구", 131105: "메구로구", 131032: "미나토구",
+  131148: "나카노구", 131202: "네리마구", 131113: "오타구", 131121: "세타가야구",
+  131130: "시부야구", 131091: "시나가와구", 131041: "신주쿠구", 131156: "스기나미구",
+  131075: "스미다구", 131067: "다이토구", 131164: "도시마구",
+};
+
+// 사이타마·지바·가나가와 + 도쿄 다마 지역 (kanto-region.json, tier 1 = 서울 수도권과
+// 대응되는 핵심 생활권). 이 mapping 은 원본 Transportation Tycoon 아티팩트에서 그대로
+// 가져옴 — 주요 도시만 커버, 나머지는 일본어 원문으로 표시됨.
+const PREF_KO = { "東京都": "도쿄도", "神奈川県": "가나가와현", "埼玉県": "사이타마현", "千葉県": "지바현" };
+const CITY_KO = {
+  "横浜市": "요코하마시", "川崎市": "가와사키시", "相模原市": "사가미하라시", "横須賀市": "요코스카시",
+  "藤沢市": "후지사와시", "鎌倉市": "가마쿠라시", "小田原市": "오다와라시", "厚木市": "아쓰기시",
+  "茅ヶ崎市": "지가사키시", "平塚市": "히라쓰카시", "大和市": "야마토시", "逗子市": "즈시시", "三浦市": "미우라시",
+  "さいたま市": "사이타마시", "川口市": "가와구치시", "川越市": "가와고에시", "所沢市": "도코로자와시",
+  "越谷市": "고시가야시", "草加市": "소카시", "春日部市": "가스카베시", "熊谷市": "구마가야시",
+  "上尾市": "아게오시", "新座市": "니이자시", "狭山市": "사야마시", "入間市": "이루마시",
+  "朝霞市": "아사카시", "和光市": "와코시", "戸田市": "도다시",
+  "千葉市": "지바시", "船橋市": "후나바시시", "松戸市": "마쓰도시", "市川市": "이치카와시",
+  "浦安市": "우라야스시", "柏市": "가시와시", "成田市": "나리타시", "木更津市": "기사라즈시",
+  "習志野市": "나라시노시", "流山市": "나가레야마시", "我孫子市": "아비코시", "佐倉市": "사쿠라시", "八千代市": "야치요시",
+};
+
+async function loadJSON(url) {
+  try { const r = await fetch(url); return r.ok ? r.json() : null; }
+  catch { return null; }
+}
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: {
+    version: 8,
+    sources: {
+      osm: {
+        type: "raster",
+        tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+        tileSize: 256,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }
+    },
+    // 표준 OSM 타일은 밝은 배경이라, 다크 UI 에 맞춰 어둡게 눌러준다 (CARTO dark_all 은
+    // API 키가 필요해져서(2026) 못 씀 — 키 없이 되는 건 이 표준 타일뿐).
+    layers: [{ id: "osm", type: "raster", source: "osm",
+      paint: { "raster-brightness-max": 0.5, "raster-contrast": 0.1, "raster-saturation": -0.4 } }]
+  },
+  center: [139.68, 35.63], zoom: 9.3,
+});
+map.addControl(new maplibregl.NavigationControl());
+
+map.on("load", async () => {
+  const [manifest, demand, wards, obstacles, region] = await Promise.all([
+    loadJSON("./manifest.json"), loadJSON("./demand.json"),
+    loadJSON("./wards-reference.json"), loadJSON("./obstacles.json"),
+    loadJSON("./kanto-region.json"),
+  ]);
+
+  if (manifest) {
+    document.getElementById("meta").textContent =
+      `${manifest.name} · v${manifest.version} · ${manifest.data.license}`;
+  }
+
+  // ---- 광역권 인구밀도 (kanto-region.json 폴리곤 + demand.json 의 kanto-* 포인트, code 로 조인) ----
+  // 사이타마·지바·가나가와 + 도쿄 다마. 서울로 치면 경기·인천에 해당하는, 원본 아티팩트가
+  // tier 1("핵심 생활권")로 구분한 범위. 지정도시(요코하마·가와사키·사이타마·지바·사가미하라)는
+  // 구 단위로 쪼개져 있음 — popDate 가 "2026-08"(추계인구)인 건 이 44개 구 + 도쿄 다마
+  // 30개시. 나머지는 2020년 국세조사(4개는 전년비 증감으로 역산, popDate "2020-derived").
+  // README.md 참고.
+  if (region && demand) {
+    const byRegionCode = new Map(
+      demand.points.filter((p) => p.code).map((p) => [p.code, p])
+    );
+    const features = region.municipalities.map((m) => {
+      const parent_ko = m.parent ? CITY_KO[m.parent] : null;
+      const name_ko = CITY_KO[m.name] || (parent_ko ? `${parent_ko} ${m.name}` : m.name);
+      const p = byRegionCode.get(String(m.code));
+      const density = p ? p.residents / m.area_km2 : null;
+      return { type: "Feature",
+        properties: { name: m.name, name_ko, pref_ko: PREF_KO[m.pref] || m.pref, area: m.area_km2,
+          residents: p ? p.residents : null, density, popDate: p ? p.popDate : null },
+        geometry: { type: "MultiPolygon", coordinates: m.polygons } };
+    });
+    map.addSource("region", { type: "geojson", data: { type: "FeatureCollection", features } });
+
+    const rds = features.map((f) => f.properties.density).filter((d) => d != null).sort((a, b) => a - b);
+    const rcuts = Array.from({ length: 7 }, (_, i) => rds[Math.floor(((i + 1) / 8) * (rds.length - 1))]);
+    const rStepColor = ["step", ["get", "density"], RAMP[0]];
+    rcuts.forEach((c, i) => rStepColor.push(c, RAMP[i + 1]));
+
+    map.addLayer({ id: "region-fill", source: "region", type: "fill",
+      paint: { "fill-color": rStepColor, "fill-opacity": 0.45 } });
+    map.addLayer({ id: "region-line", source: "region", type: "line",
+      paint: { "line-color": "#0c1114", "line-width": 0.5, "line-opacity": 0.4 } });
+    map.on("click", "region-fill", (e) => {
+      const p = e.features[0].properties;
+      document.getElementById("card").classList.add("on");
+      document.getElementById("cname").textContent = p.name_ko;
+      document.getElementById("csub").textContent = `${p.pref_ko} · ${p.name} · ${p.area}km²`
+        + (p.popDate ? ` · ${p.popDate === "2020" ? "2020 census" : p.popDate === "2020-derived" ? "2020 census (역산)" : "추계인구 " + p.popDate}` : "");
+      document.getElementById("cres").textContent = p.residents ? nf(p.residents) : "미확보";
+      document.getElementById("cden").textContent = p.density ? nf(p.density) + "/km²" : "미확보";
+    });
+    map.on("mouseenter", "region-fill", () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", "region-fill", () => (map.getCanvas().style.cursor = ""));
+    document.getElementById("toggle-region").addEventListener("change", (e) => {
+      const v = e.target.checked ? "visible" : "none";
+      for (const id of ["region-fill", "region-line"]) map.setLayoutProperty(id, "visibility", v);
+    });
+  } else {
+    document.getElementById("legend").insertAdjacentHTML("beforeend",
+      '<div class="cap warn">kanto-region.json 을 불러오지 못했습니다.</div>');
+  }
+
+  // ---- 구 경계 + 인구밀도 (wards-reference.json 폴리곤 + demand.json 인구, jisCode 로 조인) ----
+  if (wards && demand) {
+    const byCode = new Map(demand.points.map((p) => [p.jisCode, p]));
+    const features = wards.wards.map((w) => {
+      const p = byCode.get(w.code);
+      const density = p ? p.residents / w.area_km2 : null;
+      return {
+        type: "Feature",
+        properties: {
+          name: w.name_ja, name_ko: KO_NAMES[w.code] || w.name_en, name_en: w.name_en,
+          area: w.area_km2, residents: p ? p.residents : null, density,
+        },
+        geometry: { type: "MultiPolygon", coordinates: w.polygons },
+      };
+    });
+    const fc = { type: "FeatureCollection", features };
+    map.addSource("wards", { type: "geojson", data: fc });
+
+    const ds = features.map((f) => f.properties.density).filter((d) => d != null).sort((a, b) => a - b);
+    const cuts = Array.from({ length: 7 }, (_, i) => ds[Math.floor(((i + 1) / 8) * (ds.length - 1))]);
+    const stepColor = ["step", ["get", "density"], RAMP[0]];
+    cuts.forEach((c, i) => stepColor.push(c, RAMP[i + 1]));
+
+    map.addLayer({ id: "wards-fill", source: "wards", type: "fill",
+      paint: { "fill-color": stepColor, "fill-opacity": 0.55 } });
+    map.addLayer({ id: "wards-line", source: "wards", type: "line",
+      paint: { "line-color": "#0c1114", "line-width": 0.8, "line-opacity": 0.6 } });
+    map.addLayer({ id: "wards-sel", source: "wards", type: "line",
+      filter: ["==", ["get", "name"], ""],
+      paint: { "line-color": "#e08a4c", "line-width": 2.5 } });
+
+    document.getElementById("ramp").innerHTML = RAMP.map((c) => `<i style="background:${c}"></i>`).join("");
+    document.getElementById("scale").innerHTML =
+      [ds[0], ...cuts, ds[ds.length - 1]].map((v) => `<span>${nf(v)}</span>`).join("");
+
+    map.on("click", "wards-fill", (e) => {
+      const p = e.features[0].properties;
+      map.setFilter("wards-sel", ["==", ["get", "name"], p.name]);
+      document.getElementById("card").classList.add("on");
+      document.getElementById("cname").textContent = p.name_ko;
+      document.getElementById("csub").textContent = `${p.name} · ${p.name_en} · ${p.area}km²`;
+      document.getElementById("cres").textContent = p.residents ? nf(p.residents) : "—";
+      document.getElementById("cden").textContent = p.density ? nf(p.density) + "/km²" : "—";
+    });
+    map.on("mouseenter", "wards-fill", () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", "wards-fill", () => (map.getCanvas().style.cursor = ""));
+    document.getElementById("toggle-wards").addEventListener("change", (e) => {
+      const v = e.target.checked ? "visible" : "none";
+      for (const id of ["wards-fill", "wards-line"]) map.setLayoutProperty(id, "visibility", v);
+    });
+  } else {
+    document.getElementById("legend").insertAdjacentHTML("beforeend",
+      '<div class="cap warn">wards-reference.json 또는 demand.json 을 불러오지 못했습니다.</div>');
+  }
+
+  // ---- 건물 footprint (4개 허브 지구, obstacles.json) ----
+  if (obstacles) {
+    const fc = { type: "FeatureCollection",
+      features: obstacles.obstacles.map((o) => ({ type: "Feature",
+        properties: { district: o.district }, geometry: { type: "Polygon", coordinates: [o.polygon] } })) };
+    map.addSource("obstacles", { type: "geojson", data: fc });
+    map.addLayer({ id: "obstacles-fill", source: "obstacles", type: "fill", minzoom: 13,
+      paint: { "fill-color": "#e7eef0", "fill-opacity": 0.5 } });
+    map.addLayer({ id: "obstacles-line", source: "obstacles", type: "line", minzoom: 13,
+      paint: { "line-color": "#e7eef0", "line-width": 0.4, "line-opacity": 0.6 } });
+    document.getElementById("cap").textContent =
+      `건물 ${nf(obstacles.obstacles.length)}개 (마루노우치/도쿄역/긴자·신주쿠·시부야·이케부쿠로) · `
+      + `23구 + 광역권 ${region ? region.municipalities.length : "?"}개(시·정·촌 178 + 지정도시 구 44). `
+      + `색 범례(위)는 23구 기준 — 광역권은 같은 색상표를 다른 구간에 적용해 표시(직접 비교 불가).`;
+    document.getElementById("toggle-obstacles").addEventListener("change", (e) => {
+      const v = e.target.checked ? "visible" : "none";
+      for (const id of ["obstacles-fill", "obstacles-line"]) map.setLayoutProperty(id, "visibility", v);
+    });
+  } else {
+    document.getElementById("cap").textContent = "obstacles.json 을 불러오지 못했습니다.";
+  }
+});
+</script>
