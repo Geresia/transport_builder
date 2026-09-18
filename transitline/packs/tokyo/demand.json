@@ -1,0 +1,305 @@
+{
+    "formatVersion":  1,
+    "model":  "gravity",
+    "points":  [
+                   {
+                       "id":  "ward-adachi",
+                       "name":  "足立区",
+                       "name_en":  "Adachi Ward",
+                       "location":  [
+                                        139.79980,
+                                        35.78084
+                                    ],
+                       "residents":  695043,
+                       "kind":  "mixed",
+                       "jisCode":  131211,
+                       "area_km2":  52.98
+                   },
+                   {
+                       "id":  "ward-arakawa",
+                       "name":  "荒川区",
+                       "name_en":  "Arakawa Ward",
+                       "location":  [
+                                        139.77479,
+                                        35.73853
+                                    ],
+                       "residents":  217475,
+                       "kind":  "mixed",
+                       "jisCode":  131181,
+                       "area_km2":  10.11
+                   },
+                   {
+                       "id":  "ward-bunkyo",
+                       "name":  "文京区",
+                       "name_en":  "Bunkyo Ward",
+                       "location":  [
+                                        139.74508,
+                                        35.71883
+                                    ],
+                       "residents":  240069,
+                       "kind":  "mixed",
+                       "jisCode":  131059,
+                       "area_km2":  11.23
+                   },
+                   {
+                       "id":  "ward-chiyoda",
+                       "name":  "千代田区",
+                       "name_en":  "Chiyoda Ward",
+                       "location":  [
+                                        139.75764,
+                                        35.69088
+                                    ],
+                       "residents":  66680,
+                       "kind":  "mixed",
+                       "jisCode":  131016,
+                       "area_km2":  11.33
+                   },
+                   {
+                       "id":  "ward-chuo",
+                       "name":  "中央区",
+                       "name_en":  "Chuo Ward",
+                       "location":  [
+                                        139.77747,
+                                        35.67927
+                                    ],
+                       "residents":  169179,
+                       "kind":  "mixed",
+                       "jisCode":  131024,
+                       "area_km2":  10.58
+                   },
+                   {
+                       "id":  "ward-edogawa",
+                       "name":  "江戸川区",
+                       "name_en":  "Edogawa Ward",
+                       "location":  [
+                                        139.87118,
+                                        35.71360
+                                    ],
+                       "residents":  697932,
+                       "kind":  "mixed",
+                       "jisCode":  131237,
+                       "area_km2":  48.52
+                   },
+                   {
+                       "id":  "ward-itabashi",
+                       "name":  "板橋区",
+                       "name_en":  "Itabashi Ward",
+                       "location":  [
+                                        139.68017,
+                                        35.76394
+                                    ],
+                       "residents":  584483,
+                       "kind":  "mixed",
+                       "jisCode":  131199,
+                       "area_km2":  32.06
+                   },
+                   {
+                       "id":  "ward-katsushika",
+                       "name":  "葛飾区",
+                       "name_en":  "Katsushika Ward",
+                       "location":  [
+                                        139.85677,
+                                        35.75523
+                                    ],
+                       "residents":  453093,
+                       "kind":  "mixed",
+                       "jisCode":  131229,
+                       "area_km2":  34.7
+                   },
+                   {
+                       "id":  "ward-kita",
+                       "name":  "北区",
+                       "name_en":  "Kita Ward",
+                       "location":  [
+                                        139.73345,
+                                        35.75780
+                                    ],
+                       "residents":  355213,
+                       "kind":  "mixed",
+                       "jisCode":  131172,
+                       "area_km2":  20.51
+                   },
+                   {
+                       "id":  "ward-koto",
+                       "name":  "江東区",
+                       "name_en":  "Koto Ward",
+                       "location":  [
+                                        139.81276,
+                                        35.67399
+                                    ],
+                       "residents":  524310,
+                       "kind":  "mixed",
+                       "jisCode":  131083,
+                       "area_km2":  40.93
+                   },
+                   {
+                       "id":  "ward-meguro",
+                       "name":  "目黒区",
+                       "name_en":  "Meguro Ward",
+                       "location":  [
+                                        139.68704,
+                                        35.62925
+                                    ],
+                       "residents":  288088,
+                       "kind":  "mixed",
+                       "jisCode":  131105,
+                       "area_km2":  14.61
+                   },
+                   {
+                       "id":  "ward-minato",
+                       "name":  "港区",
+                       "name_en":  "Minato Ward",
+                       "location":  [
+                                        139.72971,
+                                        35.65381
+                                    ],
+                       "residents":  260486,
+                       "kind":  "mixed",
+                       "jisCode":  131032,
+                       "area_km2":  20.96
+                   },
+                   {
+                       "id":  "ward-nakano",
+                       "name":  "中野区",
+                       "name_en":  "Nakano Ward",
+                       "location":  [
+                                        139.66220,
+                                        35.70920
+                                    ],
+                       "residents":  344880,
+                       "kind":  "mixed",
+                       "jisCode":  131148,
+                       "area_km2":  15.52
+                   },
+                   {
+                       "id":  "ward-nerima",
+                       "name":  "練馬区",
+                       "name_en":  "Nerima Ward",
+                       "location":  [
+                                        139.62059,
+                                        35.74916
+                                    ],
+                       "residents":  752608,
+                       "kind":  "mixed",
+                       "jisCode":  131202,
+                       "area_km2":  47.84
+                   },
+                   {
+                       "id":  "ward-ota",
+                       "name":  "大田区",
+                       "name_en":  "Ota Ward",
+                       "location":  [
+                                        139.72365,
+                                        35.58202
+                                    ],
+                       "residents":  748081,
+                       "kind":  "mixed",
+                       "jisCode":  131113,
+                       "area_km2":  62.87
+                   },
+                   {
+                       "id":  "ward-setagaya",
+                       "name":  "世田谷区",
+                       "name_en":  "Setagaya Ward",
+                       "location":  [
+                                        139.63564,
+                                        35.63909
+                                    ],
+                       "residents":  943664,
+                       "kind":  "mixed",
+                       "jisCode":  131121,
+                       "area_km2":  57.75
+                   },
+                   {
+                       "id":  "ward-shibuya",
+                       "name":  "渋谷区",
+                       "name_en":  "Shibuya Ward",
+                       "location":  [
+                                        139.69432,
+                                        35.66918
+                                    ],
+                       "residents":  243883,
+                       "kind":  "mixed",
+                       "jisCode":  131130,
+                       "area_km2":  15.04
+                   },
+                   {
+                       "id":  "ward-shinagawa",
+                       "name":  "品川区",
+                       "name_en":  "Shinagawa Ward",
+                       "location":  [
+                                        139.72055,
+                                        35.61546
+                                    ],
+                       "residents":  422488,
+                       "kind":  "mixed",
+                       "jisCode":  131091,
+                       "area_km2":  23.41
+                   },
+                   {
+                       "id":  "ward-shinjuku",
+                       "name":  "新宿区",
+                       "name_en":  "Shinjuku Ward",
+                       "location":  [
+                                        139.70422,
+                                        35.70441
+                                    ],
+                       "residents":  349385,
+                       "kind":  "mixed",
+                       "jisCode":  131041,
+                       "area_km2":  18.14
+                   },
+                   {
+                       "id":  "ward-suginami",
+                       "name":  "杉並区",
+                       "name_en":  "Suginami Ward",
+                       "location":  [
+                                        139.62937,
+                                        35.69393
+                                    ],
+                       "residents":  591108,
+                       "kind":  "mixed",
+                       "jisCode":  131156,
+                       "area_km2":  33.9
+                   },
+                   {
+                       "id":  "ward-sumida",
+                       "name":  "墨田区",
+                       "name_en":  "Sumida Ward",
+                       "location":  [
+                                        139.81254,
+                                        35.70474
+                                    ],
+                       "residents":  272085,
+                       "kind":  "mixed",
+                       "jisCode":  131075,
+                       "area_km2":  13.7
+                   },
+                   {
+                       "id":  "ward-taito",
+                       "name":  "台東区",
+                       "name_en":  "Taito Ward",
+                       "location":  [
+                                        139.77784,
+                                        35.71696
+                                    ],
+                       "residents":  211444,
+                       "kind":  "mixed",
+                       "jisCode":  131067,
+                       "area_km2":  10.06
+                   },
+                   {
+                       "id":  "ward-toshima",
+                       "name":  "豊島区",
+                       "name_en":  "Toshima Ward",
+                       "location":  [
+                                        139.71539,
+                                        35.73074
+                                    ],
+                       "residents":  301599,
+                       "kind":  "mixed",
+                       "jisCode":  131164,
+                       "area_km2":  12.95
+                   }
+               ]
+}

@@ -1,0 +1,37 @@
+{
+  "formatVersion": 1,
+  "id": "tokyo",
+  "name": "Greater Tokyo",
+  "version": "0.1.0",
+  "bbox": [138.18086, 34.90298, 140.86554, 37.1533],
+  "origin": [139.5232, 36.02814],
+  "data": {
+    "license": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口: Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)"
+    ],
+    "sources": [
+      {
+        "name": "OpenStreetMap building footprints (Marunouchi, Shinjuku, Shibuya, Ikebukuro)",
+        "url": "https://www.openstreetmap.org/copyright",
+        "license": "ODbL-1.0"
+      },
+      {
+        "name": "国土数値情報 行政区域データ (MLIT), via smartnews-smri/japan-topography",
+        "url": "https://github.com/smartnews-smri/japan-topography",
+        "license": "MLIT-KSJ-terms (free commercial use and modification; MLIT-specified credit required, no share-alike)"
+      },
+      {
+        "name": "Special wards of Tokyo — population by ward (2020 census figures)",
+        "url": "https://en.wikipedia.org/wiki/Special_wards_of_Tokyo",
+        "license": "CC-BY-SA-4.0"
+      }
+    ]
+  },
+  "files": {
+    "demand": "demand.json",
+    "obstacles": "obstacles.json"
+  }
+}
