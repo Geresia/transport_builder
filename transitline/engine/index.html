@@ -9,21 +9,49 @@
 <body>
 <canvas id="game"></canvas>
 
+<div id="left-col">
+  <div class="panel" id="route-panel" hidden></div>
+
+  <div class="panel" id="analysis" hidden>
+    <div class="tabs"><span class="tab on">Demand</span></div>
+    <div class="section-label">Trip outcomes</div>
+    <div class="stat"><span>Delivered</span><span id="an-delivered">0 · 0%</span></div>
+    <div class="bar"><i id="an-delivered-bar" class="ok"></i></div>
+    <div class="stat"><span>Abandoned</span><span id="an-abandoned">0 · 0%</span></div>
+    <div class="bar"><i id="an-abandoned-bar" class="bad"></i></div>
+    <div class="section-label">Departure Times</div>
+    <div class="hist" id="hist-dep"></div>
+    <div class="hist-axis"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+    <div class="section-label">Arrival Times</div>
+    <div class="hist arr" id="hist-arr"></div>
+    <div class="hist-axis"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+  </div>
+</div>
+
 <div class="panel" id="legend">
   <h1 id="pack-name">Loading…</h1>
   <div class="row"><span>Waiting</span><span id="hud-waiting">0</span></div>
   <div class="row"><span>Onboard</span><span id="hud-onboard">0</span></div>
   <div class="row"><span>Delivered</span><span id="hud-delivered">0</span></div>
   <div class="row"><span>Abandoned</span><span id="hud-abandoned">0</span></div>
-  <div class="row"><span>Clock</span><span id="hud-clock">—</span></div>
 
   <div class="section-label">Next line color</div>
   <div id="palette"></div>
 
-  <div class="section-label">Lines</div>
+  <div class="section-label">Routes</div>
   <div id="lines"></div>
 
   <button id="clear-lines" type="button">Clear lines</button>
+</div>
+
+<div id="bar-ui">
+  <button id="btn-analysis" type="button">Analysis</button>
+  <button id="btn-play" type="button" title="Space">❚❚</button>
+  <span id="hud-day">Day 1</span>
+  <span id="hud-clock">06:00</span>
+  <button class="speed" data-speed="1" type="button">▶</button>
+  <button class="speed" data-speed="2" type="button">▶▶</button>
+  <button class="speed" data-speed="4" type="button">▶▶▶</button>
 </div>
 
 <div class="panel" id="error" hidden></div>

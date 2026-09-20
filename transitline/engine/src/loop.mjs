@@ -1,15 +1,14 @@
-import { stepTrains } from "./trains.mjs";
+import { stepTrains, dispatchTrains } from "./trains.mjs";
 import { spawnPassengers, retryPendingRoutes, expirePassengers } from "./passengers.mjs";
 import { currentDemandFactor, currentDayLabel } from "./demand-engine.mjs";
 import { buildRouteGraph } from "./network.mjs";
 import { draw } from "./render.mjs";
 
-// 2 sim-minutes per real second: a train hop takes roughly 1-2 real seconds
-// and a service day cycles in about 12 real minutes — fast enough to
-// playtest, not tuned for anything beyond that.
+// At 1x: 2 sim-minutes per real second — a train hop takes roughly 1-2 real
+// seconds and a service day cycles in about 12 real minutes.
 const SIM_SECONDS_PER_REAL_SECOND = 120;
 
-export function startLoop(state, gravityModel, projection, ctx, canvas, hud, input) {
+export function startLoop(state, gravityModel, projection, ctx, canvas, hud, input, onFrame) {
   let graph = buildRouteGraph(state);
   let lastTime = performance.now();
 
@@ -17,23 +16,27 @@ export function startLoop(state, gravityModel, projection, ctx, canvas, hud, inp
     // Clamp so a backgrounded tab doesn't dump minutes of catch-up on return.
     const realDt = Math.min((now - lastTime) / 1000, 0.25);
     lastTime = now;
-    const simSeconds = realDt * SIM_SECONDS_PER_REAL_SECOND;
+    const simSeconds = realDt * SIM_SECONDS_PER_REAL_SECOND * state.speed;
     const simMinutes = simSeconds / 60;
 
+    // Lines can be drawn while paused, so routing refreshes regardless of speed.
     if (state.networkDirty) {
       graph = buildRouteGraph(state);
       retryPendingRoutes(state, graph);
       state.networkDirty = false;
     }
 
-    state.simMinutes += simMinutes;
-    const factor = currentDemandFactor(state);
-    spawnPassengers(state, gravityModel, graph, factor, simMinutes);
-    expirePassengers(state);
-    stepTrains(state, simSeconds);
+    if (state.speed > 0) {
+      state.simMinutes += simMinutes;
+      spawnPassengers(state, gravityModel, graph, currentDemandFactor(state), simMinutes);
+      expirePassengers(state);
+      dispatchTrains(state);
+      stepTrains(state, simSeconds);
+    }
 
     draw(ctx, state, projection, canvas.width, canvas.height, input);
     updateHud(hud, state);
+    onFrame?.(now);
 
     requestAnimationFrame(frame);
   }
@@ -52,12 +55,9 @@ function updateHud(hud, state) {
   hud.delivered.textContent = state.stats.delivered;
   hud.abandoned.textContent = state.stats.abandoned;
 
+  const h = Math.floor(state.simMinutes / 60) % 24;
+  const m = Math.floor(state.simMinutes % 60);
+  hud.clock.textContent = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   const label = currentDayLabel(state);
-  if (label) {
-    hud.clock.textContent = label;
-  } else {
-    const h = Math.floor(state.simMinutes / 60) % 24;
-    const m = Math.floor(state.simMinutes % 60);
-    hud.clock.textContent = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-  }
+  hud.day.textContent = `Day ${Math.floor(state.simMinutes / 1440) + 1}` + (label ? ` · ${label}` : "");
 }

@@ -45,11 +45,11 @@ supported yet — see `src/pack.mjs`).
 | `src/routing.mjs` | Dijkstra over that graph, with a transfer penalty on line changes |
 | `src/demand-engine.mjs` | Gravity-model trip distribution + `calendar` time-of-day factor |
 | `src/passengers.mjs` | Spawning, route retries, abandonment, board/alight |
-| `src/trains.mjs` | Moves each line's train, ping-ponging between its ends |
+| `src/trains.mjs` | Dispatches trains at the current band's headway and moves them out and back |
 | `src/input.mjs` | Drag across stations to lay a line |
 | `src/render.mjs` | Canvas drawing |
 | `src/loop.mjs` | Fixed-ratio sim tick + render, updates the HTML HUD |
-| `src/main.mjs` | Wires everything together; also renders the color palette and line list (name/frequency controls) |
+| `src/main.mjs` | Wires everything together; also owns the UI panels: routes list, Route Details (name, per-band frequency, delete), Analysis, and the bottom bar (pause/1x/2x/4x, Day/clock; Space toggles pause) |
 
 ## Known Phase 1 simplifications
 
@@ -65,9 +65,17 @@ Not bugs — deliberate scope cuts to get a playable loop first:
   the map.
 - **No train capacity or crowding.** Boarding is unlimited. Phase 3
   ("simulation depth — trains, capacity, crowding, economy") owns this.
-- **Frequency is "trains on the line" (1-4), spread evenly by station index,**
-  not real headway/scheduling — a stand-in for Subway Builder's frequency
-  dial, not a timetable simulation.
+- **Frequency is trains/hour per demand band** (High/Medium/Low/Very Low),
+  after Subway Builder's Route Details panel. Trains are dispatched from the
+  line's first station at that headway, run out and back, then retire. The
+  hour-to-band table (`BANDS` in `state.mjs`) is the engine's own default
+  timetable; it schedules trains only and does not shape passenger demand.
+- **No money.** Subway Builder's funds, per-hour cost and per-car operating
+  cost have no counterpart yet — the bottom bar has no funds readout on
+  purpose rather than a fake one.
+- **Analysis shows what this engine actually measures**: delivered vs.
+  abandoned, and departure/arrival counts by hour. Subway Builder's
+  transit/driving/walking mode share needs a mode-choice model we don't have.
 - **No construction cost.** Lines are free and instant. Subway Builder's
   tunnel/viaduct/cut-and-cover tradeoffs are Phase 2/3 economy territory.
 - **No pan/zoom.** The camera fits the whole `bbox` once, on load and resize.

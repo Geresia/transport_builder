@@ -484,21 +484,32 @@ map.on("load", async () => {
   // 공개돼 있지 않음(개인정보) — 이건 추정치이지 실측 데이터가 아님. minzoom 15 이상,
   // 정목 상세 패널이 열려 있을 때만 그 정목 범위로 필터링해서 보여줌. ----
   if (buildingPop && buildingPop.wards) {
-    const bFeatures = [];
+    // 건물별 추정 인구를 ~100m 격자 블록으로 합산 (건물 중심점 기준). 건물 단위는 너무
+    // 복잡해서 블록 단위로만 보여줌.
+    const DLAT = 0.0009, DLON = 0.0011;
+    const cells = new Map();
     for (const [jis, w] of Object.entries(buildingPop.wards)) {
       for (const a of w.areas) {
         for (const b of a.buildings) {
-          bFeatures.push({
-            type: "Feature",
-            properties: {
-              wardJis: jis, chome: a.code, id: b.id, sourceKind: b.sourceKind,
-              levels: b.levels, area_m2: b.area_m2, estimated_population: b.estimated_population,
-            },
-            geometry: { type: "Polygon", coordinates: [b.polygon] },
-          });
+          let sx = 0, sy = 0;
+          for (const p of b.polygon) { sx += p[0]; sy += p[1]; }
+          const cx = sx / b.polygon.length, cy = sy / b.polygon.length;
+          const ix = Math.floor(cx / DLON), iy = Math.floor(cy / DLAT);
+          const key = `${jis}|${ix}|${iy}`;
+          let c = cells.get(key);
+          if (!c) { c = { jis, ix, iy, pop: 0, n: 0 }; cells.set(key, c); }
+          c.pop += b.estimated_population; c.n += 1;
         }
       }
     }
+    const bFeatures = [...cells.values()].map((c) => {
+      const x0 = c.ix * DLON, y0 = c.iy * DLAT;
+      return {
+        type: "Feature",
+        properties: { wardJis: c.jis, estimated_population: Math.round(c.pop * 10) / 10, buildings: c.n },
+        geometry: { type: "Polygon", coordinates: [[[x0, y0], [x0 + DLON, y0], [x0 + DLON, y0 + DLAT], [x0, y0 + DLAT], [x0, y0]]] },
+      };
+    });
     map.addSource("bldgpop", { type: "geojson", data: { type: "FeatureCollection", features: bFeatures } });
 
     const bpVals = bFeatures.map((f) => f.properties.estimated_population).sort((a, b) => a - b);
@@ -506,10 +517,10 @@ map.on("load", async () => {
     const bpColor = ["step", ["get", "estimated_population"], RAMP[0]];
     bpCuts.forEach((c, i) => bpColor.push(c, RAMP[i + 1]));
 
-    map.addLayer({ id: "bldgpop-fill", source: "bldgpop", type: "fill", minzoom: 15,
+    map.addLayer({ id: "bldgpop-fill", source: "bldgpop", type: "fill", minzoom: 13,
       filter: ["==", ["get", "wardJis"], "__none__"],
       paint: { "fill-color": bpColor, "fill-opacity": 0.85 } });
-    map.addLayer({ id: "bldgpop-line", source: "bldgpop", type: "line", minzoom: 15,
+    map.addLayer({ id: "bldgpop-line", source: "bldgpop", type: "line", minzoom: 13,
       filter: ["==", ["get", "wardJis"], "__none__"],
       paint: { "line-color": "#0c1114", "line-width": 0.3, "line-opacity": 0.6 } });
 
@@ -517,8 +528,8 @@ map.on("load", async () => {
       const p = e.features[0].properties;
       new maplibregl.Popup({ closeButton: false })
         .setLngLat(e.lngLat)
-        .setHTML(`<div style="font:12px sans-serif">추정 인구 <b>${nf(p.estimated_population)}</b>명`
-          + `<br>${p.area_m2}m² · ${p.levels}층 · ${p.sourceKind}<br>`
+        .setHTML(`<div style="font:12px sans-serif">이 100m 블록 추정 인구 <b>${nf(p.estimated_population)}</b>명`
+          + `<br>건물 ${p.buildings}개 포함<br>`
           + `<span style="color:#888">모델 추정치 — 실측 아님</span></div>`)
         .addTo(map);
     });
@@ -541,7 +552,7 @@ map.on("load", async () => {
       + `23구 + 광역권 ${region ? region.municipalities.length : "?"}개(시·정·촌 178 + 지정도시 구 44). `
       + `색 범례(위)는 23구 기준 — 광역권은 같은 색상표를 다른 구간에 적용해 표시(직접 비교 불가). `
       + (subward && subward.wards ? `구를 클릭하면 오른쪽에 상세 패널이 뜹니다 — 정목(町丁) 단위 인구, 23구 전체 지원.` : "")
-      + (buildingPop && buildingPop.wards ? ` 건물별 색(현재 ${supportedBuildingWardsKo}만)은 실측이 아니라 정목 인구를 건물 면적×층수로 배분한 추정 모델(줌 15+).` : "");
+      + (buildingPop && buildingPop.wards ? ` 건물별 색(현재 ${supportedBuildingWardsKo}만 — 지요다·신주쿠·시부야·도시마는 건물이 충분히 잡힌 일부 정목만)은 실측이 아니라 정목 인구를 건물 면적×층수로 배분한 추정 모델(줌 13+).` : "");
     document.getElementById("toggle-obstacles").addEventListener("change", (e) => {
       const v = e.target.checked ? "visible" : "none";
       for (const id of ["obstacles-fill", "obstacles-line"]) map.setLayoutProperty(id, "visibility", v);
@@ -549,5 +560,8 @@ map.on("load", async () => {
   } else {
     document.getElementById("cap").textContent = "obstacles.json 을 불러오지 못했습니다.";
   }
+
+  // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
+  for (const id of ["bldgpop-fill", "bldgpop-line"]) if (map.getLayer(id)) map.moveLayer(id);
 });
 </script>

@@ -2,6 +2,7 @@
 // triggered by trains.mjs when a train stops at a station.
 import { findRoute } from "./routing.mjs";
 import { pickDestination } from "./demand-engine.mjs";
+import { hourOfDay } from "./state.mjs";
 
 const ABANDON_AFTER_MINUTES = 25;
 
@@ -25,6 +26,8 @@ export function spawnPassengers(state, gravityModel, graph, factor, dtMinutes) {
         trainLineId: null,
         spawnedAt: state.simMinutes,
       });
+      state.stats.spawned++;
+      state.stats.spawnedByHour[hourOfDay(state)]++;
     }
   }
 }
@@ -59,6 +62,7 @@ export function handleStop(state, lineId, stationId) {
       p.trainLineId = null;
       if (p.hopIndex === p.route.length - 1) {
         state.stats.delivered++;
+        state.stats.deliveredByHour[hourOfDay(state)]++;
         continue; // drop: delivered
       }
       p.hopIndex++;

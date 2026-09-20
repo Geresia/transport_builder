@@ -1,5 +1,9 @@
 import { loadPack } from "./pack.mjs";
-import { createState, addLine, clearLines, setLineFrequency, renameLine, LINE_COLORS, nextLineColor } from "./state.mjs";
+import {
+  createState, addLine, clearLines, deleteLine, renameLine, setBandFrequency,
+  LINE_COLORS, BANDS, nextLineColor, bandAt, lineLetter, badgeTextColor,
+} from "./state.mjs";
+import { targetTrains } from "./trains.mjs";
 import { makeProjection } from "./projection.mjs";
 import { buildGravityModel } from "./demand-engine.mjs";
 import { attachInput } from "./input.mjs";
@@ -8,83 +12,188 @@ import { startLoop } from "./loop.mjs";
 const params = new URLSearchParams(location.search);
 const packPath = params.get("pack") ?? "../packs/example-radial";
 
-const canvas = document.getElementById("game");
+const $ = (id) => document.getElementById(id);
+const canvas = $("game");
 const ctx = canvas.getContext("2d");
-const errorEl = document.getElementById("error");
+const errorEl = $("error");
 const hud = {
-  packName: document.getElementById("pack-name"),
-  waiting: document.getElementById("hud-waiting"),
-  onboard: document.getElementById("hud-onboard"),
-  delivered: document.getElementById("hud-delivered"),
-  abandoned: document.getElementById("hud-abandoned"),
-  clock: document.getElementById("hud-clock"),
+  packName: $("pack-name"),
+  waiting: $("hud-waiting"),
+  onboard: $("hud-onboard"),
+  delivered: $("hud-delivered"),
+  abandoned: $("hud-abandoned"),
+  clock: $("hud-clock"),
+  day: $("hud-day"),
 };
 
+// All text goes through textContent — line names are player input.
+function el(tag, className, text) {
+  const e = document.createElement(tag);
+  if (className) e.className = className;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function makeBadge(line) {
+  const b = el("span", "badge", lineLetter(line.id));
+  b.style.background = line.color;
+  b.style.color = badgeTextColor(line.color);
+  return b;
+}
+
 let selectedColor = LINE_COLORS[0];
+let selectedLineId = null;
 
 function renderPalette() {
-  const el = document.getElementById("palette");
-  el.innerHTML = "";
+  const box = $("palette");
+  box.innerHTML = "";
   for (const color of LINE_COLORS) {
-    const swatch = document.createElement("div");
-    swatch.className = "swatch" + (color === selectedColor ? " selected" : "");
+    const swatch = el("div", "swatch" + (color === selectedColor ? " selected" : ""));
     swatch.style.background = color;
     swatch.title = "Pick this color for the next line";
     swatch.addEventListener("click", () => {
       selectedColor = color;
       renderPalette();
     });
-    el.appendChild(swatch);
+    box.appendChild(swatch);
   }
 }
 
-// Route name/color/frequency are player-set, per Subway Builder rather than
-// an abstract auto-assigned line — see engine/README.md.
 function renderLines(state) {
-  const el = document.getElementById("lines");
-  el.innerHTML = "";
+  const box = $("lines");
+  box.innerHTML = "";
   for (const line of state.lines) {
-    const row = document.createElement("div");
-    row.className = "line-row";
-
-    const dot = document.createElement("span");
-    dot.className = "dot";
-    dot.style.background = line.color;
-
-    const name = document.createElement("span");
-    name.className = "name";
-    name.textContent = line.name;
-    name.title = "Click to rename";
-    name.addEventListener("click", () => {
-      const next = window.prompt("Line name:", line.name);
-      if (next) renameLine(state, line.id, next);
+    const row = el("div", "line-row" + (line.id === selectedLineId ? " selected" : ""));
+    row.append(makeBadge(line), el("span", "name", line.name));
+    row.addEventListener("click", () => {
+      selectedLineId = line.id;
       renderLines(state);
+      renderRoutePanel(state);
     });
-
-    const freq = document.createElement("span");
-    freq.className = "freq";
-    freq.title = "Trains on this line (frequency)";
-    const minus = document.createElement("button");
-    minus.type = "button";
-    minus.textContent = "−";
-    minus.addEventListener("click", () => {
-      setLineFrequency(state, line.id, line.trainCount - 1);
-      renderLines(state);
-    });
-    const count = document.createElement("span");
-    count.textContent = line.trainCount;
-    const plus = document.createElement("button");
-    plus.type = "button";
-    plus.textContent = "+";
-    plus.addEventListener("click", () => {
-      setLineFrequency(state, line.id, line.trainCount + 1);
-      renderLines(state);
-    });
-    freq.append(minus, count, plus);
-
-    row.append(dot, name, freq);
-    el.appendChild(row);
+    box.appendChild(row);
   }
+}
+
+const perHourText = (perHour) =>
+  perHour > 0 ? `${(60 / perHour).toFixed(0)} min · ${perHour} trains/hr` : "No service";
+
+function renderRoutePanel(state) {
+  const panel = $("route-panel");
+  const line = state.lines.find((l) => l.id === selectedLineId);
+  if (!line) {
+    panel.hidden = true;
+    panel.innerHTML = "";
+    return;
+  }
+  panel.hidden = false;
+  panel.innerHTML = "";
+
+  const name = el("span", "rp-name", line.name);
+  name.title = "Click to rename";
+  name.addEventListener("click", () => {
+    const next = window.prompt("Line name:", line.name);
+    if (next) renameLine(state, line.id, next);
+    renderLines(state);
+    renderRoutePanel(state);
+  });
+  const close = el("button", "close", "×");
+  close.type = "button";
+  close.addEventListener("click", () => {
+    selectedLineId = null;
+    renderLines(state);
+    renderRoutePanel(state);
+  });
+  const head = el("div", "rp-head");
+  head.append(makeBadge(line), name, close);
+  panel.appendChild(head);
+
+  const trains = el("div", "rp-trains");
+  trains.append("Trains in service: ", el("b", "", "0"), " · Target: ", el("b", "", "0"));
+  trains.id = "rp-trains";
+  panel.appendChild(trains);
+
+  panel.appendChild(el("div", "section-label", "Service frequency"));
+  for (const band of BANDS) {
+    const row = el("div", "band");
+    row.dataset.band = band.id;
+
+    const info = el("div", "band-info");
+    const label = el("div", "band-label", band.label);
+    label.style.color = band.color;
+    const rate = el("div", "band-rate", perHourText(line.frequency[band.id]));
+    info.append(label, el("div", "band-hours", band.hours), rate);
+
+    const stepper = el("div", "stepper");
+    const minus = el("button", "", "−");
+    const plus = el("button", "", "+");
+    const value = el("span", "", String(line.frequency[band.id]));
+    minus.type = plus.type = "button";
+    const bump = (delta) => {
+      setBandFrequency(state, line.id, band.id, line.frequency[band.id] + delta);
+      value.textContent = line.frequency[band.id];
+      rate.textContent = perHourText(line.frequency[band.id]);
+    };
+    minus.addEventListener("click", () => bump(-1));
+    plus.addEventListener("click", () => bump(1));
+    stepper.append(minus, value, plus);
+
+    row.append(info, stepper);
+    panel.appendChild(row);
+  }
+
+  const del = el("button", "delete", "Delete line");
+  del.type = "button";
+  del.addEventListener("click", () => {
+    deleteLine(state, line.id);
+    selectedLineId = null;
+    renderLines(state);
+    renderRoutePanel(state);
+  });
+  panel.appendChild(del);
+}
+
+function updateRoutePanelLive(state) {
+  const line = state.lines.find((l) => l.id === selectedLineId);
+  if (!line) return;
+  const band = bandAt(state);
+  const current = state.trains.filter((t) => t.lineId === line.id).length;
+  const bs = $("rp-trains")?.querySelectorAll("b");
+  if (bs && bs.length === 2) {
+    bs[0].textContent = current;
+    bs[1].textContent = targetTrains(state, line, band.id).toFixed(1);
+  }
+  for (const row of $("route-panel").querySelectorAll(".band")) {
+    row.classList.toggle("active", row.dataset.band === band.id);
+  }
+}
+
+function buildHist(id) {
+  const box = $(id);
+  box.innerHTML = "";
+  return Array.from({ length: 24 }, () => {
+    const bar = document.createElement("i");
+    box.appendChild(bar);
+    return bar;
+  });
+}
+
+function setHist(bars, values) {
+  const max = Math.max(1, ...values);
+  bars.forEach((bar, h) => {
+    bar.style.height = `${(values[h] / max) * 100}%`;
+  });
+}
+
+function updateAnalysis(state, depBars, arrBars) {
+  const { delivered, abandoned, spawnedByHour, deliveredByHour } = state.stats;
+  const total = delivered + abandoned;
+  const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
+  $("an-delivered").textContent = `${delivered} · ${pct(delivered)}%`;
+  $("an-abandoned").textContent = `${abandoned} · ${pct(abandoned)}%`;
+  $("an-delivered-bar").style.width = `${pct(delivered)}%`;
+  $("an-abandoned-bar").style.width = `${pct(abandoned)}%`;
+  setHist(depBars, spawnedByHour);
+  setHist(arrBars, deliveredByHour);
 }
 
 async function main() {
@@ -104,24 +213,80 @@ async function main() {
   resize();
 
   hud.packName.textContent = pack.manifest.name;
-  document.getElementById("clear-lines").addEventListener("click", () => {
+  $("clear-lines").addEventListener("click", () => {
     clearLines(state);
+    selectedLineId = null;
     renderLines(state);
+    renderRoutePanel(state);
+  });
+
+  // Bottom bar: pause / speed / analysis toggle.
+  let lastSpeed = 1;
+  const playBtn = $("btn-play");
+  const speedBtns = [...document.querySelectorAll("#bar-ui .speed")];
+  function syncBar() {
+    playBtn.textContent = state.speed === 0 ? "▶" : "❚❚";
+    for (const b of speedBtns) b.classList.toggle("active", state.speed !== 0 && Number(b.dataset.speed) === state.speed);
+  }
+  function togglePlay() {
+    if (state.speed === 0) state.speed = lastSpeed;
+    else {
+      lastSpeed = state.speed;
+      state.speed = 0;
+    }
+    syncBar();
+  }
+  playBtn.addEventListener("click", (e) => {
+    togglePlay();
+    e.currentTarget.blur();
+  });
+  for (const b of speedBtns) {
+    b.addEventListener("click", (e) => {
+      state.speed = lastSpeed = Number(b.dataset.speed);
+      syncBar();
+      e.currentTarget.blur();
+    });
+  }
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Space" && e.target === document.body) {
+      e.preventDefault();
+      togglePlay();
+    }
+  });
+  syncBar();
+
+  const analysisEl = $("analysis");
+  const depBars = buildHist("hist-dep");
+  const arrBars = buildHist("hist-arr");
+  $("btn-analysis").addEventListener("click", (e) => {
+    analysisEl.hidden = !analysisEl.hidden;
+    e.currentTarget.classList.toggle("active", !analysisEl.hidden);
+    e.currentTarget.blur();
   });
 
   renderPalette();
   renderLines(state);
+  renderRoutePanel(state);
 
   const input = attachInput(canvas, state, projection, (stationIds) => {
     const defaultName = `Line ${state.nextLineId}`;
     const name = window.prompt("Name this line:", defaultName) || defaultName;
-    addLine(state, stationIds, { name, color: selectedColor });
+    const line = addLine(state, stationIds, { name, color: selectedColor });
     selectedColor = nextLineColor(state); // suggest a fresh color for the next line
+    selectedLineId = line.id;
     renderPalette();
     renderLines(state);
+    renderRoutePanel(state);
   });
 
-  startLoop(state, gravityModel, projection, ctx, canvas, hud, input);
+  // Panels refresh ~4x/second — no need to rewrite the DOM every frame.
+  let lastUi = 0;
+  startLoop(state, gravityModel, projection, ctx, canvas, hud, input, (now) => {
+    if (now - lastUi < 250) return;
+    lastUi = now;
+    updateRoutePanelLive(state);
+    if (!analysisEl.hidden) updateAnalysis(state, depBars, arrBars);
+  });
 }
 
 main().catch((err) => {
