@@ -1,7 +1,7 @@
-// Canvas-only drawing: stations, attractors, lines, trains, and the line
-// currently being dragged. The HUD (counters, clock) is plain HTML, updated
-// by loop.mjs — no text is drawn on the canvas.
-import { trainScreenPosition } from "./trains.mjs";
+// Canvas-only drawing: the network as a transit diagram (0/45/90-degree lines,
+// station markers, letter badges, station names), attractors, trains, and the
+// line being dragged. Counters and the clock are plain HTML, updated by loop.mjs.
+import { buildGeometry, octilinear, pointAlong } from "./geometry.mjs";
 import { lineLetter, badgeTextColor } from "./state.mjs";
 
 const BG = "#1b2131";
@@ -41,22 +41,6 @@ function backgroundFor(width, height) {
   return layer;
 }
 
-// Multiple lines sharing an edge get a small perpendicular offset per line
-// index so they don't render as one indistinguishable stroke. Approximate
-// (offset is per-line, not per-shared-edge) — good enough for Phase 1.
-function offsetPoint([x, y], [nx, ny], lineIndex, totalLines) {
-  const spread = 6;
-  const offset = (lineIndex - (totalLines - 1) / 2) * spread;
-  return [x + nx * offset, y + ny * offset];
-}
-
-function perpendicular([ax, ay], [bx, by]) {
-  const dx = bx - ax;
-  const dy = by - ay;
-  const len = Math.hypot(dx, dy) || 1;
-  return [-dy / len, dx / len];
-}
-
 // Letter badge just beyond a line's terminus, pushed outward along the line.
 function drawBadge(ctx, end, neighbor, line) {
   const dx = end[0] - neighbor[0];
@@ -78,37 +62,100 @@ function drawBadge(ctx, end, neighbor, line) {
   ctx.fillText(lineLetter(line.id), x, y + 0.5);
 }
 
+// Station name with a dark halo so it stays readable over the block texture.
+function drawLabel(ctx, text, x, y, align, muted) {
+  ctx.font = "11px Inter, system-ui, 'Malgun Gothic', sans-serif";
+  ctx.textAlign = align;
+  ctx.textBaseline = "middle";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#111318";
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = muted ? "#8c93a4" : "#f1f2f5";
+  ctx.fillText(text, x, y);
+}
+
+// Puts the label on whichever side (E/W/N/S) is farthest from every line
+// leaving the station and from a terminus badge.
+function labelSpot(angles, x, y, m) {
+  const sides = [
+    [0, x + m + 4, y + 1, "left"],
+    [Math.PI, x - m - 4, y + 1, "right"],
+    [-Math.PI / 2, x, y - m - 9, "center"],
+    [Math.PI / 2, x, y + m + 10, "center"],
+  ];
+  let best = sides[0];
+  let bestScore = -1;
+  for (const side of sides) {
+    let score = Math.PI;
+    for (const a of angles ?? []) {
+      let d = Math.abs(a - side[0]) % (2 * Math.PI);
+      d = Math.min(d, 2 * Math.PI - d);
+      score = Math.min(score, d);
+    }
+    if (score > bestScore + 1e-6) {
+      bestScore = score;
+      best = side;
+    }
+  }
+  return best;
+}
+
+const LABEL_ALL_BELOW = 40; // label unserved stations too only on small packs
+
 export function draw(ctx, state, projection, width, height, input) {
   ctx.save();
   ctx.drawImage(backgroundFor(width, height), 0, 0);
 
   const screen = (loc) => projection.toScreen(loc, width, height);
+  const geo = buildGeometry(state, screen);
 
-  // Lines
-  for (const [lineIndex, line] of state.lines.entries()) {
-    const base = line.stationIds.map((id) => screen(state.stations.get(id).location));
-    const pts = base.map((p, i) =>
-      offsetPoint(p, perpendicular(base[Math.max(0, i - 1)], base[Math.min(base.length - 1, i + 1)]), lineIndex, state.lines.length)
-    );
+  // Directions in which lines (and terminus badges) leave each station.
+  const dirs = new Map();
+  const addDir = (id, dx, dy) => {
+    if (!dirs.has(id)) dirs.set(id, []);
+    dirs.get(id).push(Math.atan2(dy, dx));
+  };
+  for (const line of state.lines) {
+    const legs = geo.edges.get(line.id);
+    legs.forEach((leg, i) => {
+      const n = leg.length;
+      const out = [leg[1][0] - leg[0][0], leg[1][1] - leg[0][1]];
+      const back = [leg[n - 2][0] - leg[n - 1][0], leg[n - 2][1] - leg[n - 1][1]];
+      addDir(line.stationIds[i], out[0], out[1]);
+      addDir(line.stationIds[i + 1], back[0], back[1]);
+      if (i === 0) addDir(line.stationIds[0], -out[0], -out[1]);
+      if (i === legs.length - 1) addDir(line.stationIds[i + 1], -back[0], -back[1]);
+    });
+  }
+
+  // Lines: 0/45/90-degree legs, shared legs fanned side by side.
+  for (const line of state.lines) {
+    const legs = geo.edges.get(line.id);
     ctx.strokeStyle = line.color;
     ctx.lineWidth = 4;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.beginPath();
-    pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+    legs.forEach((leg, i) =>
+      leg.forEach(([x, y], j) => (i === 0 && j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
+    );
     ctx.stroke();
-    drawBadge(ctx, pts[0], pts[1], line);
-    drawBadge(ctx, pts[pts.length - 1], pts[pts.length - 2], line);
+    const first = legs[0];
+    const last = legs[legs.length - 1];
+    drawBadge(ctx, first[0], first[1], line);
+    drawBadge(ctx, last[last.length - 1], last[last.length - 2], line);
   }
 
-  // Draft line being drawn
+  // Draft line being drawn, previewed with the same 45-degree legs.
   if (input?.draft) {
     ctx.strokeStyle = "rgba(255,255,255,0.6)";
     ctx.lineWidth = 3;
     ctx.setLineDash([6, 6]);
-    ctx.beginPath();
     const pts = input.draft.stationIds.map((id) => screen(state.stations.get(id).location));
-    pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+    ctx.beginPath();
+    ctx.moveTo(...pts[0]);
+    for (let i = 1; i < pts.length; i++) octilinear(pts[i - 1], pts[i]).slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
     ctx.lineTo(...input.draft.cursor);
     ctx.stroke();
     ctx.setLineDash([]);
@@ -132,38 +179,68 @@ export function draw(ctx, state, projection, width, height, input) {
     if (p.state !== "waiting") continue;
     waitingByStation.set(p.currentStationId, (waitingByStation.get(p.currentStationId) ?? 0) + 1);
   }
+  const linesAt = new Map();
+  for (const line of state.lines) for (const id of line.stationIds) linesAt.set(id, (linesAt.get(id) ?? 0) + 1);
 
-  // Stations
+  // Stations: demand disc underneath, then the diagram marker where a line
+  // stops (white circle; larger where lines interchange).
+  const labelUnserved = state.stations.size <= LABEL_ALL_BELOW;
   for (const s of state.stations.values()) {
     const [x, y] = screen(s.location);
     const r = stationRadius(s);
+    const served = linesAt.get(s.id) ?? 0;
+
+    ctx.globalAlpha = served ? 0.35 : 1;
     ctx.fillStyle = KIND_FILL[s.kind] ?? DEFAULT_FILL;
-    ctx.strokeStyle = STATION_STROKE;
-    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
+    if (!served) {
+      ctx.strokeStyle = STATION_STROKE;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    let markerR = 0;
+    if (served) {
+      markerR = served >= 2 ? 7 : 5;
+      ctx.fillStyle = "#fff";
+      ctx.strokeStyle = "#111318";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, markerR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    if (s.named && (served || labelUnserved)) {
+      const [, lx, ly, align] = labelSpot(dirs.get(s.id), x, y, Math.max(r, markerR));
+      drawLabel(ctx, s.name, lx, ly, align, !served);
+    }
 
     const waiting = waitingByStation.get(s.id);
     if (waiting) {
+      const bx = x + Math.max(r, markerR) * 0.7;
+      const by = y - Math.max(r, markerR) * 0.7;
       ctx.fillStyle = "#e5484d";
       ctx.beginPath();
-      ctx.arc(x + r * 0.7, y - r * 0.7, 7, 0, Math.PI * 2);
+      ctx.arc(bx, by, 7, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = "#fff";
       ctx.font = "9px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(String(Math.min(waiting, 99)), x + r * 0.7, y - r * 0.7 + 0.5);
+      ctx.fillText(String(Math.min(waiting, 99)), bx, by + 0.5);
     }
   }
 
-  // Trains
+  // Trains ride the same drawn legs as the lines.
   for (const train of state.trains) {
     const line = state.lines.find((l) => l.id === train.lineId);
-    if (!line) continue;
-    const [x, y] = trainScreenPosition(state, train, projection, width, height);
+    const leg = geo.edges.get(train.lineId)?.[train.dir === 1 ? train.segIndex : train.segIndex - 1];
+    if (!line || !leg) continue;
+    const [x, y] = pointAlong(leg, train.dir === 1 ? train.t : 1 - train.t);
     ctx.fillStyle = line.color;
     ctx.strokeStyle = "#111318";
     ctx.lineWidth = 2;

@@ -71,6 +71,7 @@
     "region": "kanto-region.json",
     "subward": "subward.json",
     "buildingPopulation": "building-population.json",
-    "jobs": "jobs.json"
+    "jobs": "jobs.json",
+    "jobsBuildings": "jobs-buildings.json"
   }
 }

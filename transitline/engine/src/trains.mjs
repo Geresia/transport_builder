@@ -75,12 +75,3 @@ export function stepTrains(state, dtSeconds) {
   state.trains = state.trains.filter((t) => !t.done);
 }
 
-export function trainScreenPosition(state, train, projection, width, height) {
-  const line = state.lines.find((l) => l.id === train.lineId);
-  const ids = line.stationIds;
-  const from = state.stations.get(ids[train.segIndex]);
-  const to = state.stations.get(ids[train.segIndex + train.dir]);
-  const [fx, fy] = projection.toScreen(from.location, width, height);
-  const [tx, ty] = projection.toScreen(to.location, width, height);
-  return [fx + (tx - fx) * train.t, fy + (ty - fy) * train.t];
-}

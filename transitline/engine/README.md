@@ -47,7 +47,8 @@ Then open `http://localhost:8000/engine/index.html`. It loads
 | `src/passengers.mjs` | Spawning, route retries, abandonment, board/alight |
 | `src/trains.mjs` | Dispatches trains at the current band's headway and moves them out and back |
 | `src/input.mjs` | Drag across stations to lay a line |
-| `src/render.mjs` | Canvas drawing |
+| `src/geometry.mjs` | Transit-diagram geometry: 0/45/90-degree legs between stations, shared legs fanned side by side, point-along-polyline for trains |
+| `src/render.mjs` | Canvas drawing: the network as a transit diagram (line legs, white station markers, larger at interchanges, letter badges, station names), demand discs, attractors, trains |
 | `src/loop.mjs` | Fixed-ratio sim tick + render, updates the HTML HUD |
 | `src/main.mjs` | Wires everything together; also owns the UI panels: routes list, Route Details (name, per-band frequency, delete), Analysis, and the bottom bar (pause/1x/2x/4x, Day/clock; Space toggles pause) |
 
@@ -88,6 +89,7 @@ Not bugs — deliberate scope cuts to get a playable loop first:
   arrival event.
 - **No construction cost.** Lines are free and instant. Subway Builder's
   tunnel/viaduct/cut-and-cover tradeoffs are Phase 2/3 economy territory.
+- **The diagram is schematic in line shape only.** Stations keep their projected positions; each leg between two stations is one diagonal run plus one straight run. Legs shared by several lines are offset per leg, so a line's stroke can step sideways at a station where the set of lines sharing changes. Station names are drawn only for points the pack actually names (`name`), and on packs over 40 stations only where a line stops.
 - **No pan/zoom.** The camera fits the whole `bbox` once, on load and resize.
 - **Demand models**: `gravity` and `matrix` both run. Matrix flows follow
   `../docs/citypack-format.md` (a flow naming a period is that many trips in

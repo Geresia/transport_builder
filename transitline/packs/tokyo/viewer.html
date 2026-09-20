@@ -112,6 +112,13 @@
 <script>
 const RAMP = ["#16272B","#1B3B42","#215059","#2A6771","#357F8A","#4A9BA5","#71B9C1","#A6D8DC"];
 const nf = (n) => Math.round(Number(n)).toLocaleString("ja-JP");
+// step 표현식은 경계값이 엄격하게 증가해야 함 — 0이 많은 데이터(지붕 등)는 분위수가 겹쳐서 중복 제거
+const stepExpr = (prop, cuts, ramp) => {
+  const e = ["step", ["get", prop], ramp[0]];
+  let last = -Infinity;
+  cuts.forEach((c, i) => { if (c > last) { e.push(c, ramp[i + 1]); last = c; } });
+  return e;
+};
 
 // 도쿄 23구 한글 표기 (jisCode 로 조인) — 베이스맵 타일 자체 라벨(도로명·지명)은
 // OSM raster 에 박혀 있어 여기서 못 바꾼다. 우리가 그리는 패널/범례만 한글화.
@@ -242,7 +249,7 @@ map.on("load", async () => {
     loadJSON("./manifest.json"), loadJSON("./demand.json"),
     loadJSON("./wards-reference.json"), loadJSON("./obstacles.json"),
     loadJSON("./kanto-region.json"), loadJSON("./subward.json"),
-    loadJSON("./building-population.json"), loadJSON("./jobs.json"), loadJSON("./jobs-grid.json"),
+    loadJSON("./building-population.json"), loadJSON("./jobs.json"), loadJSON("./jobs-buildings.json"),
   ]);
 
   if (manifest) {
@@ -338,6 +345,7 @@ map.on("load", async () => {
     if (map.getLayer("subward-sel")) map.setFilter("subward-sel", ["==", ["get", "code"], "__none__"]);
     if (map.getLayer("bldgpop-fill")) map.setFilter("bldgpop-fill", ["==", ["get", "wardJis"], "__none__"]);
     if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], "__none__"]);
+    for (const id of ["jobsgrid-fill", "jobsgrid-line"]) if (map.getLayer(id)) map.setFilter(id, ["==", ["get", "wardJis"], "__none__"]);
     if (subwardActive) { map.flyTo(initialView); subwardActive = false; }
   }
 
@@ -351,6 +359,7 @@ map.on("load", async () => {
     if (map.getLayer("subward-line")) map.setFilter("subward-line", ["==", ["get", "wardJis"], "__none__"]);
     if (map.getLayer("bldgpop-fill")) map.setFilter("bldgpop-fill", ["==", ["get", "wardJis"], "__none__"]);
     if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], "__none__"]);
+    for (const id of ["jobsgrid-fill", "jobsgrid-line"]) if (map.getLayer(id)) map.setFilter(id, ["==", ["get", "wardJis"], "__none__"]);
     if (subwardActive) { map.flyTo(initialView); subwardActive = false; }
   }
 
@@ -365,6 +374,7 @@ map.on("load", async () => {
     map.setFilter("subward-line", ["==", ["get", "wardJis"], jis]);
     if (map.getLayer("bldgpop-fill")) map.setFilter("bldgpop-fill", ["==", ["get", "wardJis"], jis]);
     if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], jis]);
+    for (const id of ["jobsgrid-fill", "jobsgrid-line"]) if (map.getLayer(id)) map.setFilter(id, ["==", ["get", "wardJis"], jis]);
     map.setFilter("subward-sel", ["==", ["get", "code"], "__none__"]);
     if (wardFeature) map.fitBounds(bboxOfCoords(wardFeature.geometry.coordinates), { padding: 60, duration: 800 });
     subwardActive = true;
@@ -515,28 +525,25 @@ map.on("load", async () => {
     const JRAMP = ["#2a1c10", "#43290f", "#5e3510", "#7c4412", "#9c5416", "#c06a1c", "#e58f34", "#f7c168"];
     const jds = features.map((f) => f.properties.wdensity).sort((a, b) => a - b);
     const jcuts = Array.from({ length: 7 }, (_, i) => jds[Math.floor(((i + 1) / 8) * (jds.length - 1))]);
-    const jStepColor = ["step", ["get", "wdensity"], JRAMP[0]];
-    jcuts.forEach((c, i) => jStepColor.push(c, JRAMP[i + 1]));
+    const jStepColor = stepExpr("wdensity", jcuts, JRAMP);
 
-    // 종사자 50m 격자 (jobs-grid.json — 현재 마루노우치1초메만, 모델 추정치)
+    // 종사자 건물별 (jobs-buildings.json — 현재 마루노우치1초메만, 모델 추정치)
     if (jobsGrid && jobsGrid.areas) {
       const codeToJis = new Map();
       for (const [jis, w] of Object.entries(subward.wards)) for (const a of w.areas) codeToJis.set(a.code, jis);
-      const [dlon, dlat] = jobsGrid.cell;
       const gf = [];
       for (const [code, ar] of Object.entries(jobsGrid.areas)) {
-        for (const c of ar.cells) {
-          const x0 = c.ix * dlon, y0 = c.iy * dlat;
+        for (const b of ar.buildings) {
           gf.push({ type: "Feature",
-            properties: { wardJis: codeToJis.get(code) || "", name: ar.name_ja, w: c.w, n: c.n },
-            geometry: { type: "Polygon", coordinates: [[[x0, y0], [x0 + dlon, y0], [x0 + dlon, y0 + dlat], [x0, y0 + dlat], [x0, y0]]] } });
+            properties: { wardJis: codeToJis.get(code) || "", name: ar.name_ja, w: b.workers, levels: b.levels,
+              levels_known: b.levels_known, area_m2: b.area_m2, kind: b.sourceKind },
+            geometry: { type: "Polygon", coordinates: [b.polygon] } });
         }
       }
       map.addSource("jobsgrid", { type: "geojson", data: { type: "FeatureCollection", features: gf } });
       const gv = gf.map((f) => f.properties.w).sort((a, b) => a - b);
       const gcuts = Array.from({ length: 7 }, (_, i) => gv[Math.floor(((i + 1) / 8) * (gv.length - 1))]);
-      const gColor = ["step", ["get", "w"], JRAMP[0]];
-      gcuts.forEach((c, i) => gColor.push(c, JRAMP[i + 1]));
+      const gColor = stepExpr("w", gcuts, JRAMP);
       map.addLayer({ id: "jobsgrid-fill", source: "jobsgrid", type: "fill", minzoom: 13,
         layout: { visibility: "none" }, filter: ["==", ["get", "wardJis"], "__none__"],
         paint: { "fill-color": gColor, "fill-opacity": 0.9 } });
@@ -546,8 +553,9 @@ map.on("load", async () => {
       map.on("click", "jobsgrid-fill", (e) => {
         const p = e.features[0].properties;
         new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
-          .setHTML(`<div style="font:12px sans-serif">${p.name} · 이 50m 칸 종사자 약 <b>${nf(p.w)}</b>명`
-            + `<br>건물 ${p.n}개<br><span style="color:#888">모델 추정치 — 실측 아님</span></div>`)
+          .setHTML(`<div style="font:12px sans-serif">${p.name} · 이 건물 종사자 약 <b>${nf(p.w)}</b>명`
+            + `<br>${p.area_m2}m² · ${p.levels}층${p.levels_known === true || p.levels_known === "true" ? "" : "(가정)"} · ${p.kind}`
+            + `<br><span style="color:#888">모델 추정치 — 실측 아님</span></div>`)
           .addTo(map);
       });
     }
@@ -575,38 +583,25 @@ map.on("load", async () => {
   // 공개돼 있지 않음(개인정보) — 이건 추정치이지 실측 데이터가 아님. minzoom 15 이상,
   // 정목 상세 패널이 열려 있을 때만 그 정목 범위로 필터링해서 보여줌. ----
   if (buildingPop && buildingPop.wards) {
-    // 건물별 추정 인구를 ~100m 격자 블록으로 합산 (건물 중심점 기준). 건물 단위는 너무
-    // 복잡해서 블록 단위로만 보여줌.
-    const DLAT = 0.0009, DLON = 0.0011;
-    const cells = new Map();
+    // 건물별 추정 인구 (종사자 지도와 같은 건물 단위 표시)
+    const bFeatures = [];
     for (const [jis, w] of Object.entries(buildingPop.wards)) {
       for (const a of w.areas) {
         for (const b of a.buildings) {
-          let sx = 0, sy = 0;
-          for (const p of b.polygon) { sx += p[0]; sy += p[1]; }
-          const cx = sx / b.polygon.length, cy = sy / b.polygon.length;
-          const ix = Math.floor(cx / DLON), iy = Math.floor(cy / DLAT);
-          const key = `${jis}|${ix}|${iy}`;
-          let c = cells.get(key);
-          if (!c) { c = { jis, ix, iy, pop: 0, n: 0 }; cells.set(key, c); }
-          c.pop += b.estimated_population; c.n += 1;
+          bFeatures.push({
+            type: "Feature",
+            properties: { wardJis: jis, estimated_population: b.estimated_population,
+              levels: b.levels, area_m2: b.area_m2, sourceKind: b.sourceKind },
+            geometry: { type: "Polygon", coordinates: [b.polygon] },
+          });
         }
       }
     }
-    const bFeatures = [...cells.values()].map((c) => {
-      const x0 = c.ix * DLON, y0 = c.iy * DLAT;
-      return {
-        type: "Feature",
-        properties: { wardJis: c.jis, estimated_population: Math.round(c.pop * 10) / 10, buildings: c.n },
-        geometry: { type: "Polygon", coordinates: [[[x0, y0], [x0 + DLON, y0], [x0 + DLON, y0 + DLAT], [x0, y0 + DLAT], [x0, y0]]] },
-      };
-    });
     map.addSource("bldgpop", { type: "geojson", data: { type: "FeatureCollection", features: bFeatures } });
 
     const bpVals = bFeatures.map((f) => f.properties.estimated_population).sort((a, b) => a - b);
     const bpCuts = Array.from({ length: 7 }, (_, i) => bpVals[Math.floor(((i + 1) / 8) * (bpVals.length - 1))]);
-    const bpColor = ["step", ["get", "estimated_population"], RAMP[0]];
-    bpCuts.forEach((c, i) => bpColor.push(c, RAMP[i + 1]));
+    const bpColor = stepExpr("estimated_population", bpCuts, RAMP);
 
     map.addLayer({ id: "bldgpop-fill", source: "bldgpop", type: "fill", minzoom: 13,
       filter: ["==", ["get", "wardJis"], "__none__"],
@@ -619,8 +614,8 @@ map.on("load", async () => {
       const p = e.features[0].properties;
       new maplibregl.Popup({ closeButton: false })
         .setLngLat(e.lngLat)
-        .setHTML(`<div style="font:12px sans-serif">이 100m 블록 추정 인구 <b>${nf(p.estimated_population)}</b>명`
-          + `<br>건물 ${p.buildings}개 포함<br>`
+        .setHTML(`<div style="font:12px sans-serif">이 건물 추정 거주 인구 <b>${nf(p.estimated_population)}</b>명`
+          + `<br>${p.area_m2}m² · ${p.levels}층 · ${p.sourceKind}<br>`
           + `<span style="color:#888">모델 추정치 — 실측 아님</span></div>`)
         .addTo(map);
     });
@@ -653,6 +648,6 @@ map.on("load", async () => {
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
-  for (const id of ["bldgpop-fill", "bldgpop-line"]) if (map.getLayer(id)) map.moveLayer(id);
+  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line"]) if (map.getLayer(id)) map.moveLayer(id);
 });
 </script>

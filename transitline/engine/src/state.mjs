@@ -47,6 +47,7 @@ export function createState(pack) {
     stations.set(p.id, {
       id: p.id,
       name: p.name ?? p.id,
+      named: p.name !== undefined, // only real names are worth drawing as labels
       location: p.location,
       residents: p.residents ?? 0,
       jobs: p.jobs ?? 0,
