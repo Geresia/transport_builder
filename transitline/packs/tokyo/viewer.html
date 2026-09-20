@@ -39,7 +39,7 @@
   .mini .k{font-size:10px;color:#6b7d85;font-family:"IBM Plex Mono",monospace}
   .mini .v{font-size:15px;font-weight:600}
 
-  #detail{top:190px;right:12px;width:300px;max-height:calc(100vh - 210px);
+  #detail{top:250px;right:12px;width:300px;max-height:calc(100vh - 270px);
     display:none;padding:14px;flex-direction:column;overflow:hidden}
   #detail.on{display:flex}
   #detail #ddata{display:flex;flex-direction:column;min-height:0;flex:1}
@@ -47,6 +47,10 @@
   #detail .dhead h3{font-size:13px;margin:0}
   #detail .dclose{cursor:pointer;color:#6b7d85;font-size:14px;line-height:1;padding:2px 4px}
   #detail .dclose:hover{color:#e7eef0}
+  #detail .dtoggle{flex:0 0 auto;display:flex;gap:0;margin:2px 0 8px;border:1px solid #232f35;border-radius:6px;overflow:hidden}
+  #detail .dtoggle button{flex:1;background:#141b1f;color:#9caeb5;border:0;padding:6px 4px;font-size:11.5px;cursor:pointer;font-family:inherit}
+  #detail .dtoggle button.on{background:#2A6771;color:#fff;font-weight:600}
+  #detail .dtoggle button#mjob.on{background:#b5651d}
   #detail .dnote{flex:0 0 auto;font-size:11px;color:#6b7d85;margin-bottom:6px}
   #detail .dmissing{color:#e08a4c;font-size:12px;line-height:1.6}
   #detail .dramp{flex:0 0 auto;display:flex;height:8px;border-radius:3px;overflow:hidden;margin:4px 0 2px}
@@ -86,12 +90,15 @@
   <div class="mini">
     <div><div class="k">인구</div><div class="v" id="cres">—</div></div>
     <div><div class="k">밀도</div><div class="v" id="cden">—</div></div>
+    <div><div class="k">종사자(일자리)</div><div class="v" id="cjobs">—</div></div>
+    <div><div class="k">종사자/거주</div><div class="v" id="cratio">—</div></div>
   </div>
 </div>
 
 <div class="panel" id="detail">
   <div class="dhead"><h3 id="dtitle">정목(町丁)별 인구</h3><span class="dclose" id="dclose" title="닫기">✕</span></div>
   <div id="ddata" style="display:none">
+    <div class="dtoggle"><button id="mres" class="on">거주 인구</button><button id="mjob">종사자(일자리)</button></div>
     <div class="dnote" id="dnote"></div>
     <div class="dramp" id="dramp"></div>
     <div class="dscale" id="dscale"></div>
@@ -231,11 +238,11 @@ const map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl());
 
 map.on("load", async () => {
-  const [manifest, demand, wards, obstacles, region, subward, buildingPop] = await Promise.all([
+  const [manifest, demand, wards, obstacles, region, subward, buildingPop, jobs, jobsGrid] = await Promise.all([
     loadJSON("./manifest.json"), loadJSON("./demand.json"),
     loadJSON("./wards-reference.json"), loadJSON("./obstacles.json"),
     loadJSON("./kanto-region.json"), loadJSON("./subward.json"),
-    loadJSON("./building-population.json"),
+    loadJSON("./building-population.json"), loadJSON("./jobs.json"), loadJSON("./jobs-grid.json"),
   ]);
 
   if (manifest) {
@@ -283,6 +290,8 @@ map.on("load", async () => {
         + (p.popDate ? ` · ${p.popDate === "2020" ? "2020 census" : p.popDate === "2020-derived" ? "2020 census (역산)" : "추계인구 " + p.popDate}` : "");
       document.getElementById("cres").textContent = p.residents ? nf(p.residents) : "미확보";
       document.getElementById("cden").textContent = p.density ? nf(p.density) + "/km²" : "미확보";
+      document.getElementById("cjobs").textContent = "—";
+      document.getElementById("cratio").textContent = "—";
     });
     map.on("mouseenter", "region-fill", () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", "region-fill", () => (map.getCanvas().style.cursor = ""));
@@ -299,6 +308,9 @@ map.on("load", async () => {
   const wardFeaturesByCode = new Map();
   const initialView = { center: [139.68, 35.63], zoom: 9.3 };
   let subwardActive = false;
+  let metric = "res";
+  let currentDetail = null;
+  let applyMetric = () => {};
   const supportedWardsKo = subward && subward.wards
     ? Object.keys(subward.wards).map((j) => KO_NAMES[j] || j).join("·")
     : "";
@@ -357,13 +369,24 @@ map.on("load", async () => {
     if (wardFeature) map.fitBounds(bboxOfCoords(wardFeature.geometry.coordinates), { padding: 60, duration: 800 });
     subwardActive = true;
 
+    currentDetail = subwardIndex;
+    applyMetric();
+    renderList();
+  }
+
+  function renderList() {
+    if (!currentDetail) return;
     const list = document.getElementById("dlist");
-    const sorted = [...subwardIndex.areas].sort((a, b) => b.residents - a.residents);
+    const wOf = (a) => (jobs && jobs.areas[a.code] ? jobs.areas[a.code].w : 0);
+    const val = (a) => (metric === "jobs" ? wOf(a) : a.residents);
+    const sorted = [...currentDetail.areas].sort((a, b) => val(b) - val(a));
     list.innerHTML = sorted.map((a) => {
       const areaNameKo = kanaToKo(a.reading_kana);
       const label = areaNameKo ? `${areaNameKo} <span class="dja">(${a.name_ja})</span>` : a.name_ja;
+      const other = metric === "jobs" ? `거주 ${nf(a.residents)}` : `일 ${nf(wOf(a))}`;
       return `<div class="drow" data-code="${a.code}" data-lon="${a.location[0]}" data-lat="${a.location[1]}">`
-        + `<span class="dname">${label}</span><span class="dpop">${nf(a.residents)}</span></div>`;
+        + `<span class="dname">${label}</span><span class="dpop">${nf(val(a))}`
+        + ` <span class="dja">/ ${other}</span></span></div>`;
     }).join("");
     list.querySelectorAll(".drow").forEach((row) => {
       row.addEventListener("click", () => {
@@ -372,6 +395,16 @@ map.on("load", async () => {
       });
     });
   }
+
+  function setMetric(m) {
+    metric = m;
+    document.getElementById("mres").classList.toggle("on", m === "res");
+    document.getElementById("mjob").classList.toggle("on", m === "jobs");
+    applyMetric();
+    renderList();
+  }
+  document.getElementById("mres").addEventListener("click", () => setMetric("res"));
+  document.getElementById("mjob").addEventListener("click", () => setMetric("jobs"));
 
   document.getElementById("dclose").addEventListener("click", closeDetail);
   document.getElementById("dreset").addEventListener("click", () => {
@@ -423,6 +456,9 @@ map.on("load", async () => {
       document.getElementById("csub").textContent = `${p.name} · ${p.name_en} · ${p.area}km²`;
       document.getElementById("cres").textContent = p.residents ? nf(p.residents) : "—";
       document.getElementById("cden").textContent = p.density ? nf(p.density) + "/km²" : "—";
+      const jw = jobs && jobs.wards[String(p.code)];
+      document.getElementById("cjobs").textContent = jw ? nf(jw.workers_total) : "—";
+      document.getElementById("cratio").textContent = jw && p.residents ? (jw.workers_total / p.residents).toFixed(1) + "배" : "—";
 
       const jis = String(p.code);
       const sw = subward && subward.wards && subward.wards[jis];
@@ -452,6 +488,7 @@ map.on("load", async () => {
             wardJis: jis, code: a.code, name_ja: a.name_ja,
             residents: a.residents, households: a.households,
             area_km2: km2, density: km2 > 0 ? a.residents / km2 : 0,
+            wdensity: km2 > 0 && jobs && jobs.areas[a.code] ? jobs.areas[a.code].w / km2 : 0,
           },
           geometry: { type: "MultiPolygon", coordinates: a.polygons },
         });
@@ -474,9 +511,63 @@ map.on("load", async () => {
       filter: ["==", ["get", "code"], "__none__"],
       paint: { "line-color": "#e08a4c", "line-width": 2.5 } });
 
-    document.getElementById("dramp").innerHTML = RAMP.map((c) => `<i style="background:${c}"></i>`).join("");
-    document.getElementById("dscale").innerHTML =
-      [sds[0], ...scuts, sds[sds.length - 1]].map((v) => `<span>${nf(v)}</span>`).join("");
+    // 종사자(일자리) 밀도 지도: 주황 계열 색상표로 거주 인구(청록)와 구분
+    const JRAMP = ["#2a1c10", "#43290f", "#5e3510", "#7c4412", "#9c5416", "#c06a1c", "#e58f34", "#f7c168"];
+    const jds = features.map((f) => f.properties.wdensity).sort((a, b) => a - b);
+    const jcuts = Array.from({ length: 7 }, (_, i) => jds[Math.floor(((i + 1) / 8) * (jds.length - 1))]);
+    const jStepColor = ["step", ["get", "wdensity"], JRAMP[0]];
+    jcuts.forEach((c, i) => jStepColor.push(c, JRAMP[i + 1]));
+
+    // 종사자 50m 격자 (jobs-grid.json — 현재 마루노우치1초메만, 모델 추정치)
+    if (jobsGrid && jobsGrid.areas) {
+      const codeToJis = new Map();
+      for (const [jis, w] of Object.entries(subward.wards)) for (const a of w.areas) codeToJis.set(a.code, jis);
+      const [dlon, dlat] = jobsGrid.cell;
+      const gf = [];
+      for (const [code, ar] of Object.entries(jobsGrid.areas)) {
+        for (const c of ar.cells) {
+          const x0 = c.ix * dlon, y0 = c.iy * dlat;
+          gf.push({ type: "Feature",
+            properties: { wardJis: codeToJis.get(code) || "", name: ar.name_ja, w: c.w, n: c.n },
+            geometry: { type: "Polygon", coordinates: [[[x0, y0], [x0 + dlon, y0], [x0 + dlon, y0 + dlat], [x0, y0 + dlat], [x0, y0]]] } });
+        }
+      }
+      map.addSource("jobsgrid", { type: "geojson", data: { type: "FeatureCollection", features: gf } });
+      const gv = gf.map((f) => f.properties.w).sort((a, b) => a - b);
+      const gcuts = Array.from({ length: 7 }, (_, i) => gv[Math.floor(((i + 1) / 8) * (gv.length - 1))]);
+      const gColor = ["step", ["get", "w"], JRAMP[0]];
+      gcuts.forEach((c, i) => gColor.push(c, JRAMP[i + 1]));
+      map.addLayer({ id: "jobsgrid-fill", source: "jobsgrid", type: "fill", minzoom: 13,
+        layout: { visibility: "none" }, filter: ["==", ["get", "wardJis"], "__none__"],
+        paint: { "fill-color": gColor, "fill-opacity": 0.9 } });
+      map.addLayer({ id: "jobsgrid-line", source: "jobsgrid", type: "line", minzoom: 13,
+        layout: { visibility: "none" }, filter: ["==", ["get", "wardJis"], "__none__"],
+        paint: { "line-color": "#0c1114", "line-width": 0.5, "line-opacity": 0.7 } });
+      map.on("click", "jobsgrid-fill", (e) => {
+        const p = e.features[0].properties;
+        new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
+          .setHTML(`<div style="font:12px sans-serif">${p.name} · 이 50m 칸 종사자 약 <b>${nf(p.w)}</b>명`
+            + `<br>건물 ${p.n}개<br><span style="color:#888">모델 추정치 — 실측 아님</span></div>`)
+          .addTo(map);
+      });
+    }
+
+    applyMetric = () => {
+      const jm = metric === "jobs";
+      for (const id of ["jobsgrid-fill", "jobsgrid-line"]) {
+        if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", jm ? "visible" : "none");
+      }
+      map.setPaintProperty("subward-fill", "fill-color", jm ? jStepColor : sStepColor);
+      document.getElementById("dramp").innerHTML = (jm ? JRAMP : RAMP).map((c) => `<i style="background:${c}"></i>`).join("");
+      const s = jm ? jds : sds, cuts = jm ? jcuts : scuts;
+      document.getElementById("dscale").innerHTML =
+        [s[0], ...cuts, s[s.length - 1]].map((v) => `<span>${nf(v)}</span>`).join("") + `<span style="margin-left:4px">/km²</span>`;
+      // 건물 블록 레이어는 거주 인구 기준이라 종사자 모드에서는 숨김
+      for (const id of ["bldgpop-fill", "bldgpop-line"]) {
+        if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", jm ? "none" : "visible");
+      }
+    };
+    applyMetric();
   }
 
   // ---- 건물별 추정 인구 (building-population.json — 정목 실제 인구를 실제 OSM 건물

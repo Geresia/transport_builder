@@ -1,23 +1,61 @@
-// Turns a pack's gravity-model points into a trip distribution, and (if the
-// pack has a calendar) a time-of-day demand multiplier.
+// Turns a pack's demand into a spawn model. Two CityPack models are supported:
+//   gravity - residents/jobs per point, trips inferred by distance decay
+//   matrix  - measured origin-destination flows, optionally per day type/period
+// Both expose the same interface: rate(state, originId) in trips per
+// sim-minute, and pick(state, originId) for a destination.
 import { haversineMetres } from "./projection.mjs";
 
 const MIN_DISTANCE_M = 300; // floor so a point right next to itself doesn't blow up
+const OFF_HOURS_FACTOR = 0.1; // engine's own fallback for a calendar gap, not spec-mandated
+
 // Tuned for a legible spawn rate, not demographic realism (Phase 3 owns
 // realism): example-radial's ~481k residents * this constant is ~1
 // trip/sim-minute citywide, which at loop.mjs's 2 sim-minutes/real-second
 // is roughly 2 new passengers/real-second across all 31 stations.
 const TRIPS_PER_RESIDENT_PER_SIM_MINUTE = 0.000002;
-const OFF_HOURS_FACTOR = 0.1; // engine's own fallback for a calendar gap, not spec-mandated
+// Same target for matrix packs: example-corridor's morning peak sums to
+// ~8.7k trips over 140 minutes, which this scales to ~1.2 trips/sim-minute.
+const MATRIX_TRIP_SCALE = 0.02;
 
-export function buildGravityModel(state) {
+// Distance-decay exponent per attractor kind. Subway Builder assigns a decay
+// exponent per special-demand type (lower = draws from farther away); these
+// values are this engine's own defaults, not copied from anywhere. An
+// attractor's `decayExponent` field overrides its kind's value.
+const BASE_DECAY_EXPONENT = 2;
+const KIND_DECAY_EXPONENT = {
+  airport: 1,
+  university: 1.5,
+  stadium: 1.5,
+  sports_facility: 1.5,
+  hospital: 1.5,
+  shopping_center: 1.5,
+};
+const REFERENCE_DISTANCE_M = 5000; // distance at which every exponent weighs the same
+
+function pickFromRow(row, total, rand) {
+  if (total <= 0 || row.length === 0) return null;
+  let r = rand() * total;
+  for (const { id, weight } of row) {
+    r -= weight;
+    if (r <= 0) return id;
+  }
+  return row[row.length - 1].id;
+}
+
+export function buildDemandModel(state, demand) {
+  return demand.model === "matrix" ? buildMatrixModel(state, demand) : buildGravityModel(state);
+}
+
+function buildGravityModel(state) {
   // Attractors get their own location in the format, but Phase 1 stations
   // are exactly demand.json's points — an attractor with no nearby station
   // would generate trips nobody could ever board. Folding it into its
   // nearest station's residents/jobs is an engine-side simplification, not
   // part of the CityPack format itself.
   const effective = new Map();
-  for (const s of state.stations.values()) effective.set(s.id, { residents: s.residents, jobs: s.jobs });
+  for (const s of state.stations.values()) {
+    effective.set(s.id, { residents: s.residents, jobs: s.jobs, exponentMass: s.jobs * BASE_DECAY_EXPONENT });
+  }
   for (const a of state.attractors) {
     let nearestId = null;
     let nearestDist = Infinity;
@@ -30,10 +68,15 @@ export function buildGravityModel(state) {
     }
     if (nearestId === null) continue;
     const split = a.residentialSplit ?? 0;
+    const exponent = a.decayExponent ?? KIND_DECAY_EXPONENT[a.kind] ?? BASE_DECAY_EXPONENT;
+    const draw = a.capacity * (1 - split);
     const e = effective.get(nearestId);
     e.residents += a.capacity * split;
-    e.jobs += a.capacity * (1 - split);
+    e.jobs += draw;
+    e.exponentMass += draw * exponent;
   }
+  // A station's exponent is the job-weighted mean of its base jobs and attractors.
+  for (const e of effective.values()) e.exponent = e.jobs > 0 ? e.exponentMass / e.jobs : BASE_DECAY_EXPONENT;
 
   const ids = [...state.stations.keys()];
   const weights = new Map();
@@ -48,7 +91,8 @@ export function buildGravityModel(state) {
         haversineMetres(state.stations.get(originId).location, state.stations.get(destId).location),
         MIN_DISTANCE_M
       );
-      const w = (origin.residents * dest.jobs) / (d * d);
+      // Baseline is jobs/d^2; a lower exponent boosts the pull at long range.
+      const w = ((origin.residents * dest.jobs) / (d * d)) * Math.pow(d / REFERENCE_DISTANCE_M, BASE_DECAY_EXPONENT - dest.exponent);
       if (w > 0) {
         row.push({ id: destId, weight: w });
         total += w;
@@ -57,18 +101,58 @@ export function buildGravityModel(state) {
     weights.set(originId, { row, total, spawnRate: origin.residents * TRIPS_PER_RESIDENT_PER_SIM_MINUTE });
   }
 
-  return { weights };
+  return {
+    origins: ids,
+    rate: (s, originId) => (weights.get(originId)?.spawnRate ?? 0) * currentDemandFactor(s),
+    pick: (_s, originId, rand = Math.random) => {
+      const entry = weights.get(originId);
+      return entry ? pickFromRow(entry.row, entry.total, rand) : null;
+    },
+  };
 }
 
-export function pickDestination(model, originId, rand = Math.random) {
-  const entry = model.weights.get(originId);
-  if (!entry || entry.total <= 0) return null;
-  let r = rand() * entry.total;
-  for (const { id, weight } of entry.row) {
-    r -= weight;
-    if (r <= 0) return id;
+// Flow semantics follow docs/citypack-format.md: a flow naming a period is
+// that many trips within the period; one that doesn't is a daily total scaled
+// by calendar.factors. Active flows are grouped once per (dayType, period).
+function buildMatrixModel(state, demand) {
+  const flows = demand.flows ?? [];
+  const cache = new Map();
+
+  function activeTable(s) {
+    const { dayType, period } = s.calendar ? currentDayTypeAndPeriod(s) : {};
+    const key = `${dayType?.id}|${period?.id}`;
+    const hit = cache.get(key);
+    if (hit) return hit;
+
+    const factor = currentDemandFactor(s);
+    const table = new Map();
+    for (const f of flows) {
+      if (s.calendar) {
+        if (f.dayType !== undefined && f.dayType !== dayType.id) continue;
+        if (f.period !== undefined && f.period !== period?.id) continue;
+      }
+      const perMinute =
+        s.calendar && f.period !== undefined
+          ? f.trips / (period.endMinute - period.startMinute)
+          : (f.trips / 1440) * factor;
+      if (perMinute <= 0 || !s.stations.has(f.from) || !s.stations.has(f.to)) continue;
+      const entry = table.get(f.from) ?? { row: [], total: 0 };
+      entry.row.push({ id: f.to, weight: perMinute });
+      entry.total += perMinute;
+      table.set(f.from, entry);
+    }
+    cache.set(key, table);
+    return table;
   }
-  return entry.row[entry.row.length - 1]?.id ?? null;
+
+  return {
+    origins: [...state.stations.keys()],
+    rate: (s, originId) => (activeTable(s).get(originId)?.total ?? 0) * MATRIX_TRIP_SCALE,
+    pick: (s, originId, rand = Math.random) => {
+      const entry = activeTable(s).get(originId);
+      return entry ? pickFromRow(entry.row, entry.total, rand) : null;
+    },
+  };
 }
 
 function serviceDayLength(calendar) {

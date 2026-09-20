@@ -30,9 +30,8 @@ powershell -File ../docs/serve.ps1 -Root .. -Index engine/index.html
 ```
 
 Then open `http://localhost:8000/engine/index.html`. It loads
-`../packs/example-radial` by default; pick another gravity-model pack with
-`?pack=../packs/<id>` (matrix-model packs like `example-corridor` aren't
-supported yet — see `src/pack.mjs`).
+`../packs/example-radial` by default; pick another pack with
+`?pack=../packs/<id>` (e.g. `../packs/example-corridor` for the matrix model).
 
 ## How it works
 
@@ -43,7 +42,8 @@ supported yet — see `src/pack.mjs`).
 | `src/state.mjs` | Stations (from the pack), lines, trains, passengers |
 | `src/network.mjs` | Builds a `(station, line)` routing graph from the drawn lines |
 | `src/routing.mjs` | Dijkstra over that graph, with a transfer penalty on line changes |
-| `src/demand-engine.mjs` | Gravity-model trip distribution + `calendar` time-of-day factor |
+| `src/demand-engine.mjs` | Gravity and matrix demand models behind one `rate`/`pick` interface, plus the `calendar` time-of-day factor |
+| `src/mode-choice.mjs` | Walking / driving / transit choice per trip |
 | `src/passengers.mjs` | Spawning, route retries, abandonment, board/alight |
 | `src/trains.mjs` | Dispatches trains at the current band's headway and moves them out and back |
 | `src/input.mjs` | Drag across stations to lay a line |
@@ -63,8 +63,14 @@ Not bugs — deliberate scope cuts to get a playable loop first:
   *nearest* station instead. This is an engine choice, not part of the
   format's own semantics — revisit if attractors need their own presence on
   the map.
-- **No train capacity or crowding.** Boarding is unlimited. Phase 3
-  ("simulation depth — trains, capacity, crowding, economy") owns this.
+- **Capacity is scaled down.** A car holds 12 passengers (Subway Builder: 240)
+  because this engine's passenger volume is tuned small; a full train leaves
+  the rest waiting. Cars per train (1-15) is set per line. Trains dwell 20 s
+  at each stop (Subway Builder's `STATION_STOP_TIME`) but still run at a
+  constant speed — no acceleration, gradients or signals.
+- **Riders board regardless of direction on the outbound leg**, and only for
+  stations still ahead on the return leg, so nobody is stranded when a train
+  retires. A real timetable-aware boarding rule is not implemented.
 - **Frequency is trains/hour per demand band** (High/Medium/Low/Very Low),
   after Subway Builder's Route Details panel. Trains are dispatched from the
   line's first station at that headway, run out and back, then retire. The
@@ -73,14 +79,24 @@ Not bugs — deliberate scope cuts to get a playable loop first:
 - **No money.** Subway Builder's funds, per-hour cost and per-car operating
   cost have no counterpart yet — the bottom bar has no funds readout on
   purpose rather than a fake one.
-- **Analysis shows what this engine actually measures**: delivered vs.
-  abandoned, and departure/arrival counts by hour. Subway Builder's
-  transit/driving/walking mode share needs a mode-choice model we don't have.
+- **Mode choice is a lowest-noisy-travel-time pick** among walking (1 m/s),
+  driving (30 kph x 1.3 road factor + 5 min parking) and transit (in-vehicle
+  time + half the headway). Only transit riders reach stations; drivers and
+  walkers are just counted in the mode share. The speeds are engine choices,
+  not calibrated. Departure times count every trip, but "Transit Arrival
+  Times" counts transit deliveries only — walkers and drivers have no
+  arrival event.
 - **No construction cost.** Lines are free and instant. Subway Builder's
   tunnel/viaduct/cut-and-cover tradeoffs are Phase 2/3 economy territory.
 - **No pan/zoom.** The camera fits the whole `bbox` once, on load and resize.
-- **Only the `gravity` demand model.** `example-corridor`'s `matrix` model
-  needs a different demand engine, not built yet.
+- **Demand models**: `gravity` and `matrix` both run. Matrix flows follow
+  `../docs/citypack-format.md` (a flow naming a period is that many trips in
+  the period; otherwise a daily total scaled by the calendar factor), then
+  scaled to a legible rate like gravity. Matrix packs have no residents/jobs,
+  so station size on screen comes from each point's total trip volume.
+- **Attractor decay exponent** (`decayExponent`, or a per-`kind` engine
+  default) sets how far an attractor pulls trips from — see the format doc.
+  The per-kind defaults are this engine's own numbers.
 - **Trip volume is tuned for legibility, not realism** (`demand-engine.mjs`'s
   `TRIPS_PER_RESIDENT_PER_SIM_MINUTE`) — a handful of visible passengers per
   station, not population-accurate throughput.

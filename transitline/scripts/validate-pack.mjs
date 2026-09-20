@@ -111,6 +111,9 @@ if (demand) {
     if (a.residentialSplit !== undefined && (a.residentialSplit < 0 || a.residentialSplit > 1)) {
       fail(`${at}.residentialSplit must be between 0 and 1`);
     }
+    if (a.decayExponent !== undefined && !(typeof a.decayExponent === "number" && a.decayExponent > 0)) {
+      fail(`${at}.decayExponent must be a number greater than 0`);
+    }
   }
 }
 

@@ -141,6 +141,7 @@ button:hover { background: #2c303e; }
 #analysis .bar i { display: block; height: 100%; width: 0; }
 #analysis .bar i.ok { background: #38d29a; }
 #analysis .bar i.bad { background: #e5484d; }
+#analysis .bar i.walk { background: #f5a524; }
 .hist { display: flex; align-items: flex-end; gap: 1px; height: 52px; margin-top: 6px; }
 .hist i { flex: 1; min-height: 1px; background: #e5484d; }
 .hist-axis { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); font-family: var(--mono); margin-top: 2px; }

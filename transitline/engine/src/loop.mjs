@@ -1,6 +1,6 @@
 import { stepTrains, dispatchTrains } from "./trains.mjs";
 import { spawnPassengers, retryPendingRoutes, expirePassengers } from "./passengers.mjs";
-import { currentDemandFactor, currentDayLabel } from "./demand-engine.mjs";
+import { currentDayLabel } from "./demand-engine.mjs";
 import { buildRouteGraph } from "./network.mjs";
 import { draw } from "./render.mjs";
 
@@ -8,7 +8,7 @@ import { draw } from "./render.mjs";
 // seconds and a service day cycles in about 12 real minutes.
 const SIM_SECONDS_PER_REAL_SECOND = 120;
 
-export function startLoop(state, gravityModel, projection, ctx, canvas, hud, input, onFrame) {
+export function startLoop(state, demandModel, projection, ctx, canvas, hud, input, onFrame) {
   let graph = buildRouteGraph(state);
   let lastTime = performance.now();
 
@@ -28,7 +28,7 @@ export function startLoop(state, gravityModel, projection, ctx, canvas, hud, inp
 
     if (state.speed > 0) {
       state.simMinutes += simMinutes;
-      spawnPassengers(state, gravityModel, graph, currentDemandFactor(state), simMinutes);
+      spawnPassengers(state, demandModel, graph, simMinutes);
       expirePassengers(state);
       dispatchTrains(state);
       stepTrains(state, simSeconds);

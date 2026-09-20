@@ -144,7 +144,15 @@ residents and jobs.
 
 `kind` is a free string. The engine may style known kinds and falls back to a
 generic marker for unknown ones — packs must never be blocked by an engine that
-has not heard of a category yet.
+has not heard of a category yet. Prefer the ids of the special-demand taxonomy
+in [`subway-builder-reference.md`](./subway-builder-reference.md) §4
+(`airport`, `university`, `sports_facility`, `hospital`, …) so engines can
+share per-kind behaviour.
+
+`decayExponent` (optional number > 0) sets how far this attractor draws from:
+lower means it pulls harder from a distance, `2` is the plain gravity
+baseline. Absent, the engine picks a default for the `kind`. Additive field —
+does not bump `formatVersion`.
 
 ### `calendar` — day types and time of day
 

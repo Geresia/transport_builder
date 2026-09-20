@@ -14,7 +14,14 @@
 
   <div class="panel" id="analysis" hidden>
     <div class="tabs"><span class="tab on">Demand</span></div>
-    <div class="section-label">Trip outcomes</div>
+    <div class="section-label">Mode share (all trips)</div>
+    <div class="stat"><span>Transit</span><span id="an-transit">0 · 0%</span></div>
+    <div class="bar"><i id="an-transit-bar" class="ok"></i></div>
+    <div class="stat"><span>Driving</span><span id="an-driving">0 · 0%</span></div>
+    <div class="bar"><i id="an-driving-bar" class="bad"></i></div>
+    <div class="stat"><span>Walking</span><span id="an-walking">0 · 0%</span></div>
+    <div class="bar"><i id="an-walking-bar" class="walk"></i></div>
+    <div class="section-label">Transit trip outcomes</div>
     <div class="stat"><span>Delivered</span><span id="an-delivered">0 · 0%</span></div>
     <div class="bar"><i id="an-delivered-bar" class="ok"></i></div>
     <div class="stat"><span>Abandoned</span><span id="an-abandoned">0 · 0%</span></div>
@@ -22,7 +29,7 @@
     <div class="section-label">Departure Times</div>
     <div class="hist" id="hist-dep"></div>
     <div class="hist-axis"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
-    <div class="section-label">Arrival Times</div>
+    <div class="section-label">Transit Arrival Times</div>
     <div class="hist arr" id="hist-arr"></div>
     <div class="hist-axis"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
   </div>

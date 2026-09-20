@@ -1,11 +1,11 @@
 import { loadPack } from "./pack.mjs";
 import {
-  createState, addLine, clearLines, deleteLine, renameLine, setBandFrequency,
-  LINE_COLORS, BANDS, nextLineColor, bandAt, lineLetter, badgeTextColor,
+  createState, addLine, clearLines, deleteLine, renameLine, setBandFrequency, setCarsPerTrain,
+  LINE_COLORS, BANDS, nextLineColor, bandAt, lineLetter, badgeTextColor, trainCapacity, MIN_CARS, MAX_CARS,
 } from "./state.mjs";
 import { targetTrains } from "./trains.mjs";
 import { makeProjection } from "./projection.mjs";
-import { buildGravityModel } from "./demand-engine.mjs";
+import { buildDemandModel } from "./demand-engine.mjs";
 import { attachInput } from "./input.mjs";
 import { startLoop } from "./loop.mjs";
 
@@ -112,6 +112,34 @@ function renderRoutePanel(state) {
   trains.id = "rp-trains";
   panel.appendChild(trains);
 
+  panel.appendChild(el("div", "section-label", "Train configuration"));
+  const carsRow = el("div", "band");
+  const carsInfo = el("div", "band-info");
+  const carsLabel = el("div", "band-label", "Cars per train");
+  const carsRate = el("div", "band-rate", "");
+  carsInfo.append(carsLabel, el("div", "band-hours", `${MIN_CARS}-${MAX_CARS} cars`), carsRate);
+  const carsMinus = el("button", "", "−");
+  const carsPlus = el("button", "", "+");
+  const carsValue = el("span", "", "");
+  carsMinus.type = carsPlus.type = "button";
+  const showCars = () => {
+    carsValue.textContent = line.carsPerTrain;
+    carsRate.textContent = `${trainCapacity(line)} capacity per train`;
+  };
+  carsMinus.addEventListener("click", () => {
+    setCarsPerTrain(state, line.id, line.carsPerTrain - 1);
+    showCars();
+  });
+  carsPlus.addEventListener("click", () => {
+    setCarsPerTrain(state, line.id, line.carsPerTrain + 1);
+    showCars();
+  });
+  showCars();
+  const carsStepper = el("div", "stepper");
+  carsStepper.append(carsMinus, carsValue, carsPlus);
+  carsRow.append(carsInfo, carsStepper);
+  panel.appendChild(carsRow);
+
   panel.appendChild(el("div", "section-label", "Service frequency"));
   for (const band of BANDS) {
     const row = el("div", "band");
@@ -185,7 +213,12 @@ function setHist(bars, values) {
 }
 
 function updateAnalysis(state, depBars, arrBars) {
-  const { delivered, abandoned, spawnedByHour, deliveredByHour } = state.stats;
+  const { delivered, abandoned, spawnedByHour, deliveredByHour, modeShare, spawned } = state.stats;
+  for (const mode of ["transit", "driving", "walking"]) {
+    const share = spawned ? Math.round((modeShare[mode] / spawned) * 100) : 0;
+    $(`an-${mode}`).textContent = `${modeShare[mode]} · ${share}%`;
+    $(`an-${mode}-bar`).style.width = `${share}%`;
+  }
   const total = delivered + abandoned;
   const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
   $("an-delivered").textContent = `${delivered} · ${pct(delivered)}%`;
@@ -199,7 +232,7 @@ function updateAnalysis(state, depBars, arrBars) {
 async function main() {
   const pack = await loadPack(packPath);
   const state = createState(pack);
-  const gravityModel = buildGravityModel(state);
+  const demandModel = buildDemandModel(state, pack.demand);
   const projection = makeProjection(pack.manifest.bbox, pack.manifest.origin);
 
   // Canvas backing store kept equal to its CSS size (no devicePixelRatio
@@ -281,7 +314,7 @@ async function main() {
 
   // Panels refresh ~4x/second — no need to rewrite the DOM every frame.
   let lastUi = 0;
-  startLoop(state, gravityModel, projection, ctx, canvas, hud, input, (now) => {
+  startLoop(state, demandModel, projection, ctx, canvas, hud, input, (now) => {
     if (now - lastUi < 250) return;
     lastUi = now;
     updateRoutePanelLive(state);

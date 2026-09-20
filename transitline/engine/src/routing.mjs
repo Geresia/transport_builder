@@ -1,8 +1,10 @@
 // Dijkstra over the (station, line) graph from network.mjs. Small graphs
 // (tens of stations) so an O(V^2) scan is plenty and needs no dependency.
 
+// Returns { hops, seconds } (in-vehicle + transfer time, excluding the wait
+// for the first train) or null when the stations aren't connected.
 export function findRoute(graph, originId, destinationId) {
-  if (originId === destinationId) return [];
+  if (originId === destinationId) return { hops: [], seconds: 0 };
 
   const originLines = graph.stationLines.get(originId);
   const destLines = graph.stationLines.get(destinationId);
@@ -62,5 +64,5 @@ export function findRoute(graph, originId, destinationId) {
       hops.push({ lineId, boardStationId: stationId, alightStationId: stationId });
     }
   }
-  return hops;
+  return { hops, seconds: endDist };
 }

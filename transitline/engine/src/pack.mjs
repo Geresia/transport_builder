@@ -22,10 +22,8 @@ export async function loadPack(packPath) {
   if (demand.formatVersion !== 1) {
     throw new Error(`unsupported demand.formatVersion: ${demand.formatVersion}`);
   }
-  if (demand.model !== "gravity") {
-    // matrix-model packs (e.g. example-corridor) need a different demand
-    // engine; Phase 1 only implements the gravity side (example-radial).
-    throw new Error(`engine only supports the 'gravity' demand model so far, got '${demand.model}'`);
+  if (demand.model !== "gravity" && demand.model !== "matrix") {
+    throw new Error(`unsupported demand.model '${demand.model}'`);
   }
 
   return { manifest, demand };

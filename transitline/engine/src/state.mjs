@@ -20,6 +20,15 @@ const BAND_BY_HOUR = Array.from({ length: 24 }, (_, h) => {
   return "veryLow";
 });
 
+// Subway Builder: 240 passengers per car, 5-15 cars. Ours is scaled down to
+// match this engine's deliberately small passenger volume (see
+// demand-engine.mjs), so a full 5-car train seats 60 rather than 1,200.
+export const CAR_CAPACITY = 12;
+export const DEFAULT_CARS = 5;
+export const MIN_CARS = 1;
+export const MAX_CARS = 15;
+export const trainCapacity = (line) => line.carsPerTrain * CAR_CAPACITY;
+
 export const hourOfDay = (state) => Math.floor(state.simMinutes / 60) % 24;
 export const bandAt = (state) => BANDS.find((b) => b.id === BAND_BY_HOUR[hourOfDay(state)]);
 
@@ -45,6 +54,19 @@ export function createState(pack) {
     });
   }
 
+  // matrix packs carry flows, not residents/jobs. Stations still need a size
+  // to draw, so use each point's total trip volume, normalised to the range
+  // gravity packs occupy. Display only — routing and demand never read it.
+  if (pack.demand.model === "matrix") {
+    const volume = new Map();
+    for (const f of pack.demand.flows ?? []) {
+      volume.set(f.from, (volume.get(f.from) ?? 0) + f.trips);
+      volume.set(f.to, (volume.get(f.to) ?? 0) + f.trips);
+    }
+    const max = Math.max(1, ...volume.values());
+    for (const s of stations.values()) s.residents = ((volume.get(s.id) ?? 0) / max) * 30000;
+  }
+
   return {
     stations,
     attractors: pack.demand.attractors ?? [],
@@ -53,6 +75,7 @@ export function createState(pack) {
     trains: [], // { lineId, segIndex, t, dir }
     passengers: [], // see passengers.mjs for shape
     nextLineId: 1,
+    nextTrainId: 1,
     nextPassengerId: 1,
     simMinutes: 6 * 60, // service day starts 06:00, matching calendar periods
     speed: 1, // 0 = paused
@@ -61,6 +84,7 @@ export function createState(pack) {
       delivered: 0,
       abandoned: 0,
       spawned: 0,
+      modeShare: { transit: 0, driving: 0, walking: 0 },
       spawnedByHour: Array(24).fill(0),
       deliveredByHour: Array(24).fill(0),
     },
@@ -78,6 +102,7 @@ export function addLine(state, stationIds, opts = {}) {
     name: opts.name ?? `Line ${id}`,
     color: opts.color ?? nextLineColor(state),
     stationIds,
+    carsPerTrain: DEFAULT_CARS,
     frequency: { high: 6, medium: 4, low: 2, veryLow: 1 },
     lastDispatch: -Infinity,
   };
@@ -89,6 +114,11 @@ export function addLine(state, stationIds, opts = {}) {
 export function setBandFrequency(state, lineId, bandId, perHour) {
   const line = state.lines.find((l) => l.id === lineId);
   if (line) line.frequency[bandId] = Math.max(0, Math.min(20, perHour));
+}
+
+export function setCarsPerTrain(state, lineId, cars) {
+  const line = state.lines.find((l) => l.id === lineId);
+  if (line) line.carsPerTrain = Math.max(MIN_CARS, Math.min(MAX_CARS, cars));
 }
 
 export function renameLine(state, lineId, name) {
@@ -104,7 +134,7 @@ export function deleteLine(state, lineId) {
   for (const p of state.passengers) {
     if (p.route?.some((h) => h.lineId === lineId)) {
       p.state = "waiting";
-      p.trainLineId = null;
+      p.trainId = null;
       p.hopIndex = 0;
       p.route = null;
     }
@@ -118,6 +148,7 @@ export function clearLines(state) {
   state.networkDirty = true;
   for (const p of state.passengers) {
     p.state = "waiting";
+    p.trainId = null;
     p.hopIndex = 0;
     p.route = null;
   }
