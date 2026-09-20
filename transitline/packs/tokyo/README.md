@@ -18,8 +18,8 @@ shape rather than hand-editing further.
 | `basemap` | **not present.** See below |
 | `kanto-region.json` | done — tier-1 satellite-city boundaries, see below |
 | `demand.json[].jobs` | **not present.** Only `residents` — same gap the Korean packs have (`transitline/README.md` §"The open question for Phase 2") |
-| `subward.json` | **pilot only** — sub-ward (町丁・字) population detail for 港区/Minato (118 areas) and 中央区/Chuo (99 areas), the other 21 wards have no sub-ward breakdown yet. See "Sub-ward detail" below |
-| `building-population.json` | **pilot only, modeled** — per-building estimated population for the same two wards (65,376 OSM buildings). Not measured data — see "Building-level population model" below |
+| `subward.json` | **done, all 23 wards** — sub-ward (町丁・字) population + Korean reading per area, every special ward. See "Sub-ward detail" below |
+| `building-population.json` | **pilot only, modeled** — per-building estimated population for 港区/Minato + 中央区/Chuo only (65,376 OSM buildings); the other 21 wards don't have this layer yet (Overpass fetch cost/file size, see below). Not measured data — see "Building-level population model" below |
 
 ## Scope: 23 wards + tier-1 satellite cities, all with population now
 
@@ -101,17 +101,17 @@ another pack ends up needing the same "boundaries" shape outside `demand`.
 Scope rule per the playbook: "지하철이 가는 모든 지역" — matches here now
 that the islands are gone.
 
-## Sub-ward detail (`subward.json`) — Minato + Chuo pilot only
+## Sub-ward detail (`subward.json`) — all 23 wards
 
 A ward-level total (e.g. Minato's 260,486) hides where within the ward people
 actually live — `viewer.html`'s ward-click panel used to show only that one
 number. `subward.json` adds a finer layer: real 2020-census population per
 町丁・字 (roughly "named sub-district", the smallest unit e-Stat publishes),
-with its own boundary polygon, for **港区/Minato (118 areas) and 中央区/Chuo
-(99 areas)** — the other 21 wards still fall back to the ward-level-only card,
-since no other ward has this file yet. Clicking a supported ward in
-`viewer.html` renders these as a choropleth (colored by sub-ward density, not
-just the ward's average) and lists them by population in the detail panel.
+with its own boundary polygon and a Korean reading, for **all 23 special
+wards** (started as a Minato+Chuo pilot, extended to the rest the same day —
+3,150 areas total). Clicking any ward in `viewer.html` renders these as a
+choropleth (colored by sub-ward density, not just the ward's average) and
+lists them by population in the detail panel.
 
 Not a grid or any synthetic approximation — real e-Stat small-area boundaries,
 via [NII's Geoshapeリポジトリ](https://geoshape.ex.nii.ac.jp/ka/resource/13103.html)
@@ -152,18 +152,20 @@ rare sound combination. `name_ja` (kanji) is still shown alongside it in the
 panel as a smaller subtitle, since the reading is a best-effort display aid,
 not a replacement for the official name.
 
-**Extending to more wards:** repeat the same fetch against
-`https://geoshape.ex.nii.ac.jp/ka/topojson/2020/13/r2ka<jisCode-prefix>.topojson`
-for each ward's 5-digit e-Stat prefix (`13103` for Minato, `13102` for Chuo —
-the page at `/ka/resource/<prefix>.html` confirms it and lists the area count
-to cross-check against), run it through the same arc-stitch/merge logic
-(`baseMap` from the postal CSV filtered to that prefix, for `reading_kana`),
-and add a new entry to `subward.json`'s `wards` object keyed by this pack's
-6-digit `jisCode` (see `wards-reference.json` / `demand.json` for the mapping
-— it is **not** simply `prefix * 10 + 1`, e.g. Minato is `13103` → `131032`,
-Chuo is `13102` → `131024`, Adachi is `13121` → `131211`). Worth writing this
-as `generate.mjs` once Node exists on a conversion machine, same as the
-standing advice for `demand.json` above.
+**Extended to all 23 wards** the same day, by looping the same fetch over
+`https://geoshape.ex.nii.ac.jp/ka/topojson/2020/13/r2ka<prefix>.topojson` for
+each ward's 5-digit e-Stat prefix — turns out this pack's 6-digit `jisCode` is
+just the prefix with one check digit appended (`jisCode.Substring(0,5)`
+recovers it cleanly, e.g. Minato `131032` → `13103`, Adachi `131211` →
+`13121`; Tokyo's 23 wards are e-Stat `13101`–`13123` in ward order, so this
+holds pack-wide even though it wasn't obvious from a single example). Same
+arc-stitch/merge logic and postal-CSV `baseMap` lookup per ward, run
+sequentially with a checkpoint written after each ward (Geoshape's server
+didn't need Overpass-style retry/backoff — one fetch per ward, no rate-limit
+trouble). All 23 wards' summed `residents` were cross-checked against
+`demand.json`'s existing per-ward totals: zero mismatches. 3,150 areas total.
+Worth writing this as `generate.mjs` once Node exists on a conversion
+machine, same as the standing advice for `demand.json` above.
 
 ## Building-level population model (`building-population.json`) — modeled, not measured
 

@@ -302,6 +302,9 @@ map.on("load", async () => {
   const supportedWardsKo = subward && subward.wards
     ? Object.keys(subward.wards).map((j) => KO_NAMES[j] || j).join("·")
     : "";
+  const supportedBuildingWardsKo = buildingPop && buildingPop.wards
+    ? Object.keys(buildingPop.wards).map((j) => KO_NAMES[j] || j).join("·")
+    : "";
 
   function bboxOfCoords(coords) {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -344,7 +347,7 @@ map.on("load", async () => {
     document.getElementById("dmissing").style.display = "none";
     document.getElementById("ddata").style.display = "block";
     document.getElementById("dnote").textContent = `${nameKo} · 정목(町丁) ${subwardIndex.areas.length}개 · 2020 census`
-      + (map.getSource("bldgpop") ? " · 확대하면 건물별 추정 인구 표시" : "");
+      + (buildingPop && buildingPop.wards && buildingPop.wards[jis] ? " · 확대하면 건물별 추정 인구 표시" : "");
 
     map.setFilter("subward-fill", ["==", ["get", "wardJis"], jis]);
     map.setFilter("subward-line", ["==", ["get", "wardJis"], jis]);
@@ -537,8 +540,8 @@ map.on("load", async () => {
       `건물 ${nf(obstacles.obstacles.length)}개 (마루노우치/도쿄역/긴자·신주쿠·시부야·이케부쿠로) · `
       + `23구 + 광역권 ${region ? region.municipalities.length : "?"}개(시·정·촌 178 + 지정도시 구 44). `
       + `색 범례(위)는 23구 기준 — 광역권은 같은 색상표를 다른 구간에 적용해 표시(직접 비교 불가). `
-      + (subward && subward.wards ? `구를 클릭하면 오른쪽에 상세 패널이 뜹니다 — 정목(町丁) 단위 인구는 현재 ${supportedWardsKo} 만 지원.` : "")
-      + (buildingPop && buildingPop.wards ? ` 건물별 색은 실측이 아니라 정목 인구를 건물 면적×층수로 배분한 추정 모델(줌 15+).` : "");
+      + (subward && subward.wards ? `구를 클릭하면 오른쪽에 상세 패널이 뜹니다 — 정목(町丁) 단위 인구, 23구 전체 지원.` : "")
+      + (buildingPop && buildingPop.wards ? ` 건물별 색(현재 ${supportedBuildingWardsKo}만)은 실측이 아니라 정목 인구를 건물 면적×층수로 배분한 추정 모델(줌 15+).` : "");
     document.getElementById("toggle-obstacles").addEventListener("change", (e) => {
       const v = e.target.checked ? "visible" : "none";
       for (const id of ["obstacles-fill", "obstacles-line"]) map.setLayoutProperty(id, "visibility", v);

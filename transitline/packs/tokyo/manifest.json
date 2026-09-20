@@ -48,7 +48,7 @@
         "license": "千葉県 official publication — public statistical release"
       },
       {
-        "name": "港区 (13103) ・ 中央区 (13102) 令和2年国勢調査 町丁・字等別境界データ — subward.json, 118 + 99 town-level areas with population/household counts and boundary polygons, pilot wards for the sub-ward detail view",
+        "name": "全23区 令和2年国勢調査 町丁・字等別境界データ — subward.json, 3,150 town-level areas (all 23 special wards) with population/household counts and boundary polygons for the sub-ward detail view",
         "url": "https://geoshape.ex.nii.ac.jp/ka/resource/13103.html",
         "license": "CC BY 4.0 (NII processing of e-Stat 2020 census small-area boundary data; underlying data per e-Stat terms of use, https://www.e-stat.go.jp/terms-of-use)"
       },

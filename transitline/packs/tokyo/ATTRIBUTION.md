@@ -47,12 +47,12 @@ non-ODbL sources this pack also carries (Rule 3, [`../LICENSING.md`](../LICENSIN
   (Tama) or independently re-confirmed (the 10 towns) against the sources
   above and that site is no longer relied on.
 
-- **Sub-ward population, Minato + Chuo ward pilot** (`subward.json`) —
-  118 town-level (町丁・字) areas within 港区/Minato and 99 within 中央区/Chuo,
-  each with 2020 census population, households, area, and a boundary polygon
+- **Sub-ward population, all 23 wards** (`subward.json`, started as a
+  Minato+Chuo pilot then extended pack-wide the same day) — 3,150 town-level
+  (町丁・字) areas, each with 2020 census population, households, area, and a boundary polygon
   (used for the ward-detail panel in `viewer.html`). Sourced from
   [NII Geoshapeリポジトリ's "国勢調査町丁・字等別境界データセット"](https://geoshape.ex.nii.ac.jp/ka/resource/13103.html)
-  (港区 [13103] `r2ka13103.topojson`, 中央区 [13102] `r2ka13102.topojson`),
+  (`r2ka<prefix>.topojson` per ward, e.g. 港区 [13103], 中央区 [13102]),
   itself NII's processing of e-Stat's official "令和2年国勢調査
   町丁・字等別境界データ". The topology's own metadata states:
   `cc:license: https://www.e-stat.go.jp/terms-of-use`,
@@ -61,8 +61,8 @@ non-ODbL sources this pack also carries (Rule 3, [`../LICENSING.md`](../LICENSIN
   `data.attribution` line, and the page itself is marked `CC BY 4.0`. Free for
   commercial use and modification with attribution; no share-alike beyond
   that. Per-area population figures were cross-checked by summing each ward's
-  areas: Minato 260,486 and Chuo 169,179, an exact match to `demand.json`'s
-  existing `ward-minato`/`ward-chuo` totals (also 2020 census). Converted from
+  areas against `demand.json`'s existing per-ward totals (also 2020 census):
+  all 23 wards matched exactly, zero mismatches. Converted from
   TopoJSON to this pack's polygon format with a one-off PowerShell script (no
   Node/Python on this machine at conversion time, same constraint as the
   original hand-conversion — see `README.md`); the totals agreeing exactly is
@@ -72,7 +72,7 @@ non-ODbL sources this pack also carries (Rule 3, [`../LICENSING.md`](../LICENSIN
   the ward-detail panel can show a Korean reading for users who can't read
   Japanese kanji. The base-name furigana (カタカナ) comes from
   [日本郵便's postal-code CSV](https://www.post.japanpost.jp/zipcode/download.html)
-  (`utf_ken_all.csv`, filtered to 港区/13103 and 中央区/13102); the postal data
+  (`utf_ken_all.csv`, filtered per ward by its e-Stat prefix); the postal data
   groups multiple chōme under one entry (e.g. "芝（１〜３丁目）"), so the
   chōme-number suffix (一丁目, 二丁目, ...) is appended using Japanese's fixed,
   name-independent chōme-counter reading (いっちょうめ, にちょうめ, ...) rather
