@@ -3,7 +3,8 @@
 // several lines are fanned out side by side. Stations keep their projected
 // positions; only the line shapes are schematic.
 
-const SPREAD_PX = 5;
+// Track band 6px + casing: parallel lines sit 10px apart so casings don't overlap.
+export const SPREAD_PX = 10;
 
 // A -> B as one diagonal run followed by one axis-aligned run.
 export function octilinear(a, b) {

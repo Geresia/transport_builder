@@ -68,6 +68,7 @@
   #detail .dreset{flex:0 0 auto;margin-top:8px;font-size:11px;color:#71B9C1;cursor:pointer;text-align:center}
   #detail .dreset:hover{text-decoration:underline}
 
+  .maplibregl-popup-content{color:#000}
   @media(max-width:760px){#legend{max-width:200px}#card{width:200px}#detail{width:220px}}
 </style>
 
@@ -289,6 +290,7 @@ map.on("load", async () => {
     map.addLayer({ id: "region-line", source: "region", type: "line",
       paint: { "line-color": "#0c1114", "line-width": 0.5, "line-opacity": 0.4 } });
     map.on("click", "region-fill", (e) => {
+      if (hitsDetailLayer(e)) return;
       closeDetail();
       const p = e.features[0].properties;
       document.getElementById("card").classList.add("on");
@@ -315,6 +317,12 @@ map.on("load", async () => {
   const wardFeaturesByCode = new Map();
   const initialView = { center: [139.68, 35.63], zoom: 9.3 };
   let subwardActive = false;
+  let currentWardJis = null;
+  // 건물/정목 레이어를 누른 클릭이 아래 깔린 구/광역권 클릭 핸들러까지 전달되어 줌아웃되는 것을 막음
+  const hitsDetailLayer = (e) => {
+    const ls = ["bldgpop-fill", "jobsgrid-fill"].filter((id) => map.getLayer(id));
+    return ls.length > 0 && map.queryRenderedFeatures(e.point, { layers: ls }).length > 0;
+  };
   let metric = "res";
   let currentDetail = null;
   let applyMetric = () => {};
@@ -337,6 +345,7 @@ map.on("load", async () => {
   }
 
   function closeDetail() {
+    currentWardJis = null;
     document.getElementById("card").classList.remove("on");
     document.getElementById("detail").classList.remove("on");
     if (map.getLayer("wards-sel")) map.setFilter("wards-sel", ["==", ["get", "name"], ""]);
@@ -376,7 +385,8 @@ map.on("load", async () => {
     if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], jis]);
     for (const id of ["jobsgrid-fill", "jobsgrid-line"]) if (map.getLayer(id)) map.setFilter(id, ["==", ["get", "wardJis"], jis]);
     map.setFilter("subward-sel", ["==", ["get", "code"], "__none__"]);
-    if (wardFeature) map.fitBounds(bboxOfCoords(wardFeature.geometry.coordinates), { padding: 60, duration: 800 });
+    if (wardFeature && jis !== currentWardJis) map.fitBounds(bboxOfCoords(wardFeature.geometry.coordinates), { padding: 60, duration: 800 });
+    currentWardJis = jis;
     subwardActive = true;
 
     currentDetail = subwardIndex;
@@ -459,6 +469,7 @@ map.on("load", async () => {
       [ds[0], ...cuts, ds[ds.length - 1]].map((v) => `<span>${nf(v)}</span>`).join("");
 
     map.on("click", "wards-fill", (e) => {
+      if (hitsDetailLayer(e)) return;
       const p = e.features[0].properties;
       map.setFilter("wards-sel", ["==", ["get", "name"], p.name]);
       document.getElementById("card").classList.add("on");
@@ -553,9 +564,9 @@ map.on("load", async () => {
       map.on("click", "jobsgrid-fill", (e) => {
         const p = e.features[0].properties;
         new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
-          .setHTML(`<div style="font:12px sans-serif">${p.name} · 이 건물 종사자 약 <b>${nf(p.w)}</b>명`
+          .setHTML(`<div style="font:12.5px sans-serif;color:#000">${p.name} · 이 건물 종사자 약 <b>${nf(p.w)}</b>명`
             + `<br>${p.area_m2}m² · ${p.levels}층${p.levels_known === true || p.levels_known === "true" ? "" : "(가정)"} · ${p.kind}`
-            + `<br><span style="color:#888">모델 추정치 — 실측 아님</span></div>`)
+            + `<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
           .addTo(map);
       });
     }
@@ -614,9 +625,9 @@ map.on("load", async () => {
       const p = e.features[0].properties;
       new maplibregl.Popup({ closeButton: false })
         .setLngLat(e.lngLat)
-        .setHTML(`<div style="font:12px sans-serif">이 건물 추정 거주 인구 <b>${nf(p.estimated_population)}</b>명`
+        .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 거주 인구 <b>${nf(p.estimated_population)}</b>명`
           + `<br>${p.area_m2}m² · ${p.levels}층 · ${p.sourceKind}<br>`
-          + `<span style="color:#888">모델 추정치 — 실측 아님</span></div>`)
+          + `<span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
         .addTo(map);
     });
     map.on("mouseenter", "bldgpop-fill", () => (map.getCanvas().style.cursor = "pointer"));
