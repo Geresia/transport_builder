@@ -3,7 +3,7 @@
   1회성 도구 — korea-basemap.html 처럼 정식 유지보수 대상 아님.
 
   읽는 파일 (전부 같은 폴더): manifest.json, demand.json, wards-reference.json, obstacles.json,
-  kanto-region.json
+  kanto-region.json, subward.json (있으면 — 현재 미나토구·주오구만)
   file:// 로는 fetch 가 막혀서 안 열림 — HTTP 로 띄울 것 (../docs/serve.ps1 -Root 이 폴더).
 
   베이스맵은 표준 OSM 래스터 타일 (계정/키 불필요, 가벼운 조회용) 에 다크 필터.
@@ -38,7 +38,33 @@
   .mini div{background:#141b1f;padding:8px 10px}
   .mini .k{font-size:10px;color:#6b7d85;font-family:"IBM Plex Mono",monospace}
   .mini .v{font-size:15px;font-weight:600}
-  @media(max-width:760px){#legend{max-width:200px}#card{width:200px}}
+
+  #detail{top:190px;right:12px;width:300px;max-height:calc(100vh - 210px);
+    display:none;padding:14px;flex-direction:column;overflow:hidden}
+  #detail.on{display:flex}
+  #detail #ddata{display:flex;flex-direction:column;min-height:0;flex:1}
+  #detail .dhead{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+  #detail .dhead h3{font-size:13px;margin:0}
+  #detail .dclose{cursor:pointer;color:#6b7d85;font-size:14px;line-height:1;padding:2px 4px}
+  #detail .dclose:hover{color:#e7eef0}
+  #detail .dnote{flex:0 0 auto;font-size:11px;color:#6b7d85;margin-bottom:6px}
+  #detail .dmissing{color:#e08a4c;font-size:12px;line-height:1.6}
+  #detail .dramp{flex:0 0 auto;display:flex;height:8px;border-radius:3px;overflow:hidden;margin:4px 0 2px}
+  #detail .dramp i{flex:1}
+  #detail .dscale{flex:0 0 auto;display:flex;justify-content:space-between;font-size:9px;color:#6b7d85;
+    font-family:"IBM Plex Mono",ui-monospace,monospace;margin-bottom:8px}
+  #detail .dlist{flex:1 1 auto;min-height:0;overflow-y:auto;border-top:1px solid #232f35}
+  #detail .drow{display:flex;justify-content:space-between;gap:8px;padding:6px 2px;
+    border-bottom:1px solid #1b2429;cursor:pointer}
+  #detail .drow:hover{background:#1b2429}
+  #detail .drow .dname{font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  #detail .drow .dja{color:#6b7d85;font-size:10px}
+  #detail .drow .dpop{font-size:11.5px;font-weight:600;font-family:"IBM Plex Mono",ui-monospace,monospace;
+    white-space:nowrap}
+  #detail .dreset{flex:0 0 auto;margin-top:8px;font-size:11px;color:#71B9C1;cursor:pointer;text-align:center}
+  #detail .dreset:hover{text-decoration:underline}
+
+  @media(max-width:760px){#legend{max-width:200px}#card{width:200px}#detail{width:220px}}
 </style>
 
 <div id="map"></div>
@@ -61,6 +87,18 @@
     <div><div class="k">인구</div><div class="v" id="cres">—</div></div>
     <div><div class="k">밀도</div><div class="v" id="cden">—</div></div>
   </div>
+</div>
+
+<div class="panel" id="detail">
+  <div class="dhead"><h3 id="dtitle">정목(町丁)별 인구</h3><span class="dclose" id="dclose" title="닫기">✕</span></div>
+  <div id="ddata" style="display:none">
+    <div class="dnote" id="dnote"></div>
+    <div class="dramp" id="dramp"></div>
+    <div class="dscale" id="dscale"></div>
+    <div class="dlist" id="dlist"></div>
+    <div class="dreset" id="dreset">구 전체 보기로 돌아가기</div>
+  </div>
+  <div id="dmissing" class="dmissing" style="display:none"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
@@ -96,6 +134,76 @@ const CITY_KO = {
   "習志野市": "나라시노시", "流山市": "나가레야마시", "我孫子市": "아비코시", "佐倉市": "사쿠라시", "八千代市": "야치요시",
 };
 
+// 가타카나 -> 한글 표기법 변환 (국립국어원 일본어 표기법 근사) — 정목(町丁) 이름의
+// reading_kana(subward.json, 일본 우편번호부 공식 후리가나 + 정형화된 정목 카운터 표기)를
+// 일본어를 못 읽는 사용자를 위해 한글로 보여주기 위한 것. か/た행은 어두/어중에 따라
+// 예사소리/거센소리가 갈리고, 촉음(っ)과 ん은 직전 음절의 받침으로 합쳐진다 (예: ロッポンギ
+// -> 롯폰기). 흔치 않은 요음 조합까지 완전히 검증된 표는 아니라 근사치임.
+const KANA_TABLE = {
+  ア:"아", イ:"이", ウ:"우", エ:"에", オ:"오",
+  カ:["가","카"], キ:["기","키"], ク:["구","쿠"], ケ:["게","케"], コ:["고","코"],
+  サ:"사", シ:"시", ス:"스", セ:"세", ソ:"소",
+  タ:["다","타"], チ:["지","치"], ツ:"쓰", テ:["데","테"], ト:["도","토"],
+  ナ:"나", ニ:"니", ヌ:"누", ネ:"네", ノ:"노",
+  ハ:"하", ヒ:"히", フ:"후", ヘ:"헤", ホ:"호",
+  マ:"마", ミ:"미", ム:"무", メ:"메", モ:"모",
+  ヤ:"야", ユ:"유", ヨ:"요",
+  ラ:"라", リ:"리", ル:"루", レ:"레", ロ:"로",
+  ワ:"와", ヲ:"오",
+  ガ:"가", ギ:"기", グ:"구", ゲ:"게", ゴ:"고",
+  ザ:"자", ジ:"지", ズ:"즈", ゼ:"제", ゾ:"조",
+  ダ:"다", ヂ:"지", ヅ:"즈", デ:"데", ド:"도",
+  バ:"바", ビ:"비", ブ:"부", ベ:"베", ボ:"보",
+  パ:"파", ピ:"피", プ:"푸", ペ:"페", ポ:"포",
+  キャ:["갸","캬"], キュ:["규","큐"], キョ:["교","쿄"],
+  シャ:"샤", シュ:"슈", ショ:"쇼",
+  チャ:["자","차"], チュ:["주","추"], チョ:["조","초"],
+  ニャ:"냐", ニュ:"뉴", ニョ:"뇨",
+  ヒャ:"햐", ヒュ:"휴", ヒョ:"효",
+  ミャ:"먀", ミュ:"뮤", ミョ:"묘",
+  リャ:"랴", リュ:"류", リョ:"료",
+  ギャ:"갸", ギュ:"규", ギョ:"교",
+  ジャ:"자", ジュ:"주", ジョ:"조",
+  ビャ:"뱌", ビュ:"뷰", ビョ:"뵤",
+  ピャ:"퍄", ピュ:"퓨", ピョ:"표",
+};
+const YOON_HEADS = new Set(["キ","シ","チ","ニ","ヒ","ミ","リ","ギ","ジ","ビ","ピ"]);
+const YOON_TAILS = new Set(["ャ","ュ","ョ"]);
+
+function addBatchim(blocks, jong) {
+  if (blocks.length === 0) return;
+  const ch = blocks[blocks.length - 1];
+  const code = ch.codePointAt(0) - 0xac00;
+  if (code < 0 || code > 11171) return; // 합성 음절이 아니면(드묾) 무시
+  const cho = Math.floor(code / (21 * 28));
+  const jung = Math.floor((code % (21 * 28)) / 28);
+  blocks[blocks.length - 1] = String.fromCodePoint(0xac00 + (cho * 21 + jung) * 28 + jong);
+}
+
+function kanaToKo(kana) {
+  if (!kana) return null;
+  const blocks = [];
+  let i = 0;
+  while (i < kana.length) {
+    const c = kana[i];
+    if (c === "ー") { i++; continue; } // 장음 부호는 표기하지 않음
+    if (c === "ッ") { addBatchim(blocks, 19 /* ㅅ */); i++; continue; }
+    if (c === "ン") { addBatchim(blocks, 4 /* ㄴ */); i++; continue; }
+    let mora = c;
+    if (YOON_HEADS.has(c) && i + 1 < kana.length && YOON_TAILS.has(kana[i + 1])) {
+      mora = c + kana[i + 1];
+      i += 2;
+    } else {
+      i += 1;
+    }
+    const entry = KANA_TABLE[mora];
+    if (entry == null) continue; // 표에 없는 문자는 건너뜀 (완전한 표는 아님)
+    const isInitial = blocks.length === 0;
+    blocks.push(Array.isArray(entry) ? (isInitial ? entry[0] : entry[1]) : entry);
+  }
+  return blocks.join("");
+}
+
 async function loadJSON(url) {
   try { const r = await fetch(url); return r.ok ? r.json() : null; }
   catch { return null; }
@@ -123,10 +231,11 @@ const map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl());
 
 map.on("load", async () => {
-  const [manifest, demand, wards, obstacles, region] = await Promise.all([
+  const [manifest, demand, wards, obstacles, region, subward, buildingPop] = await Promise.all([
     loadJSON("./manifest.json"), loadJSON("./demand.json"),
     loadJSON("./wards-reference.json"), loadJSON("./obstacles.json"),
-    loadJSON("./kanto-region.json"),
+    loadJSON("./kanto-region.json"), loadJSON("./subward.json"),
+    loadJSON("./building-population.json"),
   ]);
 
   if (manifest) {
@@ -166,6 +275,7 @@ map.on("load", async () => {
     map.addLayer({ id: "region-line", source: "region", type: "line",
       paint: { "line-color": "#0c1114", "line-width": 0.5, "line-opacity": 0.4 } });
     map.on("click", "region-fill", (e) => {
+      closeDetail();
       const p = e.features[0].properties;
       document.getElementById("card").classList.add("on");
       document.getElementById("cname").textContent = p.name_ko;
@@ -185,6 +295,86 @@ map.on("load", async () => {
       '<div class="cap warn">kanto-region.json 을 불러오지 못했습니다.</div>');
   }
 
+  // ---- 구 클릭 시 오른쪽 상세 패널 (정목별 인구) 상태 ----
+  const wardFeaturesByCode = new Map();
+  const initialView = { center: [139.68, 35.63], zoom: 9.3 };
+  let subwardActive = false;
+  const supportedWardsKo = subward && subward.wards
+    ? Object.keys(subward.wards).map((j) => KO_NAMES[j] || j).join("·")
+    : "";
+
+  function bboxOfCoords(coords) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    (function walk(a) {
+      if (typeof a[0] === "number") {
+        if (a[0] < minX) minX = a[0]; if (a[0] > maxX) maxX = a[0];
+        if (a[1] < minY) minY = a[1]; if (a[1] > maxY) maxY = a[1];
+      } else { a.forEach(walk); }
+    })(coords);
+    return [[minX, minY], [maxX, maxY]];
+  }
+
+  function closeDetail() {
+    document.getElementById("card").classList.remove("on");
+    document.getElementById("detail").classList.remove("on");
+    if (map.getLayer("wards-sel")) map.setFilter("wards-sel", ["==", ["get", "name"], ""]);
+    if (map.getLayer("subward-fill")) map.setFilter("subward-fill", ["==", ["get", "wardJis"], "__none__"]);
+    if (map.getLayer("subward-line")) map.setFilter("subward-line", ["==", ["get", "wardJis"], "__none__"]);
+    if (map.getLayer("subward-sel")) map.setFilter("subward-sel", ["==", ["get", "code"], "__none__"]);
+    if (map.getLayer("bldgpop-fill")) map.setFilter("bldgpop-fill", ["==", ["get", "wardJis"], "__none__"]);
+    if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], "__none__"]);
+    if (subwardActive) { map.flyTo(initialView); subwardActive = false; }
+  }
+
+  function showMissingDetail(nameKo) {
+    document.getElementById("detail").classList.add("on");
+    document.getElementById("ddata").style.display = "none";
+    const m = document.getElementById("dmissing");
+    m.style.display = "block";
+    m.textContent = `${nameKo}는 아직 정목(町丁) 단위 상세 데이터가 없습니다 — 현재 ${supportedWardsKo || "일부 구"}만 지원됩니다.`;
+    if (map.getLayer("subward-fill")) map.setFilter("subward-fill", ["==", ["get", "wardJis"], "__none__"]);
+    if (map.getLayer("subward-line")) map.setFilter("subward-line", ["==", ["get", "wardJis"], "__none__"]);
+    if (map.getLayer("bldgpop-fill")) map.setFilter("bldgpop-fill", ["==", ["get", "wardJis"], "__none__"]);
+    if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], "__none__"]);
+    if (subwardActive) { map.flyTo(initialView); subwardActive = false; }
+  }
+
+  function showWardDetail(jis, nameKo, wardFeature, subwardIndex) {
+    document.getElementById("detail").classList.add("on");
+    document.getElementById("dmissing").style.display = "none";
+    document.getElementById("ddata").style.display = "block";
+    document.getElementById("dnote").textContent = `${nameKo} · 정목(町丁) ${subwardIndex.areas.length}개 · 2020 census`
+      + (map.getSource("bldgpop") ? " · 확대하면 건물별 추정 인구 표시" : "");
+
+    map.setFilter("subward-fill", ["==", ["get", "wardJis"], jis]);
+    map.setFilter("subward-line", ["==", ["get", "wardJis"], jis]);
+    if (map.getLayer("bldgpop-fill")) map.setFilter("bldgpop-fill", ["==", ["get", "wardJis"], jis]);
+    if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], jis]);
+    map.setFilter("subward-sel", ["==", ["get", "code"], "__none__"]);
+    if (wardFeature) map.fitBounds(bboxOfCoords(wardFeature.geometry.coordinates), { padding: 60, duration: 800 });
+    subwardActive = true;
+
+    const list = document.getElementById("dlist");
+    const sorted = [...subwardIndex.areas].sort((a, b) => b.residents - a.residents);
+    list.innerHTML = sorted.map((a) => {
+      const areaNameKo = kanaToKo(a.reading_kana);
+      const label = areaNameKo ? `${areaNameKo} <span class="dja">(${a.name_ja})</span>` : a.name_ja;
+      return `<div class="drow" data-code="${a.code}" data-lon="${a.location[0]}" data-lat="${a.location[1]}">`
+        + `<span class="dname">${label}</span><span class="dpop">${nf(a.residents)}</span></div>`;
+    }).join("");
+    list.querySelectorAll(".drow").forEach((row) => {
+      row.addEventListener("click", () => {
+        map.setFilter("subward-sel", ["==", ["get", "code"], row.dataset.code]);
+        map.flyTo({ center: [Number(row.dataset.lon), Number(row.dataset.lat)], zoom: 15, duration: 600 });
+      });
+    });
+  }
+
+  document.getElementById("dclose").addEventListener("click", closeDetail);
+  document.getElementById("dreset").addEventListener("click", () => {
+    map.flyTo(initialView); subwardActive = false;
+  });
+
   // ---- 구 경계 + 인구밀도 (wards-reference.json 폴리곤 + demand.json 인구, jisCode 로 조인) ----
   if (wards && demand) {
     const byCode = new Map(demand.points.map((p) => [p.jisCode, p]));
@@ -194,6 +384,7 @@ map.on("load", async () => {
       return {
         type: "Feature",
         properties: {
+          code: w.code,
           name: w.name_ja, name_ko: KO_NAMES[w.code] || w.name_en, name_en: w.name_en,
           area: w.area_km2, residents: p ? p.residents : null, density,
         },
@@ -202,6 +393,7 @@ map.on("load", async () => {
     });
     const fc = { type: "FeatureCollection", features };
     map.addSource("wards", { type: "geojson", data: fc });
+    features.forEach((f) => wardFeaturesByCode.set(String(f.properties.code), f));
 
     const ds = features.map((f) => f.properties.density).filter((d) => d != null).sort((a, b) => a - b);
     const cuts = Array.from({ length: 7 }, (_, i) => ds[Math.floor(((i + 1) / 8) * (ds.length - 1))]);
@@ -228,6 +420,11 @@ map.on("load", async () => {
       document.getElementById("csub").textContent = `${p.name} · ${p.name_en} · ${p.area}km²`;
       document.getElementById("cres").textContent = p.residents ? nf(p.residents) : "—";
       document.getElementById("cden").textContent = p.density ? nf(p.density) + "/km²" : "—";
+
+      const jis = String(p.code);
+      const sw = subward && subward.wards && subward.wards[jis];
+      if (sw) showWardDetail(jis, p.name_ko, wardFeaturesByCode.get(jis), sw);
+      else showMissingDetail(p.name_ko);
     });
     map.on("mouseenter", "wards-fill", () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", "wards-fill", () => (map.getCanvas().style.cursor = ""));
@@ -238,6 +435,92 @@ map.on("load", async () => {
   } else {
     document.getElementById("legend").insertAdjacentHTML("beforeend",
       '<div class="cap warn">wards-reference.json 또는 demand.json 을 불러오지 못했습니다.</div>');
+  }
+
+  // ---- 정목(町丁)별 상세 인구 (subward.json — 현재 미나토구·주오구 파일럿만) ----
+  if (subward && subward.wards) {
+    const features = [];
+    for (const [jis, w] of Object.entries(subward.wards)) {
+      for (const a of w.areas) {
+        const km2 = a.area_m2 / 1e6;
+        features.push({
+          type: "Feature",
+          properties: {
+            wardJis: jis, code: a.code, name_ja: a.name_ja,
+            residents: a.residents, households: a.households,
+            area_km2: km2, density: km2 > 0 ? a.residents / km2 : 0,
+          },
+          geometry: { type: "MultiPolygon", coordinates: a.polygons },
+        });
+      }
+    }
+    map.addSource("subward", { type: "geojson", data: { type: "FeatureCollection", features } });
+
+    const sds = features.map((f) => f.properties.density).sort((a, b) => a - b);
+    const scuts = Array.from({ length: 7 }, (_, i) => sds[Math.floor(((i + 1) / 8) * (sds.length - 1))]);
+    const sStepColor = ["step", ["get", "density"], RAMP[0]];
+    scuts.forEach((c, i) => sStepColor.push(c, RAMP[i + 1]));
+
+    map.addLayer({ id: "subward-fill", source: "subward", type: "fill",
+      filter: ["==", ["get", "wardJis"], "__none__"],
+      paint: { "fill-color": sStepColor, "fill-opacity": 0.75 } });
+    map.addLayer({ id: "subward-line", source: "subward", type: "line",
+      filter: ["==", ["get", "wardJis"], "__none__"],
+      paint: { "line-color": "#0c1114", "line-width": 0.6, "line-opacity": 0.7 } });
+    map.addLayer({ id: "subward-sel", source: "subward", type: "line",
+      filter: ["==", ["get", "code"], "__none__"],
+      paint: { "line-color": "#e08a4c", "line-width": 2.5 } });
+
+    document.getElementById("dramp").innerHTML = RAMP.map((c) => `<i style="background:${c}"></i>`).join("");
+    document.getElementById("dscale").innerHTML =
+      [sds[0], ...scuts, sds[sds.length - 1]].map((v) => `<span>${nf(v)}</span>`).join("");
+  }
+
+  // ---- 건물별 추정 인구 (building-population.json — 정목 실제 인구를 실제 OSM 건물
+  // footprint에 면적×층수×주거용도 가중치로 "배분"한 모델. 건물 단위 실측 인구는 어디에도
+  // 공개돼 있지 않음(개인정보) — 이건 추정치이지 실측 데이터가 아님. minzoom 15 이상,
+  // 정목 상세 패널이 열려 있을 때만 그 정목 범위로 필터링해서 보여줌. ----
+  if (buildingPop && buildingPop.wards) {
+    const bFeatures = [];
+    for (const [jis, w] of Object.entries(buildingPop.wards)) {
+      for (const a of w.areas) {
+        for (const b of a.buildings) {
+          bFeatures.push({
+            type: "Feature",
+            properties: {
+              wardJis: jis, chome: a.code, id: b.id, sourceKind: b.sourceKind,
+              levels: b.levels, area_m2: b.area_m2, estimated_population: b.estimated_population,
+            },
+            geometry: { type: "Polygon", coordinates: [b.polygon] },
+          });
+        }
+      }
+    }
+    map.addSource("bldgpop", { type: "geojson", data: { type: "FeatureCollection", features: bFeatures } });
+
+    const bpVals = bFeatures.map((f) => f.properties.estimated_population).sort((a, b) => a - b);
+    const bpCuts = Array.from({ length: 7 }, (_, i) => bpVals[Math.floor(((i + 1) / 8) * (bpVals.length - 1))]);
+    const bpColor = ["step", ["get", "estimated_population"], RAMP[0]];
+    bpCuts.forEach((c, i) => bpColor.push(c, RAMP[i + 1]));
+
+    map.addLayer({ id: "bldgpop-fill", source: "bldgpop", type: "fill", minzoom: 15,
+      filter: ["==", ["get", "wardJis"], "__none__"],
+      paint: { "fill-color": bpColor, "fill-opacity": 0.85 } });
+    map.addLayer({ id: "bldgpop-line", source: "bldgpop", type: "line", minzoom: 15,
+      filter: ["==", ["get", "wardJis"], "__none__"],
+      paint: { "line-color": "#0c1114", "line-width": 0.3, "line-opacity": 0.6 } });
+
+    map.on("click", "bldgpop-fill", (e) => {
+      const p = e.features[0].properties;
+      new maplibregl.Popup({ closeButton: false })
+        .setLngLat(e.lngLat)
+        .setHTML(`<div style="font:12px sans-serif">추정 인구 <b>${nf(p.estimated_population)}</b>명`
+          + `<br>${p.area_m2}m² · ${p.levels}층 · ${p.sourceKind}<br>`
+          + `<span style="color:#888">모델 추정치 — 실측 아님</span></div>`)
+        .addTo(map);
+    });
+    map.on("mouseenter", "bldgpop-fill", () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", "bldgpop-fill", () => (map.getCanvas().style.cursor = ""));
   }
 
   // ---- 건물 footprint (4개 허브 지구, obstacles.json) ----
@@ -253,7 +536,9 @@ map.on("load", async () => {
     document.getElementById("cap").textContent =
       `건물 ${nf(obstacles.obstacles.length)}개 (마루노우치/도쿄역/긴자·신주쿠·시부야·이케부쿠로) · `
       + `23구 + 광역권 ${region ? region.municipalities.length : "?"}개(시·정·촌 178 + 지정도시 구 44). `
-      + `색 범례(위)는 23구 기준 — 광역권은 같은 색상표를 다른 구간에 적용해 표시(직접 비교 불가).`;
+      + `색 범례(위)는 23구 기준 — 광역권은 같은 색상표를 다른 구간에 적용해 표시(직접 비교 불가). `
+      + (subward && subward.wards ? `구를 클릭하면 오른쪽에 상세 패널이 뜹니다 — 정목(町丁) 단위 인구는 현재 ${supportedWardsKo} 만 지원.` : "")
+      + (buildingPop && buildingPop.wards ? ` 건물별 색은 실측이 아니라 정목 인구를 건물 면적×층수로 배분한 추정 모델(줌 15+).` : "");
     document.getElementById("toggle-obstacles").addEventListener("change", (e) => {
       const v = e.target.checked ? "visible" : "none";
       for (const id of ["obstacles-fill", "obstacles-line"]) map.setLayoutProperty(id, "visibility", v);

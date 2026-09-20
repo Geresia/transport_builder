@@ -47,6 +47,58 @@ non-ODbL sources this pack also carries (Rule 3, [`../LICENSING.md`](../LICENSIN
   (Tama) or independently re-confirmed (the 10 towns) against the sources
   above and that site is no longer relied on.
 
+- **Sub-ward population, Minato + Chuo ward pilot** (`subward.json`) —
+  118 town-level (町丁・字) areas within 港区/Minato and 99 within 中央区/Chuo,
+  each with 2020 census population, households, area, and a boundary polygon
+  (used for the ward-detail panel in `viewer.html`). Sourced from
+  [NII Geoshapeリポジトリ's "国勢調査町丁・字等別境界データセット"](https://geoshape.ex.nii.ac.jp/ka/resource/13103.html)
+  (港区 [13103] `r2ka13103.topojson`, 中央区 [13102] `r2ka13102.topojson`),
+  itself NII's processing of e-Stat's official "令和2年国勢調査
+  町丁・字等別境界データ". The topology's own metadata states:
+  `cc:license: https://www.e-stat.go.jp/terms-of-use`,
+  `cc:attributionText: 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工`,
+  `cc:attributionURL: https://www.e-stat.go.jp/` — carried above as a
+  `data.attribution` line, and the page itself is marked `CC BY 4.0`. Free for
+  commercial use and modification with attribution; no share-alike beyond
+  that. Per-area population figures were cross-checked by summing each ward's
+  areas: Minato 260,486 and Chuo 169,179, an exact match to `demand.json`'s
+  existing `ward-minato`/`ward-chuo` totals (also 2020 census). Converted from
+  TopoJSON to this pack's polygon format with a one-off PowerShell script (no
+  Node/Python on this machine at conversion time, same constraint as the
+  original hand-conversion — see `README.md`); the totals agreeing exactly is
+  the cross-check that the arc-stitching was done correctly.
+
+- **Chōme-name readings** (`subward.json[].areas[].reading_kana`) — added so
+  the ward-detail panel can show a Korean reading for users who can't read
+  Japanese kanji. The base-name furigana (カタカナ) comes from
+  [日本郵便's postal-code CSV](https://www.post.japanpost.jp/zipcode/download.html)
+  (`utf_ken_all.csv`, filtered to 港区/13103 and 中央区/13102); the postal data
+  groups multiple chōme under one entry (e.g. "芝（１〜３丁目）"), so the
+  chōme-number suffix (一丁目, 二丁目, ...) is appended using Japanese's fixed,
+  name-independent chōme-counter reading (いっちょうめ, にちょうめ, ...) rather
+  than being looked up per name. Japan Post explicitly disclaims copyright on
+  this data ("郵便番号データに限っては日本郵便株式会社は著作権を主張しません。
+  自由に配布していただいて結構です") — free commercial use and redistribution,
+  no attribution technically required, credited here anyway per this pack's
+  own convention. `viewer.html` converts the katakana reading to Hangul
+  client-side (`kanaToKo()`), an approximation of 국립국어원's Japanese
+  transliteration rules — spot-checked against known standard forms (e.g.
+  六本木 → ロッポンギ → 롯폰기) but not exhaustively verified for every rare
+  sound combination.
+
+- **© OpenStreetMap contributors, building-population.json.** 65,376 building
+  footprints across the full extent of 港区/Minato and 中央区/Chuo (not just
+  the 4 hub districts `obstacles.json` covers), fetched via the Overpass API,
+  ODbL-1.0 same as the other OSM-derived data in this pack — see
+  [`./LICENSE-DATA`](./LICENSE-DATA), same share-alike obligation applies.
+  **The per-building `estimated_population` values are a model, not measured
+  data** — no public source publishes population at building granularity.
+  Real inputs (building footprints + `subward.json`'s real chōme totals) are
+  combined via a dasymetric weighting formula (footprint area × floor count ×
+  a residential-type multiplier) described in `README.md`'s "Building-level
+  population model" section; that section and every UI surface showing these
+  numbers should keep saying so.
+
 None of the above requires payment or registration; all permit commercial
 use per their stated terms. The pack's overall `data.license` is set to the
 strictest of these sources (`ODbL-1.0`) per

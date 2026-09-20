@@ -18,6 +18,8 @@ shape rather than hand-editing further.
 | `basemap` | **not present.** See below |
 | `kanto-region.json` | done — tier-1 satellite-city boundaries, see below |
 | `demand.json[].jobs` | **not present.** Only `residents` — same gap the Korean packs have (`transitline/README.md` §"The open question for Phase 2") |
+| `subward.json` | **pilot only** — sub-ward (町丁・字) population detail for 港区/Minato (118 areas) and 中央区/Chuo (99 areas), the other 21 wards have no sub-ward breakdown yet. See "Sub-ward detail" below |
+| `building-population.json` | **pilot only, modeled** — per-building estimated population for the same two wards (65,376 OSM buildings). Not measured data — see "Building-level population model" below |
 
 ## Scope: 23 wards + tier-1 satellite cities, all with population now
 
@@ -98,6 +100,111 @@ another pack ends up needing the same "boundaries" shape outside `demand`.
 
 Scope rule per the playbook: "지하철이 가는 모든 지역" — matches here now
 that the islands are gone.
+
+## Sub-ward detail (`subward.json`) — Minato + Chuo pilot only
+
+A ward-level total (e.g. Minato's 260,486) hides where within the ward people
+actually live — `viewer.html`'s ward-click panel used to show only that one
+number. `subward.json` adds a finer layer: real 2020-census population per
+町丁・字 (roughly "named sub-district", the smallest unit e-Stat publishes),
+with its own boundary polygon, for **港区/Minato (118 areas) and 中央区/Chuo
+(99 areas)** — the other 21 wards still fall back to the ward-level-only card,
+since no other ward has this file yet. Clicking a supported ward in
+`viewer.html` renders these as a choropleth (colored by sub-ward density, not
+just the ward's average) and lists them by population in the detail panel.
+
+Not a grid or any synthetic approximation — real e-Stat small-area boundaries,
+via [NII's Geoshapeリポジトリ](https://geoshape.ex.nii.ac.jp/ka/resource/13103.html)
+(topology in TopoJSON, `r2ka<code>.topojson` per ward, no quantization/
+transform so arc coordinates are plain `[lon,lat]`). Converted with a one-off
+PowerShell script (`ConvertFrom-Json` + manual arc-stitching — same "no
+Node/Python on this machine" constraint noted above), not committed to the
+repo. Both wards have a few oddities in the raw topology that the conversion
+merges by `KEY_CODE` into one record each (population/households/area summed,
+geometry becomes a multi-part polygon) rather than treating as separate rows:
+Minato has 22 disjoint water/reclaimed-land slivers sharing one placeholder
+code (`131030310`, `S_NAME: "‐"`) and one named area (台場一丁目) split into a
+populated part plus a near-empty piece; Chuo has its own unnamed water code
+(`水面調査区`). After merging, Minato has exactly 118 records and Chuo 99,
+matching each source page's own count. Summing each ward's `residents` gives
+exactly 260,486 (Minato) and 169,179 (Chuo) — the same figures `demand.json`'s
+`ward-minato`/`ward-chuo` points already carried from an unrelated source
+(Wikipedia's 2020 census figures) — which is the cross-check that the
+conversion (arc stitching, KEY_CODE merging) came out correct rather than
+silently dropping or double-counting a piece.
+
+**Korean readings** (`areas[].reading_kana`, added after the Minato-only pass):
+the user asked for this because they can't read the Japanese chōme names
+(`name_ja`, e.g. 芝一丁目). Rather than hand-typing ~215 Korean transliterations
+(error-prone and unverifiable), each area's `reading_kana` field holds the
+real katakana furigana for the base place name, from
+[日本郵便's postal-code CSV](https://www.post.japanpost.jp/zipcode/download.html)
+— the postal data groups multiple chōme under one entry (e.g. 芝（１〜３丁目）
+→ シバ), so the chōme-number suffix is appended using Japanese's fixed,
+name-independent chōme-counter reading (一丁目→いっちょうめ, 二丁目→にちょうめ,
+...), not looked up per name. `viewer.html`'s `kanaToKo()` then converts that
+katakana to Hangul client-side (so a fix to the conversion table doesn't
+require regenerating `subward.json`) — an approximation of 국립국어원's
+Japanese transliteration rules (か/た-row aspiration by word position, っ/ん as
+a batchim on the preceding syllable), spot-checked against known standard
+forms (六本木 → ロッポンギ → 롯폰기) but not exhaustively verified for every
+rare sound combination. `name_ja` (kanji) is still shown alongside it in the
+panel as a smaller subtitle, since the reading is a best-effort display aid,
+not a replacement for the official name.
+
+**Extending to more wards:** repeat the same fetch against
+`https://geoshape.ex.nii.ac.jp/ka/topojson/2020/13/r2ka<jisCode-prefix>.topojson`
+for each ward's 5-digit e-Stat prefix (`13103` for Minato, `13102` for Chuo —
+the page at `/ka/resource/<prefix>.html` confirms it and lists the area count
+to cross-check against), run it through the same arc-stitch/merge logic
+(`baseMap` from the postal CSV filtered to that prefix, for `reading_kana`),
+and add a new entry to `subward.json`'s `wards` object keyed by this pack's
+6-digit `jisCode` (see `wards-reference.json` / `demand.json` for the mapping
+— it is **not** simply `prefix * 10 + 1`, e.g. Minato is `13103` → `131032`,
+Chuo is `13102` → `131024`, Adachi is `13121` → `131211`). Worth writing this
+as `generate.mjs` once Node exists on a conversion machine, same as the
+standing advice for `demand.json` above.
+
+## Building-level population model (`building-population.json`) — modeled, not measured
+
+Requested after the sub-ward pilot: since buildings are already recognized
+(`obstacles.json`), distribute each chōme's real population across its actual
+buildings rather than showing one flat color per chōme. **No public source
+publishes population per building** (privacy) — so unlike every other figure
+in this pack, this one is a **model**, not a measurement. Be upfront about
+that distinction whenever this file is used or discussed.
+
+What's real: the building footprints (65,376 of them, all of 港区/Minato and
+中央区/Chuo, fetched from OpenStreetMap via the Overpass API — not the
+`obstacles.json` 4-hub-district subset, a separate full-ward fetch) and each
+chōme's total population (`subward.json`, e-Stat). What's modeled: how that
+real total is *split* across the real buildings inside each chōme, via a
+dasymetric weight per building — `footprint_area_m2 × building:levels (or 1
+if untagged) × a residential-type multiplier (0 for tags like
+commercial/office/retail/school/hospital/temple/parking/..., 1 for
+house/apartments/residential/detached and the common untagged `building=yes`,
+treated as residential by default since that's realistic for Tokyo's low-rise
+housing stock)` — then each building's share of its chōme's population is
+`residents × (its weight / the chōme's total weight)`. Every chōme in both
+wards had at least one matching building, so no chōme was left unallocated.
+
+`viewer.html` renders this as `bldgpop-fill`/`bldgpop-line` (minzoom 15,
+filtered to whichever ward's detail panel is open), colored by estimated
+population per building, with a click popup that says "모델 추정치 — 실측
+아님" (model estimate, not measured) on every popup — that caveat should
+never be dropped from the UI.
+
+**Data-fetch notes:** Overpass's public instances (`overpass-api.de`,
+`overpass.kumi.systems`) reject a single query for a whole ward (504/429
+under load) — fetched as 6 (Minato) + 6 (Chuo) bbox tiles instead, with retry
++ backoff; a couple of tiles needed splitting further after repeated 504s.
+Not committed to the repo (`docs/serve.ps1`-servable output only). Converted
+with the same one-off PowerShell approach as `subward.json` (`ConvertFrom-Json`
++ manual point-in-polygon, `[math]::Round` forced to invariant culture after
+one pass produced comma decimals under this machine's locale) — and hit the
+same "`File.WriteAllText` with `Encoding.UTF8` prepends a BOM" gotcha as
+before; strip the first 3 bytes before shipping/reading the file, same as
+`subward.json`.
 
 ## The basemap gap (road / rail / river network)
 

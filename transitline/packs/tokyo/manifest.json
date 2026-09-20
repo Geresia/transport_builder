@@ -11,7 +11,10 @@
       "© OpenStreetMap contributors",
       "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
       "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
-      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md"
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API"
     ],
     "sources": [
       {
@@ -43,12 +46,29 @@
         "name": "千葉県総合企画部統計課 — 令和2年国勢調査 結果速報（千葉県）, used to cross-check/derive figures for 鋸南町・長南町・大多喜町・長柄町・芝山町",
         "url": "https://www.pref.chiba.lg.jp/toukei/press/2021/documents/r02kokucho-sokuhou-gaiyou.pdf",
         "license": "千葉県 official publication — public statistical release"
+      },
+      {
+        "name": "港区 (13103) ・ 中央区 (13102) 令和2年国勢調査 町丁・字等別境界データ — subward.json, 118 + 99 town-level areas with population/household counts and boundary polygons, pilot wards for the sub-ward detail view",
+        "url": "https://geoshape.ex.nii.ac.jp/ka/resource/13103.html",
+        "license": "CC BY 4.0 (NII processing of e-Stat 2020 census small-area boundary data; underlying data per e-Stat terms of use, https://www.e-stat.go.jp/terms-of-use)"
+      },
+      {
+        "name": "日本郵便 郵便番号データ (utf_ken_all.csv) — base-name furigana (カタカナ) for subward.json[].areas[].reading_kana, used to render Korean readings of chōme names for users who can't read Japanese",
+        "url": "https://www.post.japanpost.jp/zipcode/download.html",
+        "license": "No copyright claimed by Japan Post (\"郵便番号データに限っては日本郵便株式会社は著作権を主張しません。自由に配布していただいて結構です\") — free redistribution and commercial use, no attribution required (credited here anyway per this pack's own convention)"
+      },
+      {
+        "name": "OpenStreetMap building footprints, full extent of 港区/Minato + 中央区/Chuo (65,376 buildings, via Overpass API) — building-population.json distributes each subward.json area's real census population across these real footprints, weighted by footprint area x building:levels x a residential-type multiplier. This is a MODELED spatial disaggregation, not measured per-building population (no such public data exists) — see README.md",
+        "url": "https://www.openstreetmap.org/copyright",
+        "license": "ODbL-1.0"
       }
     ]
   },
   "files": {
     "demand": "demand.json",
     "obstacles": "obstacles.json",
-    "region": "kanto-region.json"
+    "region": "kanto-region.json",
+    "subward": "subward.json",
+    "buildingPopulation": "building-population.json"
   }
 }
