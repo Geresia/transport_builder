@@ -1,0 +1,71 @@
+<!doctype html><meta charset="utf-8"><pre id="out">running</pre>
+<script type="module">
+import { loadPack } from "./src/pack.mjs";
+import { createState, addLine, deleteLine, setBandFrequency } from "./src/state.mjs";
+import { buildDemandModel } from "./src/demand-engine.mjs";
+import { buildRouteGraph } from "./src/network.mjs";
+import { spawnPassengers, retryPendingRoutes, expirePassengers } from "./src/passengers.mjs";
+import { dispatchTrains, stepTrains } from "./src/trains.mjs";
+
+const out = document.getElementById("out");
+const params = new URLSearchParams(location.search);
+const packPath = params.get("pack") ?? "../packs/example-radial";
+const lineSpecs = JSON.parse(params.get("lines") ?? "[]");
+
+try {
+  const pack = await loadPack(packPath);
+  const state = createState(pack);
+  const model = buildDemandModel(state, pack.demand);
+  let graph = buildRouteGraph(state);
+  const log = { pack: pack.manifest.id, stations: state.stations.size, errors: [] };
+
+  function step(dtSeconds) {
+    if (state.networkDirty) {
+      graph = buildRouteGraph(state);
+      retryPendingRoutes(state, graph);
+      state.networkDirty = false;
+    }
+    state.simMinutes += dtSeconds / 60;
+    spawnPassengers(state, model, graph, dtSeconds / 60);
+    expirePassengers(state);
+    dispatchTrains(state);
+    stepTrains(state, dtSeconds);
+  }
+
+  // Phase A: no lines, 2 sim-hours.
+  for (let i = 0; i < 1440; i++) step(5);
+  log.noLines = { spawned: state.stats.spawned, modeShare: { ...state.stats.modeShare }, waiting: state.passengers.length };
+
+  // Phase B: draw lines, run 22 sim-hours.
+  for (const ids of lineSpecs) addLine(state, ids, { name: "T" });
+  let maxLoad = 0, maxTrains = 0;
+  for (let i = 0; i < 15840; i++) {
+    step(5);
+    maxTrains = Math.max(maxTrains, state.trains.length);
+    const perTrain = new Map();
+    for (const p of state.passengers) if (p.state === "onboard") perTrain.set(p.trainId, (perTrain.get(p.trainId) ?? 0) + 1);
+    for (const v of perTrain.values()) maxLoad = Math.max(maxLoad, v);
+    for (const p of state.passengers) {
+      if (p.state === "onboard" && !state.trains.some((t) => t.id === p.trainId)) log.errors.push("stranded onboard " + p.id);
+    }
+    if (log.errors.length > 5) break;
+  }
+  log.withLines = {
+    stats: { ...state.stats, spawnedByHour: undefined, deliveredByHour: undefined },
+    waiting: state.passengers.filter((p) => p.state === "waiting").length,
+    onboard: state.passengers.filter((p) => p.state === "onboard").length,
+    trains: state.trains.length, maxTrains, maxLoad,
+    lines: state.lines.map((l) => ({ id: l.id, stations: l.stationIds.length, cars: l.carsPerTrain })),
+  };
+
+  // Phase C: delete a line and keep running.
+  if (state.lines.length) {
+    deleteLine(state, state.lines[0].id);
+    for (let i = 0; i < 2000; i++) step(5);
+    log.afterDelete = { lines: state.lines.length, trains: state.trains.length, passengers: state.passengers.length };
+  }
+  out.textContent = "RESULT " + JSON.stringify(log);
+} catch (e) {
+  out.textContent = "ERROR " + (e.stack || e);
+}
+</script>
