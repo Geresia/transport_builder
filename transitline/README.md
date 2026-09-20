@@ -42,6 +42,7 @@ dependency. The two rules that matter are short and non-obvious:
 | [`scripts/validate-pack.mjs`](./scripts/validate-pack.mjs) | Pack validator — shape *and* licensing rules |
 | [`packs/example-radial/`](./packs/example-radial/) | Synthetic radial city, `gravity` model |
 | [`packs/example-corridor/`](./packs/example-corridor/) | Synthetic corridor, `matrix` model + calendar |
+| [`engine/`](./engine/) | Phase 1 game loop — lines, trains, passenger routing on `example-radial` |
 
 ## Usage
 
@@ -66,7 +67,7 @@ boundary rather than just JSON shape.
 | Phase | What | State |
 |---|---|---|
 | **0** | CityPack format, schemas, validator | **done** |
-| **1** | Game loop on a hand-authored pack — stations, lines, passenger routing | next |
+| **1** | Game loop on a hand-authored pack — stations, lines, passenger routing | in progress, see [`engine/`](./engine/) |
 | **0.5** | One-off: 수도권 population density render (exploration, not the pipeline) | done |
 | **2** | Pipeline: OSM + Korean open data → real CityPacks | blocked on data access, see below |
 | **3** | Simulation depth — trains, capacity, crowding, economy | later |

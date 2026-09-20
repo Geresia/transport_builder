@@ -10,7 +10,8 @@ Write-Host "Serving $root at http://localhost:$Port/ (Ctrl+C to stop)"
 
 $mime = @{
   ".html" = "text/html"; ".json" = "application/json"; ".geojson" = "application/json";
-  ".js" = "application/javascript"; ".css" = "text/css"; ".pmtiles" = "application/octet-stream";
+  ".js" = "application/javascript"; ".mjs" = "application/javascript"; ".css" = "text/css";
+  ".pmtiles" = "application/octet-stream";
   ".png" = "image/png"; ".jpg" = "image/jpeg"; ".svg" = "image/svg+xml"
 }
 

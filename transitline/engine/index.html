@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Transitline — Phase 1</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div class="panel" id="legend">
+  <h1 id="pack-name">Loading…</h1>
+  <div class="row"><span>Waiting</span><span id="hud-waiting">0</span></div>
+  <div class="row"><span>Onboard</span><span id="hud-onboard">0</span></div>
+  <div class="row"><span>Delivered</span><span id="hud-delivered">0</span></div>
+  <div class="row"><span>Abandoned</span><span id="hud-abandoned">0</span></div>
+  <div class="row"><span>Clock</span><span id="hud-clock">—</span></div>
+
+  <div class="section-label">Next line color</div>
+  <div id="palette"></div>
+
+  <div class="section-label">Lines</div>
+  <div id="lines"></div>
+
+  <button id="clear-lines" type="button">Clear lines</button>
+</div>
+
+<div class="panel" id="error" hidden></div>
+
+<script type="module" src="src/main.mjs"></script>
+</body>
+</html>
