@@ -115,6 +115,13 @@ non-ODbL sources this pack also carries (Rule 3, [`../LICENSING.md`](../LICENSIN
   attribution, share-alike, see [`./LICENSE-DATA`](./LICENSE-DATA). Rendering
   only. See `README.md`'s "Buildings, Saitama / Chiba / Kanagawa".
 
+- **© OpenStreetMap contributors, `{tokyo,saitama,chiba,kanagawa}-roads.pmtiles`.**
+  OSM `highway=*` lines (car roads and pedestrian ways) for Tokyo, Saitama,
+  Chiba and Kanagawa, from Geofabrik's `kanto-latest.osm.pbf` of 2026-09-20,
+  compiled with Planetiler. ODbL-1.0 — same Derivative Database obligations as
+  the other OSM-derived files, see [`./LICENSE-DATA`](./LICENSE-DATA).
+  Rendering only. See `README.md`'s "Roads and pedestrian ways".
+
 - **© OpenStreetMap contributors, © Natural Earth, `basemap.pmtiles`.**
   Protomaps daily planet build of 2026-09-19 (planetiler 0.10.2), extracted to
   this pack's bbox at zoom 0-12 with go-pmtiles. Layers used for rendering:

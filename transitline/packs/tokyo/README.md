@@ -291,6 +291,24 @@ duplicate drop keeps only the first.
 pack-level `ODbL-1.0`. This is the path `LICENSING.md` Rule 2 prescribes for
 queryable OSM geometry.
 
+### Roads and pedestrian ways (`{tokyo,saitama,chiba,kanagawa}-roads.pmtiles`)
+
+OSM `highway=*` lines, one PMTiles per prefecture (`files.roadTiles`), 12–14MB
+each, 53MB total, built the same way as the regional building tiles (Planetiler
+reading `kanto-latest.osm.pbf`, `--polygon` per prefecture; Tokyo uses OSM
+relation 1543125). Two layers: `road` (car roads: motorway…residential,
+living_street from zoom 13; service/track from 14, parking aisles and
+driveways excluded; properties `kind`, `bridge`, `tunnel`, `oneway`) and
+`path` (footway, pedestrian, steps, path, cycleway, corridor, from zoom 14;
+properties `kind`, `sub` = the `footway=*` value such as `sidewalk` /
+`crossing`, `bridge`, `tunnel`). `viewer.html` has two legend toggles,
+**차도** and **보행자 도로**, both **off by default** so the map stays readable;
+the layers sit under the buildings. **Rendering only** — the basemap's own
+roads stop at zoom 12. Sidewalk coverage in OSM is uneven: in Japan many
+sidewalks are not mapped as separate lines, so a road with no dotted line next
+to it does not mean there is no sidewalk. Lines only — no road-area polygons,
+no names, no lane counts.
+
 ### Buildings, Saitama / Chiba / Kanagawa (`{saitama,chiba,kanagawa}-buildings.pmtiles`)
 
 Whole-prefecture OSM building footprints, one PMTiles per prefecture
