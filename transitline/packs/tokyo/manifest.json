@@ -25,7 +25,8 @@
       "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
       "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
       "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
-      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）"
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)"
     ],
     "sources": [
       {
@@ -87,6 +88,11 @@
         "name": "令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表 (常住地 x 従業地・通学地, 市区町村)",
         "url": "https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&lid=000001296018",
         "license": "政府標準利用規約2.0 (CC BY 4.0 compatible)"
+      },
+      {
+        "name": "国土数値情報 学校データ P29-23 (CC BY 4.0) / 医療機関データ P04-20 (open data)",
+        "url": "https://nlftp.mlit.go.jp/ksj/",
+        "license": "CC-BY-4.0 / MLIT-KSJ-terms (commercial use and modification allowed; credit and modification notice required)"
       }
     ]
   },
@@ -105,6 +111,7 @@
       "chiba-roads.pmtiles",
       "kanagawa-roads.pmtiles"
     ],
+    "barriers": "barriers.json",
     "buildingLabels": "building-labels.pmtiles",
     "buildingTilesRegional": [
       "saitama-buildings.pmtiles",
@@ -113,7 +120,25 @@
     ],
     "basemap": "basemap.pmtiles",
     "od": "od.json",
-    "bathymetry": "bathymetry.json"
+    "bathymetry": "bathymetry.json",
+    "specialDemand": "special-demand.json"
+  },
+  "quality": {
+    "scheme": "Subway-Builder-Modded data-quality rubric (docs/data-quality.md), self-assessed",
+    "assessedAt": "2026-09-21",
+    "answers": {
+      "workplace_count": "physical_measured",
+      "workplace_granularity": "adm4",
+      "workplace_resolution": "building_modeled",
+      "workplace_intensity": "modeled_coefficients",
+      "resident_count": "total_population",
+      "resident_granularity": "adm4",
+      "resident_resolution": "building_modeled",
+      "resident_intensity": "modeled_coefficients",
+      "od_metric": "full_matrix",
+      "od_granularity": "adm3"
+    },
+    "notes": "Workers: 2021 Economic Census by 町丁 (Tokyo 23 wards, Kanagawa, Saitama, Chiba; per-building split is a modeled NNLS fit, see job-coefficients.json). Residents: 2020 census by 町丁. O/D: 2020 census 従業地 table, municipality x municipality (od.json), workers 15+ only. Answer keys follow the registry schema but the enum values are our own reading and have not been reviewed by the registry."
   },
   "compressed": {
     "building-population.json": {
@@ -158,22 +183,5 @@
       "bytes": 5355972,
       "gzBytes": 1122445
     }
-  },
-  "quality": {
-    "scheme": "Subway-Builder-Modded data-quality rubric (docs/data-quality.md), self-assessed",
-    "assessedAt": "2026-09-21",
-    "answers": {
-      "workplace_count": "physical_measured",
-      "workplace_granularity": "adm4",
-      "workplace_resolution": "building_modeled",
-      "workplace_intensity": "modeled_coefficients",
-      "resident_count": "total_population",
-      "resident_granularity": "adm4",
-      "resident_resolution": "building_modeled",
-      "resident_intensity": "modeled_coefficients",
-      "od_metric": "full_matrix",
-      "od_granularity": "adm3"
-    },
-    "notes": "Workers: 2021 Economic Census by 町丁 (Tokyo 23 wards, Kanagawa, Saitama, Chiba; per-building split is a modeled NNLS fit, see job-coefficients.json). Residents: 2020 census by 町丁. O/D: 2020 census 従業地 table, municipality x municipality (od.json), workers 15+ only. Answer keys follow the registry schema but the enum values are our own reading and have not been reviewed by the registry."
   }
 }

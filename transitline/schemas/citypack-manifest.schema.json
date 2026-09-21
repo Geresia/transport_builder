@@ -67,6 +67,7 @@
       "properties": {
         "demand": { "type": "string" },
         "obstacles": { "type": "string" },
+        "barriers": { "type": "string" },
         "basemap": { "type": "string" }
       },
       "description": "Relative paths. An absent key means that layer is not present."

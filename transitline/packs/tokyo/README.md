@@ -292,7 +292,30 @@ duplicate drop keeps only the first.
 pack-level `ODbL-1.0`. This is the path `LICENSING.md` Rule 2 prescribes for
 queryable OSM geometry.
 
-### Roads and pedestrian ways (`{tokyo,saitama,chiba,kanagawa}-roads.pmtiles`)
+### Walking barriers (`barriers.json`) — water, and the bridges across it
+
+Game data, not a visual layer: the places people **cannot walk across**, so a
+walker or station-to-station transfer doesn't fly over a river or a bay. Format:
+`docs/citypack-format.md` § barriers.json. 4.3MB.
+
+- **Water**: 1,954 polygons ≥ 10,000 m² (sea, rivers, lakes, canals, ponds), merged
+  from the `water` layer of `basemap.pmtiles` (z12 — river/canal edges are simplified
+  to roughly 10–20 m, and swimming pools, fountains, drains, ditches and stream
+  polygons are dropped). Narrow waterways that are only lines in the basemap
+  (small rivers, most ditches) are **not** barriers here.
+- **Crossings**: 6,058 bridge segments (of 61,494 bridge segments in the road/path
+  tiles) that have at least one 10 m sample point over water — road bridges
+  (`kind: bridge`, motorways/trunks excluded) and footway/path bridges
+  (`kind: footbridge`). Tunnels and railway bridges are not listed. Segments are
+  cut at z14 tile borders, so one long bridge can appear as several pieces.
+- **Not done: mountains / steep terrain.** That needs an elevation model (slope
+  polygons); the format has room for another barrier `kind`, nothing populates it yet.
+- The engine does **not** use it yet — `engine/src/mode-choice.mjs` still walks in
+  a straight line. Checked by drawing both layers over OSM (Tokyo Bay, Sumida,
+  Koto canals, Tama river): outlines and bridge positions line up.
+- Rebuild: `transitline/scripts/tokyo-barriers.mjs` (needs `npm i pmtiles
+  @mapbox/vector-tile pbf polygon-clipping @turf/area`, ~15 s).
+
 ### Building names (`building-labels.pmtiles`)
 
 15,081 named OSM buildings across the whole pack bbox (1.3MB, `files.buildingLabels`),
@@ -310,6 +333,7 @@ has named — well-mapped near stations, thin elsewhere. Built from the same
 `kanto-latest.osm.pbf` with `--bounds` = the pack bbox (so it also covers slivers of
 Ibaraki/Tochigi/Gunma/Yamanashi inside the bbox).
 
+### Roads and pedestrian ways (`{tokyo,saitama,chiba,kanagawa}-roads.pmtiles`)
 
 OSM `highway=*` lines, one PMTiles per prefecture (`files.roadTiles`), 12–14MB
 each, 53MB total, built the same way as the regional building tiles (Planetiler
@@ -332,10 +356,14 @@ no names, no lane counts.
 Whole-prefecture OSM building footprints, one PMTiles per prefecture
 (`files.buildingTilesRegional` in `manifest.json`): Saitama 1,797,435 (30MB),
 Chiba 940,877 (16MB), Kanagawa 2,385,416 (39MB) — 5.12M in total. Same layer
-name `building`, zoom 13–14, drawn from zoom 13 in `viewer.html`. **Rendering
-only**: properties are just `kind` (the `building=*` value), `levels`,
-`height`; there is no `pop`/`district`/`sourceKind`, so no per-building
-population or jobs colouring and no click popup. Whole prefectures rather than
+name `building`, zoom 13–14, drawn from zoom 13 in `viewer.html`. Since 2026-09-21 each feature also carries `pop`, **modeled** residents per building
+(`scripts/pref-building-pop.mjs`: buildings read back from the z14 tiles, clipped to exact tile bounds so buffer duplicates vanish and
+edge-crossing buildings become one piece per tile; weight = footprint x `building:levels` (1 if untagged) x 0 for non-residential
+`building=*` values; each chome real 2020-census residents from `subward-<pref>.json` split by weight — the OSM-tag model, no land-use
+survey outside Tokyo; tiles rebuilt from that GeoJSON with `- key: pop`). Residents allocated: Saitama 94.8%, Kanagawa 99.1%, Chiba 91.1% —
+the rest sit in chomes with **no OSM building** (Saitama 840, Chiba 1,132, Kanagawa 120 chomes; e.g. Chiba-city 小仲台三丁目) and
+are not placed. About 4.5M pieces total; pieces outside every chome polygon get 0. Properties: `kind`, `levels`, `height`, `pop`;
+`viewer.html` colors them by `pop` and the click popup says "모델 추정치 — 실측 아님". Whole prefectures rather than
 only the 219 municipalities with population data — the extra area is mostly
 mountains with few buildings, and it avoids clipping at municipal borders. The
 Tama area of Tokyo (outside the 23 wards) is **not** covered.
@@ -482,6 +510,21 @@ The 7 JSON files ≥ 1 MB (`subward*.json`, `jobs-buildings.json`, `building-pop
 - The plain files are still present because other scripts read them. Delete them to shrink the pack (they stay in
   git history); node scripts can read either form via `scripts/pack-json.mjs` `readPackJson()`.
 - Regenerate after changing a JSON: `node scripts/pack-compress.mjs packs/tokyo` (round-trip-verified).
+
+## Terrain (`viewer.html`, legend toggle "지형")
+
+Land cover from `basemap.pmtiles`' `landuse` layer is now colored by class (forest/wood, farmland/allotments, grass/scrub, parks/golf, wetland, sand), and a hillshade from AWS Terrain Tiles (fetched live over the network, nothing added to the pack) shows mountains and valleys, so building-free areas read as mountains, fields or water rather than missing data. The ward/region choropleth fades out above zoom 12 so the terrain shows through. The basemap only goes to zoom 12 and is overzoomed beyond that, so land-cover edges are coarse when zoomed in.
+
+## Special demand (`special-demand.json`) — locations measured, capacity modeled
+
+Attractors in the CityPack `attractors` format ([`docs/citypack-format.md`](../../docs/citypack-format.md)) for all four prefectures (Tokyo, Saitama, Chiba, Kanagawa), built by `scripts/tokyo-special-demand.mjs` from MLIT 国土数値情報:
+
+- **`kind: "university"`, 465** — P29-23 (2023, CC BY 4.0) classes 大学 / 短期大学 / 高等専門学校, one per campus. Kindergarten through high school are skipped: those are neighbourhood trips already inside residents/jobs.
+- **`kind: "hospital"`, 1,047** — P04-20 (2020) 病院 with ≥100 beds (of 1,610 hospitals). Carries `beds`, `emergency` (救急告示), `disasterBase` (災害拠点).
+- **Real:** names, coordinates, school class, bed counts. **Modeled:** `capacity` (daily people; `capacityBasis: "modeled"`) — hospital = beds × 3, university 4,000 / junior college 1,500 / kosen 1,000. Neither dataset has enrollment or visitor counts.
+- **Not used:** P27 文化施設 (museums, zoos) — only the 2013 edition exists and it is non-commercial. Airports, ports, stadiums and shrines are still missing.
+- **Upgrade path:** P29's `学校コード` (P29_002) is the key used by the MEXT 学校基本調査, so real enrollment can replace the flat university figures.
+- Raw downloads live in `data-raw/mlit/` (not shipped).
 
 ## Bathymetry (`bathymetry.json`) — measured (GEBCO), coarse
 

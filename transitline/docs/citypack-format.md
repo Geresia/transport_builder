@@ -223,6 +223,35 @@ file rather than the tiles. Do not merge them.
 
 Both files are ODbL Derivative Databases when OSM-derived (Rule 2).
 
+## barriers.json
+
+Areas people **cannot walk across**, plus the **crossings** that let them. Optional.
+Without it a walker (or a transfer between stations) is a straight line and will
+happily cross a river or a bay; the engine can use this file to forbid that.
+
+```json
+{
+  "formatVersion": 1,
+  "barriers": [
+    { "kind": "water", "polygon": [[[139.79,35.68],[139.80,35.68],[139.80,35.69],[139.79,35.68]]] }
+  ],
+  "crossings": [
+    { "kind": "bridge", "sub": "primary", "line": [[139.795,35.685],[139.797,35.685]] }
+  ]
+}
+```
+
+- `barriers[].polygon` is GeoJSON-style rings: `polygon[0]` is the outer ring, any
+  further rings are holes (islands). Different from `obstacles`, whose `polygon` is
+  a single ring. Test membership with even-odd over all rings.
+- `barriers[].kind`: `"water"` today (sea, rivers, lakes, canals, ponds). Terrain
+  such as mountains would be another `kind`; not populated yet.
+- `crossings[]`: a line along which the barrier **may** be crossed on foot.
+  `kind` is `"bridge"` (road bridge) or `"footbridge"` (footway/path bridge);
+  `sub` is the source road class. Motorways and trunk roads are left out since
+  they are not walkable. Tunnels are not listed.
+- A pack without this file means "nothing blocks walking" — same as today.
+
 ## Versioning
 
 `formatVersion` is an integer, incremented on breaking change. The engine

@@ -98,3 +98,27 @@ airport, amusement_park, aquarium, bathhouse, convention_center, cultural_center
 - **데이터 소스**: 도로는 Overpass 3단계(highway/major/minor), 타일은 Protomaps 일일 빌드를 `pmtiles extract --bbox`로 잘라냄, 썸네일 SVG는 타일의 water 레이어에서 생성. Overture 경로는 코드에 NON-WORKING 표기.
 - **맵 팩 파일**: `demand_data.json`, `roads.geojson`, `runways_taxiways.geojson`, `buildings_index`(JSON 또는 gzip 바이너리, 게임 1.3.0 초과부터 바이너리), `ocean_depth_index.json`, `{z}/{x}/{y}.mvt`, 썸네일.
 - **배포** (`railyard`, Go+Wails): Git 레지스트리에서 맵/모드 목록을 받아 zip 설치, 로컬 PMTiles 서버(임의 포트)로 타일 공급, 게임 버전별 호환 분기, 운전 경로 캐시 서버.
+
+## 8. MLIT 国土数値情報 이용약관 확인 (2026-09-21)
+
+출처: nlftp.mlit.go.jp/ksj/other/agreement.html 및 각 데이터셋 페이지.
+
+- **기본 약관**: PDL1.0, 상업 이용·가공 허용. 출처 표기 필수(`出典：国土交通省国土数値情報ダウンロードサイト（URL）`). 가공했으면 별도로 데이터 이름과 가공 사실을 적고, 국가가 만든 것처럼 보이게 하면 안 된다(`「国土数値情報（○○データ）」（国土交通省）をもとに○○作成`).
+- **데이터셋별 예외** (기본 약관이 적용되지 않을 수 있음):
+  | 데이터 | 최신 | 조건 |
+  |---|---|---|
+  | P29 학교 | 2023 | CC BY 4.0 (상업 가능). 2013판은 **비상업**이므로 2021/2023판만 사용 |
+  | P04 의료기관 | 2020 | 오픈데이터(상업 가능) |
+  | P27 문화시설 | 2013 | **비상업 전용** — 사용 불가 |
+- **결론**: P29(2023)와 P04(2020)는 출처 표기 후 사용 가능. P27은 쓰지 않고 OSM/다른 소스로 대체. 공항·항만 CSV는 미확인.
+
+## 9. depot 전체 읽기 (2026-09-21)
+
+`Downloads/depot-main` 전체(17개 파일: `maps.py` 3,141줄, `demand.py` 2,204줄, `special_demand_types.json`, 예제·테스트)를 읽었다. Subway Builder 맵을 만드는 Python 도구이며 **GPL-3.0이므로 개념만 참고하고 코드·수식 구현은 가져오지 않는다.** 외부 프로그램(osmium, tippecanoe, planetiler, mapshaper, pmtiles 등)과 Windows에서는 WSL이 필요하다.
+
+- **실측 수심**: GEBCO 격자를 OPeNDAP으로 받아 약 0.0027°(300m) 격자로 보간하고, 5·10·50·100m 등 계단식 수심 구간의 등고선 다각형으로 만든다. 바다에서는 노선이 물속 대신 위쪽이나 해저 밑으로만 지나게 한다(monorepo의 "수심 -4 고정"보다 정확). **우리 반영**: `packs/tokyo/bathymetry.json`(GEBCO_2026, 15초 격자), `engine/src/bathymetry.mjs`. 등고선 다각형은 만들지 않았다.
+- **건물 기초 깊이**: 건물 높이와 최소 회전 외접 사각형의 짧은 변으로 기초 깊이를 추정하고 10~80m로 제한한다. **우리 반영 없음** — 조사 데이터의 실제 지하 층수(`obstacles.json`의 `levels_underground`)가 더 실측에 가깝다. 깊이가 필요해지면 층수에서 환산한다.
+- **맵 파일 생성 파이프라인**: 건물 충돌 색인은 소형 건물(기본 40㎡ 미만)을 제외하고 꼭짓점을 간소화하며, 타일당 건물 크기 상한(450KB, 절대 상한 500KB)을 둔다. 건물 원본은 Overture Maps(우리는 OSM 전용). OSM 건물이 듬성한 도쿄 북동부 4개 구는 Overture로 보완할 여지가 있다(미검토).
+- **수요 가공 메서드**: `sanitize`, `scale_demand`, `enforce_max_pop_size`(큰 pop 분할), `consolidate_pops`(pop 크기별 거리 기준 [25/10/5/2명 → 2/4/80/16km]로 병합), `agglomerate_pops`(도심과 비도심에 서로 다른 거리 기준), `merge_identical_commutes`, `cluster_points`, `move/add/del_points`, `calculate_routes`(OSMnx 또는 로컬 OSRM으로 이동 시간·거리), `create_config`·`create_description`(Railyard 등록용). §5와 대부분 겹친다.
+- **특수 수요 분류** (`special_demand_types.json`, 25종): 공항, 놀이공원, 수족관, 온천시설, 컨벤션, 문화시설, 관공서, 유적, 병원, 도서관, 군사기지, 박물관, 자연경관, 공원, 항만, 종교시설(신사·절 하위 종류), 리조트, 학교, 상업시설, 스포츠시설, 대학, 동물원, 域外接続 등. 종마다 코드(AIR, UNI…)와 **일본어 이름**, 하위 종류가 있다. 도쿄 팩의 명소 목록을 만들 때 분류 틀로 쓸 만하다.
+- **기타**: 지도 라벨은 OSM `place` 태그를 도시·교외·동네 세 단계로 나눠 줌 수준별로 표시한다(`check_labels`로 태그 분포 확인).
