@@ -871,7 +871,7 @@ map.on("load", async () => {
         map.addLayer({ id: `path-${k}`, source: "roads-" + k, "source-layer": "path", type: "line", minzoom: 14,
           layout: { visibility: "none" },
           paint: { "line-color": ["case", kindIn("steps"), "#e08a4c", "#7fd6b0"],
-            "line-width": ["interpolate", ["linear"], ["zoom"], 14, 0.5, 17, 1.2, 19, 2.4],
+            "line-width": ["interpolate", ["linear"], ["zoom"], 14, 0.7, 17, 1.6, 19, 3],
             "line-dasharray": [2, 1.5], "line-opacity": 0.9 } }, before);
       }
       const wireToggle = (inputId, prefix) => document.getElementById(inputId).addEventListener("change", (e) => {

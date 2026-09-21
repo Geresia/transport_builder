@@ -58,7 +58,7 @@ const KIND = {
   sports_hall: B[125], industrial: B[141], manufacture: B[141], warehouse: B[143], barn: B[143],
   train_station: B[143], transportation: B[143],
   detached: B[131], house: B[131], terrace: B[131], allotment_house: B[131],
-  apartments: B[132], residential: B[132], dormitory: B[132],
+  apartments: B[131], residential: B[131], dormitory: B[131], // fitted 132 is 0 (ground-floor shops sit in survey class 123); use the fitted home-based figure instead
   roof: 0, carport: 0, mechanical_lifts: 0, boathouse: 0, ruins: 0,
 };
 // untagged ("yes"): local survey-derived average of that chome, else city-wide average
