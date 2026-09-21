@@ -52,7 +52,7 @@ npm run regen                                # 가상 팩 수요 데이터 재�
 
 설치 단계는 없다. 검증기가 의존성 없이 돌게 만든 건 CI에서 아무것도 설치하기 전에 돌아야 하고, JSON 모양만 보는 게 아니라 라이선스 경계를 강제해야 해서다.
 
-> **JSON 스키마는 강제되지 않는다.** `schemas/*.json`을 읽는 코드는 없다. 에디터 자동완성과 사람이 읽는 참고용이다. 실제 규칙은 `validate-pack.mjs`에 손으로 써 있고 둘이 어긋나면 검증기가 맞다. 동기화는 아직 수작업이다.
+> **JSON 스키마는 이제 검증에 쓰인다 (2026-09-21).** `pack-checks.mjs`가 의존성 없는 최소 검증기로 `manifest.json`을 `schemas/citypack-manifest.schema.json`에, `demand.json`을 `schemas/citypack-demand.schema.json`에 대조한다. 스키마가 쓰는 키워드만 지원하고 모르는 키워드를 만나면 조용히 넘기지 않고 실패한다. 팩이 `files`에 새 키를 쓰면 스키마에도 선언해야 한다(`additionalProperties: false`). 라이선스 경계 같은 규칙은 여전히 `validate-pack.mjs`가 직접 검사한다. 이 전에는 매니페스트 스키마가 JSON으로 파싱조차 안 되는 상태였다(`d` 이스케이프 오류).
 
 뷰어와 엔진 띄우는 법은 루트 [`README.md`](../README.md)에 있다.
 

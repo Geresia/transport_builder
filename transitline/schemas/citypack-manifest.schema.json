@@ -13,7 +13,7 @@
       "description": "Stable slug. Also the pack directory name."
     },
     "name": { "type": "string", "minLength": 1 },
-    "version": { "type": "string", "pattern": "^\d+\.\d+\.\d+$" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
     "bbox": {
       "type": "array",
       "items": { "type": "number" },
@@ -65,12 +65,67 @@
       "required": ["demand"],
       "additionalProperties": false,
       "properties": {
-        "demand": { "type": "string" },
-        "obstacles": { "type": "string" },
-        "barriers": { "type": "string" },
-        "basemap": { "type": "string" }
+        "demand": {
+          "type": "string",
+          "description": "Municipality-level demand points (gravity or matrix model). Required."
+        },
+        "obstacles": { "type": "string", "description": "Building footprints used for gameplay collision." },
+        "barriers": { "type": "string", "description": "Rivers, rail corridors and other linear barriers." },
+        "bathymetry": { "type": "string", "description": "Water depth grid (real sourced data)." },
+        "region": { "type": "string", "description": "Region/municipality boundary polygons." },
+        "subward": {
+          "type": "string",
+          "description": "Town-level (chome) population, one file per wards group; may have a .gz sibling (see `compressed`)."
+        },
+        "buildingPopulation": { "type": "string", "description": "MODELED per-building residents for a pilot area." },
+        "jobs": { "type": "string", "description": "Workers per town from the Economic Census." },
+        "jobsBuildings": { "type": "string", "description": "MODELED per-building workers for a pilot area." },
+        "od": {
+          "type": "string",
+          "description": "Measured municipality-to-municipality commuter flows (census). Optional; the engine uses it for destination choice."
+        },
+        "specialDemand": {
+          "type": "string",
+          "description": "Point demand outside the commute model (schools, hospitals, ...)."
+        },
+        "buildingTiles": { "type": "string", "description": "PMTiles of building footprints for rendering." },
+        "buildingTilesRegional": {
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }],
+          "description": "Additional building PMTiles for surrounding regions."
+        },
+        "buildingLabels": { "type": "string", "description": "PMTiles of named large buildings." },
+        "roadTiles": {
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }],
+          "description": "PMTiles of roads and pedestrian ways."
+        },
+        "basemap": { "type": "string", "description": "PMTiles basemap (roads/rail/water/land)." }
       },
-      "description": "Relative paths. An absent key means that layer is not present."
+      "description": "Relative paths (a value may be a list of paths). An absent key means that layer is not present. Every key a pack uses must be declared here - validate-pack enforces it."
+    },
+    "quality": {
+      "type": "object",
+      "description": "Self-assessment against the registry data-quality rubric (docs/data-quality.md).",
+      "required": ["answers"],
+      "properties": {
+        "scheme": { "type": "string" },
+        "assessedAt": { "type": "string" },
+        "notes": { "type": "string" },
+        "answers": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    "compressed": {
+      "type": "object",
+      "description": "Files that also exist as a gzip sibling: { 'x.json': { file, encoding:'gzip', bytes, gzBytes } }.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["file", "encoding"],
+        "properties": {
+          "file": { "type": "string" },
+          "encoding": { "const": "gzip" },
+          "bytes": { "type": "integer", "minimum": 0 },
+          "gzBytes": { "type": "integer", "minimum": 0 }
+        }
+      }
     }
   },
   "allOf": [

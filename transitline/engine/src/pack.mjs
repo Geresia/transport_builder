@@ -35,5 +35,12 @@ export async function loadPack(packPath) {
     throw new Error(`unsupported demand.model '${demand.model}'`);
   }
 
-  return { manifest, demand };
+  // Optional measured O/D (od.json). A missing or unreadable file must not stop the pack loading: gravity still works.
+  let od = null;
+  if (manifest.files?.od) {
+    try { od = await fetchJson(new URL(manifest.files.od, new URL(base, document.baseURI)), manifest.compressed); }
+    catch (e) { console.warn("od.json not loaded, using gravity destinations:", e.message); }
+  }
+
+  return { manifest, demand, od };
 }

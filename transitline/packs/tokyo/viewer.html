@@ -483,6 +483,7 @@ map.on("load", async () => {
   let syncOverlay = () => {};
   let currentDetail = null;
   let applyMetric = () => {};
+  let capUpdate = () => {}; // re-renders the explanatory panel text when the residents/jobs toggle changes
   // 건물별 추정 거주 인구 (tokyo-buildings.pmtiles 의 pop 속성 — 정목 실제 인구를 건물 면적×층수×주거용도 가중치로 배분한 모델)
   // 0명(비주거 용도)은 회색, 나머지는 분위수 구간 색. 구간: 전체 건물 pop>0 의 1/8 분위수.
   const BLDG_POP_CUTS = [1.6, 2.5, 3.3, 4.2, 5.3, 7.1, 11.6];
@@ -601,6 +602,7 @@ map.on("load", async () => {
     document.getElementById("mres").classList.toggle("on", m === "res");
     document.getElementById("mjob").classList.toggle("on", m === "jobs");
     applyMetric();
+    capUpdate();
     renderList();
   }
   document.getElementById("mres").addEventListener("click", () => setMetric("res"));
@@ -924,14 +926,15 @@ map.on("load", async () => {
       paint: { "fill-color": THEME.bldg, "fill-opacity": THEME.bldgOp } });
     map.addLayer({ id: "obstacles-line", source: "obstacles", type: "line", minzoom: 13,
       paint: { "line-color": THEME.bldgLine, "line-width": 0.4, "line-opacity": 0.6 } });
-    document.getElementById("cap").textContent =
+    capUpdate = () => { document.getElementById("cap").textContent =
       (typeof pmtiles !== "undefined"
         ? `건물 footprint 23구 약 112만 개(OSM · tokyo-buildings.pmtiles — 북동부 구는 OSM 입력이 적어 듬성함) + 사이타마·지바·가나가와 약 512만 개(현 전체) · `
         : `건물 ${nf(obstacles.obstacles.length)}개 (마루노우치/도쿄역/긴자·신주쿠·시부야·이케부쿠로) · `)
       + `23구 + 광역권 ${region ? region.municipalities.length : "?"}개(시·정·촌 178 + 지정도시 구 44). `
       + `색 범례(위)는 23구 기준 — 광역권은 같은 색상표를 다른 구간에 적용해 표시(직접 비교 불가). `
       + (subward && subward.wards ? `구를 클릭하면 오른쪽에 상세 패널이 뜹니다 — 정목(町丁) 단위 인구, 23구 전체 지원.` : "")
-      + ` 건물 색(줌 13+, 23구 전체)은 실측이 아니라 정목 실제 인구를 건물 면적×층수×실제 용도(도쿄도 토지이용현황조사) 가중치로 배분한 추정 모델입니다 — 회색은 비주거 건물(0명). 북동부 4개 구(에도가와·가쓰시카·아다치·이타바시)는 OSM 건물이 적어 건물당 값이 크게 나옵니다. 사이타마·지바·가나가와 건물은 도쿄와 달리 OSM 용도 태그만으로 배분한 더 거친 모델이고, OSM에 건물이 없는 정목(지바 약 9%, 사이타마 약 5%, 가나가와 약 1%의 인구)은 배분하지 못합니다.`;
+      + (metric === "jobs" ? ` 건물 색(줌 13+, 23구 전체)은 실측이 아니라 정목 실제 종사자(2021 경제센서스)를 건물 면적×층수×용도별 계수(도쿄도 토지이용현황조사 면적으로 적합, 구별 R² 0.33~0.92)로 배분한 추정 모델입니다 — 회색은 종사자 0명 건물, 색 구간은 0.5·2·5·15·50·150·500명 고정 구간. 북동부 4개 구(에도가와·가쓰시카·아다치·이타바시)는 OSM 건물이 적어 건물당 값이 크게 나옵니다. 사이타마·지바·가나가와는 정목 단위 종사자까지만 있고 건물별 값은 없습니다(회색).` : ` 건물 색(줌 13+, 23구 전체)은 실측이 아니라 정목 실제 인구를 건물 면적×층수×실제 용도(도쿄도 토지이용현황조사) 가중치로 배분한 추정 모델입니다 — 회색은 비주거 건물(0명). 북동부 4개 구(에도가와·가쓰시카·아다치·이타바시)는 OSM 건물이 적어 건물당 값이 크게 나옵니다. 사이타마·지바·가나가와 건물은 도쿄와 달리 OSM 용도 태그만으로 배분한 더 거친 모델이고, OSM에 건물이 없는 정목(지바 약 9%, 사이타마 약 5%, 가나가와 약 1%의 인구)은 배분하지 못합니다.`); };
+    capUpdate();
     { const th = document.getElementById("toggle-theme"); th.checked = THEME.name === "light";
       th.addEventListener("change", () => { try { localStorage.setItem("tokyo-theme", th.checked ? "light" : "dark"); } catch {} location.reload(); }); }
     document.getElementById("toggle-terrain").addEventListener("change", (e) => {

@@ -96,6 +96,7 @@ Not bugs — deliberate scope cuts to get a playable loop first:
   the period; otherwise a daily total scaled by the calendar factor), then
   scaled to a legible rate like gravity. Matrix packs have no residents/jobs,
   so station size on screen comes from each point's total trip volume.
+- **Measured O/D (optional).** If the pack declares `files.od` (`od.json`: census home->work flows between the demand points' municipalities), `gravity` keeps its per-origin spawn volume but picks destinations from the measured shares (`src/od-flows.mjs`, wired in `buildDemandModel(state, demand, od)`). Own-municipality, unknown-workplace and out-of-region flows are dropped; an origin without a row falls back to gravity. Load it with `?od=0` to force plain gravity. Note: the tokyo pack's demand points carry no `jobs`, so plain gravity has no destinations there at all - the O/D file is what makes its demand work. Test: `node engine/test/od-demand.test.mjs`.
 - **Attractor decay exponent** (`decayExponent`, or a per-`kind` engine
   default) sets how far an attractor pulls trips from — see the format doc.
   The per-kind defaults are this engine's own numbers.

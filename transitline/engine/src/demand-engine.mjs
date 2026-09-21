@@ -5,6 +5,7 @@
 // sim-minute, and pick(state, originId) for a destination.
 import { haversineMetres } from "./projection.mjs";
 import { GridIndex } from "./spatial-index.mjs";
+import { odRowsByStation } from "./od-flows.mjs";
 
 const MIN_DISTANCE_M = 300; // floor so a point right next to itself doesn't blow up
 const OFF_HOURS_FACTOR = 0.1; // engine's own fallback for a calendar gap, not spec-mandated
@@ -43,8 +44,29 @@ function pickFromRow(row, total, rand) {
   return row[row.length - 1].id;
 }
 
-export function buildDemandModel(state, demand) {
-  return demand.model === "matrix" ? buildMatrixModel(state, demand) : buildGravityModel(state);
+// `od` (optional, from manifest.files.od): measured commuter flows. Under gravity it replaces the *destination choice*
+// with the measured origin->destination shares; spawn volume per origin stays the gravity model's, so switching it on
+// changes where trips go, not how many there are. Origins without an O/D row fall back to gravity. Ignored for matrix packs.
+export function buildDemandModel(state, demand, od = null) {
+  if (demand.model === "matrix") return buildMatrixModel(state, demand);
+  const gravity = buildGravityModel(state);
+  if (!od) return gravity;
+  // Keep only destinations that are stations in this run (fixed for the model's lifetime), once, not per pick.
+  const rows = new Map();
+  for (const [id, r] of odRowsByStation(demand, od)) {
+    if (!state.stations.has(id)) continue;
+    const row = r.row.filter((x) => state.stations.has(x.id));
+    const total = row.reduce((t, x) => t + x.weight, 0);
+    if (total > 0) rows.set(id, { row, total });
+  }
+  return {
+    ...gravity,
+    measuredOrigins: rows.size,
+    pick: (s, originId, rand = Math.random) => {
+      const r = rows.get(originId);
+      return (r && pickFromRow(r.row, r.total, rand)) ?? gravity.pick(s, originId, rand);
+    },
+  };
 }
 
 function buildGravityModel(state) {

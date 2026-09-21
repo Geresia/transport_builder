@@ -2,6 +2,7 @@
 // Tiers (same idea as the registry's check-formatting / check-registry-invariants + integrity cache):
 //   1. format     - every pack *.json parses, has no BOM (readers differ on BOM handling)
 //   2. compressed - manifest.compressed siblings exist, match the recorded sizes, and are not stale vs the plain file
+//   2b. schema    - manifest.json and demand.json against schemas/citypack-*.schema.json (built-in subset validator)
 //   3. invariants - cross-file identities that must hold (municipality codes, O/D row sums, chome sums, per-building sums)
 // Each check declares the files it reads; if every file's (size, mtime) is unchanged since the last run the stored
 // result is reused instead of re-parsing ~100 MB of JSON. Cache: <transitline>/.cache/pack-checks.json (`--no-cache` to bypass).
@@ -41,6 +42,48 @@ const sha = (buf) => crypto.createHash("sha256").update(buf).digest("hex");
 const exists = (p) => fs.existsSync(p) || fs.existsSync(p + ".gz");
 const inputs = (dir, names) => names.flatMap((n) => [path.join(dir, n), path.join(dir, n + ".gz")]);
 
+// Minimal JSON Schema (draft 2020-12 subset) validator, dependency-free. It supports exactly the keywords our schemas use and
+// throws on any other validation keyword, so the schema can never silently stop being enforced.
+const ANNOTATION = new Set(["$schema", "$id", "title", "description", "examples", "format", "default"]);
+function validateSchema(v, s, at, errs) {
+  const type = (x) => (x === null ? "null" : Array.isArray(x) ? "array" : Number.isInteger(x) ? "integer" : typeof x);
+  const ok = (sub, val = v) => { const e = []; validateSchema(val, sub, at, e); return e.length === 0; };
+  for (const [k, rule] of Object.entries(s)) {
+    if (ANNOTATION.has(k)) continue;
+    switch (k) {
+      case "type": { const t = type(v), want = [].concat(rule); if (!want.includes(t) && !(t === "integer" && want.includes("number"))) errs.push(`${at}: expected ${want.join("|")}, got ${t}`); break; }
+      case "const": if (JSON.stringify(v) !== JSON.stringify(rule)) errs.push(`${at}: must be ${JSON.stringify(rule)}`); break;
+      case "enum": if (!rule.some((x) => JSON.stringify(x) === JSON.stringify(v))) errs.push(`${at}: must be one of ${JSON.stringify(rule)}`); break;
+      case "pattern": if (typeof v === "string" && !new RegExp(rule).test(v)) errs.push(`${at}: '${v}' does not match ${rule}`); break;
+      case "minLength": if (typeof v === "string" && v.length < rule) errs.push(`${at}: shorter than ${rule}`); break;
+      case "minimum": if (typeof v === "number" && v < rule) errs.push(`${at}: ${v} < ${rule}`); break;
+      case "maximum": if (typeof v === "number" && v > rule) errs.push(`${at}: ${v} > ${rule}`); break;
+      case "minItems": if (Array.isArray(v) && v.length < rule) errs.push(`${at}: fewer than ${rule} items`); break;
+      case "maxItems": if (Array.isArray(v) && v.length > rule) errs.push(`${at}: more than ${rule} items`); break;
+      case "items": if (Array.isArray(v)) v.forEach((x, i) => validateSchema(x, rule, `${at}[${i}]`, errs)); break;
+      case "required": if (v && typeof v === "object" && !Array.isArray(v)) for (const r of rule) if (!(r in v)) errs.push(`${at}: missing required '${r}'`); break;
+      case "properties": if (v && typeof v === "object" && !Array.isArray(v)) for (const [p, sub] of Object.entries(rule)) if (p in v) validateSchema(v[p], sub, `${at}.${p}`, errs); break;
+      case "additionalProperties":
+        if (v && typeof v === "object" && !Array.isArray(v)) {
+          const known = new Set(Object.keys(s.properties ?? {}));
+          for (const p of Object.keys(v)) {
+            if (known.has(p)) continue;
+            if (rule === false) errs.push(`${at}: unknown property '${p}' (declare it in the schema)`);
+            else if (rule && typeof rule === "object") validateSchema(v[p], rule, `${at}.${p}`, errs);
+          }
+        }
+        break;
+      case "oneOf": if (rule.filter((sub) => ok(sub)).length !== 1) errs.push(`${at}: must match exactly one of the allowed forms`); break;
+      case "anyOf": if (!rule.some((sub) => ok(sub))) errs.push(`${at}: matches none of the allowed forms`); break;
+      case "allOf": rule.forEach((sub) => validateSchema(v, sub, at, errs)); break;
+      case "not": if (ok(rule)) errs.push(`${at}: matches a forbidden form`); break;
+      case "if": if (ok(rule) && s.then) validateSchema(v, s.then, at, errs); else if (!ok(rule) && s.else) validateSchema(v, s.else, at, errs); break;
+      case "then": case "else": break; // handled with "if"
+      default: throw new Error(`schema keyword '${k}' at ${at} is not supported by scripts/pack-checks.mjs - extend validateSchema`);
+    }
+  }
+}
+
 export function runPackChecks(dir, manifest, { fail, warn }) {
   const collect = (label, r) => { for (const e of r.errors) fail(`${label}: ${e}`); for (const w of r.warnings) warn(`${label}: ${w}`); };
   const jsonFiles = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
@@ -71,6 +114,25 @@ export function runPackChecks(dir, manifest, { fail, warn }) {
       } else w(`plain ${name} not present; loaders fall back to the .gz`);
     }));
   }
+
+  // A malformed `files` map is reported by validate-pack and the schema check below; the checks that follow assume path strings.
+  const filesOk = Object.values(manifest.files ?? {}).flat().every((v) => typeof v === "string");
+
+  // 2b. schemas: the manifest and demand.json must satisfy schemas/citypack-*.schema.json
+  const schemaDir = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), "schemas");
+  const schemaTargets = [["manifest", "citypack-manifest.schema.json", "manifest.json"]];
+  if (manifest.files?.demand) schemaTargets.push(["demand", "citypack-demand.schema.json", manifest.files.demand]);
+  for (const [label, sf, target] of schemaTargets) {
+    if (!exists(at(target))) continue;
+    collect(`schema ${target}`, cached(`${dir}|schema|${target}`, [path.join(schemaDir, sf), ...inputs(dir, [target])], (e) => {
+      const errs = [];
+      validateSchema(rdJson(at(target)), JSON.parse(fs.readFileSync(path.join(schemaDir, sf), "utf8")), label, errs);
+      for (const m of errs.slice(0, 20)) e(m);
+      if (errs.length > 20) e(`... ${errs.length - 20} more`);
+    }));
+  }
+
+  if (!filesOk) return stats;
 
   // 3. invariants --------------------------------------------------------------------------------
   const demand = manifest.files?.demand && exists(at(manifest.files.demand)) ? rdJson(at(manifest.files.demand)) : null;

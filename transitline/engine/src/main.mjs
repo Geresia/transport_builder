@@ -232,7 +232,7 @@ function updateAnalysis(state, depBars, arrBars) {
 async function main() {
   const pack = await loadPack(packPath);
   const state = createState(pack);
-  const demandModel = buildDemandModel(state, pack.demand);
+  const demandModel = buildDemandModel(state, pack.demand, params.get("od") === "0" ? null : pack.od); // ?od=0 forces gravity destinations
   const projection = makeProjection(pack.manifest.bbox, pack.manifest.origin);
 
   // Canvas backing store kept equal to its CSS size (no devicePixelRatio

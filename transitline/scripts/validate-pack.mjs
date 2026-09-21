@@ -62,6 +62,7 @@ if (manifest) {
   for (const [key, val] of Object.entries(manifest.files ?? {})) {
     // a key may list several files (e.g. tokyo's buildingTilesRegional)
     for (const rel of Array.isArray(val) ? val : [val]) {
+      if (typeof rel !== "string") { fail(`files.${key} must be a path string or a list of them (got ${typeof rel})`); continue; }
       if (!existsSync(join(dir, rel))) fail(`files.${key} points at missing file: ${rel}`);
     }
   }
