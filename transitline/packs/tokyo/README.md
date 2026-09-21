@@ -14,7 +14,7 @@ shape rather than hand-editing further.
 | File | Status |
 |---|---|
 | `manifest.json`, `demand.json` | done — required by the format |
-| `obstacles.json` | done — 19,495 OSM building footprints, 4 hub districts only (Marunouchi/Tokyo Station/Ginza, Shinjuku, Shibuya, Ikebukuro), not city-wide |
+| `obstacles.json` | done — 19,495 OSM building footprints, 4 hub districts only (Marunouchi/Tokyo Station/Ginza, Shinjuku, Shibuya, Ikebukuro), not city-wide; each has `levels_underground` (see "Basement floors" below) |
 | `tokyo-buildings.pmtiles` | **done, all 23 wards, rendering only** — 1,119,872 OSM building footprints as one 21MB vector-tile file (`files.buildingTiles`). OSM coverage is very uneven (north-east wards sparse). See "Buildings, all 23 wards" below |
 | `basemap` | **present** — `basemap.pmtiles` (roads / rail / water / land, z0-12; buildings are the separate `tokyo-buildings.pmtiles`). See "Basemap" below |
 | `kanto-region.json` | done — tier-1 satellite-city boundaries, see below |
@@ -390,3 +390,25 @@ footprints. The per-building weight was originally a guess (residential 0.1, roo
   the survey's PDF field definitions were unreadable, so class codes 111-150 follow the known Tokyo survey
   classification and are consistent with the observed counts; utilities fit to 0.
 - Regenerate: `node scripts/tokyo-job-coefficients.mjs <R03建物現況.dbf>` (scripts/tokyo-lu-dbf.mjs is a small DBF reader).
+
+## Basement floors (`obstacles.json` → `levels_underground`)
+
+Each obstacle building has `levels_underground` (basement floors; `null` = no survey building matched).
+OSM's `building:levels:underground` is on only ~600 of ~1.58M buildings in the southern Kanto bbox (0.04%), so it
+is not usable. Source instead: Tokyo Land Use Survey R3 (2021) building shapefile, field `BV_4` (CC BY 4.0).
+- Field meaning is inferred, not read from the definition PDF (its Japanese labels are unreadable): `BV_4` rises
+  with height (30+ floors: 76% have ≥1; 1-storey: 0.1%) and `BV_3` matches OSM `building:levels` within ±1 floor for 95% of comparable buildings.
+- Matching: survey footprint centroid inside the OSM polygon (both projected to JGD2011 Japan Zone IX); largest survey
+  footprint wins. 16,856 / 19,495 matched (86.5%); 3,172 have ≥1 basement. Low-rise `0` may mean "not recorded".
+- Regenerate: `node scripts/tokyo-underground-levels.mjs <R03建物現況.shp>` (`--dry` = report only).
+- Sea depth (bathymetry) is not in this pack; the engine has no use for it yet.
+
+## Compressed JSON (`*.json.gz`, `manifest.compressed`)
+
+The 7 JSON files ≥ 1 MB (`subward*.json`, `jobs-buildings.json`, `building-population.json`, `obstacles.json`;
+88.8 MB → 17.8 MB, 20%) also exist as gzip siblings. `manifest.compressed` maps each plain name to
+`{file, encoding: "gzip", bytes, gzBytes}`. Loaders (`viewer.html` `loadJSON`, `engine/src/pack.mjs`) fetch the
+`.gz` and inflate it with `DecompressionStream`, falling back to the plain file. Static servers need no special config.
+- The plain files are still present because other scripts read them. Delete them to shrink the pack (they stay in
+  git history); node scripts can read either form via `scripts/pack-json.mjs` `readPackJson()`.
+- Regenerate after changing a JSON: `node scripts/pack-compress.mjs packs/tokyo` (round-trip-verified).

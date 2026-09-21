@@ -88,5 +88,49 @@
     "roadTiles": ["tokyo-roads.pmtiles", "saitama-roads.pmtiles", "chiba-roads.pmtiles", "kanagawa-roads.pmtiles"],
     "buildingTilesRegional": ["saitama-buildings.pmtiles", "chiba-buildings.pmtiles", "kanagawa-buildings.pmtiles"],
     "basemap": "basemap.pmtiles"
+  },
+  "compressed": {
+    "building-population.json": {
+      "file": "building-population.json.gz",
+      "encoding": "gzip",
+      "bytes": 13274399,
+      "gzBytes": 2476592
+    },
+    "jobs-buildings.json": {
+      "file": "jobs-buildings.json.gz",
+      "encoding": "gzip",
+      "bytes": 14495997,
+      "gzBytes": 2399676
+    },
+    "obstacles.json": {
+      "file": "obstacles.json.gz",
+      "encoding": "gzip",
+      "bytes": 5248536,
+      "gzBytes": 665695
+    },
+    "subward-chiba.json": {
+      "file": "subward-chiba.json.gz",
+      "encoding": "gzip",
+      "bytes": 24035252,
+      "gzBytes": 5566109
+    },
+    "subward-kanagawa.json": {
+      "file": "subward-kanagawa.json.gz",
+      "encoding": "gzip",
+      "bytes": 11882568,
+      "gzBytes": 2328934
+    },
+    "subward-saitama.json": {
+      "file": "subward-saitama.json.gz",
+      "encoding": "gzip",
+      "bytes": 14516833,
+      "gzBytes": 3269737
+    },
+    "subward.json": {
+      "file": "subward.json.gz",
+      "encoding": "gzip",
+      "bytes": 5355972,
+      "gzBytes": 1122445
+    }
   }
 }

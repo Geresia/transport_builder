@@ -232,8 +232,19 @@ function muniKo(kana, isWard) {
 }
 
 async function loadJSON(url) {
-  try { const r = await fetch(url); return r.ok ? r.json() : null; }
-  catch { return null; }
+// manifest.compressed lists big JSON files that also exist as gzip siblings (x.json.gz); those are
+// fetched compressed and inflated here, falling back to the plain file. Filled once manifest.json is read.
+const gzFiles = new Set();
+  try {
+    if (gzFiles.has(url.replace(/^\.\//, ""))) {
+      try {
+        const g = await fetch(url + ".gz");
+        if (g.ok) return await new Response(g.body.pipeThrough(new DecompressionStream("gzip"))).json();
+      } catch { /* fall through to the plain file */ }
+    }
+    const r = await fetch(url);
+    return r.ok ? r.json() : null;
+  } catch { return null; }
 }
 
 const map = new maplibregl.Map({
@@ -307,8 +318,10 @@ async function addBasemap() {
 
 map.on("load", async () => {
   await addBasemap().catch((err) => console.warn("basemap.pmtiles 연결 실패, OSM 래스터로 대체:", err));
-  const [manifest, demand, wards, obstacles, region, subward, buildingPop, jobs, jobsGrid, muniKana] = await Promise.all([
-    loadJSON("./manifest.json"), loadJSON("./demand.json"),
+  const manifest = await loadJSON("./manifest.json");
+  for (const f of Object.keys(manifest?.compressed ?? {})) gzFiles.add(f);
+  const [demand, wards, obstacles, region, subward, buildingPop, jobs, jobsGrid, muniKana] = await Promise.all([
+    loadJSON("./demand.json"),
     loadJSON("./wards-reference.json"), loadJSON("./obstacles.json"),
     loadJSON("./kanto-region.json"), loadJSON("./subward.json"),
     loadJSON("./building-population.json"), loadJSON("./jobs.json"), loadJSON("./jobs-buildings.json"),

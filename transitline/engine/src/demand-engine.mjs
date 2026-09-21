@@ -4,6 +4,7 @@
 // Both expose the same interface: rate(state, originId) in trips per
 // sim-minute, and pick(state, originId) for a destination.
 import { haversineMetres } from "./projection.mjs";
+import { GridIndex } from "./spatial-index.mjs";
 
 const MIN_DISTANCE_M = 300; // floor so a point right next to itself doesn't blow up
 const OFF_HOURS_FACTOR = 0.1; // engine's own fallback for a calendar gap, not spec-mandated
@@ -56,16 +57,10 @@ function buildGravityModel(state) {
   for (const s of state.stations.values()) {
     effective.set(s.id, { residents: s.residents, jobs: s.jobs, exponentMass: s.jobs * BASE_DECAY_EXPONENT });
   }
+  const stationIndex = new GridIndex([...state.stations.values()][0]?.location[1] ?? 0);
+  for (const s of state.stations.values()) stationIndex.insert(s.id, s.location);
   for (const a of state.attractors) {
-    let nearestId = null;
-    let nearestDist = Infinity;
-    for (const s of state.stations.values()) {
-      const d = haversineMetres(a.location, s.location);
-      if (d < nearestDist) {
-        nearestDist = d;
-        nearestId = s.id;
-      }
-    }
+    const nearestId = stationIndex.nearest(a.location)?.id ?? null;
     if (nearestId === null) continue;
     const split = a.residentialSplit ?? 0;
     const exponent = a.decayExponent ?? KIND_DECAY_EXPONENT[a.kind] ?? BASE_DECAY_EXPONENT;
