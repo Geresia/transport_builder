@@ -221,6 +221,14 @@ function kanaToKo(kana) {
   return blocks.join("");
 }
 
+// 시정촌 이름용 한글 변환: 장음(オウ·オオ·ユウ·ョウ)은 표기하지 않고, 정령시의 구(区)는 "구"로 (도쿄 23구 KO_NAMES 와 통일)
+function muniKo(kana, isWard) {
+  if (!kana) return null;
+  let k = kana.replace(/([オコソトノホモヨロゴゾドボポョュ])[ウオ]/g, "$1");
+  if (isWard && k.endsWith("ク")) return kanaToKo(k.slice(0, -1)) + "구";
+  return kanaToKo(k);
+}
+
 async function loadJSON(url) {
   try { const r = await fetch(url); return r.ok ? r.json() : null; }
   catch { return null; }
@@ -297,11 +305,12 @@ async function addBasemap() {
 
 map.on("load", async () => {
   await addBasemap().catch((err) => console.warn("basemap.pmtiles 연결 실패, OSM 래스터로 대체:", err));
-  const [manifest, demand, wards, obstacles, region, subward, buildingPop, jobs, jobsGrid] = await Promise.all([
+  const [manifest, demand, wards, obstacles, region, subward, buildingPop, jobs, jobsGrid, muniKana] = await Promise.all([
     loadJSON("./manifest.json"), loadJSON("./demand.json"),
     loadJSON("./wards-reference.json"), loadJSON("./obstacles.json"),
     loadJSON("./kanto-region.json"), loadJSON("./subward.json"),
     loadJSON("./building-population.json"), loadJSON("./jobs.json"), loadJSON("./jobs-buildings.json"),
+    loadJSON("./municipality-kana.json"),
   ]);
 
   const PREF_FILES = { "11": "saitama", "12": "chiba", "14": "kanagawa" };
@@ -325,8 +334,10 @@ map.on("load", async () => {
       demand.points.filter((p) => p.code).map((p) => [p.code, p])
     );
     const features = region.municipalities.map((m) => {
-      const parent_ko = m.parent ? CITY_KO[m.parent] : null;
-      const name_ko = CITY_KO[m.name] || (parent_ko ? `${parent_ko} ${m.name}` : m.name);
+      // 주요 도시는 CITY_KO, 나머지는 우편번호부 후리가나(municipality-kana.json)를 kanaToKo()로 변환
+      const mk = (muniKana || {})[String(m.code)] || {};
+      const parent_ko = m.parent ? (CITY_KO[m.parent] || muniKo(mk.p) || m.parent) : null;
+      const name_ko = CITY_KO[m.name] || (parent_ko ? `${parent_ko} ${muniKo(mk.n, !!CITY_KO[m.parent]) || m.name}` : (muniKo(mk.n) || m.name));
       const p = byRegionCode.get(String(m.code));
       const density = p ? p.residents / m.area_km2 : null;
       return { type: "Feature",
@@ -356,7 +367,7 @@ map.on("load", async () => {
       else map.setFilter("wards-sel", ["==", ["get", "name"], ""]);
       document.getElementById("card").classList.add("on");
       document.getElementById("cname").textContent = p.name_ko;
-      document.getElementById("csub").textContent = `${p.pref_ko} · ${p.name} · ${p.area}km²`
+      document.getElementById("csub").textContent = `${p.pref_ko} · ${p.name_ko} · ${p.area}km²`
         + (p.popDate ? ` · ${p.popDate === "2020" ? "2020 census" : p.popDate === "2020-derived" ? "2020 census (역산)" : "추계인구 " + p.popDate}` : "");
       document.getElementById("cres").textContent = p.residents ? nf(p.residents) : "미확보";
       document.getElementById("cden").textContent = p.density ? nf(p.density) + "/km²" : "미확보";
@@ -395,12 +406,16 @@ map.on("load", async () => {
   let currentWardJis = null;
   // 건물/정목 레이어를 누른 클릭이 아래 깔린 구/광역권 클릭 핸들러까지 전달되어 줌아웃되는 것을 막음
   const hitsDetailLayer = (e) => {
-    const ls = ["bldgpop-fill", "jobsgrid-fill"].filter((id) => map.getLayer(id));
+    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill"].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
     return ls.length > 0 && map.queryRenderedFeatures(e.point, { layers: ls }).length > 0;
   };
   let metric = "res";
   let currentDetail = null;
   let applyMetric = () => {};
+  // 건물별 추정 거주 인구 (tokyo-buildings.pmtiles 의 pop 속성 — 정목 실제 인구를 건물 면적×층수×주거용도 가중치로 배분한 모델)
+  // 0명(비주거 용도)은 회색, 나머지는 분위수 구간 색. 구간: 전체 건물 pop>0 의 1/8 분위수.
+  const BLDG_POP_CUTS = [1.4, 2, 2.6, 3.3, 4.3, 5.9, 10.1];
+  const bldg23PopColor = ["case", ["<=", ["coalesce", ["get", "pop"], 0], 0], "#6b7378", stepExpr("pop", BLDG_POP_CUTS, RAMP)];
   const supportedWardsKo = subward && subward.wards
     ? Object.keys(subward.wards).map((j) => KO_NAMES[j] || j).join("·")
     : "";
@@ -549,7 +564,7 @@ map.on("load", async () => {
       map.setFilter("wards-sel", ["==", ["get", "name"], p.name]);
       document.getElementById("card").classList.add("on");
       document.getElementById("cname").textContent = p.name_ko;
-      document.getElementById("csub").textContent = `${p.name} · ${p.name_en} · ${p.area}km²`;
+      document.getElementById("csub").textContent = `도쿄도 · ${p.name_ko} · ${p.area}km² · 2020 census`;
       document.getElementById("cres").textContent = p.residents ? nf(p.residents) : "—";
       document.getElementById("cden").textContent = p.density ? nf(p.density) + "/km²" : "—";
       const jw = jobs && jobs.wards[String(p.code)];
@@ -660,6 +675,11 @@ map.on("load", async () => {
       for (const id of ["bldgpop-fill", "bldgpop-line"]) {
         if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", jm ? "none" : "visible");
       }
+      // 23구 전체 건물(tokyo-buildings.pmtiles)의 pop 속성 색: 거주 모드에서만 (종사자 모드는 회색 + jobsgrid)
+      if (map.getLayer("bldg23-fill")) {
+        map.setPaintProperty("bldg23-fill", "fill-color", jm ? "#e7eef0" : bldg23PopColor);
+        map.setPaintProperty("bldg23-fill", "fill-opacity", jm ? 0.5 : 0.85);
+      }
     };
     applyMetric();
 
@@ -763,16 +783,17 @@ map.on("load", async () => {
       paint: { "line-color": "#e7eef0", "line-width": 0.4, "line-opacity": 0.6 } });
     document.getElementById("cap").textContent =
       (typeof pmtiles !== "undefined"
-        ? `건물 footprint 약 112만 개(23구 전체, OSM · tokyo-buildings.pmtiles — 북동부 구는 OSM 입력이 적어 듬성함) · `
+        ? `건물 footprint 23구 약 112만 개(OSM · tokyo-buildings.pmtiles — 북동부 구는 OSM 입력이 적어 듬성함) + 사이타마·지바·가나가와 약 512만 개(현 전체, 표시 전용) · `
         : `건물 ${nf(obstacles.obstacles.length)}개 (마루노우치/도쿄역/긴자·신주쿠·시부야·이케부쿠로) · `)
       + `23구 + 광역권 ${region ? region.municipalities.length : "?"}개(시·정·촌 178 + 지정도시 구 44). `
       + `색 범례(위)는 23구 기준 — 광역권은 같은 색상표를 다른 구간에 적용해 표시(직접 비교 불가). `
       + (subward && subward.wards ? `구를 클릭하면 오른쪽에 상세 패널이 뜹니다 — 정목(町丁) 단위 인구, 23구 전체 지원.` : "")
-      + (buildingPop && buildingPop.wards ? ` 건물별 색(현재 ${supportedBuildingWardsKo}만 — 지요다·신주쿠·시부야·도시마는 건물이 충분히 잡힌 일부 정목만)은 실측이 아니라 정목 인구를 건물 면적×층수로 배분한 추정 모델(줌 13+).` : "");
+      + ` 건물 색(줌 13+, 23구 전체)은 실측이 아니라 정목 실제 인구를 건물 면적×층수×주거용도 가중치로 배분한 추정 모델입니다 — 회색은 비주거 건물(0명). 북동부 4개 구(에도가와·가쓰시카·아다치·이타바시)는 OSM 건물이 적어 건물당 값이 크게 나옵니다.`;
     document.getElementById("toggle-obstacles").addEventListener("change", (e) => {
       const v = e.target.checked ? "visible" : "none";
       const ids = map.getLayer("bldg23-fill") ? ["bldg23-fill", "bldg23-line"] : ["obstacles-fill", "obstacles-line"];
-      for (const id of ids) map.setLayoutProperty(id, "visibility", v);
+      for (const k of ["saitama", "chiba", "kanagawa"]) ids.push(`bldg-${k}-fill`, `bldg-${k}-line`);
+      for (const id of ids) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", v);
     });
   } else {
     document.getElementById("cap").textContent = "obstacles.json 을 불러오지 못했습니다.";
@@ -793,7 +814,35 @@ map.on("load", async () => {
       map.addLayer({ id: "bldg23-line", source: "bldg23", "source-layer": "building", type: "line", minzoom: 13,
         paint: { "line-color": "#e7eef0", "line-width": 0.4, "line-opacity": 0.6 } }, before);
       for (const id of ["obstacles-fill", "obstacles-line"]) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", "none");
+      applyMetric();
+      map.on("click", "bldg23-fill", (e) => {
+        if (metric === "jobs" || !e.features.length) return;
+        // Minato/Chuo/허브 정목은 building-population.json 레이어(bldgpop-fill)가 자체 팝업을 띄움 — 중복 방지
+        if (map.getLayer("bldgpop-fill") && map.queryRenderedFeatures(e.point, { layers: ["bldgpop-fill"] }).length) return;
+        const p = e.features[0].properties;
+        const lv = p.levels && p.levels !== "null" ? `${p.levels}층` : "층수 미상";
+        new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
+          .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 거주 인구 <b>${Number(p.pop).toFixed(1)}</b>명`
+            + `<br>${lv} · ${p.sourceKind}<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
+          .addTo(map);
+      });
+      map.on("mouseenter", "bldg23-fill", () => { if (metric !== "jobs") map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", "bldg23-fill", () => (map.getCanvas().style.cursor = ""));
     } catch (err) { console.warn("tokyo-buildings.pmtiles 연결 실패, obstacles.json 으로 대체:", err); }
+
+    // ---- 건물 footprint 사이타마·지바·가나가와 (현별 pmtiles, OSM — 렌더링 전용, 추정 인구 없음) ----
+    try {
+      const before = map.getLayer("obstacles-fill") ? "obstacles-fill" : undefined;
+      for (const k of ["saitama", "chiba", "kanagawa"]) {
+        map.addSource("bldg-" + k, { type: "vector",
+          url: "pmtiles://" + new URL(`./${k}-buildings.pmtiles`, location.href).href,
+          attribution: '&copy; OpenStreetMap contributors, ODbL' });
+        map.addLayer({ id: `bldg-${k}-fill`, source: "bldg-" + k, "source-layer": "building", type: "fill", minzoom: 13,
+          paint: { "fill-color": "#e7eef0", "fill-opacity": 0.5 } }, before);
+        map.addLayer({ id: `bldg-${k}-line`, source: "bldg-" + k, "source-layer": "building", type: "line", minzoom: 13,
+          paint: { "line-color": "#e7eef0", "line-width": 0.4, "line-opacity": 0.6 } }, before);
+      }
+    } catch (err) { console.warn("사이타마/지바/가나가와 건물 pmtiles 연결 실패:", err); }
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림

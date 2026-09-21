@@ -85,6 +85,7 @@
     "jobs": "jobs.json",
     "jobsBuildings": "jobs-buildings.json",
     "buildingTiles": "tokyo-buildings.pmtiles",
+    "buildingTilesRegional": ["saitama-buildings.pmtiles", "chiba-buildings.pmtiles", "kanagawa-buildings.pmtiles"],
     "basemap": "basemap.pmtiles"
   }
 }

@@ -107,6 +107,14 @@ non-ODbL sources this pack also carries (Rule 3, [`../LICENSING.md`](../LICENSIN
   [`./LICENSE-DATA`](./LICENSE-DATA). Rendering only. Coverage in OSM is uneven
   (north-east wards sparse) — see `README.md`'s "Buildings, all 23 wards".
 
+- **© OpenStreetMap contributors, `{saitama,chiba,kanagawa}-buildings.pmtiles`.**
+  5,123,728 building footprints for Saitama, Chiba and Kanagawa prefectures
+  (OSM `building=*` ways and multipolygon relations, from Geofabrik's
+  `kanto-latest.osm.pbf` of 2026-09-20, compiled with Planetiler), ODbL-1.0 —
+  same Derivative Database obligations as `tokyo-buildings.pmtiles`:
+  attribution, share-alike, see [`./LICENSE-DATA`](./LICENSE-DATA). Rendering
+  only. See `README.md`'s "Buildings, Saitama / Chiba / Kanagawa".
+
 - **© OpenStreetMap contributors, © Natural Earth, `basemap.pmtiles`.**
   Protomaps daily planet build of 2026-09-19 (planetiler 0.10.2), extracted to
   this pack's bbox at zoom 0-12 with go-pmtiles. Layers used for rendering:

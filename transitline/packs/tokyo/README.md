@@ -211,6 +211,19 @@ before; strip the first 3 bytes before shipping/reading the file, same as
 
 ## Buildings, all 23 wards (`tokyo-buildings.pmtiles`) — rendering layer
 
+**Per-building residents (added 2026-09-21, MODELED):** every feature also carries `pop`,
+its estimated residents, from the same model as `building-population.json` (footprint area ×
+`levels` (1 if untagged) × type multiplier, 0 for non-residential OSM tags; each chome's residents
+from `subward.json` split by weight; a chome with only non-residential buildings falls back to area ×
+levels over all its buildings). Built by `transitline/scripts/tokyo-building-pop.mjs` (GeoJSON in →
+GeoJSON with `pop` out, then the Planetiler schema below plus `- key: pop`; ~10 s + ~20 s).
+1,119,872 buildings → 9,719,156 of 9,733,276 residents allocated (99.85%). The other 14,120 sit in
+10 chomes with **no OSM building at all** (木場六丁目 3,052; the rest mostly Edogawa and
+Katsushika/Adachi) — the OSM gap described below. 1,570 buildings fall outside every chome
+polygon and get 0. In the four sparse wards each building's value is inflated (fewer buildings
+share the same chome total). `viewer.html` colors `bldg23-fill` by `pop` in residents mode
+(grey = 0), and every popup says "모델 추정치 — 실측 아님". Not measured data.
+
 `tokyo-buildings.pmtiles` holds **1,119,872 OSM building footprints for all 23
 special wards** in one 21MB vector-tile archive: a single layer `building`,
 zoom 13–14 (MapLibre overzooms above that), properties `kind`, `district`,
@@ -275,6 +288,32 @@ duplicate drop keeps only the first.
 pack-level `ODbL-1.0`. This is the path `LICENSING.md` Rule 2 prescribes for
 queryable OSM geometry.
 
+### Buildings, Saitama / Chiba / Kanagawa (`{saitama,chiba,kanagawa}-buildings.pmtiles`)
+
+Whole-prefecture OSM building footprints, one PMTiles per prefecture
+(`files.buildingTilesRegional` in `manifest.json`): Saitama 1,797,435 (30MB),
+Chiba 940,877 (16MB), Kanagawa 2,385,416 (39MB) — 5.12M in total. Same layer
+name `building`, zoom 13–14, drawn from zoom 13 in `viewer.html`. **Rendering
+only**: properties are just `kind` (the `building=*` value), `levels`,
+`height`; there is no `pop`/`district`/`sourceKind`, so no per-building
+population or jobs colouring and no click popup. Whole prefectures rather than
+only the 219 municipalities with population data — the extra area is mostly
+mountains with few buildings, and it avoids clipping at municipal borders. The
+Tama area of Tokyo (outside the 23 wards) is **not** covered.
+
+**Built differently from the 23 wards, and much easier:** instead of Overpass,
+Geofabrik's `kanto-latest.osm.pbf` (0.48GB, extract dated 2026-09-20) is read
+directly by Planetiler (`generate-custom`, OSM source, `building=*` minus
+`building=no`, `--polygon=<prefecture>.poly`, ~30 s per prefecture). Prefecture
+outlines are the Nominatim polygons of OSM relations 1768185 (Saitama),
+2679957 (Chiba), 2689487 (Kanagawa), simplified at ~0.0002° and converted to
+`.poly`. Differences from the 23-ward file: buildings mapped as multipolygon
+relations **are** included here (the 23-ward file has only `way`s), and there
+is no cross-file duplicate dropping — a building on a prefecture border falls
+into whichever polygon contains it (~20 m outline simplification, so a sliver
+along a border may be missing or doubled). Coverage is as uneven as OSM
+itself; not checked prefecture by prefecture.
+
 **Serving it:** PMTiles needs HTTP `Range` requests. `docs/serve.ps1` supports
 them now (and its error handling is hardened against browser-aborted
 requests); a server started
@@ -312,3 +351,21 @@ domain) — attribution in `ATTRIBUTION.md`, same share-alike as the other
 OSM-derived files. Refreshing it later means re-running the command above with
 a newer build date.
 
+
+## Job coefficients by building use (`job-coefficients.json`, `jobs-buildings.json`) — modeled, not measured
+
+`jobs-buildings.json` distributes each chome's real 2021 Economic Census worker total over OSM building
+footprints. The per-building weight was originally a guess (residential 0.1, roof 0, else 1). It is now
+`footprint x levels x jobs-per-m2 by use`, with the per-use figures **fitted from real statistics**:
+
+- Tokyo Metropolitan Govt Land Use Survey R3 (2021), 23 wards, building data (building use class + above-ground
+  floors; CC BY 4.0, `data.storage.data.metro.tokyo.lg.jp/toshiseibi/R03.zip`) gives floor area by use per chome.
+- Non-negative weighted least squares of chome workers (`jobs.json`) on floor area per survey use class,
+  ~3,100 chome, R² = 0.85. Office ≈ 39.6 jobs/1000 m² (≈25 m²/worker), commercial-only 16.2, mixed
+  residential-commercial 24.6, detached housing 1.0, apartments ≈ 0.
+- OSM `sourceKind` is mapped to a survey class (table in `job-coefficients.json`); untagged `yes` buildings use the
+  floor-weighted survey average of their own chome. Per-chome totals stay pinned to the census (largest remainder).
+- Caveats: floor area = footprint x above-ground floors (survey field BV_3, no floor-coefficient correction);
+  the survey's PDF field definitions were unreadable, so class codes 111-150 follow the known Tokyo survey
+  classification and are consistent with the observed counts; apartments/utilities fit to 0.
+- Regenerate: `node scripts/tokyo-job-coefficients.mjs <R03建物現況.dbf>` (scripts/tokyo-lu-dbf.mjs is a small DBF reader).
