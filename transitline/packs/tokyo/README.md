@@ -15,7 +15,8 @@ shape rather than hand-editing further.
 |---|---|
 | `manifest.json`, `demand.json` | done — required by the format |
 | `obstacles.json` | done — 19,495 OSM building footprints, 4 hub districts only (Marunouchi/Tokyo Station/Ginza, Shinjuku, Shibuya, Ikebukuro), not city-wide |
-| `basemap` | **not present.** See below |
+| `tokyo-buildings.pmtiles` | **done, all 23 wards, rendering only** — 1,119,872 OSM building footprints as one 21MB vector-tile file (`files.buildingTiles`). OSM coverage is very uneven (north-east wards sparse). See "Buildings, all 23 wards" below |
+| `basemap` | **present** — `basemap.pmtiles` (roads / rail / water / land, z0-12; buildings are the separate `tokyo-buildings.pmtiles`). See "Basemap" below |
 | `kanto-region.json` | done — tier-1 satellite-city boundaries, see below |
 | `demand.json[].jobs` | **not present.** Only `residents` — same gap the Korean packs have (`transitline/README.md` §"The open question for Phase 2") |
 | `subward.json` | **done, all 23 wards** — sub-ward (町丁・字) population + Korean reading per area, every special ward. See "Sub-ward detail" below |
@@ -208,21 +209,106 @@ same "`File.WriteAllText` with `Encoding.UTF8` prepends a BOM" gotcha as
 before; strip the first 3 bytes before shipping/reading the file, same as
 `subward.json`.
 
-## The basemap gap (road / rail / river network)
+## Buildings, all 23 wards (`tokyo-buildings.pmtiles`) — rendering layer
 
-The Transportation Tycoon artifact's actual visual centerpiece — a detailed
-road network (30 files, ~35MB, classified by motorway/trunk/primary/.../
-tertiary), rail lines, and rivers across all 8 prefectures — **has no home
-in CityPack v1.** The format's only geometry-shaped slot for this is
-`basemap.pmtiles` (§"Layout", `citypack-format.md`), a *compiled vector tile*
-file. Raw per-road JSON at this size is exactly the kind of "queryable OSM
-geometry" `LICENSING.md` Rule 2 says must go through the ODbL Derivative
-Database path deliberately, not get embedded ad hoc — and it needs an actual
-tiling step (e.g. tippecanoe → PMTiles) this pass didn't attempt.
+`tokyo-buildings.pmtiles` holds **1,119,872 OSM building footprints for all 23
+special wards** in one 21MB vector-tile archive: a single layer `building`,
+zoom 13–14 (MapLibre overzooms above that), properties `kind`, `district`,
+`sourceKind`, `levels`, `height`. `viewer.html` draws it from zoom 13 and hides
+the older 4-hub `obstacles.json` rendering when it loads. It is a **rendering**
+asset, not a replacement for `obstacles.json`: `citypack-format.md` keeps
+rendering and collision separate (a tile renderer can't answer "is a building
+here"), so `obstacles.json` stays the gameplay-collision file. Registered in
+`manifest.json` as the additive key `files.buildingTiles`. It is the
+buildings-only slice of the missing basemap — roads / rail / rivers are still
+absent (next section).
 
-Until that pipeline exists, this pack renders as abstract geometry for
-placement purposes (per `citypack-format.md`: "a pack with neither basemap
-nor obstacles is valid") — `obstacles.json` alone carries real-world detail,
-in the 4 hub districts. The road/rail/river source files remain published on
-the original artifact if needed for reference:
-https://claude.ai/artifact/5gZTMahCEfdAwzVTBNNFzT
+**Why PMTiles:** the same footprints as `obstacles.json`-style JSON would be
+~350MB (about 230–245 bytes per building) — over GitHub's 100MB file limit and
+unloadable with `fetch` + `JSON.parse` in a browser. Compiled to PMTiles it is
+354MB of GeoJSON → 21MB, read by HTTP byte range.
+
+**How it was built** (one-off; the scripts live in a scratch directory, not in
+the repo):
+
+1. Each ward's polygon from `wards-reference.json` → Overpass
+   `way["building"](poly:"…")`. Whole-ward queries mostly returned 504 /
+   "runtime error" on the public mirrors, so the big or failing wards were
+   split into bbox × poly tiles (the worst area needed tiles of ~1/576 of the
+   ward's bbox), with retries and backoff.
+2. Ways → GeoJSON features. Exact-coordinate duplicates are dropped (7,057 of
+   them: a footprint returned by two tiles, or by two neighbouring wards) —
+   1,119,872 unique remain.
+3. `java -jar planetiler.jar generate-custom --schema=schema.yml
+   --output=tokyo-buildings.pmtiles`, with a ~20-line YAML schema (GeoJSON
+   source → polygon layer, `min_zoom: 13`). Needs only Java 21 and
+   `planetiler.jar` — no Node, Python or tippecanoe. (Node.js v24 was installed
+   via winget during this work, at `C:\Program Files\nodejs`, but a shell that
+   was already open needs its `PATH` refreshed to see it; the build doesn't use
+   it. The `pmtiles` npm package is a reader only, and the npm `tippecanoe`
+   packages are wrappers that expect a native binary, which doesn't exist for
+   Windows — which is why Planetiler was used.) Takes ~15 s.
+
+Practical notes on Overpass from this machine: `overpass-api.de` answered
+every request with HTTP 406; `overpass.kumi.systems` worked for the first pass
+and later timed out; `overpass.monicz.dev` worked for the rest; `overpass.osm.ch`
+answered 200 with **zero** elements for Tokyo (it doesn't carry Japan). The
+mirrors accept ~1 concurrent request per client — 3 parallel requests gave 1
+success and 2 rejections within ~35 s — so fetching in parallel doesn't help.
+
+**⚠️ Coverage is uneven — this is OSM's gap, not a download error.** Buildings
+per km² by ward: Edogawa 394, Katsushika 529, Adachi 584, Itabashi 880 versus
+2,000–4,000 in most other wards (Setagaya 1,980, Ota 2,284, Suginami 3,243,
+Taito 3,980); residents per mapped building is 20–37 in those four wards versus
+5–8 elsewhere. The same low counts came back from whole-ward queries and from
+tiled queries, so the data simply isn't in OSM. Those four wards will look
+sparse on the map, and anything that counts buildings (e.g. extending
+`building-population.json` to them) would be badly biased there. Filling the
+gap needs another footprint source (a national or municipal building dataset
+— not evaluated here). Only `building=*` **ways** are taken; buildings mapped
+as multipolygon relations are not included. Border effects: a building
+straddling two wards can appear in both wards' `district` value before the
+duplicate drop keeps only the first.
+
+**Licence:** ODbL Derivative Database — same attribution and share-alike as
+`obstacles.json` (see `ATTRIBUTION.md`, `LICENSE-DATA`), consistent with the
+pack-level `ODbL-1.0`. This is the path `LICENSING.md` Rule 2 prescribes for
+queryable OSM geometry.
+
+**Serving it:** PMTiles needs HTTP `Range` requests. `docs/serve.ps1` supports
+them now (and its error handling is hardened against browser-aborted
+requests); a server started
+from the *older* script doesn't, and then the buildings don't load — and because
+the viewer hides the 4-hub `obstacles.json` buildings once the PMTiles library
+is present, the old hub buildings disappear too until that server is restarted.
+
+## Basemap (`basemap.pmtiles`) — roads / rail / water
+
+`basemap.pmtiles` (47MB, registered as `files.basemap`) is the pack's
+visual basemap slot from `citypack-format.md`. It is **not** a hand-built
+compile: it is the Protomaps daily planet build of 2026-09-19 (planetiler
+0.10.2, schema 4.15.2), cut to the pack bbox with go-pmtiles:
+
+```
+pmtiles extract https://build.protomaps.com/20260919.pmtiles basemap.pmtiles   --maxzoom=12 --bbox=138.18086,34.90298,140.86554,37.1533
+```
+
+Takes ~25 s; only the needed byte ranges are downloaded (49MB). Layers inside:
+`earth`, `water`, `landuse`, `roads` (`kind`: highway / major_road /
+medium_road / minor_road / rail / ...), `places`, `pois`, `boundaries`.
+`viewer.html` draws water, earth, parks, roads and rail from it and hides the
+external OSM raster; without the file it falls back to the raster.
+
+**Why zoom 12:** the same bbox at maxzoom 13 is 109MB (over GitHub's 100MB
+file limit); 12 is 47MB. MapLibre overzooms it, so streets stay sharp enough
+for placement work, but there are **no building footprints in it** (those are
+`tokyo-buildings.pmtiles`, z13-14) and minor detail such as station
+building outlines is absent. Subway lines are not separated from rail at this
+zoom — the amber lines are the surface rail network. Redo with a narrower bbox
+(e.g. the 23 wards + suburbs) to afford maxzoom 13-14.
+
+**Licence:** ODbL derivative (OpenStreetMap) plus Natural Earth (public
+domain) — attribution in `ATTRIBUTION.md`, same share-alike as the other
+OSM-derived files. Refreshing it later means re-running the command above with
+a newer build date.
+

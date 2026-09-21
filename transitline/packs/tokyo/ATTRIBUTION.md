@@ -99,6 +99,21 @@ non-ODbL sources this pack also carries (Rule 3, [`../LICENSING.md`](../LICENSIN
   population model" section; that section and every UI surface showing these
   numbers should keep saying so.
 
+- **© OpenStreetMap contributors, `tokyo-buildings.pmtiles`.** 1,119,872
+  building footprints across all 23 special wards (OSM `way`s tagged
+  `building=*`, fetched through public Overpass API mirrors and compiled with
+  Planetiler into one vector-tile file), ODbL-1.0 — same Derivative Database
+  obligations as `obstacles.json`: attribution, share-alike, see
+  [`./LICENSE-DATA`](./LICENSE-DATA). Rendering only. Coverage in OSM is uneven
+  (north-east wards sparse) — see `README.md`'s "Buildings, all 23 wards".
+
+- **© OpenStreetMap contributors, © Natural Earth, `basemap.pmtiles`.**
+  Protomaps daily planet build of 2026-09-19 (planetiler 0.10.2), extracted to
+  this pack's bbox at zoom 0-12 with go-pmtiles. Layers used for rendering:
+  water, earth, landuse, roads (incl. rail). ODbL-1.0 — same Derivative
+  Database obligations as the other OSM-derived files, see
+  [`./LICENSE-DATA`](./LICENSE-DATA). Rendering only.
+
 None of the above requires payment or registration; all permit commercial
 use per their stated terms. The pack's overall `data.license` is set to the
 strictest of these sources (`ODbL-1.0`) per

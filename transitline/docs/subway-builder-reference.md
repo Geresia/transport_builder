@@ -88,3 +88,13 @@ airport, amusement_park, aquarium, bathhouse, convention_center, cultural_center
 | 통계 | 완료/포기, 시간대별 히스토그램 | 모드 분담률, 노선별 승객, 정거장별 승객 | 작음~중간 |
 
 **추천 순서**: (1) 정차 시간과 편성당 차량 수/정원 (2) 승객의 모드 선택으로 분담률 표시 (3) attractor 유형 분류 + 감쇠 지수 (4) matrix 수요(pop 유사)를 엔진이 읽게 하기.
+
+## 7. monorepo 전체 읽기 (2026-09-21)
+
+`Subway-Builder-Modded/monorepo` 전체(foundry 스크립트, map-loader, railyard, website)를 읽었다. **LICENSE.md는 GPL-3.0**이므로 개념만 참고하고 코드는 가져오지 않는다.
+
+- **건물→인구 추정** (`foundry/scripts/src/buildingPopData.js`): 건물 면적 × 층수를 OSM `building` 태그별 "1인당 면적"(단독주택 600ft², 아파트 240, 기숙사 125)과 "1일자리당 면적"(사무실 150, 소매 300, 창고·공장 500)으로 나눈다. 지역별 합계(`residents`, `jobs`)가 주어지면 그 안의 건물들에 비율로 재배분한다. 공항 터미널은 일자리 ×20. 계수는 코드 주석이 "vibes"라고 인정하는 임의값이고, 파일 자체도 미완성(미정의 변수, 누락된 import)이다.
+- **공간 인덱스** (`buildings.js`): 위도 0.0009°(약 100m) 격자, 경도는 `cos(위도)`로 보정. 건물마다 bbox, 지하 기초 깊이(`building:levels:underground`, 기본 1), 폴리곤. 바다는 0.0027° 격자에 수심 -4 고정(실측 아님).
+- **데이터 소스**: 도로는 Overpass 3단계(highway/major/minor), 타일은 Protomaps 일일 빌드를 `pmtiles extract --bbox`로 잘라냄, 썸네일 SVG는 타일의 water 레이어에서 생성. Overture 경로는 코드에 NON-WORKING 표기.
+- **맵 팩 파일**: `demand_data.json`, `roads.geojson`, `runways_taxiways.geojson`, `buildings_index`(JSON 또는 gzip 바이너리, 게임 1.3.0 초과부터 바이너리), `ocean_depth_index.json`, `{z}/{x}/{y}.mvt`, 썸네일.
+- **배포** (`railyard`, Go+Wails): Git 레지스트리에서 맵/모드 목록을 받아 zip 설치, 로컬 PMTiles 서버(임의 포트)로 타일 공급, 게임 버전별 호환 분기, 운전 경로 캐시 서버.

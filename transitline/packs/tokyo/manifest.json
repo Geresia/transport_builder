@@ -15,7 +15,8 @@
       "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
       "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
       "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
-      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API"
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API"
     ],
     "sources": [
       {
@@ -62,6 +63,16 @@
         "name": "OpenStreetMap building footprints, full extent of 港区/Minato + 中央区/Chuo (65,376 buildings, via Overpass API) — building-population.json distributes each subward.json area's real census population across these real footprints, weighted by footprint area x building:levels x a residential-type multiplier. This is a MODELED spatial disaggregation, not measured per-building population (no such public data exists) — see README.md",
         "url": "https://www.openstreetmap.org/copyright",
         "license": "ODbL-1.0"
+      },
+      {
+        "name": "OpenStreetMap building footprints, all 23 special wards (1,119,872 buildings, via Overpass API, ways tagged building=*) — compiled into tokyo-buildings.pmtiles (vector tiles, layer \"building\", z13-14, attributes kind/district/sourceKind/levels/height). Rendering only, not the gameplay collision file (obstacles.json). OSM coverage is uneven: the north-east wards (Edogawa, Katsushika, Adachi, Itabashi) have far fewer buildings mapped than the rest — see README.md",
+        "url": "https://www.openstreetmap.org/copyright",
+        "license": "ODbL-1.0"
+      },
+      {
+        "name": "Protomaps basemap extract (basemap.pmtiles) — daily planet build 2026-09-19 (planetiler 0.10.2, schema 4.15.2), cut to this pack bbox with go-pmtiles `extract --maxzoom=12`. Layers earth/water/landuse/roads (incl. rail)/places/pois/boundaries/buildings, derived from OpenStreetMap and Natural Earth. Rendering only; zoom 0-12, so no building footprints (those are tokyo-buildings.pmtiles, z13-14)",
+        "url": "https://docs.protomaps.com/basemaps/downloads",
+        "license": "ODbL-1.0"
       }
     ]
   },
@@ -72,6 +83,8 @@
     "subward": "subward.json",
     "buildingPopulation": "building-population.json",
     "jobs": "jobs.json",
-    "jobsBuildings": "jobs-buildings.json"
+    "jobsBuildings": "jobs-buildings.json",
+    "buildingTiles": "tokyo-buildings.pmtiles",
+    "basemap": "basemap.pmtiles"
   }
 }

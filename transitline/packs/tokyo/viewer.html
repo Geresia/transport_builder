@@ -6,7 +6,8 @@
   kanto-region.json, subward.json (있으면 — 현재 미나토구·주오구만)
   file:// 로는 fetch 가 막혀서 안 열림 — HTTP 로 띄울 것 (../docs/serve.ps1 -Root 이 폴더).
 
-  베이스맵은 표준 OSM 래스터 타일 (계정/키 불필요, 가벼운 조회용) 에 다크 필터.
+  베이스맵은 basemap.pmtiles (팩 자체 벡터: 물·지표·도로·철도, 줌 0-12). 파일이 없으면
+  표준 OSM 래스터 타일 (계정/키 불필요) 에 다크 필터로 대체.
 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -81,7 +82,7 @@
   <label><input type="checkbox" id="toggle-wards" checked> 구 인구밀도</label>
   <div class="ramp" id="ramp"></div>
   <div class="scale" id="scale"></div>
-  <label><input type="checkbox" id="toggle-obstacles" checked> 건물 footprint (4개 허브 지구만)</label>
+  <label><input type="checkbox" id="toggle-obstacles" checked> 건물 footprint (OSM, 줌 13+)</label>
   <div class="cap" id="cap">manifest.json 불러오는 중…</div>
 </div>
 
@@ -110,6 +111,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/dist/pmtiles.js"></script>
 <script>
 const RAMP = ["#16272B","#1B3B42","#215059","#2A6771","#357F8A","#4A9BA5","#71B9C1","#A6D8DC"];
 const nf = (n) => Math.round(Number(n)).toLocaleString("ja-JP");
@@ -245,13 +247,67 @@ const map = new maplibregl.Map({
 });
 map.addControl(new maplibregl.NavigationControl());
 
+// ---- 자체 basemap (basemap.pmtiles, Protomaps/OSM: 물·지표·도로·철도) ----
+// 파일이 있으면 외부 OSM 래스터 타일을 숨기고 이걸 배경으로 쓴다. 없으면 래스터 그대로.
+// pmtiles 프로토콜은 여기서 한 번만 등록한다 (건물 레이어도 같은 프로토콜을 씀).
+let pmtilesProtocolReady = false;
+function ensurePmtilesProtocol() {
+  if (pmtilesProtocolReady || typeof pmtiles === "undefined") return pmtilesProtocolReady;
+  maplibregl.addProtocol("pmtiles", new pmtiles.Protocol().tile);
+  return (pmtilesProtocolReady = true);
+}
+
+async function addBasemap() {
+  if (!ensurePmtilesProtocol()) return;
+  const url = new URL("./basemap.pmtiles", location.href).href;
+  // 존재 확인: HEAD 는 docs/serve.ps1 이 처리 못 해서(500) 1바이트 Range GET 으로 대신하고 본문은 버린다.
+  try {
+    const probe = await fetch(url, { headers: { Range: "bytes=0-0" } });
+    probe.body?.cancel();
+    if (!probe.ok) return;
+  } catch { return; }
+
+  map.addSource("basemap", { type: "vector", url: "pmtiles://" + url,
+    attribution: '&copy; OpenStreetMap contributors, ODbL · Protomaps' });
+  const road = (kind) => ["all", ["==", ["get", "kind"], kind], ["!=", ["get", "is_tunnel"], true]];
+  const layers = [
+    { id: "bm-bg", type: "background", paint: { "background-color": "#0e1a24" } },
+    { id: "bm-earth", source: "basemap", "source-layer": "earth", type: "fill", paint: { "fill-color": "#1b2229" } },
+    { id: "bm-landuse", source: "basemap", "source-layer": "landuse", type: "fill",
+      filter: ["in", ["get", "kind"], ["literal", ["park", "forest", "nature_reserve", "golf_course", "cemetery"]]],
+      paint: { "fill-color": "#1f2d27", "fill-opacity": 0.8 } },
+    { id: "bm-water", source: "basemap", "source-layer": "water", type: "fill", paint: { "fill-color": "#0e1a24" } },
+    { id: "bm-river", source: "basemap", "source-layer": "water", type: "line",
+      filter: ["==", ["geometry-type"], "LineString"], paint: { "line-color": "#16283a", "line-width": 1.2 } },
+    { id: "bm-road-minor", source: "basemap", "source-layer": "roads", type: "line", minzoom: 11,
+      filter: road("minor_road"), paint: { "line-color": "#2a333c", "line-width": 0.6 } },
+    { id: "bm-road-medium", source: "basemap", "source-layer": "roads", type: "line", minzoom: 9,
+      filter: road("medium_road"), paint: { "line-color": "#39434d", "line-width": 0.8 } },
+    { id: "bm-road-major", source: "basemap", "source-layer": "roads", type: "line",
+      filter: road("major_road"), paint: { "line-color": "#4b5661", "line-width": 1.1 } },
+    { id: "bm-road-highway", source: "basemap", "source-layer": "roads", type: "line",
+      filter: road("highway"), paint: { "line-color": "#6b7785", "line-width": 1.6 } },
+    { id: "bm-rail", source: "basemap", "source-layer": "roads", type: "line", minzoom: 9,
+      filter: ["all", ["==", ["get", "kind"], "rail"], ["!=", ["get", "kind_detail"], "light_rail"]],
+      paint: { "line-color": "#d9a441", "line-width": 1.4, "line-opacity": 0.85 } },
+  ];
+  for (const l of layers) map.addLayer(l);
+  if (map.getLayer("osm")) map.setLayoutProperty("osm", "visibility", "none");
+}
+
 map.on("load", async () => {
+  await addBasemap().catch((err) => console.warn("basemap.pmtiles 연결 실패, OSM 래스터로 대체:", err));
   const [manifest, demand, wards, obstacles, region, subward, buildingPop, jobs, jobsGrid] = await Promise.all([
     loadJSON("./manifest.json"), loadJSON("./demand.json"),
     loadJSON("./wards-reference.json"), loadJSON("./obstacles.json"),
     loadJSON("./kanto-region.json"), loadJSON("./subward.json"),
     loadJSON("./building-population.json"), loadJSON("./jobs.json"), loadJSON("./jobs-buildings.json"),
   ]);
+
+  const PREF_FILES = { "11": "saitama", "12": "chiba", "14": "kanagawa" };
+  const prefMunis = new Map();
+  const regionFeatureByCode = new Map();
+  let loadPref = null;
 
   if (manifest) {
     document.getElementById("meta").textContent =
@@ -274,10 +330,11 @@ map.on("load", async () => {
       const p = byRegionCode.get(String(m.code));
       const density = p ? p.residents / m.area_km2 : null;
       return { type: "Feature",
-        properties: { name: m.name, name_ko, pref_ko: PREF_KO[m.pref] || m.pref, area: m.area_km2,
+        properties: { code: String(m.code), name: m.name, name_ko, pref_ko: PREF_KO[m.pref] || m.pref, area: m.area_km2,
           residents: p ? p.residents : null, density, popDate: p ? p.popDate : null },
         geometry: { type: "MultiPolygon", coordinates: m.polygons } };
     });
+    features.forEach((f) => regionFeatureByCode.set(f.properties.code, f));
     map.addSource("region", { type: "geojson", data: { type: "FeatureCollection", features } });
 
     const rds = features.map((f) => f.properties.density).filter((d) => d != null).sort((a, b) => a - b);
@@ -289,10 +346,14 @@ map.on("load", async () => {
       paint: { "fill-color": rStepColor, "fill-opacity": 0.45 } });
     map.addLayer({ id: "region-line", source: "region", type: "line",
       paint: { "line-color": "#0c1114", "line-width": 0.5, "line-opacity": 0.4 } });
-    map.on("click", "region-fill", (e) => {
+    map.on("click", "region-fill", async (e) => {
       if (hitsDetailLayer(e)) return;
-      closeDetail();
       const p = e.features[0].properties;
+      const code = String(p.code);
+      const pref = PREF_FILES[code.slice(0, 2)];
+      const hasPref = !!(pref && loadPref);
+      if (!hasPref) closeDetail();
+      else map.setFilter("wards-sel", ["==", ["get", "name"], ""]);
       document.getElementById("card").classList.add("on");
       document.getElementById("cname").textContent = p.name_ko;
       document.getElementById("csub").textContent = `${p.pref_ko} · ${p.name} · ${p.area}km²`
@@ -301,6 +362,20 @@ map.on("load", async () => {
       document.getElementById("cden").textContent = p.density ? nf(p.density) + "/km²" : "미확보";
       document.getElementById("cjobs").textContent = "—";
       document.getElementById("cratio").textContent = "—";
+      if (hasPref) {
+        // 사이타마·지바·가나가와: 클릭한 시점에 해당 현 파일만 불러옴
+        document.getElementById("detail").classList.add("on");
+        document.getElementById("ddata").style.display = "none";
+        const m = document.getElementById("dmissing");
+        m.style.display = "block"; m.textContent = "정목 데이터 불러오는 중…";
+        const ok = await loadPref(pref);
+        const sw = prefMunis.get(code);
+        const jw = jobs && jobs.wards[code];
+        document.getElementById("cjobs").textContent = jw ? nf(jw.workers_total) : "—";
+        document.getElementById("cratio").textContent = jw && p.residents ? (jw.workers_total / p.residents).toFixed(1) + "배" : "—";
+        if (ok && sw) showWardDetail(code, p.name_ko, regionFeatureByCode.get(code), sw);
+        else { m.textContent = `${p.name_ko}의 정목 데이터를 불러오지 못했습니다.`; }
+      }
     });
     map.on("mouseenter", "region-fill", () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", "region-fill", () => (map.getCanvas().style.cursor = ""));
@@ -517,9 +592,9 @@ map.on("load", async () => {
     }
     map.addSource("subward", { type: "geojson", data: { type: "FeatureCollection", features } });
 
-    const sds = features.map((f) => f.properties.density).sort((a, b) => a - b);
-    const scuts = Array.from({ length: 7 }, (_, i) => sds[Math.floor(((i + 1) / 8) * (sds.length - 1))]);
-    const sStepColor = ["step", ["get", "density"], RAMP[0]];
+    let sds = features.map((f) => f.properties.density).sort((a, b) => a - b);
+    let scuts = Array.from({ length: 7 }, (_, i) => sds[Math.floor(((i + 1) / 8) * (sds.length - 1))]);
+    let sStepColor = ["step", ["get", "density"], RAMP[0]];
     scuts.forEach((c, i) => sStepColor.push(c, RAMP[i + 1]));
 
     map.addLayer({ id: "subward-fill", source: "subward", type: "fill",
@@ -534,9 +609,9 @@ map.on("load", async () => {
 
     // 종사자(일자리) 밀도 지도: 주황 계열 색상표로 거주 인구(청록)와 구분
     const JRAMP = ["#2a1c10", "#43290f", "#5e3510", "#7c4412", "#9c5416", "#c06a1c", "#e58f34", "#f7c168"];
-    const jds = features.map((f) => f.properties.wdensity).sort((a, b) => a - b);
-    const jcuts = Array.from({ length: 7 }, (_, i) => jds[Math.floor(((i + 1) / 8) * (jds.length - 1))]);
-    const jStepColor = stepExpr("wdensity", jcuts, JRAMP);
+    let jds = features.map((f) => f.properties.wdensity).sort((a, b) => a - b);
+    let jcuts = Array.from({ length: 7 }, (_, i) => jds[Math.floor(((i + 1) / 8) * (jds.length - 1))]);
+    let jStepColor = stepExpr("wdensity", jcuts, JRAMP);
 
     // 종사자 건물별 (jobs-buildings.json — 현재 마루노우치1초메만, 모델 추정치)
     if (jobsGrid && jobsGrid.areas) {
@@ -587,6 +662,48 @@ map.on("load", async () => {
       }
     };
     applyMetric();
+
+    // ---- 현 단위 정목 데이터 (subward-<현>.json + jobs-<현>.json) 지연 로딩 ----
+    const prefPromises = new Map();
+    loadPref = (pref) => {
+      if (!prefPromises.has(pref)) {
+        prefPromises.set(pref, (async () => {
+          const [sj, jj] = await Promise.all([loadJSON(`./subward-${pref}.json`), loadJSON(`./jobs-${pref}.json`)]);
+          if (!sj || !sj.wards) return false;
+          if (jj && jobs) {
+            Object.assign(jobs.areas, jj.areas);
+            for (const [k, w] of Object.entries(jj.wards)) jobs.wards[String(k).slice(0, 5)] = w;
+          }
+          for (const [k, w] of Object.entries(sj.wards)) {
+            const code = String(w.estat_code || k).slice(0, 5);
+            prefMunis.set(code, w);
+            for (const a of w.areas) {
+              const km2 = a.area_m2 / 1e6;
+              features.push({
+                type: "Feature",
+                properties: {
+                  wardJis: code, code: a.code, name_ja: a.name_ja,
+                  residents: a.residents, households: a.households,
+                  area_km2: km2, density: km2 > 0 ? a.residents / km2 : 0,
+                  wdensity: km2 > 0 && jobs && jobs.areas[a.code] ? jobs.areas[a.code].w / km2 : 0,
+                },
+                geometry: { type: "MultiPolygon", coordinates: a.polygons },
+              });
+            }
+          }
+          map.getSource("subward").setData({ type: "FeatureCollection", features });
+          sds = features.map((f) => f.properties.density).sort((a, b) => a - b);
+          scuts = Array.from({ length: 7 }, (_, i) => sds[Math.floor(((i + 1) / 8) * (sds.length - 1))]);
+          sStepColor = stepExpr("density", scuts, RAMP);
+          jds = features.map((f) => f.properties.wdensity).sort((a, b) => a - b);
+          jcuts = Array.from({ length: 7 }, (_, i) => jds[Math.floor(((i + 1) / 8) * (jds.length - 1))]);
+          jStepColor = stepExpr("wdensity", jcuts, JRAMP);
+          applyMetric();
+          return true;
+        })());
+      }
+      return prefPromises.get(pref);
+    };
   }
 
   // ---- 건물별 추정 인구 (building-population.json — 정목 실제 인구를 실제 OSM 건물
@@ -645,17 +762,38 @@ map.on("load", async () => {
     map.addLayer({ id: "obstacles-line", source: "obstacles", type: "line", minzoom: 13,
       paint: { "line-color": "#e7eef0", "line-width": 0.4, "line-opacity": 0.6 } });
     document.getElementById("cap").textContent =
-      `건물 ${nf(obstacles.obstacles.length)}개 (마루노우치/도쿄역/긴자·신주쿠·시부야·이케부쿠로) · `
+      (typeof pmtiles !== "undefined"
+        ? `건물 footprint 약 112만 개(23구 전체, OSM · tokyo-buildings.pmtiles — 북동부 구는 OSM 입력이 적어 듬성함) · `
+        : `건물 ${nf(obstacles.obstacles.length)}개 (마루노우치/도쿄역/긴자·신주쿠·시부야·이케부쿠로) · `)
       + `23구 + 광역권 ${region ? region.municipalities.length : "?"}개(시·정·촌 178 + 지정도시 구 44). `
       + `색 범례(위)는 23구 기준 — 광역권은 같은 색상표를 다른 구간에 적용해 표시(직접 비교 불가). `
       + (subward && subward.wards ? `구를 클릭하면 오른쪽에 상세 패널이 뜹니다 — 정목(町丁) 단위 인구, 23구 전체 지원.` : "")
       + (buildingPop && buildingPop.wards ? ` 건물별 색(현재 ${supportedBuildingWardsKo}만 — 지요다·신주쿠·시부야·도시마는 건물이 충분히 잡힌 일부 정목만)은 실측이 아니라 정목 인구를 건물 면적×층수로 배분한 추정 모델(줌 13+).` : "");
     document.getElementById("toggle-obstacles").addEventListener("change", (e) => {
       const v = e.target.checked ? "visible" : "none";
-      for (const id of ["obstacles-fill", "obstacles-line"]) map.setLayoutProperty(id, "visibility", v);
+      const ids = map.getLayer("bldg23-fill") ? ["bldg23-fill", "bldg23-line"] : ["obstacles-fill", "obstacles-line"];
+      for (const id of ids) map.setLayoutProperty(id, "visibility", v);
     });
   } else {
     document.getElementById("cap").textContent = "obstacles.json 을 불러오지 못했습니다.";
+  }
+
+  // ---- 건물 footprint 23구 전체 (tokyo-buildings.pmtiles, OSM) ----
+  // obstacles.json(4개 허브 지구)의 상위 집합이라, 이게 로드되면 obstacles 레이어는 숨긴다.
+  // 위치: obstacles 아래 (건물별 추정 인구 레이어는 아래 moveLayer 루프가 다시 맨 위로 올림).
+  if (typeof pmtiles !== "undefined") {
+    try {
+      ensurePmtilesProtocol();
+      map.addSource("bldg23", { type: "vector",
+        url: "pmtiles://" + new URL("./tokyo-buildings.pmtiles", location.href).href,
+        attribution: '&copy; OpenStreetMap contributors, ODbL' });
+      const before = map.getLayer("obstacles-fill") ? "obstacles-fill" : undefined;
+      map.addLayer({ id: "bldg23-fill", source: "bldg23", "source-layer": "building", type: "fill", minzoom: 13,
+        paint: { "fill-color": "#e7eef0", "fill-opacity": 0.5 } }, before);
+      map.addLayer({ id: "bldg23-line", source: "bldg23", "source-layer": "building", type: "line", minzoom: 13,
+        paint: { "line-color": "#e7eef0", "line-width": 0.4, "line-opacity": 0.6 } }, before);
+      for (const id of ["obstacles-fill", "obstacles-line"]) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", "none");
+    } catch (err) { console.warn("tokyo-buildings.pmtiles 연결 실패, obstacles.json 으로 대체:", err); }
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림

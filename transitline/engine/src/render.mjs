@@ -101,7 +101,7 @@ function labelSpot(angles, x, y, m) {
   return best;
 }
 
-const LABEL_ALL_BELOW = 40;
+const LABEL_ALL_BELOW = 40; // label unserved stations too only on small packs
 const TRACK_WIDTH = 6;
 const PLATFORM_LEN = 34;
 
@@ -128,4 +128,196 @@ function platformsAt(entries) {
     g.lines.forEach((id) => covered.add(id));
   }
   return chosen;
+}
+
+export function draw(ctx, state, projection, width, height, input) {
+  ctx.save();
+  ctx.drawImage(backgroundFor(width, height), 0, 0);
+
+  const screen = (loc) => projection.toScreen(loc, width, height);
+  const geo = buildGeometry(state, screen);
+
+  // Directions in which lines (and terminus badges) leave each station.
+  const dirs = new Map();
+  const addDir = (id, dx, dy, lineId) => {
+    if (!dirs.has(id)) dirs.set(id, []);
+    dirs.get(id).push({ angle: Math.atan2(dy, dx), lineId });
+  };
+  for (const line of state.lines) {
+    const legs = geo.edges.get(line.id);
+    legs.forEach((leg, i) => {
+      const n = leg.length;
+      const out = [leg[1][0] - leg[0][0], leg[1][1] - leg[0][1]];
+      const back = [leg[n - 2][0] - leg[n - 1][0], leg[n - 2][1] - leg[n - 1][1]];
+      addDir(line.stationIds[i], out[0], out[1], line.id);
+      addDir(line.stationIds[i + 1], back[0], back[1], line.id);
+      if (i === 0) addDir(line.stationIds[0], -out[0], -out[1], line.id);
+      if (i === legs.length - 1) addDir(line.stationIds[i + 1], -back[0], -back[1], line.id);
+    });
+  }
+
+  // Platforms: a long, narrow slab along each line direction through a
+  // station, drawn under the tracks like the reference's station outline.
+  for (const [id, entries] of dirs) {
+    const [x, y] = screen(state.stations.get(id).location);
+    for (const p of platformsAt(entries)) {
+      const w = (p.lines.size - 1) * SPREAD_PX + TRACK_WIDTH + 13;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(p.axis);
+      ctx.fillStyle = "rgba(207, 213, 227, 0.92)";
+      ctx.strokeStyle = "#8d96ab";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.rect(-PLATFORM_LEN / 2, -w / 2, PLATFORM_LEN, w);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // Tracks: dark casing, coloured band, and a hairline down the middle so each
+  // reads as a double-track railway rather than a single stroke.
+  for (const line of state.lines) {
+    const legs = geo.edges.get(line.id);
+    const trace = () => {
+      ctx.beginPath();
+      legs.forEach((leg, i) =>
+        leg.forEach(([x, y], j) => (i === 0 && j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
+      );
+    };
+    ctx.lineCap = "butt";
+    ctx.lineJoin = "round";
+    trace();
+    ctx.strokeStyle = "#0d1017";
+    ctx.lineWidth = TRACK_WIDTH + 3;
+    ctx.stroke();
+    trace();
+    ctx.strokeStyle = line.color;
+    ctx.lineWidth = TRACK_WIDTH;
+    ctx.stroke();
+    trace();
+    ctx.strokeStyle = "rgba(13, 16, 23, 0.55)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    const first = legs[0];
+    const last = legs[legs.length - 1];
+    drawBadge(ctx, first[0], first[1], line);
+    drawBadge(ctx, last[last.length - 1], last[last.length - 2], line);
+  }
+
+  // Draft line being drawn, previewed with the same 45-degree legs.
+  if (input?.draft) {
+    ctx.strokeStyle = "rgba(255,255,255,0.6)";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([6, 6]);
+    const pts = input.draft.stationIds.map((id) => screen(state.stations.get(id).location));
+    ctx.beginPath();
+    ctx.moveTo(...pts[0]);
+    for (let i = 1; i < pts.length; i++) octilinear(pts[i - 1], pts[i]).slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+    ctx.lineTo(...input.draft.cursor);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Attractors (not boardable — see demand-engine.mjs's nearest-station fold-in)
+  ctx.fillStyle = ATTRACTOR_FILL;
+  for (const a of state.attractors) {
+    const [x, y] = screen(a.location);
+    ctx.beginPath();
+    ctx.moveTo(x, y - 7);
+    ctx.lineTo(x + 7, y + 6);
+    ctx.lineTo(x - 7, y + 6);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Waiting passengers per station, for the badge below
+  const waitingByStation = new Map();
+  for (const p of state.passengers) {
+    if (p.state !== "waiting") continue;
+    waitingByStation.set(p.currentStationId, (waitingByStation.get(p.currentStationId) ?? 0) + 1);
+  }
+  const linesAt = new Map();
+  for (const line of state.lines) for (const id of line.stationIds) linesAt.set(id, (linesAt.get(id) ?? 0) + 1);
+
+  // Stations: demand disc underneath, then the diagram marker where a line
+  // stops (white circle; larger where lines interchange).
+  const labelUnserved = state.stations.size <= LABEL_ALL_BELOW;
+  for (const s of state.stations.values()) {
+    const [x, y] = screen(s.location);
+    const r = stationRadius(s);
+    const served = linesAt.get(s.id) ?? 0;
+
+    ctx.globalAlpha = served ? 0.35 : 1;
+    ctx.fillStyle = KIND_FILL[s.kind] ?? DEFAULT_FILL;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    if (!served) {
+      ctx.strokeStyle = STATION_STROKE;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    let markerR = 0;
+    if (served) {
+      markerR = served >= 2 ? 4.5 : 3.5;
+      ctx.fillStyle = "#fff";
+      ctx.strokeStyle = "#111318";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(x, y, markerR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    if (s.named && (served || labelUnserved)) {
+      const [, lx, ly, align] = labelSpot(dirs.get(s.id), x, y, served ? PLATFORM_LEN / 2 - 2 : r);
+      drawLabel(ctx, s.name, lx, ly, align, !served);
+    }
+
+    const waiting = waitingByStation.get(s.id);
+    if (waiting) {
+      const clear = served ? PLATFORM_LEN / 2 - 4 : r;
+      const bx = x + clear * 0.7;
+      const by = y - clear * 0.7;
+      ctx.fillStyle = "#e5484d";
+      ctx.beginPath();
+      ctx.arc(bx, by, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "9px Inter, system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(Math.min(waiting, 99)), bx, by + 0.5);
+    }
+  }
+
+  // Trains ride the same drawn legs as the lines.
+  for (const train of state.trains) {
+    const line = state.lines.find((l) => l.id === train.lineId);
+    const leg = geo.edges.get(train.lineId)?.[train.dir === 1 ? train.segIndex : train.segIndex - 1];
+    if (!line || !leg) continue;
+    const at = train.dir === 1 ? train.t : 1 - train.t;
+    const [x, y] = pointAlong(leg, at);
+    const [x0, y0] = pointAlong(leg, Math.max(0, at - 0.03));
+    const [x1, y1] = pointAlong(leg, Math.min(1, at + 0.03));
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.atan2(y1 - y0, x1 - x0));
+    ctx.fillStyle = "#f1f2f5";
+    ctx.strokeStyle = "#0d1017";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(-8, -3.5, 16, 7, 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = line.color;
+    ctx.fillRect(-5, -1.5, 10, 3);
+    ctx.restore();
+  }
+
+  ctx.restore();
 }
