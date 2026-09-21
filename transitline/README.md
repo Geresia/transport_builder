@@ -1,106 +1,87 @@
 # Transitline
 
-A transit network building game for the Seoul metropolitan rail area.
-*(Working name — rename freely; nothing depends on it yet.)*
+도쿄권 철도망을 직접 깔아 보는 교통망 건설 게임. 작업 이름이라 바꿔도 된다. 이 이름에 의존하는 코드는 없다.
 
-**Target extent:** 서울 · 경기 · 인천 · 춘천(경춘선) · 충청 남부(1호선 천안·아산·신창)
-— roughly `[126.35, 36.72, 127.80, 38.15]`, ~128 × 159 km, ~26.5M people.
+**대상 범위:** 도쿄도 · 사이타마 · 지바 · 가나가와 (1도 3현). 경도 138.18–140.87, 위도 34.90–37.15 범위의 `tokyo` 팩이 이걸 덮는다.
 
-## Status
+서울·부산·대구는 초기에 만든 자료가 남아 있지만 더 이어가지 않는다. 자세한 건 아래 "한국 자료" 참고.
 
-**Phase 0 — CityPack format.** Complete. The format, its schemas, a validator
-with teeth, and two synthetic packs exercising both demand models.
+## 상태
 
-Nothing here touches OpenStreetMap or any licensed data yet, by design.
+- **포맷(Phase 0):** 끝. CityPack 스펙, 스키마, 검증기, 가상 팩 2개.
+- **엔진(Phase 1):** 가상 팩(`example-radial`)에서 노선 긋기, 열차 운행, 승객 경로 탐색이 돈다. [`engine/`](./engine/) 참고.
+- **도쿄 팩:** 뷰어로 볼 수 있는 상태. 인구·종사자·건물·도로·베이스맵이 들어 있다. 엔진에는 아직 안 물렸다.
+- **다음:** 도쿄 팩을 엔진에 올리기. 그러려면 역 후보를 정하고, 통근 OD(`od.json`)를 수요 모델에 쓰는 것부터 해야 한다.
 
-## Why the structure looks like this
+## 폴더 구조가 이렇게 생긴 이유
 
-The project sells commercially **and** uses real-world geographic data. Those
-goals conflict unless the encumbered data is kept physically separate from the
-sellable software. Everything follows from that:
+상용으로 팔면서 실제 지리 데이터도 써야 하는데, 이 둘은 데이터를 물리적으로 분리하지 않으면 충돌한다. 그래서 세 층으로 나눴다.
 
 ```
-pipeline/   dev-time only, never ships   →   may be GPLv3
-packs/      the map data, published      →   ODbL when OSM-derived
-engine/     the game, sold               →   proprietary, inherits nothing
+scripts/    개발 때만 쓰고 배포 안 함      →   GPLv3 도구를 써도 됨
+packs/      지도 데이터, 공개 배포         →   OSM 파생이면 ODbL
+engine/     게임, 판매                     →   독점, 팩에서 아무것도 상속 안 함
 ```
 
-Read [`LICENSING.md`](./LICENSING.md) before touching data or adding a
-dependency. The two rules that matter are short and non-obvious:
+데이터나 의존성을 건드리기 전에 [`LICENSING.md`](./LICENSING.md)를 먼저 읽는다. 규칙은 두 개고 직관과 좀 어긋난다.
 
-1. **The pipeline never ships to players.** Bundling it collapses the separate-
-   program argument and makes the game a GPLv3 derivative work.
-2. **Queryable OSM geometry lives only in a CityPack**, never in the engine.
+1. 데이터 생성 스크립트는 플레이어에게 가면 안 된다. 게임에 묶어 넣으면 GPLv3 파생물이 된다.
+2. 검색 가능한 OSM 지오메트리는 팩에만 두고 엔진에는 두지 않는다.
 
-## Layout
+## 파일
 
-| Path | What |
+| 경로 | 내용 |
 |---|---|
-| [`docs/citypack-format.md`](./docs/citypack-format.md) | The format spec — the boundary between data and game |
-| [`docs/data-sources-kr.md`](./docs/data-sources-kr.md) | Korean demand data survey: what is usable, what is not, why |
-| [`schemas/`](./schemas/) | JSON Schema for manifest and demand — **reference only**, see note below |
-| [`scripts/validate-pack.mjs`](./scripts/validate-pack.mjs) | Pack validator — shape *and* licensing rules |
-| [`packs/example-radial/`](./packs/example-radial/) | Synthetic radial city, `gravity` model |
-| [`packs/example-corridor/`](./packs/example-corridor/) | Synthetic corridor, `matrix` model + calendar |
-| [`engine/`](./engine/) | Phase 1 game loop — lines, trains, passenger routing on `example-radial` |
+| [`docs/citypack-format.md`](./docs/citypack-format.md) | 팩 포맷 스펙. 데이터와 게임의 경계 |
+| [`packs/tokyo/`](./packs/tokyo/) | 도쿄권 실데이터 팩 ([README](./packs/tokyo/README.md)) |
+| [`packs/example-radial/`](./packs/example-radial/) | 가상 방사형 도시, `gravity` 모델 |
+| [`packs/example-corridor/`](./packs/example-corridor/) | 가상 회랑형 도시, `matrix` 모델 + 캘린더 |
+| [`engine/`](./engine/) | 게임 루프 |
+| [`scripts/validate-pack.mjs`](./scripts/validate-pack.mjs) | 팩 검증기. 형식뿐 아니라 라이선스 규칙도 검사 |
+| [`schemas/`](./schemas/) | manifest·demand JSON 스키마. 참고용 |
+| [`docs/subway-builder-reference.md`](./docs/subway-builder-reference.md) | Subway Builder 참고 노트 |
 
-## Usage
+## 쓰는 법
 
-```bash
-node scripts/validate-pack.mjs packs/example-radial   # validate one pack
-npm run validate                                       # validate all packs
-npm run regen                                          # regenerate example demand data
+```powershell
+node scripts/validate-pack.mjs packs/tokyo   # 팩 하나 검증
+npm run validate                             # 전체 검증
+npm run regen                                # 가상 팩 수요 데이터 재생성
 ```
 
-No dependencies, no install step. The validator is dependency-free on purpose:
-it runs in CI before anything is installed, and it enforces the licensing
-boundary rather than just JSON shape.
+설치 단계는 없다. 검증기가 의존성 없이 돌게 만든 건 CI에서 아무것도 설치하기 전에 돌아야 하고, JSON 모양만 보는 게 아니라 라이선스 경계를 강제해야 해서다.
 
-> **The JSON Schemas are not enforced.** Nothing loads `schemas/*.json` — they
-> exist for editor autocomplete and as human-readable reference.
-> `validate-pack.mjs` hand-rolls its checks and is the authoritative definition
-> of the format. The two can drift; when they disagree, the validator wins.
-> Keeping them in sync is currently manual.
+> **JSON 스키마는 강제되지 않는다.** `schemas/*.json`을 읽는 코드는 없다. 에디터 자동완성과 사람이 읽는 참고용이다. 실제 규칙은 `validate-pack.mjs`에 손으로 써 있고 둘이 어긋나면 검증기가 맞다. 동기화는 아직 수작업이다.
 
-## Build order
+뷰어와 엔진 띄우는 법은 루트 [`README.md`](../README.md)에 있다.
 
-| Phase | What | State |
+## 로드맵
+
+| 단계 | 내용 | 상태 |
 |---|---|---|
-| **0** | CityPack format, schemas, validator | **done** |
-| **1** | Game loop on a hand-authored pack — stations, lines, passenger routing | in progress, see [`engine/`](./engine/) |
-| **0.5** | One-off: 수도권 population density render (exploration, not the pipeline) | done |
-| **2** | Pipeline: OSM + Korean open data → real CityPacks | blocked on data access, see below |
-| **3** | Simulation depth — trains, capacity, crowding, economy | later |
+| 0 | CityPack 포맷, 스키마, 검증기 | 끝 |
+| 1 | 손으로 만든 팩에서 역·노선·승객 라우팅 | 진행 중 |
+| 2 | 도쿄 팩을 엔진에 연결 (실제 인구, 종사자, 통근 OD) | 다음 |
+| 3 | 시뮬레이션 깊이. 열차 용량, 혼잡, 경제, 건설비 | 나중 |
 
-Phase 1 deliberately uses `example-radial` and touches no real data. Prove the
-game is fun before paying the cost of Phase 2.
+Phase 1을 일부러 가상 팩으로 돌린다. 실데이터를 붙이는 비용을 내기 전에 게임이 재밌는지부터 본다.
 
-## Population density render
+## 남은 문제
 
-A one-off exploration, not Phase 2. `scripts/build-metro-demand.mjs` joins
-행정안전부 주민등록 인구 to SGIS-derived 행정동 boundaries for 서울·인천·경기 —
-1,187 dong, 26,066,115 people, zero unmatched — and emits per-dong area and
-density. Both inputs permit commercial use and modification; **both require
-attribution unconditionally**, which the render carries on-page.
+**수요 데이터는 도쿄에서 대부분 해결됐다.** 거주 인구는 町丁 단위 국세조사, 종사자는 町丁 단위 경제센서스, 통근은 시정촌 간 OD 행렬(38,805쌍)이 팩 안에 있고 셋 다 재사용 조건이 맞다. 건물 단위 값은 실측이 아니라 이 통계를 토지이용조사로 나눈 모델이라는 점을 잊으면 안 된다.
 
-## The open question for Phase 2
+남은 건 이런 것들이다.
 
-**No licence-clean source of weekday-vs-weekend demand was found.** The dataset
-that would answer it outright (`OA-12921`, daily × hourly, 2008–2025) is
-공공누리 **제3유형 — 변경금지**, so a transformed commercial product cannot use
-it. The richest source (교통카드 빅데이터 / STCIS) is reachable only inside a
-데이터안심구역 and cannot be extracted.
+- 통근 OD가 시정촌 단위라서 역세권 수준의 수요는 여전히 모델이 채운다.
+- 경제센서스와 국세조사 합계가 도심 구에서 맞지 않는다. 맞추지 않았다.
+- 시간대·요일별 승하차 데이터가 없다. 그래서 `calendar`가 포맷의 1급 개념이고, 하루 평균이 아니라 요일 유형과 시간대를 모델로 만든다.
+- OSM 건물이 에도가와·가쓰시카·아다치·이타바시에 적다.
 
-The recommended answer is to **model** the day-type dimension rather than source
-it, calibrated against the licence-clean hourly profile. That is why `calendar`
-is first-class in the format instead of a single averaged day.
+## 한국 자료
 
-**Half of the hole behind it is now closed.** Boarding/alighting counts only
-*calibrate* a gravity model — they cannot populate one, which needs `residents`
-and `jobs` per point. `residents` is **solved**: 행정안전부 주민등록 인구
-gives all 1,187 수도권 행정동 under 이용허락범위 제한 없음, joined 1:1 against
-SGIS-derived boundaries (see the density render below). **`jobs` is the
-remaining gap** and is now the highest-priority unknown.
+서울·부산·대구용으로 만든 조사와 스크립트는 지우지 않고 남겨 뒀다. 새로 손대지 않는다. 다만 데이터 라이선스 판단(공공누리 유형별 사용 가능 여부 등)은 나중에 한국으로 돌아오면 그대로 쓸 수 있다.
 
-Full source-by-source verdict:
-[`docs/data-sources-kr.md`](./docs/data-sources-kr.md).
+- [`docs/data-sources-kr.md`](./docs/data-sources-kr.md): 한국 수요 데이터 출처 조사
+- [`docs/region-map-playbook.md`](./docs/region-map-playbook.md): 지역 지도 제작 절차. 지역과 무관하게 재사용할 수 있다
+- [`docs/seoul-map-coverage-gap.md`](./docs/seoul-map-coverage-gap.md), [`docs/data-download-howto.md`](./docs/data-download-howto.md), [`scripts/README-korea-map.md`](./scripts/README-korea-map.md)
+- `scripts/build-metro-demand.mjs`: 수도권 1,187개 행정동 인구밀도
