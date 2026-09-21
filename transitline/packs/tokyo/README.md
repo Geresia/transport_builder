@@ -362,10 +362,10 @@ footprints. The per-building weight was originally a guess (residential 0.1, roo
   floors; CC BY 4.0, `data.storage.data.metro.tokyo.lg.jp/toshiseibi/R03.zip`) gives floor area by use per chome.
 - Non-negative weighted least squares of chome workers (`jobs.json`) on floor area per survey use class,
   ~3,100 chome, R² = 0.85. Office ≈ 39.6 jobs/1000 m² (≈25 m²/worker), commercial-only 16.2, mixed
-  residential-commercial 24.6, detached housing 1.0, apartments ≈ 0.
+  residential-commercial 24.6, detached housing 1.0, apartments use the detached-housing figure (the fit gave 0 because ground-floor shops are classed as mixed use).
 - OSM `sourceKind` is mapped to a survey class (table in `job-coefficients.json`); untagged `yes` buildings use the
   floor-weighted survey average of their own chome. Per-chome totals stay pinned to the census (largest remainder).
 - Caveats: floor area = footprint x above-ground floors (survey field BV_3, no floor-coefficient correction);
   the survey's PDF field definitions were unreadable, so class codes 111-150 follow the known Tokyo survey
-  classification and are consistent with the observed counts; apartments/utilities fit to 0.
+  classification and are consistent with the observed counts; utilities fit to 0.
 - Regenerate: `node scripts/tokyo-job-coefficients.mjs <R03建物現況.dbf>` (scripts/tokyo-lu-dbf.mjs is a small DBF reader).
