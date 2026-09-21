@@ -122,6 +122,11 @@ non-ODbL sources this pack also carries (Rule 3, [`../LICENSING.md`](../LICENSIN
   Database obligations as the other OSM-derived files, see
   [`./LICENSE-DATA`](./LICENSE-DATA). Rendering only.
 
+- **東京都都市整備局「土地利用現況調査」令和3年度 (区部), CC BY 4.0.**
+  Building use class and floor count, used only to derive the residents-per-floor-area
+  coefficients (`pop-coefficients.json`) and to tag each OSM building with `lu` in
+  `tokyo-buildings.pmtiles`. The survey geometry itself is not redistributed.
+
 None of the above requires payment or registration; all permit commercial
 use per their stated terms. The pack's overall `data.license` is set to the
 strictest of these sources (`ODbL-1.0`) per

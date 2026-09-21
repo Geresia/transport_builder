@@ -58,8 +58,11 @@ if (manifest) {
   }
 
   // --- Declared files must exist.
-  for (const [key, rel] of Object.entries(manifest.files ?? {})) {
-    if (!existsSync(join(dir, rel))) fail(`files.${key} points at missing file: ${rel}`);
+  for (const [key, val] of Object.entries(manifest.files ?? {})) {
+    // a key may list several files (e.g. tokyo's buildingTilesRegional)
+    for (const rel of Array.isArray(val) ? val : [val]) {
+      if (!existsSync(join(dir, rel))) fail(`files.${key} points at missing file: ${rel}`);
+    }
   }
   if (!manifest.files?.demand) fail("files.demand is required");
   if (!manifest.files?.obstacles) warn("no obstacles layer — placement collision will be disabled");

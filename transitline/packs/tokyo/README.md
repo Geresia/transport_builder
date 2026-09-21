@@ -211,17 +211,20 @@ before; strip the first 3 bytes before shipping/reading the file, same as
 
 ## Buildings, all 23 wards (`tokyo-buildings.pmtiles`) — rendering layer
 
-**Per-building residents (added 2026-09-21, MODELED):** every feature also carries `pop`,
-its estimated residents, from the same model as `building-population.json` (footprint area ×
-`levels` (1 if untagged) × type multiplier, 0 for non-residential OSM tags; each chome's residents
-from `subward.json` split by weight; a chome with only non-residential buildings falls back to area ×
-levels over all its buildings). Built by `transitline/scripts/tokyo-building-pop.mjs` (GeoJSON in →
-GeoJSON with `pop` out, then the Planetiler schema below plus `- key: pop`; ~10 s + ~20 s).
-1,119,872 buildings → 9,719,156 of 9,733,276 residents allocated (99.85%). The other 14,120 sit in
-10 chomes with **no OSM building at all** (木場六丁目 3,052; the rest mostly Edogawa and
-Katsushika/Adachi) — the OSM gap described below. 1,570 buildings fall outside every chome
-polygon and get 0. In the four sparse wards each building's value is inflated (fewer buildings
-share the same chome total). `viewer.html` colors `bldg23-fill` by `pop` in residents mode
+**Per-building residents (added 2026-09-21, MODELED):** every feature carries `pop` (estimated residents)
+and `lu` (real building-use class). Built by `transitline/scripts/tokyo-building-pop-lu.mjs`: (1) fit residents per m2
+of floor area for each use class of the Tokyo Metropolitan Government **Land Use Survey R3 (2021, CC BY 4.0)** by
+non-negative weighted least squares at chome level (3,114 chomes joined by ward + chome name, R2 = 0.74; results in
+`pop-coefficients.json`: about 31 residents per 1,000 m2 floor area for detached houses, 23 mixed residential-commercial,
+9 apartment blocks, ~0 offices/commercial/warehouses); (2) each OSM building takes the use class and floors of the survey
+building containing its centroid (98.6% matched; else nearest within 12 m; unmatched fall back to OSM levels and the OSM
+non-residential tag list); (3) each chome real 2020-census total is split by weight = footprint x floors x coefficient.
+The older OSM-tag-only version is `tokyo-building-pop.mjs`. 1,119,872 buildings -> 9,719,156 of 9,733,276 residents
+allocated (99.85%); the other 14,120 sit in 10 chomes with **no OSM building at all** (木場六丁目 3,052; the rest mostly
+Edogawa and Katsushika/Adachi) - the OSM gap described below. 1,570 buildings fall outside every chome polygon and get 0. In
+the four sparse wards each building value is inflated (fewer buildings share the same chome total). The apartment
+coefficient looks low against the detached one (collinearity with floor area of large complexes), so treat class ratios
+as approximate. `viewer.html` colors `bldg23-fill` by `pop` in residents mode
 (grey = 0), and every popup says "모델 추정치 — 실측 아님". Not measured data.
 
 `tokyo-buildings.pmtiles` holds **1,119,872 OSM building footprints for all 23

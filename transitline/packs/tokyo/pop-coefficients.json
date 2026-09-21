@@ -1,0 +1,45 @@
+{
+ "formatVersion": 1,
+ "modeled": true,
+ "method": "Non-negative weighted least squares (weight 1/(residents+200)), chome residents ~ sum over survey use class of (footprint x above-ground floors), no intercept.",
+ "sources": [
+  "Tokyo Metropolitan Government Urban Development Bureau, Land Use Survey R3 (2021), 23 wards, building data (CC BY 4.0)",
+  "2020 census small-area residents, e-Stat (subward.json)"
+ ],
+ "chomesUsed": 3114,
+ "r2": 0.736,
+ "residentsPer1000m2Floor": {
+  "111": 0.201,
+  "112": 0.478,
+  "113": 3.579,
+  "114": 0.21,
+  "121": 0,
+  "122": 0,
+  "123": 22.688,
+  "124": 0,
+  "125": 0.448,
+  "131": 31.462,
+  "132": 9.423,
+  "141": 0.869,
+  "142": 28.839,
+  "143": 0.009,
+  "150": 0
+ },
+ "useClasses": {
+  "111": "官公庁",
+  "112": "教育文化",
+  "113": "厚生医療",
+  "114": "供給処理",
+  "121": "事務所",
+  "122": "商業",
+  "123": "住商併用",
+  "124": "宿泊遊興",
+  "125": "スポーツ興行",
+  "131": "独立住宅",
+  "132": "集合住宅",
+  "141": "専用工場",
+  "142": "住居併用工場",
+  "143": "倉庫運輸",
+  "150": "その他"
+ }
+}

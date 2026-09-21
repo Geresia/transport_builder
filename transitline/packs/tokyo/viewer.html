@@ -83,6 +83,8 @@
   <div class="ramp" id="ramp"></div>
   <div class="scale" id="scale"></div>
   <label><input type="checkbox" id="toggle-obstacles" checked> 건물 footprint (OSM, 줌 13+)</label>
+  <label><input type="checkbox" id="toggle-roads"> 차도 (OSM, 줌 13+)</label>
+  <label><input type="checkbox" id="toggle-paths"> 보행자 도로 (OSM, 줌 14+ · 인도·횡단보도·계단 등)</label>
   <div class="cap" id="cap">manifest.json 불러오는 중…</div>
 </div>
 
@@ -414,7 +416,9 @@ map.on("load", async () => {
   let applyMetric = () => {};
   // 건물별 추정 거주 인구 (tokyo-buildings.pmtiles 의 pop 속성 — 정목 실제 인구를 건물 면적×층수×주거용도 가중치로 배분한 모델)
   // 0명(비주거 용도)은 회색, 나머지는 분위수 구간 색. 구간: 전체 건물 pop>0 의 1/8 분위수.
-  const BLDG_POP_CUTS = [1.4, 2, 2.6, 3.3, 4.3, 5.9, 10.1];
+  const BLDG_POP_CUTS = [1.6, 2.5, 3.3, 4.2, 5.3, 7.1, 11.6];
+  // 도쿄도 토지이용현황조사(2021) 건물 용도 코드 — pop 배분에 쓴 실제 용도
+  const LU_KO = { 111: "관공서", 112: "교육·문화", 113: "의료·복지", 114: "공급처리", 121: "사무소", 122: "상업", 123: "주상복합", 124: "숙박·유흥", 125: "스포츠·흥행", 131: "독립주택", 132: "집합주택", 141: "공장", 142: "주거병용 공장", 143: "창고·운수", 150: "기타" };
   const bldg23PopColor = ["case", ["<=", ["coalesce", ["get", "pop"], 0], 0], "#6b7378", stepExpr("pop", BLDG_POP_CUTS, RAMP)];
   const supportedWardsKo = subward && subward.wards
     ? Object.keys(subward.wards).map((j) => KO_NAMES[j] || j).join("·")
@@ -788,7 +792,7 @@ map.on("load", async () => {
       + `23구 + 광역권 ${region ? region.municipalities.length : "?"}개(시·정·촌 178 + 지정도시 구 44). `
       + `색 범례(위)는 23구 기준 — 광역권은 같은 색상표를 다른 구간에 적용해 표시(직접 비교 불가). `
       + (subward && subward.wards ? `구를 클릭하면 오른쪽에 상세 패널이 뜹니다 — 정목(町丁) 단위 인구, 23구 전체 지원.` : "")
-      + ` 건물 색(줌 13+, 23구 전체)은 실측이 아니라 정목 실제 인구를 건물 면적×층수×주거용도 가중치로 배분한 추정 모델입니다 — 회색은 비주거 건물(0명). 북동부 4개 구(에도가와·가쓰시카·아다치·이타바시)는 OSM 건물이 적어 건물당 값이 크게 나옵니다.`;
+      + ` 건물 색(줌 13+, 23구 전체)은 실측이 아니라 정목 실제 인구를 건물 면적×층수×실제 용도(도쿄도 토지이용현황조사) 가중치로 배분한 추정 모델입니다 — 회색은 비주거 건물(0명). 북동부 4개 구(에도가와·가쓰시카·아다치·이타바시)는 OSM 건물이 적어 건물당 값이 크게 나옵니다.`;
     document.getElementById("toggle-obstacles").addEventListener("change", (e) => {
       const v = e.target.checked ? "visible" : "none";
       const ids = map.getLayer("bldg23-fill") ? ["bldg23-fill", "bldg23-line"] : ["obstacles-fill", "obstacles-line"];
@@ -820,7 +824,7 @@ map.on("load", async () => {
         // Minato/Chuo/허브 정목은 building-population.json 레이어(bldgpop-fill)가 자체 팝업을 띄움 — 중복 방지
         if (map.getLayer("bldgpop-fill") && map.queryRenderedFeatures(e.point, { layers: ["bldgpop-fill"] }).length) return;
         const p = e.features[0].properties;
-        const lv = p.levels && p.levels !== "null" ? `${p.levels}층` : "층수 미상";
+        const lv = LU_KO[p.lu] ? `용도 ${LU_KO[p.lu]} (토지이용조사)` : (p.levels && p.levels !== "null" ? `${p.levels}층` : "층수 미상");
         new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
           .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 거주 인구 <b>${Number(p.pop).toFixed(1)}</b>명`
             + `<br>${lv} · ${p.sourceKind}<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
@@ -843,6 +847,39 @@ map.on("load", async () => {
           paint: { "line-color": "#e7eef0", "line-width": 0.4, "line-opacity": 0.6 } }, before);
       }
     } catch (err) { console.warn("사이타마/지바/가나가와 건물 pmtiles 연결 실패:", err); }
+
+    // ---- 도로: 차도(road) / 보행자 도로(path) — 현·도 4개 pmtiles, 토글로 켜고 끔 (기본 꺼짐) ----
+    // 건물 아래에 깐다 (건물 사이 빈 곳에 길이 보이도록). 차도는 등급별 색·굵기, 보행자는 가는 점선.
+    try {
+      const ROAD_AREAS = ["tokyo", "saitama", "chiba", "kanagawa"];
+      const kindIn = (...ks) => ["match", ["get", "kind"], ks, true, false];
+      const roadClass = (major, mid, tert, rest) => ["match", ["get", "kind"],
+        ["motorway", "motorway_link", "trunk", "trunk_link"], major,
+        ["primary", "primary_link", "secondary", "secondary_link"], mid,
+        ["tertiary", "tertiary_link"], tert, rest];
+      const roadColor = roadClass("#e3b25c", "#d6c58f", "#a9b8bd", "#6f8790");
+      const roadWidth = ["interpolate", ["linear"], ["zoom"],
+        13, roadClass(2.2, 1.6, 1.0, 0.5), 16, roadClass(6, 4.5, 3.2, 2), 19, roadClass(16, 12, 9, 6)];
+      const before = map.getLayer("bldg23-fill") ? "bldg23-fill" : (map.getLayer("obstacles-fill") ? "obstacles-fill" : undefined);
+      for (const k of ROAD_AREAS) {
+        map.addSource("roads-" + k, { type: "vector",
+          url: "pmtiles://" + new URL(`./${k}-roads.pmtiles`, location.href).href,
+          attribution: '&copy; OpenStreetMap contributors, ODbL' });
+        map.addLayer({ id: `road-${k}`, source: "roads-" + k, "source-layer": "road", type: "line", minzoom: 13,
+          layout: { visibility: "none", "line-cap": "round", "line-join": "round" },
+          paint: { "line-color": roadColor, "line-width": roadWidth, "line-opacity": 0.9 } }, before);
+        map.addLayer({ id: `path-${k}`, source: "roads-" + k, "source-layer": "path", type: "line", minzoom: 14,
+          layout: { visibility: "none" },
+          paint: { "line-color": ["case", kindIn("steps"), "#e08a4c", "#7fd6b0"],
+            "line-width": ["interpolate", ["linear"], ["zoom"], 14, 0.5, 17, 1.2, 19, 2.4],
+            "line-dasharray": [2, 1.5], "line-opacity": 0.9 } }, before);
+      }
+      const wireToggle = (inputId, prefix) => document.getElementById(inputId).addEventListener("change", (e) => {
+        for (const k of ROAD_AREAS) map.setLayoutProperty(`${prefix}-${k}`, "visibility", e.target.checked ? "visible" : "none");
+      });
+      wireToggle("toggle-roads", "road");
+      wireToggle("toggle-paths", "path");
+    } catch (err) { console.warn("도로 pmtiles 연결 실패:", err); }
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
