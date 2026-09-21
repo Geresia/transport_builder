@@ -46,3 +46,7 @@ transitline/data-raw/terrain/
 
 # raw e-Stat CSVs for employed.json (regenerate per packs/tokyo/README.md)
 transitline/data-raw/emp2020/*.csv
+
+# raw downloads, see transitline/data-raw/README.md
+transitline/data-raw/mlit/
+transitline/data-raw/plateau/
