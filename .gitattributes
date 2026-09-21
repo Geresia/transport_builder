@@ -1,0 +1,2 @@
+# Generated map pages with inlined data; keep them out of GitHub language stats
+transitline/docs/*.html linguist-generated
