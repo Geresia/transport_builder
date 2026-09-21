@@ -149,3 +149,9 @@ strictest of these sources (`ODbL-1.0`) per
 - 通勤OD (`od.json`): 出典 総務省統計局「令和2年国勢調査 従業地・通学地による人口・就業状態等集計」第3表 (e-Stat)。加工: 市区町村別に領域内へ集約。政府標準利用規約2.0。
 
 - 市区町村別人口 (`demand.json`, 2026-09-21 更新): 総務省統計局「令和2年国勢調査 従業地・通学地による人口・就業状態等集計」第1-1表 (e-Stat)。政府標準利用規約2.0。
+
+## Bathymetry (`bathymetry.json`)
+GEBCO Bathymetric Compilation Group 2026 (2026). The GEBCO_2026 Grid - a continuous terrain model for oceans and land
+at 15 arc-second intervals. doi:10.5285/4f68d5c7-45eb-f999-e063-7086abc036fa — read via the BODC/CEDA archive.
+Terms (https://www.gebco.net/data-products/gridded-bathymetry-data, checked 2026-09-21): the GEBCO Grid is placed in the
+public domain and may be used free of charge; GEBCO asks that the source is acknowledged in publications/presentations.

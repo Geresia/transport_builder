@@ -112,7 +112,8 @@
       "kanagawa-buildings.pmtiles"
     ],
     "basemap": "basemap.pmtiles",
-    "od": "od.json"
+    "od": "od.json",
+    "bathymetry": "bathymetry.json"
   },
   "compressed": {
     "building-population.json": {

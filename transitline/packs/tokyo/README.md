@@ -482,3 +482,15 @@ The 7 JSON files ≥ 1 MB (`subward*.json`, `jobs-buildings.json`, `building-pop
 - The plain files are still present because other scripts read them. Delete them to shrink the pack (they stay in
   git history); node scripts can read either form via `scripts/pack-json.mjs` `readPackJson()`.
 - Regenerate after changing a JSON: `node scripts/pack-compress.mjs packs/tokyo` (round-trip-verified).
+
+## Bathymetry (`bathymetry.json`) — measured (GEBCO), coarse
+
+Sea depth / land elevation on a regular grid over the pack bbox: 649 × 544 cells at 15 arc-seconds
+(≈ 460 m × 370 m), metres relative to sea level (negative = below). Source: GEBCO_2026 sub-ice
+topography/bathymetry grid (GEBCO Compilation Group), read over OPeNDAP from BODC/CEDA. Replaces the
+fixed-depth guess (-4 m) of the reference implementation.
+- 65,731 sea cells; deepest -2,416 m (Sagami Bay / Pacific side). Central Tokyo Bay ≈ -24 m.
+- Coarse: fine for "how deep is the sea here" and shipping-channel scale questions, not for individual piers.
+  Land values are smoothed (Tokyo Station reads +17 m, real ≈ 3 m) — use only the sea side (`< 0`).
+- Read with `engine/src/bathymetry.mjs` (`depthAt([lon,lat])`, bilinear; `isSea`). Test: `node engine/test/bathymetry.test.mjs`.
+- Regenerate: `node scripts/tokyo-bathymetry.mjs` (needs network). Not gzipped (1.4 MB → 0.5 MB).
