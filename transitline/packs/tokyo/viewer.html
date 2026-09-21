@@ -86,6 +86,7 @@
   <label><input type="checkbox" id="toggle-roads"> 차도 (OSM, 줌 13+)</label>
   <label><input type="checkbox" id="toggle-paths"> 보행자 도로 (OSM, 줌 14+ · 인도·횡단보도·계단 등)</label>
   <div class="cap" id="cap">manifest.json 불러오는 중…</div>
+  <label><input type="checkbox" id="toggle-labels" checked> 큰 건물 이름 (OSM, 줌 15+)</label>
 </div>
 
 <div class="panel" id="card">
@@ -252,6 +253,8 @@ const map = new maplibregl.Map({
   style: {
     version: 8,
     sources: {
+    // 건물 이름 글자용 폰트 — 한자·가나·한글이 들어 있는 공개 glyph 서버 (Protomaps 쪽 폰트는 한자 블록이 비어 있음)
+    glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
       osm: {
         type: "raster",
         tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
@@ -896,6 +899,25 @@ map.on("load", async () => {
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
-  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line"]) if (map.getLayer(id)) map.moveLayer(id);
+  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label"]) if (map.getLayer(id)) map.moveLayer(id);
 });
 </script>
+
+    // ---- 큰 건물 이름 (building-labels.pmtiles: 이름 있는 건물 중 한 변 약 40m 이상만, 줌 15+) ----
+    // 한국어 이름(name:ko)이 있으면 그걸, 없으면 OSM name(대부분 일본어)을 그대로 쓴다.
+    try {
+      map.addSource("bldg-labels", { type: "vector",
+        url: "pmtiles://" + new URL("./building-labels.pmtiles", location.href).href,
+        attribution: '&copy; OpenStreetMap contributors, ODbL' });
+      map.addLayer({ id: "bldg-label", source: "bldg-labels", "source-layer": "label", type: "symbol", minzoom: 15,
+        layout: {
+          "text-field": ["coalesce", ["get", "name_ko"], ["get", "name"]],
+          "text-font": ["Noto Sans Regular"],
+          "text-size": ["interpolate", ["linear"], ["zoom"], 15, 10, 18, 13],
+          "text-max-width": 7,
+          "text-padding": 3,
+        },
+        paint: { "text-color": "#f4f8f9", "text-halo-color": "rgba(12,17,20,0.9)", "text-halo-width": 1.4 } });
+      document.getElementById("toggle-labels").addEventListener("change", (e) =>
+        map.setLayoutProperty("bldg-label", "visibility", e.target.checked ? "visible" : "none"));
+    } catch (err) { console.warn("건물 이름 pmtiles 연결 실패:", err); }

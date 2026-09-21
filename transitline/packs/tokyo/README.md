@@ -292,6 +292,23 @@ pack-level `ODbL-1.0`. This is the path `LICENSING.md` Rule 2 prescribes for
 queryable OSM geometry.
 
 ### Roads and pedestrian ways (`{tokyo,saitama,chiba,kanagawa}-roads.pmtiles`)
+### Building names (`building-labels.pmtiles`)
+
+15,081 named OSM buildings across the whole pack bbox (1.3MB, `files.buildingLabels`),
+one layer `label` of polygons at zoom 14 (overzoomed) with `name`, `name_ko`,
+`name_en`, `kind`, `levels`. Only buildings with an OSM `name` **and** a footprint
+of roughly 40m × 40m or more (Planetiler `min_size: 5` px at z14, about 1,500 m²)
+are included — 58,626 named buildings exist in Tokyo alone, too many to label.
+`viewer.html` draws them as text from zoom 15 (legend toggle **큰 건물 이름**, on by
+default): `name:ko` if OSM has one, otherwise `name` (mostly Japanese). The polygon
+is kept, not a centroid point, because Planetiler's `min_size` filter does not apply
+to points. Glyphs come from the public `demotiles.maplibre.org` font server (the
+Protomaps font server has no kanji block); it needs internet and is a demo
+service, so self-host the glyph PBFs before relying on it. Coverage is whatever OSM
+has named — well-mapped near stations, thin elsewhere. Built from the same
+`kanto-latest.osm.pbf` with `--bounds` = the pack bbox (so it also covers slivers of
+Ibaraki/Tochigi/Gunma/Yamanashi inside the bbox).
+
 
 OSM `highway=*` lines, one PMTiles per prefecture (`files.roadTiles`), 12–14MB
 each, 53MB total, built the same way as the regional building tiles (Planetiler

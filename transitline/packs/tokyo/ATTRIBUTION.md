@@ -115,6 +115,13 @@ non-ODbL sources this pack also carries (Rule 3, [`../LICENSING.md`](../LICENSIN
   attribution, share-alike, see [`./LICENSE-DATA`](./LICENSE-DATA). Rendering
   only. See `README.md`'s "Buildings, Saitama / Chiba / Kanagawa".
 
+- **© OpenStreetMap contributors, `building-labels.pmtiles`.** 15,081 named
+  building footprints (OSM `building=*` with a `name` tag; name, `name:ko`,
+  `name:en`), from Geofabrik's `kanto-latest.osm.pbf` of 2026-09-20, compiled
+  with Planetiler. ODbL-1.0 — same Derivative Database obligations as the other
+  OSM-derived files, see [`./LICENSE-DATA`](./LICENSE-DATA). Rendering only.
+  See `README.md`'s "Building names".
+
 - **© OpenStreetMap contributors, `{tokyo,saitama,chiba,kanagawa}-roads.pmtiles`.**
   OSM `highway=*` lines (car roads and pedestrian ways) for Tokyo, Saitama,
   Chiba and Kanagawa, from Geofabrik's `kanto-latest.osm.pbf` of 2026-09-20,
