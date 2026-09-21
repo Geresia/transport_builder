@@ -80,6 +80,7 @@
         "buildingPopulation": { "type": "string", "description": "MODELED per-building residents for a pilot area." },
         "jobs": { "type": "string", "description": "Workers per town from the Economic Census." },
         "jobsBuildings": { "type": "string", "description": "MODELED per-building workers for a pilot area." },
+        "jobsBuildingsSaitama": { "type": "string", "description": "MODELED per-building workers for Saitama City (PLATEAU buildings), same shape as jobsBuildings." },
         "od": {
           "type": "string",
           "description": "Measured municipality-to-municipality commuter flows (census). Optional; the engine uses it for destination choice."
@@ -98,19 +99,71 @@
           "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }],
           "description": "PMTiles of roads and pedestrian ways."
         },
-        "basemap": { "type": "string", "description": "PMTiles basemap (roads/rail/water/land)." }
+        "basemap": { "type": "string", "description": "PMTiles basemap (roads/rail/water/land)." },
+        "employed": {
+          "type": "string",
+          "description": "Employed residents (15+) per town from the census small-area tables; the origin set that generates commutes."
+        },
+        "buildingTilesSurvey": {
+          "type": "string",
+          "description": "PMTiles of official survey building polygons (use class, floors) with modeled per-building pop / jobs / emp."
+        }
       },
       "description": "Relative paths (a value may be a list of paths). An absent key means that layer is not present. Every key a pack uses must be declared here - validate-pack enforces it."
     },
     "quality": {
       "type": "object",
-      "description": "Self-assessment against the registry data-quality rubric (docs/data-quality.md).",
-      "required": ["answers"],
+      "description": "Self-assessment against the registry data-quality rubric (see scripts/quality-rubric.mjs). answers = the pack's main area; areas = named sub-areas scored separately. validate-pack rejects non-rubric values and recomputes `computed`.",
+      "required": ["answers", "rubric_version"],
       "properties": {
         "scheme": { "type": "string" },
+        "rubric_version": { "type": "integer", "minimum": 1 },
         "assessedAt": { "type": "string" },
         "notes": { "type": "string" },
-        "answers": { "type": "object", "additionalProperties": { "type": "string" } }
+        "provenance": {
+          "type": "object",
+          "required": ["method"],
+          "properties": {
+            "method": { "enum": ["self-reported", "reviewed", "backfill"] },
+            "submitted_by": { "type": "string" },
+            "reviewed_by": { "type": ["string", "null"] },
+            "date": { "type": "string" }
+          }
+        },
+        "answers": { "type": "object", "additionalProperties": { "type": ["string", "null"] } },
+        "computed": {
+          "type": "object",
+          "required": ["raw_score", "weighted_score", "tier"],
+          "properties": {
+            "raw_score": { "type": "number", "minimum": 0, "maximum": 1 },
+            "weighted_score": { "type": "number", "minimum": 0, "maximum": 1 },
+            "tier": { "enum": ["very-high", "high", "medium", "low", "very-low", "absent"] },
+            "grade": { "type": "string" },
+            "pillars": { "type": "object" }
+          }
+        },
+        "areas": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["answers"],
+            "properties": {
+              "description": { "type": "string" },
+              "answers": { "type": "object", "additionalProperties": { "type": ["string", "null"] } },
+              "computed": {
+                "type": "object",
+                "required": ["raw_score", "weighted_score", "tier"],
+                "properties": {
+                  "raw_score": { "type": "number", "minimum": 0, "maximum": 1 },
+                  "weighted_score": { "type": "number", "minimum": 0, "maximum": 1 },
+                  "tier": { "enum": ["very-high", "high", "medium", "low", "very-low", "absent"] },
+                  "grade": { "type": "string" },
+                  "pillars": { "type": "object" }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "compressed": {

@@ -44,9 +44,12 @@ function pickFromRow(row, total, rand) {
   return row[row.length - 1].id;
 }
 
-// `od` (optional, from manifest.files.od): measured commuter flows. Under gravity it replaces the *destination choice*
-// with the measured origin->destination shares; spawn volume per origin stays the gravity model's, so switching it on
-// changes where trips go, not how many there are. Origins without an O/D row fall back to gravity. Ignored for matrix packs.
+// `od` (optional, from manifest.files.od): measured commuter flows. Under gravity it replaces two things:
+//  - destination choice: the measured origin->destination shares instead of distance decay;
+//  - origin volume: split in proportion to each origin's commuters (employed residents, od.workers) instead of total residents - the
+//    employed are the population that actually generates commutes.
+// The pack-wide spawn volume is unchanged (same total as gravity), so switching it on redistributes trips rather than adding any.
+// Origins without an O/D row keep their gravity volume and destination choice. Ignored for matrix packs.
 export function buildDemandModel(state, demand, od = null) {
   if (demand.model === "matrix") return buildMatrixModel(state, demand);
   const gravity = buildGravityModel(state);
@@ -57,11 +60,16 @@ export function buildDemandModel(state, demand, od = null) {
     if (!state.stations.has(id)) continue;
     const row = r.row.filter((x) => state.stations.has(x.id));
     const total = row.reduce((t, x) => t + x.weight, 0);
-    if (total > 0) rows.set(id, { row, total });
+    if (total > 0) rows.set(id, { row, total, workers: r.workers });
   }
+  let poolBase = 0, poolWorkers = 0;
+  for (const [id, r] of rows) { poolBase += gravity.baseRate(id); poolWorkers += r.workers; }
+  const base = (id) => (rows.has(id) && poolWorkers > 0 ? (poolBase * rows.get(id).workers) / poolWorkers : gravity.baseRate(id));
   return {
     ...gravity,
     measuredOrigins: rows.size,
+    baseRate: base,
+    rate: (s, originId) => base(originId) * currentDemandFactor(s),
     pick: (s, originId, rand = Math.random) => {
       const r = rows.get(originId);
       return (r && pickFromRow(r.row, r.total, rand)) ?? gravity.pick(s, originId, rand);
@@ -120,6 +128,7 @@ function buildGravityModel(state) {
 
   return {
     origins: ids,
+    baseRate: (originId) => weights.get(originId)?.spawnRate ?? 0, // per sim-minute before the calendar factor
     rate: (s, originId) => (weights.get(originId)?.spawnRate ?? 0) * currentDemandFactor(s),
     pick: (_s, originId, rand = Math.random) => {
       const entry = weights.get(originId);

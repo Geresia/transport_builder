@@ -84,11 +84,14 @@
   <label><input type="checkbox" id="toggle-ov-jobs"> 회사원(종사자) 밀도 (일자리 · 흰색→파랑)</label>
   <div class="ramp" id="ramp" style="display:none"></div>
   <div class="scale" id="scale" style="display:none"></div>
-  <label><input type="checkbox" id="toggle-obstacles" checked> 건물 footprint (OSM, 줌 13+)</label>
+  <label><input type="checkbox" id="toggle-obstacles" checked> 건물 footprint (토지이용조사, 줌 13+)</label>
   <label><input type="checkbox" id="toggle-theme"> 밝은 지도 (네이버 지도풍)</label>
   <label><input type="checkbox" id="toggle-terrain" checked> 지형 (숲·논밭·초지·산 음영)</label>
   <label><input type="checkbox" id="toggle-roads"> 차도 (OSM, 줌 13+)</label>
   <label><input type="checkbox" id="toggle-paths"> 보행자 도로 (OSM, 줌 14+ · 인도·횡단보도·계단 등)</label>
+  <label><input type="checkbox" id="toggle-areas" checked> 공원·학교·토지 구획 (이름 표시, 줌 13+)</label>
+  <label><input type="checkbox" id="toggle-rnames" checked> 도로 이름 (한글 발음, 줌 11+)</label>
+  <div class="cap" style="margin:2px 0 6px">도로 색: <b style="color:#f5a04a">주황</b> 고속도로·자동차전용도로 · <b style="color:#e0b820">노랑</b> 간선도로 · 흰색 골목 · <b style="color:#9b5fc0">보라</b> 철도</div>
   <label><input type="checkbox" id="toggle-labels" checked> 큰 건물 이름 (OSM, 줌 15+)</label>
   <div class="cap" id="cap">manifest.json 불러오는 중…</div>
 </div>
@@ -130,7 +133,9 @@ const THEME = THEME_NAME === "dark" ? {
   hs: { exag: 0.7, shadow: "#04080a", highlight: "#7f9299", accent: "#0d1519" },
   road: { minor: "#2a333c", medium: "#39434d", major: "#4b5661", highway: "#6b7785", rail: "#d9a441", case: "#1b2229" },
   bldg: "#e7eef0", bldgLine: "#e7eef0", bldgOp: 0.5, zero: "#6b7378",
-  bldgRes: "#e7eef0", bldgPub: "#e7eef0", bldgInd: "#e7eef0", bldgCom: "#e7eef0",
+  bldgRes: "#e7eef0", bldgHouse: "#e7eef0", bldgPub: "#e7eef0", bldgInd: "#e7eef0", bldgCom: "#e7eef0",
+  area: { park: "#2a5238", edu: "#25384d", hospital: "#4a2f33", commercial: "#2a2a30", industrial: "#25262d", farm: "#4a4a26", forest: "#1d4a30", grass: "#33502f", railway: "#252b31", military: "#33342a", residential: null },
+  label: { park: "#8fd19a", edu: "#8fb4ea", hospital: "#e79a9a", halo: "rgba(12,17,20,0.9)", text: "#f4f8f9" },
   ramp: ["#16272B","#1B3B42","#215059","#2A6771","#357F8A","#4A9BA5","#71B9C1","#A6D8DC"],
   jramp: ["#2a1c10", "#43290f", "#5e3510", "#7c4412", "#9c5416", "#c06a1c", "#e58f34", "#f7c168"],
 } : {
@@ -141,7 +146,10 @@ const THEME = THEME_NAME === "dark" ? {
   hs: { exag: 0.25, shadow: "#8a8474", highlight: "#ffffff", accent: "#c4bfb0" },
   road: { minor: "#ffffff", medium: "#fff6cf", major: "#fbd75e", highway: "#f5a04a", rail: "#9b5fc0", case: "#dedad0" },
   bldg: "#ffffff", bldgLine: "#cdc8bd", bldgOp: 0.98, zero: "#e4e0d8",
-  bldgRes: "#fbecc0", bldgPub: "#e2e8d3", bldgInd: "#e8e5ee", bldgCom: "#ffffff",
+  bldgRes: "#fbecc0", bldgHouse: "#f1eee6", bldgPub: "#e2e8d3", bldgInd: "#e8e5ee", bldgCom: "#ffffff",
+  // 공원 = 선명한 연초록, 학교 부지 = 연한 청회색(네이버 지도 샘플), 병원 = 연분홍, 상업 = 연분홍 회색, 공업 = 연보라 회색
+  area: { park: "#c6e2b1", edu: "#d9e4f2", hospital: "#f6e0e0", commercial: "#f8ecec", industrial: "#ebeaf2", farm: "#eef0d6", forest: "#d0e8c0", grass: "#dcedc8", railway: "#ececea", military: "#e8e4d8", residential: null },
+  label: { park: "#3f8a3f", edu: "#3f6db0", hospital: "#c0504d", halo: "#ffffff", text: "#3b3f44" },
   // 인구 밀도 = 흰색 → 노랑 → 주황 → 빨강, 종사자(회사원) 밀도 = 흰색 → 하늘 → 남색
   ramp: ["#fffaf0", "#fff0c9", "#ffdf9c", "#ffc46b", "#fba03f", "#ee7a2c", "#d6491f", "#a3221b"],
   jramp: ["#f7faff", "#e3edfb", "#c6d8f5", "#a2bdeb", "#7b9adb", "#5876c4", "#3b54a6", "#25367c"],
@@ -500,10 +508,10 @@ map.on("load", async () => {
   const RES_KINDS = ["apartments", "residential", "house", "detached", "dormitory", "terrace", "semidetached_house", "bungalow", "condominium", "duplex", "static_caravan"];
   const PUB_KINDS = ["school", "university", "college", "kindergarten", "government", "public", "civic", "hospital", "clinic", "fire_station", "police", "museum", "library", "townhall"];
   const IND_KINDS = ["industrial", "warehouse", "factory", "manufacture", "storage_tank"];
-  const bldgBaseReg = THEME.name === "dark" ? THEME.bldg : ["match", ["get", "kind"], RES_KINDS, THEME.bldgRes, PUB_KINDS, THEME.bldgPub, IND_KINDS, THEME.bldgInd, THEME.bldgCom];
+  const bldgBaseReg = THEME.name === "dark" ? THEME.bldg : ["match", ["get", "kind"], ["apartments", "dormitory", "condominium", "residential"], THEME.bldgRes, ["house", "detached", "terrace", "semidetached_house", "bungalow", "duplex", "static_caravan"], THEME.bldgHouse, PUB_KINDS, THEME.bldgPub, IND_KINDS, THEME.bldgInd, THEME.bldgCom];
   // 도쿄 23구: 토지이용조사 용도(lu)가 있으면 그것으로, 없으면 OSM 태그(sourceKind)로
   const bldgBaseTokyo = THEME.name === "dark" ? THEME.bldg : ["match", ["coalesce", ["get", "lu"], 0],
-    [123, 131, 132, 142, 612], THEME.bldgRes, [111, 112, 113, 114], THEME.bldgPub, [141, 143], THEME.bldgInd,
+    [123, 132, 142, 612], THEME.bldgRes, [131], THEME.bldgHouse, [111, 112, 113, 114], THEME.bldgPub, [141, 143], THEME.bldgInd,
     ["match", ["get", "sourceKind"], RES_KINDS, THEME.bldgRes, PUB_KINDS, THEME.bldgPub, IND_KINDS, THEME.bldgInd, THEME.bldgCom]];
   const bldg23PopColor = ["case", ["<=", ["coalesce", ["get", "pop"], 0], 0], THEME.zero, stepExpr("pop", BLDG_POP_CUTS, RAMP)];
   const supportedWardsKo = subward && subward.wards
@@ -830,7 +838,7 @@ map.on("load", async () => {
     let regCuts = [], wardCuts = [];
     const paintOverlay = () => {
       const on = overlay !== "none", jm = overlay === "jobs";
-      const op = (hi, lo) => on ? ["interpolate", ["linear"], ["zoom"], 9, hi, 12, lo] : 0;
+      const op = (hi, lo) => on ? ["interpolate", ["linear"], ["zoom"], 9, hi, 12, lo, 15, 0.06] : 0;
       if (map.getLayer("region-fill")) {
         map.setPaintProperty("region-fill", "fill-color", jm ? stepOn("wdensity", regCuts, JRAMP) : stepOn("density", rCutsRes, RAMP));
         map.setPaintProperty("region-fill", "fill-opacity", op(0.7, 0.3));
@@ -846,7 +854,7 @@ map.on("load", async () => {
       const cuts = jm ? wardCuts : wCutsRes;
       rampEl.style.display = scaleEl.style.display = on ? "" : "none";
       rampEl.innerHTML = (jm ? JRAMP : RAMP).map((c) => `<i style="background:${c}"></i>`).join("");
-      scaleEl.innerHTML = cuts.map((v) => `<span>${nf(v)}</span>`).join("") + `<span style="margin-left:4px">/km² (${jm ? "종사자" : "거주"} · 구 기준)</span>`;
+      scaleEl.innerHTML = cuts.map((v) => `<span>${nf(v)}</span>`).join("") + `<span style="margin-left:4px">/km²</span>`;
     };
     const rCutsRes = q7([...regionFeatureByCode.values()].map((f) => f.properties.density));
     const wCutsRes = q7([...wardFeaturesByCode.values()].map((f) => f.properties.density));
@@ -928,12 +936,12 @@ map.on("load", async () => {
       paint: { "line-color": THEME.bldgLine, "line-width": 0.4, "line-opacity": 0.6 } });
     capUpdate = () => { document.getElementById("cap").textContent =
       (typeof pmtiles !== "undefined"
-        ? `건물 footprint 23구 약 112만 개(OSM · tokyo-buildings.pmtiles — 북동부 구는 OSM 입력이 적어 듬성함) + 사이타마·지바·가나가와 약 512만 개(현 전체) · `
+        ? `건물 footprint 23구 약 179만 개(도쿄도 토지이용현황조사 건물 폴리곤 · tokyo-survey-buildings.pmtiles — 용도·층수 실측, 23구 전역 균일) + 사이타마·지바·가나가와 약 512만 개(현 전체) · `
         : `건물 ${nf(obstacles.obstacles.length)}개 (마루노우치/도쿄역/긴자·신주쿠·시부야·이케부쿠로) · `)
       + `23구 + 광역권 ${region ? region.municipalities.length : "?"}개(시·정·촌 178 + 지정도시 구 44). `
       + `색 범례(위)는 23구 기준 — 광역권은 같은 색상표를 다른 구간에 적용해 표시(직접 비교 불가). `
       + (subward && subward.wards ? `구를 클릭하면 오른쪽에 상세 패널이 뜹니다 — 정목(町丁) 단위 인구, 23구 전체 지원.` : "")
-      + (metric === "jobs" ? ` 건물 색(줌 13+, 23구 전체)은 실측이 아니라 정목 실제 종사자(2021 경제센서스)를 건물 면적×층수×용도별 계수(도쿄도 토지이용현황조사 면적으로 적합, 구별 R² 0.33~0.92)로 배분한 추정 모델입니다 — 회색은 종사자 0명 건물, 색 구간은 0.5·2·5·15·50·150·500명 고정 구간. 북동부 4개 구(에도가와·가쓰시카·아다치·이타바시)는 OSM 건물이 적어 건물당 값이 크게 나옵니다. 사이타마·지바·가나가와는 정목 단위 종사자까지만 있고 건물별 값은 없습니다(회색).` : ` 건물 색(줌 13+, 23구 전체)은 실측이 아니라 정목 실제 인구를 건물 면적×층수×실제 용도(도쿄도 토지이용현황조사) 가중치로 배분한 추정 모델입니다 — 회색은 비주거 건물(0명). 북동부 4개 구(에도가와·가쓰시카·아다치·이타바시)는 OSM 건물이 적어 건물당 값이 크게 나옵니다. 사이타마·지바·가나가와 건물은 도쿄와 달리 OSM 용도 태그만으로 배분한 더 거친 모델이고, OSM에 건물이 없는 정목(지바 약 9%, 사이타마 약 5%, 가나가와 약 1%의 인구)은 배분하지 못합니다.`); };
+      + (metric === "jobs" ? ` 건물 색(줌 13+, 23구 전체)은 실측이 아니라 정목 실제 종사자(2021 경제센서스)를 건물 면적×층수×용도별 계수(도쿄도 토지이용현황조사 면적으로 적합, 구별 R² 0.33~0.92)로 배분한 추정 모델입니다 — 회색은 종사자 0명 건물, 색 구간은 0.5·2·5·15·50·150·500명 고정 구간. 사이타마·지바·가나가와는 정목 단위 종사자까지만 있고 건물별 값은 없습니다(회색).` : ` 건물 색(줌 13+, 23구 전체)은 실측이 아니라 정목 실제 인구를 건물 면적×층수×실제 용도(도쿄도 토지이용현황조사) 가중치로 배분한 추정 모델입니다 — 회색은 비주거 건물(0명). 사이타마·지바·가나가와 건물은 도쿄와 달리 OSM 용도 태그만으로 배분한 더 거친 모델이고, OSM에 건물이 없는 정목(지바 약 9%, 사이타마 약 5%, 가나가와 약 1%의 인구)은 배분하지 못합니다.`); };
     capUpdate();
     { const th = document.getElementById("toggle-theme"); th.checked = THEME.name === "light";
       th.addEventListener("change", () => { try { localStorage.setItem("tokyo-theme", th.checked ? "light" : "dark"); } catch {} location.reload(); }); }
@@ -950,15 +958,15 @@ map.on("load", async () => {
     document.getElementById("cap").textContent = "obstacles.json 을 불러오지 못했습니다.";
   }
 
-  // ---- 건물 footprint 23구 전체 (tokyo-buildings.pmtiles, OSM) ----
+  // ---- 건물 footprint 23구 전체 (tokyo-survey-buildings.pmtiles — 도쿄도 토지이용현황조사 건물 폴리곤, 용도·층수 실측) ----
   // obstacles.json(4개 허브 지구)의 상위 집합이라, 이게 로드되면 obstacles 레이어는 숨긴다.
   // 위치: obstacles 아래 (건물별 추정 인구 레이어는 아래 moveLayer 루프가 다시 맨 위로 올림).
   if (typeof pmtiles !== "undefined") {
     try {
       ensurePmtilesProtocol();
       map.addSource("bldg23", { type: "vector",
-        url: "pmtiles://" + new URL("./tokyo-buildings.pmtiles", location.href).href,
-        attribution: '&copy; OpenStreetMap contributors, ODbL' });
+        url: "pmtiles://" + new URL("./tokyo-survey-buildings.pmtiles", location.href).href,
+        attribution: '東京都 令和3年度 区部土地利用現況調査 (CC BY 4.0)' });
       const before = map.getLayer("obstacles-fill") ? "obstacles-fill" : undefined;
       map.addLayer({ id: "bldg23-fill", source: "bldg23", "source-layer": "building", type: "fill", minzoom: 13,
         paint: { "fill-color": THEME.bldg, "fill-opacity": THEME.bldgOp } }, before);
@@ -971,15 +979,15 @@ map.on("load", async () => {
         // Minato/Chuo/허브 정목은 building-population.json 레이어(bldgpop-fill)가 자체 팝업을 띄움 — 중복 방지
         if (map.getLayer("bldgpop-fill") && map.queryRenderedFeatures(e.point, { layers: ["bldgpop-fill"] }).length) return;
         const p = e.features[0].properties;
-        const lv = LU_KO[p.lu] ? `용도 ${LU_KO[p.lu]} (토지이용조사)` : (p.levels && p.levels !== "null" ? `${p.levels}층` : "층수 미상");
+        const lv = (LU_KO[p.lu] ? `용도 ${LU_KO[p.lu]} (토지이용조사)` : "용도 미상") + (p.levels && p.levels !== "null" ? ` · ${p.levels}층` : "");
         new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
-          .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 ${metric === "jobs" ? `종사자 <b>${Number(p.jobs).toFixed(1)}</b>` : `거주 인구 <b>${Number(p.pop).toFixed(1)}</b>`}명`
-            + `<br>${lv} · ${p.sourceKind}<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
+          .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 ${metric === "jobs" ? `종사자 <b>${Number(p.jobs).toFixed(1)}</b>` : `거주 인구 <b>${Number(p.pop).toFixed(1)}</b>명 (취업자 <b>${Number(p.emp).toFixed(1)}</b>`}명`
+            + `<br>${lv}<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
           .addTo(map);
       });
       map.on("mouseenter", "bldg23-fill", () => { map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", "bldg23-fill", () => (map.getCanvas().style.cursor = ""));
-    } catch (err) { console.warn("tokyo-buildings.pmtiles 연결 실패, obstacles.json 으로 대체:", err); }
+    } catch (err) { console.warn("tokyo-survey-buildings.pmtiles 연결 실패, obstacles.json 으로 대체:", err); }
 
     // ---- 건물 footprint 사이타마·지바·가나가와 (현별 pmtiles, OSM) + 건물별 추정 거주 인구 pop (모델, 실측 아님) ----
     try {
@@ -1040,27 +1048,84 @@ map.on("load", async () => {
       wireToggle("toggle-paths", "path");
     } catch (err) { console.warn("도로 pmtiles 연결 실패:", err); }
 
-    // ---- 큰 건물 이름 (building-labels.pmtiles: 이름 있는 건물 중 한 변 약 40m 이상만, 줌 15+) ----
-    // 한국어 이름(name:ko)이 있으면 그걸, 없으면 OSM name(대부분 일본어)을 그대로 쓴다.
+    // ---- 공원·학교·병원 + 토지 용도 구획 (areas.pmtiles: OSM 폴리곤) — 색으로 구분하고 이름을 붙인다 ----
+    // 이름은 OSM name:ko 가 있으면 그것, 없으면 일본어 이름의 접미사(小学校·公園·病院 …)와 가나를 한글로 바꾼 것(한자는 그대로).
     try {
-      map.addSource("bldg-labels", { type: "vector",
-        url: "pmtiles://" + new URL("./building-labels.pmtiles", location.href).href,
+      map.addSource("areas", { type: "vector", url: "pmtiles://" + new URL("./areas.pmtiles", location.href).href,
         attribution: '&copy; OpenStreetMap contributors, ODbL' });
-      map.addLayer({ id: "bldg-label", source: "bldg-labels", "source-layer": "label", type: "symbol", minzoom: 15,
+      const A = THEME.area, cls = ["get", "cls"], kind = ["get", "kind"];
+      const landColor = ["match", kind, "commercial", A.commercial, "retail", A.commercial, "industrial", A.industrial, "farmland", A.farm, "allotments", A.farm,
+        "forest", A.forest, "grass", A.grass, "meadow", A.grass, "railway", A.railway, "military", A.military, "rgba(0,0,0,0)"];
+      const before = map.getLayer("bm-road-case-minor") ? "bm-road-case-minor" : undefined;
+      map.addLayer({ id: "area-land", source: "areas", "source-layer": "area", type: "fill", minzoom: 13,
+        filter: ["==", cls, "land"], paint: { "fill-color": landColor } }, before);
+      // 정밀한 OSM 물 폴리곤: 지도 데이터(basemap)의 물은 줌 12 해상도라 확대하면 강이 넓은 파란 덩어리로 번지므로 줌 13+ 에서는 이걸로 대체
+      map.addLayer({ id: "area-water", source: "areas", "source-layer": "area", type: "fill", minzoom: 13,
+        filter: ["==", cls, "water"], paint: { "fill-color": THEME.water } }, before);
+      map.setLayerZoomRange("bm-water", 0, 13);
+      map.addLayer({ id: "area-park", source: "areas", "source-layer": "area", type: "fill", minzoom: 12,
+        filter: ["==", cls, "park"], paint: { "fill-color": A.park, "fill-opacity": 0.95 } }, before);
+      map.addLayer({ id: "area-edu", source: "areas", "source-layer": "area", type: "fill", minzoom: 13,
+        filter: ["==", cls, "education"], paint: { "fill-color": A.edu } }, before);
+      map.addLayer({ id: "area-hospital", source: "areas", "source-layer": "area", type: "fill", minzoom: 13,
+        filter: ["==", cls, "hospital"], paint: { "fill-color": A.hospital } }, before);
+
+      // 이름 라벨: labels.pmtiles (공원·학교·병원 + 이름 있는 큰 건물의 점) — 일본어 이름을 한글 발음으로 미리 바꿔 둔 것(ko).
+      // 우편번호부 지명 읽기 + 형태소 분석(kuromoji)으로 만든 근사 발음이라 틀린 곳이 있을 수 있음. 큰 것부터, 확대할수록 작은 것까지.
+      map.addSource("labels", { type: "vector", url: "pmtiles://" + new URL("./labels.pmtiles", location.href).href,
+        attribution: "&copy; OpenStreetMap contributors, ODbL" });
+      const tcol = ["match", ["get", "cls"], "park", THEME.label.park, "education", THEME.label.edu, "hospital", THEME.label.hospital, THEME.label.text];
+      const areaLabel = (id, minzoom, filter) => map.addLayer({ id, source: "labels", "source-layer": "label", type: "symbol", minzoom,
+        filter: ["all", ["!=", ["get", "cls"], "building"], filter],
+        layout: { "text-field": ["get", "ko"], "text-font": ["Noto Sans Regular"],
+          "text-size": ["interpolate", ["linear"], ["zoom"], 13, 10, 17, 13], "text-max-width": 7, "text-padding": 2,
+          "symbol-sort-key": ["-", 0, ["get", "size"]] },
+        paint: { "text-color": tcol, "text-halo-color": THEME.label.halo, "text-halo-width": 1.5 } });
+      areaLabel("area-label", 13, [">=", ["get", "size"], 3]);
+      areaLabel("area-label-mid", 14, ["all", [">=", ["get", "size"], 0.5], ["<", ["get", "size"], 3]]);
+      areaLabel("area-label-small", 15, ["<", ["get", "size"], 0.5]);
+      document.getElementById("toggle-areas").addEventListener("change", (e) => {
+        for (const id of ["area-land", "area-water", "area-park", "area-edu", "area-hospital", "area-label", "area-label-mid", "area-label-small"]) map.setLayoutProperty(id, "visibility", e.target.checked ? "visible" : "none");
+      });
+    } catch (err) { console.warn("공원·학교 구획 pmtiles 연결 실패:", err); }
+
+    // ---- 도로 이름 (road-labels.pmtiles: 이름 있는 도로 선, ko = 한글 발음) — 선을 따라 글씨가 흐른다 ----
+    try {
+      map.addSource("road-labels", { type: "vector", url: "pmtiles://" + new URL("./road-labels.pmtiles", location.href).href,
+        attribution: "&copy; OpenStreetMap contributors, ODbL" });
+      const isHw = ["in", ["get", "kind"], ["literal", ["motorway", "trunk"]]];
+      const rl = (id, minzoom, filter, size) => map.addLayer({ id, source: "road-labels", "source-layer": "rlabel", type: "symbol", minzoom, filter,
+        layout: { "symbol-placement": "line", "text-field": ["get", "ko"], "text-font": ["Noto Sans Regular"], "text-size": size,
+          "symbol-spacing": 320, "text-max-angle": 30, "text-padding": 3, "text-letter-spacing": 0.02 },
+        paint: { "text-color": ["case", isHw, THEME.name === "dark" ? "#f0b070" : "#a85a12", THEME.name === "dark" ? "#dfe6ea" : "#5a5f66"],
+          "text-halo-color": THEME.label.halo, "text-halo-width": 1.6 } });
+      rl("road-name-major", 11, ["in", ["get", "kind"], ["literal", ["motorway", "trunk", "primary"]]], ["interpolate", ["linear"], ["zoom"], 11, 10, 17, 13]);
+      rl("road-name-mid", 13, ["in", ["get", "kind"], ["literal", ["secondary", "tertiary"]]], ["interpolate", ["linear"], ["zoom"], 13, 9.5, 17, 12.5]);
+      rl("road-name-minor", 15.5, ["in", ["get", "kind"], ["literal", ["residential", "unclassified", "living_street"]]], ["interpolate", ["linear"], ["zoom"], 15.5, 9, 18, 12]);
+      document.getElementById("toggle-rnames").addEventListener("change", (e) => {
+        for (const id of ["road-name-major", "road-name-mid", "road-name-minor"]) map.setLayoutProperty(id, "visibility", e.target.checked ? "visible" : "none");
+      });
+    } catch (err) { console.warn("도로 이름 pmtiles 연결 실패:", err); }
+
+    // ---- 큰 건물 이름 (building-labels.pmtiles: 이름 있는 건물 중 한 변 약 40m 이상만, 줌 15+) ----
+    // 이름은 한글 발음(labels.pmtiles 의 ko — name:ko 가 있으면 그것, 없으면 일본어 이름을 한글로 옮긴 근사 발음).
+    try {
+      map.addLayer({ id: "bldg-label", source: "labels", "source-layer": "label", type: "symbol", minzoom: 15,
+        filter: ["==", ["get", "cls"], "building"],
         layout: {
-          "text-field": ["coalesce", ["get", "name_ko"], ["get", "name"]],
+          "text-field": ["get", "ko"],
           "text-font": ["Noto Sans Regular"],
           "text-size": ["interpolate", ["linear"], ["zoom"], 15, 10, 18, 13],
           "text-max-width": 7,
           "text-padding": 3,
         },
-        paint: { "text-color": "#f4f8f9", "text-halo-color": "rgba(12,17,20,0.9)", "text-halo-width": 1.4 } });
+        paint: { "text-color": THEME.label.text, "text-halo-color": THEME.label.halo, "text-halo-width": 1.4 } });
       document.getElementById("toggle-labels").addEventListener("change", (e) =>
         map.setLayoutProperty("bldg-label", "visibility", e.target.checked ? "visible" : "none"));
     } catch (err) { console.warn("건물 이름 pmtiles 연결 실패:", err); }
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
-  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label"]) if (map.getLayer(id)) map.moveLayer(id);
+  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor"]) if (map.getLayer(id)) map.moveLayer(id);
 });
 </script>

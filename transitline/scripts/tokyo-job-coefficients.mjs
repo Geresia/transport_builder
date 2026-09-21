@@ -5,6 +5,7 @@
 // Method: non-negative weighted least squares of chome workers on chome floor area (footprint x
 //         above-ground floors) by survey use class; then workers per m2 by class -> OSM kind mapping.
 import fs from "fs";
+import { writeChecked } from "./safe-write.mjs";
 import { readPackJson } from "./pack-json.mjs";
 import { fileURLToPath } from "url";
 import { readDbf } from "./tokyo-lu-dbf.mjs";
@@ -96,7 +97,7 @@ for (const [code, area] of Object.entries(jb.areas)) {
   area.buildings.forEach((b, i) => (b.workers = fl[i]));
 }
 jb.note = "MODELED, not measured: each chome's real 2021 Economic Census worker total distributed over real OSM building footprints by floor area (footprint x levels; levels default 1 when OSM has no tag, except Marunouchi 1-chome which uses the chome median) x jobs-per-m2 coefficient by building use. Coefficients (jobs_per_1000m2 on each building, table in job-coefficients.json) are fitted from Tokyo's 2021 Land Use Survey floor areas vs Economic Census workers across ~3,100 chome (see README).";
-if (!process.env.STATS_ONLY) fs.writeFileSync(T + "jobs-buildings.json", JSON.stringify(jb)); // STATS_ONLY=1 refreshes job-coefficients.json only
+if (!process.env.STATS_ONLY) writeChecked(T + "jobs-buildings.json", JSON.stringify(jb), { label: "chomes with buildings", count: (j) => Object.keys(j.areas).length }); // STATS_ONLY=1 refreshes job-coefficients.json only
 fs.writeFileSync(T + "job-coefficients.json", JSON.stringify({
   formatVersion: 1, modeled: true,
   method: "Non-negative weighted least squares (weight 1/(workers+200)), chome workers ~ sum over survey use class of (footprint x above-ground floors), no intercept.",

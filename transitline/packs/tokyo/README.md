@@ -273,7 +273,7 @@ answered 200 with **zero** elements for Tokyo (it doesn't carry Japan). The
 mirrors accept ~1 concurrent request per client — 3 parallel requests gave 1
 success and 2 rejections within ~35 s — so fetching in parallel doesn't help.
 
-**⚠️ Coverage is uneven — this is OSM's gap, not a download error.** Buildings
+**[Resolved for the viewer 2026-09-21: `tokyo-survey-buildings.pmtiles` uses the official survey polygons, which cover all 23 wards evenly; the OSM tile below is no longer read by `viewer.html`.]** **⚠️ Coverage is uneven — this is OSM's gap, not a download error.** Buildings
 per km² by ward: Edogawa 394, Katsushika 529, Adachi 584, Itabashi 880 versus
 2,000–4,000 in most other wards (Setagaya 1,980, Ota 2,284, Suginami 3,243,
 Taito 3,980); residents per mapped building is 20–37 in those four wards versus
@@ -489,6 +489,46 @@ registry (only manifests), so the comparison is at municipality level using yuki
   core area rather than whole municipalities, so their totals are not comparable to ours.
 - **Not compared:** demand-point counts (30,488 / 83,157) - those depend on each map's point-generation scheme, not on source data.
 
+## Quality self-assessment, employed residents, and the official-survey building layer (2026-09-21)
+
+Prompted by a second pass through the registry's data-quality rubric (`docs/data-quality.md` and the ladder definitions it is built on).
+
+**Rubric score (`manifest.quality`, `scripts/quality-rubric.mjs`, `scripts/pack-quality.mjs`).** Our own implementation of the registry's published
+rubric (their code is GPL-3.0 and is not copied); `node scripts/test-quality-rubric.mjs` checks it reproduces the registry's worked JP example
+(raw 0.76 / weighted 0.81). The first version of our `quality.answers` used four values that are not rubric values at all; they are now validated
+(`validate-pack` rejects unknown values and recomputes `quality.computed`, so a changed answer without a re-score fails).
+
+| area | before this work | now | what moved it |
+|---|---|---|---|
+| Tokyo 23 wards (`answers`) | 0.588 medium (C) | **0.813 very-high (A)** | employed residents instead of total population (+0.095), official survey footprints instead of OSM (+0.130) |
+| Kanagawa / Saitama / Chiba (`areas`) | - | 0.438 low (D) | workers per chome only, residents split by OSM tags; employed residents exist at chome level (`employed.json`) but are not yet placed on buildings |
+
+These are **self-assessed** tiers, not reviewed by the registry; a reviewer could rate the survey polygons or the fitted weights differently.
+
+**Employed residents (`employed.json`, `scripts/tokyo-employed.mjs`).** 令和2年国勢調査 小地域集計 第16-2表 (employed persons 15+ by chome; e-Stat statInfId
+000032226887/888/889/890 = Saitama/Chiba/Tokyo/Kanagawa, fileKind=1 CSV, Shift-JIS, saved in `data-raw/emp2020/`). All 20,186 chomes of the four sub-ward layers are covered and every
+municipality sum equals the census municipality row. Hidden cells (秘匿, 1.8% of chomes) are folded by the census into a neighbouring chome or a town-level
+aggregate; that group's published total is split by residents and the chomes are listed under `estimated`. Independent cross-check: for all 242 municipalities
+employed = O/D workers (table 3) + workers whose workplace is not stated - two different census tables agreeing exactly (enforced by `validate-pack`).
+The engine now uses commuters (O/D `workers`) as origin mass instead of total residents, keeping the pack-wide spawn volume unchanged (`engine/README.md`).
+
+**Building layer from the official land use survey (`tokyo-survey-buildings.pmtiles`, `scripts/tokyo-survey-buildings.mjs`, `scripts/jp-plane-ix.mjs`).**
+The R03 建物現況 polygons (Tokyo Metropolitan Govt, CC BY 4.0) are converted from plane rectangular zone IX to WGS84 (inverse projection round-trip error 0.05 mm; converted
+areas match the survey's own AREA field within 0.47% on average) and used directly as the footprint layer: 1,790,011 buildings versus 1,119,872 OSM ones, with real use class
+(`lu`) and floors (`levels`). Each building carries modeled `pop`, `jobs` and `emp`: three separate non-negative least-squares fits of chome totals on floor area by use class
+(R2 0.736 / 0.850 / 0.748, same coefficients as `pop-coefficients.json` / `job-coefficients.json`), then each chome's census total split by footprint x floors x coefficient.
+Allocation is 99.99% of residents, 99.97% of workers and 99.98% of employed residents (one chome without any building, 43 buildings outside every chome polygon), against 99.85% / 99.95%
+with OSM footprints and ten chomes empty. **This removes the sparse-OSM problem in Edogawa, Katsushika, Adachi and Itabashi** noted below. Caveats: 18,283 survey polygons with non-building
+use codes (210, 220, 300, 400, 510, 520, 61x, 700, 800, 900; the definition sheet is unreadable) are dropped; there is no `height`, no OSM name/kind tag; all per-building values are modeled, not measured.
+Because the layer is built from CC BY data instead of OSM it does not carry the ODbL share-alike obligation (the pack as a whole stays ODbL because other layers still use OSM).
+`tokyo-buildings.pmtiles` (OSM) is no longer read by `viewer.html`; it is still shipped and now also carries `emp`. Register: `files.buildingTilesSurvey`.
+Rebuild: `node --max-old-space-size=12000 scripts/tokyo-survey-buildings.mjs <R03建物現況 dir> out.ndjson report.json`, then Planetiler with a `geojson` source and the attributes
+`kind, district, sourceKind, levels, lu, pop, jobs, emp` (44.9 MB, zoom 13-14).
+
+**Guards.** `scripts/safe-write.mjs`: regeneration scripts (`tokyo-od`, `tokyo-employed`, `muni-pop-2020`, `tokyo-job-coefficients`) refuse to overwrite a data file with fewer than 90% of
+its current entries unless `ALLOW_SHRINK=1` (the registry's incident log has several silent-wipe cases). `validate-pack` also checks PMTiles magic/version and that
+`buildingTilesSurvey` carries `lu, levels, pop, jobs, emp`.
+
 ## Basement floors (`obstacles.json` → `levels_underground`)
 
 Each obstacle building has `levels_underground` (basement floors; `null` = no survey building matched).
@@ -537,3 +577,23 @@ fixed-depth guess (-4 m) of the reference implementation.
   Land values are smoothed (Tokyo Station reads +17 m, real ≈ 3 m) — use only the sea side (`< 0`).
 - Read with `engine/src/bathymetry.mjs` (`depthAt([lon,lat])`, bilinear; `isSea`). Test: `node engine/test/bathymetry.test.mjs`.
 - Regenerate: `node scripts/tokyo-bathymetry.mjs` (needs network). Not gzipped (1.4 MB → 0.5 MB).
+
+## Parks, schools, water and land-use polygons (`areas.pmtiles`)
+
+One 27MB vector-tile file for all of Kanto, built like the roads/labels tiles (Planetiler `generate-custom` on `kanto-latest.osm.pbf`, single layer `area`, zoom 12–14+). Properties: `cls` (`park`, `education`, `hospital`, `land`, `water`), `kind` (the OSM `leisure`/`amenity`/`landuse` value), and for parks/schools/hospitals `name`, `name_ko`, `name_en`. Contains: `leisure=park/garden/playground/recreation_ground/golf_course/nature_reserve…`, `landuse=recreation_ground/cemetery`, `amenity=school/kindergarten/college/university/hospital`, `landuse=residential/commercial/retail/industrial/farmland/forest/grass/meadow/railway/military`, and `natural=water` / `waterway=riverbank` / `landuse=reservoir`. `viewer.html` colours them (park green, school ground blue-grey, hospital pink, commercial/industrial faint tints) under the roads, replaces the coarse zoom-12 `basemap.pmtiles` water above zoom 13 (rivers used to smear into wide blue blobs), and draws labels for parks/schools/hospitals: `name_ko` if OSM has it, otherwise the Japanese name with common suffixes (小学校 → 초등학교, 公園 → 공원, 病院 → 병원 …) and kana converted to Hangul; kanji are left as is. Legend toggle "공원·학교·토지 구획". Only ~25% of these polygons carry a name in OSM, and almost none have `name:ko`.
+
+## Korean labels (`labels.pmtiles`)
+
+All park / school / hospital names and the large-building names in `viewer.html` are shown in Hangul. `labels.pmtiles` (8MB, layer `label`, Point features: `ko` = Korean label, `ja` = original, `cls` = `park|education|hospital|building`, `size` = polygon size, larger first) is generated by `transitline/scripts/tokyo-korean-labels.mjs` from `areas.pmtiles` and `building-labels.pmtiles`: OSM `name:ko` if present; otherwise the Japanese name is split into (1) known suffixes translated (小学校 → 초등학교, 公園 → 공원, 病院 → 병원, 区立 → 구립, ビル → 빌딩 …), (2) place names read from the Japan Post town list (`utf_ken_all.csv`), (3) the rest read with the kuromoji morphological analyser and converted with the viewer's kana → Hangul table. It is an **approximate Japanese pronunciation** (names of people/places are sometimes misread, e.g. 千駄谷); nothing is translated by meaning. Needs `npm i pmtiles @mapbox/vector-tile pbf kuromoji` and Planetiler to rebuild.
+
+## Saitama City job coefficients (`job-coefficients-saitama.json`) — modeled, not applied yet
+
+Workers per 1,000 m² of floor area by building use for Saitama City's 10 wards, fitted the same way as the Tokyo coefficients (NNLS of 2021 census workers per chome on floor area by use, PLATEAU building attributes, 690 chome, R² 0.76). Two wards fit poorly out-of-sample (see `perWard`), so do not extend the coefficients to other cities blindly. Method, pitfalls and numbers: [`docs/data-sources-kanto-3pref.md`](../../docs/data-sources-kanto-3pref.md). Applied in `jobs-buildings-saitama.json` below.
+
+### Saitama City jobs on buildings (`jobs-buildings-saitama.json`) — modeled, not measured
+
+Each of the 690 Saitama City chome's real 2021 census worker total (558,868 workers, matches `jobs-saitama.json` exactly) distributed over its PLATEAU buildings by floor area × the fitted workers-per-m² of the building's use. 89,884 buildings that receive ≥1 worker are listed, each with `use`, `floor_m2`, `area_m2` (footprint), `levels`, `location`, `workers`. `floor_area_surveyed: false` marks buildings without a 2016 survey record whose floor area is mesh footprint × round(height/3 m); they hold 31,390 workers (5.6%). Script: `scripts/saitama-jobs-buildings.mjs`. Location is the building centroid (no footprint polygon, unlike Tokyo's `jobs-buildings.json`). Gzip sibling and manifest `compressed` entry included. Coefficient bias never changes a chome's total, only the split among its buildings.
+
+## Road names (`road-labels.pmtiles`)
+
+Line-placed Korean road names, 13MB, layer `rlabel` (`ko`, `kind` = OSM `highway` value). Built like `labels.pmtiles`: a Planetiler pass over `kanto-latest.osm.pbf` for named `motorway…tertiary` roads (plus named residential/unclassified from zoom 15; ref-only motorways/trunks get `국도 N호` or the expressway code), then decoded, transliterated (road suffixes translated: 通り → 거리, 街道 → 가도, 号線 → 호선, 首都高速 → 수도고속, 国道 → 국도; kanji numerals before 号 turned into digits) and re-encoded by `transitline/scripts/tokyo-korean-road-labels.mjs`. Same caveat as the other Korean labels: approximate Japanese pronunciation, `name:ko` used when OSM has it. `viewer.html`: legend toggle "도로 이름"; motorway/trunk labels are orange-brown, others grey; road colours (orange = motorway/trunk, yellow = primary, white = local streets, purple = rail) are explained in the legend.

@@ -3,6 +3,7 @@
 // Origins/destinations are limited to the demand.json municipalities; commuters to anywhere else are kept as `out`.
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { writeChecked } from './safe-write.mjs';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const demand = JSON.parse(fs.readFileSync(`${root}packs/tokyo/demand.json`, 'utf8'));
 const code = p => p.jisCode ? String(p.jisCode).slice(0, 5) : p.code;
@@ -28,5 +29,5 @@ const json = {
   note: 'workers = self + unknown + out + sum(dest). self: 自市区町村内(うち自宅 home) / dest: 領域内の他市区町村コード別 / out: 領域外 / unknown: 従業地不詳・外国 (統計局注記により常住市区町村に計上).',
   origins,
 };
-fs.writeFileSync(`${root}packs/tokyo/od.json`, JSON.stringify(json));
+writeChecked(`${root}packs/tokyo/od.json`, JSON.stringify(json), { label: 'O/D flows', count: (j) => Object.values(j.origins).reduce((t, o) => t + Object.keys(o.dest).length, 0) });
 console.log({ origins: Object.keys(origins).length, flows, workers: all, outShare: (outTotal / all).toFixed(4) });

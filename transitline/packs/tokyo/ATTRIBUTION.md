@@ -165,3 +165,11 @@ GEBCO Bathymetric Compilation Group 2026 (2026). The GEBCO_2026 Grid - a continu
 at 15 arc-second intervals. doi:10.5285/4f68d5c7-45eb-f999-e063-7086abc036fa — read via the BODC/CEDA archive.
 Terms (https://www.gebco.net/data-products/gridded-bathymetry-data, checked 2026-09-21): the GEBCO Grid is placed in the
 public domain and may be used free of charge; GEBCO asks that the source is acknowledged in publications/presentations.
+
+- **© OpenStreetMap contributors, `areas.pmtiles`.** Parks, schools, hospitals, water and land-use polygons from Geofabrik `kanto-latest.osm.pbf`. ODbL-1.0, same Derivative Database obligations as the other OSM-derived files, see [`./LICENSE-DATA`](./LICENSE-DATA).
+
+- さいたま市の用途別従業者係数 (`job-coefficients-saitama.json`, `jobs-buildings-saitama.json`): 出典 国土交通省 Project PLATEAU 3D都市モデル さいたま市 (2020年度) (https://www.geospatial.jp/ckan/dataset/plateau-11100-saitama-shi-2020)、PDL1.0。加工: 建物属性 (都市計画基礎調査 建物利用現況) を町丁別・用途別に集計し、経済センサスの従業者数と回帰して係数を推定。建物ごとの従業者数は町丁の従業者数を用途別係数で配分した推定値 (`jobs-buildings-saitama.json`)。
+
+- 就業者数 (`employed.json`, 建物別 `emp`): 総務省統計局「令和2年国勢調査 小地域集計」第16-2表 (e-Stat)。加工: 秘匿された町丁は合算値を居住人口で按分。政府標準利用規約2.0。
+
+- 建物ポリゴン・用途・階数 (`tokyo-survey-buildings.pmtiles`): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0)。加工: 座標変換 (平面直角座標系IX系→WGS84)、建物単位の推計人口・従業者数・就業者数を付与。

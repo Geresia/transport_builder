@@ -20,7 +20,7 @@ export function odRowsByStation(demand, od) {
       row.push({ id: to, weight: n });
       total += n;
     }
-    if (total > 0) rows.set(from, { row, total });
+    if (total > 0) rows.set(from, { row, total, workers: r.workers ?? total });
   }
   return rows;
 }

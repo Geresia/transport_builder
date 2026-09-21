@@ -11,6 +11,7 @@ import path from "node:path";
 import zlib from "node:zlib";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { checkAnswers, computeQuality, RUBRIC_VERSION } from "./quality-rubric.mjs";
 
 const CACHE_FILE = path.join(fileURLToPath(new URL("..", import.meta.url)), ".cache", "pack-checks.json");
 const useCache = !process.argv.includes("--no-cache");
@@ -115,6 +116,28 @@ export function runPackChecks(dir, manifest, { fail, warn }) {
     }));
   }
 
+  // 1b. PMTiles: magic + version 3, and the per-building tile layers must carry the modeled value fields the viewer/engine read
+  const REQUIRED_TILE_FIELDS = { buildingTilesSurvey: ["lu", "levels", "pop", "jobs", "emp"], buildingTiles: ["pop"] };
+  for (const [key, val] of Object.entries(manifest.files ?? {})) {
+    for (const rel of [].concat(val)) {
+      if (typeof rel !== "string" || !rel.endsWith(".pmtiles") || !fs.existsSync(at(rel))) continue;
+      collect(`pmtiles ${rel}`, cached(`${dir}|pmtiles|${rel}`, [at(rel)], (e) => {
+        const fd = fs.openSync(at(rel), "r");
+        try {
+          const h = Buffer.alloc(127); fs.readSync(fd, h, 0, 127, 0);
+          if (h.toString("latin1", 0, 7) !== "PMTiles" || h[7] !== 3) return e("not a PMTiles v3 archive (bad magic/version)");
+          const need = REQUIRED_TILE_FIELDS[key];
+          if (!need) return;
+          const off = Number(h.readBigUInt64LE(24)), len = Number(h.readBigUInt64LE(32)), comp = h[97];
+          let meta = Buffer.alloc(len); fs.readSync(fd, meta, 0, len, off);
+          if (comp === 2) meta = zlib.gunzipSync(meta); else if (comp > 2) return e(`unsupported metadata compression ${comp}`);
+          const fields = new Set((JSON.parse(meta.toString("utf8")).vector_layers ?? []).flatMap((l) => Object.keys(l.fields ?? {})));
+          for (const f of need) if (!fields.has(f)) e(`tile layer has no '${f}' field (files.${key} must carry ${need.join(", ")})`);
+        } finally { fs.closeSync(fd); }
+      }));
+    }
+  }
+
   // A malformed `files` map is reported by validate-pack and the schema check below; the checks that follow assume path strings.
   const filesOk = Object.values(manifest.files ?? {}).flat().every((v) => typeof v === "string");
 
@@ -184,6 +207,34 @@ export function runPackChecks(dir, manifest, { fail, warn }) {
     }));
   }
 
+  // employed residents: covers every sub-ward chome, adds up to the census municipality total, and reconciles with the O/D table
+  // (employed = workers with a stated workplace [od.workers] + workplace not stated) - two independent census tables
+  if (manifest.files?.employed && exists(at(manifest.files.employed))) {
+    const subs = [...new Set([...subFiles, ...extraSub])].filter((f) => exists(at(f)));
+    const odf = manifest.files.od && exists(at(manifest.files.od)) ? manifest.files.od : null;
+    collect("invariant employed", cached(`${dir}|inv-emp`, inputs(dir, [manifest.files.employed, manifest.files.demand, ...(odf ? [odf] : []), ...subs]), (e) => {
+      const emp = rdJson(at(manifest.files.employed)), odj = odf ? rdJson(at(odf)) : null;
+      const sums = {}; let missing = 0, over = 0;
+      for (const f of subs) for (const wd of Object.values(rdJson(at(f)).wards)) for (const a of wd.areas) {
+        const v = emp.areas[a.code];
+        if (v === undefined) { if (missing++ < 5) e(`chome ${a.code} has no employed count`); continue; }
+        if (!(Number.isInteger(v) && v >= 0)) e(`chome ${a.code}: employed must be a non-negative integer`);
+        if (v > (a.residents || 0) && over++ < 5) e(`chome ${a.code}: employed ${v} exceeds residents ${a.residents}`);
+        sums[wd.estat_code] = (sums[wd.estat_code] || 0) + v;
+      }
+      if (missing > 5) e(`... ${missing - 5} more chomes without an employed count`);
+      const areaSet = new Set(Object.keys(emp.areas));
+      for (const c of emp.estimated ?? []) if (!areaSet.has(c)) e(`estimated chome ${c} is not in areas`);
+      for (const [m, s] of Object.entries(sums)) {
+        const mu = emp.municipalities?.[m];
+        if (!mu) { e(`municipality ${m} missing from employed.municipalities`); continue; }
+        if (mu.employed !== s) e(`municipality ${m}: chome employed ${s} != census municipality total ${mu.employed}`);
+        const o = odj?.origins?.[m];
+        if (o && mu.employed !== o.workers + mu.unstated) e(`municipality ${m}: employed ${mu.employed} != O/D workers ${o.workers} + workplace-not-stated ${mu.unstated}`);
+      }
+    }));
+  }
+
   // per-building jobs: each chome's buildings sum to the chome's worker total, which equals the census-derived jobs.json
   if (manifest.files?.jobsBuildings && exists(at(manifest.files.jobsBuildings))) {
     const jf = manifest.files.jobs;
@@ -200,10 +251,22 @@ export function runPackChecks(dir, manifest, { fail, warn }) {
     }));
   }
 
-  // quality block: the registry answer keys must all be present
+  // quality block: every answer is a rubric value, and stored scores equal a fresh computation (registry CI does the same)
   if (manifest.quality) {
-    const need = ["workplace_count", "workplace_granularity", "workplace_resolution", "workplace_intensity", "resident_count", "resident_granularity", "resident_resolution", "resident_intensity", "od_metric"];
-    for (const k of need) if (!manifest.quality.answers?.[k]) fail(`manifest.quality.answers.${k} is missing`);
+    const blocks = [["quality", manifest.quality], ...Object.entries(manifest.quality.areas ?? {}).map(([k, v]) => [`quality.areas.${k}`, v])];
+    for (const [label, q] of blocks) {
+      const bad = checkAnswers(q.answers);
+      for (const m of bad) fail(`manifest.${label}: ${m}`);
+      if (bad.length) continue;
+      const fresh = computeQuality(q.answers);
+      if (q.computed) {
+        if (q.computed.tier !== fresh.tier) fail(`manifest.${label}.computed.tier is '${q.computed.tier}' but the answers score '${fresh.tier}' - run scripts/pack-quality.mjs --write`);
+        if (Math.abs(q.computed.weighted_score - fresh.weighted_score) > 0.0005 || Math.abs(q.computed.raw_score - fresh.raw_score) > 0.0005) {
+          fail(`manifest.${label}.computed scores (${q.computed.weighted_score}/${q.computed.raw_score}) differ from the answers (${fresh.weighted_score}/${fresh.raw_score}) - run scripts/pack-quality.mjs --write`);
+        }
+      } else warn(`manifest.${label} has no computed scores (run scripts/pack-quality.mjs --write)`);
+    }
+    if (manifest.quality.rubric_version !== RUBRIC_VERSION) fail(`manifest.quality.rubric_version ${manifest.quality.rubric_version} != ${RUBRIC_VERSION}: re-score deliberately after a rubric change`);
     if (manifest.quality.answers?.od_metric && manifest.quality.answers.od_metric !== "none" && !manifest.files?.od) fail("manifest.quality claims an O/D metric but files.od is not declared");
   }
   return stats;

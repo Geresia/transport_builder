@@ -26,7 +26,9 @@
       "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
       "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
       "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
-      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)"
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成"
     ],
     "sources": [
       {
@@ -93,6 +95,16 @@
         "name": "国土数値情報 学校データ P29-23 (CC BY 4.0) / 医療機関データ P04-20 (open data)",
         "url": "https://nlftp.mlit.go.jp/ksj/",
         "license": "CC-BY-4.0 / MLIT-KSJ-terms (commercial use and modification allowed; credit and modification notice required)"
+      },
+      {
+        "name": "令和2年国勢調査 小地域集計 第16-2表 就業者数（15歳以上）－町丁・字等 (埼玉・千葉・東京・神奈川)",
+        "url": "https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00200521&tstat=000001136464&cycle=0&tclass1=000001136472",
+        "license": "政府標準利用規約2.0 (CC BY 4.0 compatible)"
+      },
+      {
+        "name": "東京都 令和3年度 区部土地利用現況調査 建物現況 (R03), 東京都都市整備局 — building polygons with use class and floors (tokyo-survey-buildings.pmtiles) and the use-class fits (job/pop-coefficients.json)",
+        "url": "https://catalog.data.metro.tokyo.lg.jp/",
+        "license": "CC-BY-4.0"
       }
     ]
   },
@@ -121,24 +133,91 @@
     "basemap": "basemap.pmtiles",
     "od": "od.json",
     "bathymetry": "bathymetry.json",
-    "specialDemand": "special-demand.json"
+    "specialDemand": "special-demand.json",
+    "employed": "employed.json",
+    "buildingTilesSurvey": "tokyo-survey-buildings.pmtiles",
+    "jobsBuildingsSaitama": "jobs-buildings-saitama.json"
   },
   "quality": {
-    "scheme": "Subway-Builder-Modded data-quality rubric (docs/data-quality.md), self-assessed",
+    "scheme": "Subway-Builder-Modded data-quality rubric (registry docs/data-quality.md), self-assessed with scripts/quality-rubric.mjs",
+    "rubric_version": 1,
     "assessedAt": "2026-09-21",
+    "provenance": {
+      "method": "self-reported",
+      "submitted_by": "transitline",
+      "reviewed_by": null,
+      "date": "2026-09-21"
+    },
     "answers": {
       "workplace_count": "physical_measured",
       "workplace_granularity": "adm4",
-      "workplace_resolution": "building_modeled",
-      "workplace_intensity": "modeled_coefficients",
-      "resident_count": "total_population",
+      "workplace_resolution": "exact_footprints",
+      "workplace_intensity": "fine_types_calibrated",
+      "resident_count": "employed_residents",
       "resident_granularity": "adm4",
-      "resident_resolution": "building_modeled",
-      "resident_intensity": "modeled_coefficients",
+      "resident_resolution": "exact_footprints",
+      "resident_intensity": "fine_types_calibrated",
       "od_metric": "full_matrix",
       "od_granularity": "adm3"
     },
-    "notes": "Workers: 2021 Economic Census by 町丁 (Tokyo 23 wards, Kanagawa, Saitama, Chiba; per-building split is a modeled NNLS fit, see job-coefficients.json). Residents: 2020 census by 町丁. O/D: 2020 census 従業地 table, municipality x municipality (od.json), workers 15+ only. Answer keys follow the registry schema but the enum values are our own reading and have not been reviewed by the registry."
+    "areas": {
+      "kanagawa-saitama-chiba": {
+        "description": "Outer prefectures: workers exist per chome only (no per-building placement); employed residents exist per chome (employed.json) but the per-building split still uses total residents over OSM buildings by OSM tag (no land-use survey), so the placed resident count stays total_population.",
+        "answers": {
+          "workplace_count": "physical_measured",
+          "workplace_granularity": "adm4",
+          "workplace_resolution": "admin_polygon",
+          "workplace_intensity": "uniform",
+          "resident_count": "total_population",
+          "resident_granularity": "adm4",
+          "resident_resolution": "osm_footprints",
+          "resident_intensity": "binary_split",
+          "od_metric": "full_matrix",
+          "od_granularity": "adm3"
+        },
+        "computed": {
+          "raw_score": 0.149,
+          "weighted_score": 0.438,
+          "tier": "low",
+          "grade": "D",
+          "pillars": {
+            "workplace": {
+              "raw": 0.027,
+              "weighted": 0.464
+            },
+            "resident": {
+              "raw": 0.086,
+              "weighted": 0.288
+            },
+            "od": {
+              "raw": 0.7,
+              "weighted": 0.7
+            }
+          }
+        }
+      }
+    },
+    "notes": "answers = Tokyo 23 wards. Workers: 2021 Economic Census by chome (establishment-based, physical). Residents: employed residents (15+) by chome from the 2020 census small-area table 16-2 (employed.json; 1.8% of chomes are hidden cells split from published group totals) and per-building `emp` in tokyo-buildings.pmtiles; the engine uses commuters (od.json workers) as origin mass. Building placement: the official land use survey building polygons (tokyo-survey-buildings.pmtiles, 1.79M buildings, real use class and floors) = exact_footprints; per-use weights fitted by NNLS to census totals using the Tokyo land use survey (job-coefficients.json R2 0.85, pop-coefficients.json R2 0.74, emp R2 0.75) = fine_types_calibrated. O/D: 2020 census municipality x municipality full matrix (od.json), employed = od workers + workplace-not-stated for all 242 municipalities. Tiers are self-assessed and not reviewed by the registry.",
+    "computed": {
+      "raw_score": 0.755,
+      "weighted_score": 0.813,
+      "tier": "very-high",
+      "grade": "A",
+      "pillars": {
+        "workplace": {
+          "raw": 0.765,
+          "weighted": 0.833
+        },
+        "resident": {
+          "raw": 0.765,
+          "weighted": 0.833
+        },
+        "od": {
+          "raw": 0.7,
+          "weighted": 0.7
+        }
+      }
+    }
   },
   "compressed": {
     "building-population.json": {
@@ -182,6 +261,12 @@
       "encoding": "gzip",
       "bytes": 5355972,
       "gzBytes": 1122445
+    },
+    "jobs-buildings-saitama.json": {
+      "file": "jobs-buildings-saitama.json.gz",
+      "encoding": "gzip",
+      "bytes": 14570236,
+      "gzBytes": 1629636
     }
   }
 }

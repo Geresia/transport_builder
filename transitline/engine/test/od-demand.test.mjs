@@ -31,9 +31,14 @@ check(maxErr < 0.005, `sampled shares within 0.5 pt of measured (max error ${(ma
 const top = [...cnt].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([id]) => id);
 check(top.join() === ["13103", "13102", "13104"].map(idOf).join(), "top destinations for Chiyoda: Minato, Chuo, Shinjuku");
 
-// 3. volume is unchanged versus gravity; without od the model is plain gravity
+// 3. total volume is unchanged versus gravity, but origins now scale with commuters (employed residents), not total residents
 const grav = buildDemandModel(state, demand, null);
-check(demand.points.every((p) => model.rate(state, p.id) === grav.rate(state, p.id)), "spawn rate per origin identical to gravity");
+const sum = (m) => demand.points.reduce((t, p) => t + m.rate(state, p.id), 0);
+check(Math.abs(sum(model) - sum(grav)) / sum(grav) < 1e-9, `pack-wide spawn volume identical to gravity (${sum(model).toFixed(3)} trips/min)`);
+const wk = (p) => od.origins[p.jisCode !== undefined ? String(p.jisCode).slice(0, 5) : p.code].workers;
+const ratio = demand.points.map((p) => model.rate(state, p.id) / wk(p));
+check(Math.max(...ratio) / Math.min(...ratio) < 1 + 1e-9, "each origin's rate is proportional to its commuters");
+check(demand.points.some((p) => Math.abs(model.rate(state, p.id) / grav.rate(state, p.id) - 1) > 0.02), "origin volumes actually differ from residents-based gravity");
 check(grav.measuredOrigins === undefined, "no od -> plain gravity model");
 
 // 4. destinations that are not stations are dropped, and an origin left without any falls back to gravity
