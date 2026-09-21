@@ -5,6 +5,7 @@
 // Method: non-negative weighted least squares of chome workers on chome floor area (footprint x
 //         above-ground floors) by survey use class; then workers per m2 by class -> OSM kind mapping.
 import fs from "fs";
+import { readPackJson } from "./pack-json.mjs";
 import { fileURLToPath } from "url";
 import { readDbf } from "./tokyo-lu-dbf.mjs";
 const T = fileURLToPath(new URL("../packs/tokyo/", import.meta.url));
@@ -21,7 +22,7 @@ for (const r of readDbf(dbf)) {
   o.n++; o.fa[r.BV_6] = (o.fa[r.BV_6] || 0) + r.AREA * r.BV_3;
 }
 // 2. join to census workers (skip names that are ambiguous within a ward)
-const rd = (f) => JSON.parse(fs.readFileSync(T + f, "utf8"));
+const rd = (f) => readPackJson(T + f);
 const sw = rd("subward.json"), jobs = rd("jobs.json");
 const seen = {};
 for (const w of Object.values(sw.wards)) for (const a of w.areas) { const k = w.estat_code + "|" + a.name_ja; seen[k] = (seen[k] || 0) + 1; }
@@ -32,18 +33,32 @@ for (const w of Object.values(sw.wards)) for (const a of w.areas) {
   rows.push({ code: a.code, key: k, W: jobs.areas[a.code].w, x: U.map((u) => agg[k].fa[u] || 0) });
 }
 // 3. weighted NNLS by coordinate descent (weight 1/(W+200))
-const p = U.length, wt = rows.map((r) => 1 / (r.W + 200));
-const beta = new Array(p).fill(0.01), col = U.map((_, j) => rows.map((r) => r.x[j]));
-const res = rows.map((r) => r.W - r.x.reduce((s, v, j) => s + v * beta[j], 0));
-for (let it = 0; it < 3000; it++) for (let j = 0; j < p; j++) {
-  let num = 0, den = 0;
-  for (let i = 0; i < rows.length; i++) { const x = col[j][i]; num += wt[i] * x * (res[i] + x * beta[j]); den += wt[i] * x * x; }
-  const nb = den > 0 ? Math.max(0, num / den) : 0, d = nb - beta[j];
-  if (d) { for (let i = 0; i < rows.length; i++) res[i] -= col[j][i] * d; beta[j] = nb; }
+const p = U.length;
+function fit(rs) {
+  const wt = rs.map((r) => 1 / (r.W + 200)), beta = new Array(p).fill(0.01), col = U.map((_, j) => rs.map((r) => r.x[j]));
+  const res = rs.map((r) => r.W - r.x.reduce((s, v, j) => s + v * beta[j], 0));
+  for (let it = 0; it < 3000; it++) for (let j = 0; j < p; j++) {
+    let num = 0, den = 0;
+    for (let i = 0; i < rs.length; i++) { const x = col[j][i]; num += wt[i] * x * (res[i] + x * beta[j]); den += wt[i] * x * x; }
+    const nb = den > 0 ? Math.max(0, num / den) : 0, d = nb - beta[j];
+    if (d) { for (let i = 0; i < rs.length; i++) res[i] -= col[j][i] * d; beta[j] = nb; }
+  }
+  return beta;
 }
+const predict = (beta, r) => r.x.reduce((s, v, j) => s + v * beta[j], 0);
+const r2of = (rs, beta) => { const m = rs.reduce((s, r) => s + r.W, 0) / rs.length; let a = 0, b = 0; rs.forEach((r) => { a += (r.W - predict(beta, r)) ** 2; b += (r.W - m) ** 2; }); return 1 - a / b; };
+const beta = fit(rows);
 const mean = rows.reduce((s, r) => s + r.W, 0) / rows.length;
 let ssr = 0, sst = 0;
-rows.forEach((r) => { const pr = r.x.reduce((s, v, j) => s + v * beta[j], 0); ssr += (r.W - pr) ** 2; sst += (r.W - mean) ** 2; });
+rows.forEach((r) => { ssr += (r.W - predict(beta, r)) ** 2; sst += (r.W - mean) ** 2; });
+// per-ward fit quality: in-sample R2 and leave-one-ward-out R2 (coefficients refit without that ward), plus total bias
+const wardOf = (r) => r.key.slice(0, 5);
+const perWard = {};
+for (const wc of [...new Set(rows.map(wardOf))].sort()) {
+  const inW = rows.filter((r) => wardOf(r) === wc), outW = rows.filter((r) => wardOf(r) !== wc), bo = fit(outW);
+  const obs = inW.reduce((s, r) => s + r.W, 0), pin = inW.reduce((s, r) => s + predict(beta, r), 0), pout = inW.reduce((s, r) => s + predict(bo, r), 0);
+  perWard[wc] = { chome: inW.length, workers: obs, r2InSample: +r2of(inW, beta).toFixed(3), r2LeaveWardOut: +r2of(inW, bo).toFixed(3), biasInSamplePct: +((pin / obs - 1) * 100).toFixed(1), biasLeaveWardOutPct: +((pout / obs - 1) * 100).toFixed(1) };
+}
 const B = Object.fromEntries(U.map((u, j) => [u, beta[j]]));
 const totFa = {}; for (const c of Object.values(agg)) for (const [u, v] of Object.entries(c.fa)) totFa[u] = (totFa[u] || 0) + v;
 const blend = (us) => us.reduce((s, u) => s + B[u] * totFa[u], 0) / us.reduce((s, u) => s + totFa[u], 0);
@@ -81,12 +96,13 @@ for (const [code, area] of Object.entries(jb.areas)) {
   area.buildings.forEach((b, i) => (b.workers = fl[i]));
 }
 jb.note = "MODELED, not measured: each chome's real 2021 Economic Census worker total distributed over real OSM building footprints by floor area (footprint x levels; levels default 1 when OSM has no tag, except Marunouchi 1-chome which uses the chome median) x jobs-per-m2 coefficient by building use. Coefficients (jobs_per_1000m2 on each building, table in job-coefficients.json) are fitted from Tokyo's 2021 Land Use Survey floor areas vs Economic Census workers across ~3,100 chome (see README).";
-fs.writeFileSync(T + "jobs-buildings.json", JSON.stringify(jb));
+if (!process.env.STATS_ONLY) fs.writeFileSync(T + "jobs-buildings.json", JSON.stringify(jb)); // STATS_ONLY=1 refreshes job-coefficients.json only
 fs.writeFileSync(T + "job-coefficients.json", JSON.stringify({
   formatVersion: 1, modeled: true,
   method: "Non-negative weighted least squares (weight 1/(workers+200)), chome workers ~ sum over survey use class of (footprint x above-ground floors), no intercept.",
   sources: ["Tokyo Metropolitan Government Urban Development Bureau, Land Use Survey R3 (2021), 23 wards, building data (CC BY 4.0)", "2021 Economic Census - Activity Survey, e-Stat table 32-1-13 (jobs.json)"],
-  chomeUsed: rows.length, r2: +(1 - ssr / sst).toFixed(3),
+  chomeUsed: rows.length, r2: +(1 - ssr / sst).toFixed(3), perWard,
+  perWardNote: "r2LeaveWardOut refits the coefficients without that ward and scores it on that ward (out-of-sample); bias = predicted / observed - 1 over the ward total. Use this, not the in-sample R2, to judge extending the coefficients to areas without a land use survey.",
   surveyClassJobsPer1000m2: Object.fromEntries(U.map((u) => [u, +(B[u] * 1000).toFixed(2)])),
   osmKindJobsPer1000m2: Object.fromEntries(Object.entries(KIND).map(([k, v]) => [k, +(v * 1000).toFixed(2)])),
   untaggedYes: "per-chome floor-area-weighted average of survey classes; city-wide fallback " + (cityAvg * 1000).toFixed(2),

@@ -38,6 +38,7 @@ engine/     게임, 판매                     →   독점, 팩에서 아무것
 | [`packs/example-corridor/`](./packs/example-corridor/) | 가상 회랑형 도시, `matrix` 모델 + 캘린더 |
 | [`engine/`](./engine/) | 게임 루프 |
 | [`scripts/validate-pack.mjs`](./scripts/validate-pack.mjs) | 팩 검증기. 형식뿐 아니라 라이선스 규칙도 검사 |
+| [`scripts/pack-checks.mjs`](./scripts/pack-checks.mjs) | validate-pack이 부르는 데이터 검사: JSON 서식(BOM), `.gz` 형제 파일이 원본과 일치하는지, 파일 간 불변식(시정촌 코드, O/D 행 합계, 町丁目 합계=시정촌 인구, 건물별 종사자 합계). 입력 파일의 크기·수정시각이 그대로면 결과를 `.cache/`에서 재사용, `--no-cache`로 무시 |
 | [`schemas/`](./schemas/) | manifest·demand JSON 스키마. 참고용 |
 | [`docs/subway-builder-reference.md`](./docs/subway-builder-reference.md) | Subway Builder 참고 노트 |
 

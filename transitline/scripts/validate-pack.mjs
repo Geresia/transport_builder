@@ -3,6 +3,7 @@
 //   node scripts/validate-pack.mjs packs/example-radial
 import { readFileSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { runPackChecks, saveCache, checkStats } from "./pack-checks.mjs";
 
 const dir = resolve(process.argv[2] ?? "");
 if (!process.argv[2]) {
@@ -183,6 +184,13 @@ for (const [i, f] of (demand?.flows ?? []).entries()) {
   if (f.period !== undefined && cal && !periodIds.has(f.period)) {
     fail(`flows[${i}].period references unknown period: ${f.period}`);
   }
+}
+
+// --- data-level checks: format, gzip siblings, cross-file invariants (fingerprint-cached; --no-cache to bypass)
+if (manifest) {
+  try { runPackChecks(dir, manifest, { fail, warn }); } catch (e) { fail(`pack-checks crashed: ${e.message}`); }
+  saveCache();
+  console.log(`  checks ${checkStats.ran} run, ${checkStats.cached} cached`);
 }
 
 for (const w of warnings) console.log(`  note  ${w}`);

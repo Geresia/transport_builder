@@ -145,3 +145,7 @@ None of the above requires payment or registration; all permit commercial
 use per their stated terms. The pack's overall `data.license` is set to the
 strictest of these sources (`ODbL-1.0`) per
 [`../LICENSING.md`](../LICENSING.md) Rule 2.
+
+- 通勤OD (`od.json`): 出典 総務省統計局「令和2年国勢調査 従業地・通学地による人口・就業状態等集計」第3表 (e-Stat)。加工: 市区町村別に領域内へ集約。政府標準利用規約2.0。
+
+- 市区町村別人口 (`demand.json`, 2026-09-21 更新): 総務省統計局「令和2年国勢調査 従業地・通学地による人口・就業状態等集計」第1-1表 (e-Stat)。政府標準利用規約2.0。

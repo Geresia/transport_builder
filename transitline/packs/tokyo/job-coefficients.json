@@ -8,6 +8,193 @@
  ],
  "chomeUsed": 3114,
  "r2": 0.849,
+ "perWard": {
+  "13101": {
+   "chome": 107,
+   "workers": 1158160,
+   "r2InSample": 0.876,
+   "r2LeaveWardOut": 0.858,
+   "biasInSamplePct": -22,
+   "biasLeaveWardOutPct": -25.1
+  },
+  "13102": {
+   "chome": 98,
+   "workers": 782741,
+   "r2InSample": 0.693,
+   "r2LeaveWardOut": 0.683,
+   "biasInSamplePct": -19.2,
+   "biasLeaveWardOutPct": -20.4
+  },
+  "13103": {
+   "chome": 117,
+   "workers": 1134499,
+   "r2InSample": 0.831,
+   "r2LeaveWardOut": 0.83,
+   "biasInSamplePct": -7.8,
+   "biasLeaveWardOutPct": 0.2
+  },
+  "13104": {
+   "chome": 150,
+   "workers": 705966,
+   "r2InSample": 0.85,
+   "r2LeaveWardOut": 0.847,
+   "biasInSamplePct": -21.6,
+   "biasLeaveWardOutPct": -22.4
+  },
+  "13105": {
+   "chome": 68,
+   "workers": 222078,
+   "r2InSample": 0.882,
+   "r2LeaveWardOut": 0.877,
+   "biasInSamplePct": -7.3,
+   "biasLeaveWardOutPct": -7.4
+  },
+  "13106": {
+   "chome": 108,
+   "workers": 241112,
+   "r2InSample": 0.837,
+   "r2LeaveWardOut": 0.835,
+   "biasInSamplePct": -4.3,
+   "biasLeaveWardOutPct": -3.7
+  },
+  "13107": {
+   "chome": 104,
+   "workers": 168392,
+   "r2InSample": 0.541,
+   "r2LeaveWardOut": 0.346,
+   "biasInSamplePct": 3.7,
+   "biasLeaveWardOutPct": 7.2
+  },
+  "13108": {
+   "chome": 155,
+   "workers": 411792,
+   "r2InSample": 0.459,
+   "r2LeaveWardOut": 0.334,
+   "biasInSamplePct": 5.8,
+   "biasLeaveWardOutPct": 12.6
+  },
+  "13109": {
+   "chome": 130,
+   "workers": 433444,
+   "r2InSample": 0.829,
+   "r2LeaveWardOut": 0.823,
+   "biasInSamplePct": -24.3,
+   "biasLeaveWardOutPct": -24.8
+  },
+  "13110": {
+   "chome": 88,
+   "workers": 140362,
+   "r2InSample": 0.685,
+   "r2LeaveWardOut": 0.68,
+   "biasInSamplePct": -10.6,
+   "biasLeaveWardOutPct": -10.6
+  },
+  "13111": {
+   "chome": 216,
+   "workers": 371320,
+   "r2InSample": 0.533,
+   "r2LeaveWardOut": 0.509,
+   "biasInSamplePct": -21.4,
+   "biasLeaveWardOutPct": -22.9
+  },
+  "13112": {
+   "chome": 277,
+   "workers": 292659,
+   "r2InSample": 0.783,
+   "r2LeaveWardOut": 0.775,
+   "biasInSamplePct": -6.3,
+   "biasLeaveWardOutPct": -4.3
+  },
+  "13113": {
+   "chome": 77,
+   "workers": 582941,
+   "r2InSample": 0.739,
+   "r2LeaveWardOut": 0.722,
+   "biasInSamplePct": -30.4,
+   "biasLeaveWardOutPct": -31.9
+  },
+  "13114": {
+   "chome": 85,
+   "workers": 129112,
+   "r2InSample": 0.921,
+   "r2LeaveWardOut": 0.92,
+   "biasInSamplePct": -15.6,
+   "biasLeaveWardOutPct": -15.8
+  },
+  "13115": {
+   "chome": 139,
+   "workers": 166987,
+   "r2InSample": 0.782,
+   "r2LeaveWardOut": 0.778,
+   "biasInSamplePct": -16.6,
+   "biasLeaveWardOutPct": -17.3
+  },
+  "13116": {
+   "chome": 83,
+   "workers": 278087,
+   "r2InSample": 0.804,
+   "r2LeaveWardOut": 0.788,
+   "biasInSamplePct": -28.7,
+   "biasLeaveWardOutPct": -29.8
+  },
+  "13117": {
+   "chome": 107,
+   "workers": 129594,
+   "r2InSample": 0.71,
+   "r2LeaveWardOut": 0.708,
+   "biasInSamplePct": -12.5,
+   "biasLeaveWardOutPct": -12.5
+  },
+  "13118": {
+   "chome": 52,
+   "workers": 80996,
+   "r2InSample": 0.768,
+   "r2LeaveWardOut": 0.751,
+   "biasInSamplePct": 5.8,
+   "biasLeaveWardOutPct": 7
+  },
+  "13119": {
+   "chome": 134,
+   "workers": 207012,
+   "r2InSample": 0.468,
+   "r2LeaveWardOut": 0.457,
+   "biasInSamplePct": -20,
+   "biasLeaveWardOutPct": -20.5
+  },
+  "13120": {
+   "chome": 201,
+   "workers": 195040,
+   "r2InSample": 0.572,
+   "r2LeaveWardOut": 0.568,
+   "biasInSamplePct": -14.4,
+   "biasLeaveWardOutPct": -15
+  },
+  "13121": {
+   "chome": 266,
+   "workers": 235458,
+   "r2InSample": 0.638,
+   "r2LeaveWardOut": 0.633,
+   "biasInSamplePct": -15,
+   "biasLeaveWardOutPct": -15.3
+  },
+  "13122": {
+   "chome": 155,
+   "workers": 141421,
+   "r2InSample": 0.775,
+   "r2LeaveWardOut": 0.76,
+   "biasInSamplePct": -7.8,
+   "biasLeaveWardOutPct": -7.8
+  },
+  "13123": {
+   "chome": 197,
+   "workers": 199134,
+   "r2InSample": 0.654,
+   "r2LeaveWardOut": 0.649,
+   "biasInSamplePct": -17.7,
+   "biasLeaveWardOutPct": -18
+  }
+ },
+ "perWardNote": "r2LeaveWardOut refits the coefficients without that ward and scores it on that ward (out-of-sample); bias = predicted / observed - 1 over the ward total. Use this, not the in-sample R2, to judge extending the coefficients to areas without a land use survey.",
  "surveyClassJobsPer1000m2": {
   "111": 24.37,
   "112": 6.17,

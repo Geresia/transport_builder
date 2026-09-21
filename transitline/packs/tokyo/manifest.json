@@ -3,8 +3,16 @@
   "id": "tokyo",
   "name": "Greater Tokyo",
   "version": "0.1.0",
-  "bbox": [138.18086, 34.90298, 140.86554, 37.1533],
-  "origin": [139.5232, 36.02814],
+  "bbox": [
+    138.18086,
+    34.90298,
+    140.86554,
+    37.1533
+  ],
+  "origin": [
+    139.5232,
+    36.02814
+  ],
   "data": {
     "license": "ODbL-1.0",
     "attribution": [
@@ -16,7 +24,8 @@
       "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
       "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
       "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
-      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API"
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）"
     ],
     "sources": [
       {
@@ -73,6 +82,11 @@
         "name": "Protomaps basemap extract (basemap.pmtiles) — daily planet build 2026-09-19 (planetiler 0.10.2, schema 4.15.2), cut to this pack bbox with go-pmtiles `extract --maxzoom=12`. Layers earth/water/landuse/roads (incl. rail)/places/pois/boundaries/buildings, derived from OpenStreetMap and Natural Earth. Rendering only; zoom 0-12, so no building footprints (those are tokyo-buildings.pmtiles, z13-14)",
         "url": "https://docs.protomaps.com/basemaps/downloads",
         "license": "ODbL-1.0"
+      },
+      {
+        "name": "令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表 (常住地 x 従業地・通学地, 市区町村)",
+        "url": "https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&lid=000001296018",
+        "license": "政府標準利用規約2.0 (CC BY 4.0 compatible)"
       }
     ]
   },
@@ -85,10 +99,20 @@
     "jobs": "jobs.json",
     "jobsBuildings": "jobs-buildings.json",
     "buildingTiles": "tokyo-buildings.pmtiles",
-    "roadTiles": ["tokyo-roads.pmtiles", "saitama-roads.pmtiles", "chiba-roads.pmtiles", "kanagawa-roads.pmtiles"],
+    "roadTiles": [
+      "tokyo-roads.pmtiles",
+      "saitama-roads.pmtiles",
+      "chiba-roads.pmtiles",
+      "kanagawa-roads.pmtiles"
+    ],
     "buildingLabels": "building-labels.pmtiles",
-    "buildingTilesRegional": ["saitama-buildings.pmtiles", "chiba-buildings.pmtiles", "kanagawa-buildings.pmtiles"],
-    "basemap": "basemap.pmtiles"
+    "buildingTilesRegional": [
+      "saitama-buildings.pmtiles",
+      "chiba-buildings.pmtiles",
+      "kanagawa-buildings.pmtiles"
+    ],
+    "basemap": "basemap.pmtiles",
+    "od": "od.json"
   },
   "compressed": {
     "building-population.json": {
@@ -133,5 +157,22 @@
       "bytes": 5355972,
       "gzBytes": 1122445
     }
+  },
+  "quality": {
+    "scheme": "Subway-Builder-Modded data-quality rubric (docs/data-quality.md), self-assessed",
+    "assessedAt": "2026-09-21",
+    "answers": {
+      "workplace_count": "physical_measured",
+      "workplace_granularity": "adm4",
+      "workplace_resolution": "building_modeled",
+      "workplace_intensity": "modeled_coefficients",
+      "resident_count": "total_population",
+      "resident_granularity": "adm4",
+      "resident_resolution": "building_modeled",
+      "resident_intensity": "modeled_coefficients",
+      "od_metric": "full_matrix",
+      "od_granularity": "adm3"
+    },
+    "notes": "Workers: 2021 Economic Census by 町丁 (Tokyo 23 wards, Kanagawa, Saitama, Chiba; per-building split is a modeled NNLS fit, see job-coefficients.json). Residents: 2020 census by 町丁. O/D: 2020 census 従業地 table, municipality x municipality (od.json), workers 15+ only. Answer keys follow the registry schema but the enum values are our own reading and have not been reviewed by the registry."
   }
 }

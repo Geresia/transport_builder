@@ -344,8 +344,8 @@ map.on("load", async () => {
   // ---- 광역권 인구밀도 (kanto-region.json 폴리곤 + demand.json 의 kanto-* 포인트, code 로 조인) ----
   // 사이타마·지바·가나가와 + 도쿄 다마. 서울로 치면 경기·인천에 해당하는, 원본 아티팩트가
   // tier 1("핵심 생활권")로 구분한 범위. 지정도시(요코하마·가와사키·사이타마·지바·사가미하라)는
-  // 구 단위로 쪼개져 있음 — popDate 가 "2026-08"(추계인구)인 건 이 44개 구 + 도쿄 다마
-  // 30개시. 나머지는 2020년 국세조사(4개는 전년비 증감으로 역산, popDate "2020-derived").
+  // 구 단위로 쪼개져 있음 — popDate 가 "2026-08"(추계인구)였던 이 44개 구 + 도쿄 다마
+  // 30개시는 2026-09-21 이후 2020 국세조사 원값으로 교체됨(추계는 residentsEst2026). 전 지점 popDate "2020".
   // README.md 참고.
   if (region && demand) {
     const byRegionCode = new Map(
@@ -435,6 +435,10 @@ map.on("load", async () => {
   const BLDG_POP_CUTS = [1.6, 2.5, 3.3, 4.2, 5.3, 7.1, 11.6];
   // 도쿄도 토지이용현황조사(2021) 건물 용도 코드 — pop 배분에 쓴 실제 용도
   const LU_KO = { 111: "관공서", 112: "교육·문화", 113: "의료·복지", 114: "공급처리", 121: "사무소", 122: "상업", 123: "주상복합", 124: "숙박·유흥", 125: "스포츠·흥행", 131: "독립주택", 132: "집합주택", 141: "공장", 142: "주거병용 공장", 143: "창고·운수", 150: "기타" };
+  // 건물별 추정 종사자 (jobs 속성 — 정목 실제 종사자(2021 경제센서스)를 토지이용조사 용도별 계수×연면적으로 배분한 모델).
+  // 분포가 극단적으로 치우쳐(중앙값 0.1명, 최대 1.9만명) 분위수 대신 고정 구간을 씀. 0명은 회색.
+  const BLDG_JOB_CUTS = [0.5, 2, 5, 15, 50, 150, 500];
+  const bldg23JobColor = ["case", ["<=", ["coalesce", ["get", "jobs"], 0], 0], "#6b7378", stepExpr("jobs", BLDG_JOB_CUTS, RAMP)];
   const bldg23PopColor = ["case", ["<=", ["coalesce", ["get", "pop"], 0], 0], "#6b7378", stepExpr("pop", BLDG_POP_CUTS, RAMP)];
   const supportedWardsKo = subward && subward.wards
     ? Object.keys(subward.wards).map((j) => KO_NAMES[j] || j).join("·")
@@ -697,8 +701,8 @@ map.on("load", async () => {
       }
       // 23구 전체 건물(tokyo-buildings.pmtiles)의 pop 속성 색: 거주 모드에서만 (종사자 모드는 회색 + jobsgrid)
       if (map.getLayer("bldg23-fill")) {
-        map.setPaintProperty("bldg23-fill", "fill-color", jm ? "#e7eef0" : bldg23PopColor);
-        map.setPaintProperty("bldg23-fill", "fill-opacity", jm ? 0.5 : 0.85);
+        map.setPaintProperty("bldg23-fill", "fill-color", jm ? bldg23JobColor : bldg23PopColor);
+        map.setPaintProperty("bldg23-fill", "fill-opacity", 0.85);
       }
     };
     applyMetric();
@@ -836,17 +840,17 @@ map.on("load", async () => {
       for (const id of ["obstacles-fill", "obstacles-line"]) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", "none");
       applyMetric();
       map.on("click", "bldg23-fill", (e) => {
-        if (metric === "jobs" || !e.features.length) return;
+        if (!e.features.length) return;
         // Minato/Chuo/허브 정목은 building-population.json 레이어(bldgpop-fill)가 자체 팝업을 띄움 — 중복 방지
         if (map.getLayer("bldgpop-fill") && map.queryRenderedFeatures(e.point, { layers: ["bldgpop-fill"] }).length) return;
         const p = e.features[0].properties;
         const lv = LU_KO[p.lu] ? `용도 ${LU_KO[p.lu]} (토지이용조사)` : (p.levels && p.levels !== "null" ? `${p.levels}층` : "층수 미상");
         new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
-          .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 거주 인구 <b>${Number(p.pop).toFixed(1)}</b>명`
+          .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 ${metric === "jobs" ? `종사자 <b>${Number(p.jobs).toFixed(1)}</b>` : `거주 인구 <b>${Number(p.pop).toFixed(1)}</b>`}명`
             + `<br>${lv} · ${p.sourceKind}<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
           .addTo(map);
       });
-      map.on("mouseenter", "bldg23-fill", () => { if (metric !== "jobs") map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseenter", "bldg23-fill", () => { map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", "bldg23-fill", () => (map.getCanvas().style.cursor = ""));
     } catch (err) { console.warn("tokyo-buildings.pmtiles 연결 실패, obstacles.json 으로 대체:", err); }
 

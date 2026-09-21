@@ -308,11 +308,12 @@
                                         139.57576,
                                         35.91401
                                     ],
-                       "residents":  94343,
+                       "residents":  93499,
                        "kind":  "mixed",
                        "code":  "11101",
                        "area_km2":  30.87,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  94343
                    },
                    {
                        "id":  "kanto-11102",
@@ -321,11 +322,12 @@
                                         139.60986,
                                         35.93380
                                     ],
-                       "residents":  148504,
+                       "residents":  149242,
                        "kind":  "mixed",
                        "code":  "11102",
                        "area_km2":  13.04,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  148504
                    },
                    {
                        "id":  "kanto-11103",
@@ -334,11 +336,12 @@
                                         139.61925,
                                         35.89909
                                     ],
-                       "residents":  126249,
+                       "residents":  117784,
                        "kind":  "mixed",
                        "code":  "11103",
                        "area_km2":  13.61,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  126249
                    },
                    {
                        "id":  "kanto-11104",
@@ -347,11 +350,12 @@
                                         139.66083,
                                         35.92865
                                     ],
-                       "residents":  167389,
+                       "residents":  165049,
                        "kind":  "mixed",
                        "code":  "11104",
                        "area_km2":  33.38,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  167389
                    },
                    {
                        "id":  "kanto-11105",
@@ -360,11 +364,12 @@
                                         139.62419,
                                         35.87698
                                     ],
-                       "residents":  104341,
+                       "residents":  103269,
                        "kind":  "mixed",
                        "code":  "11105",
                        "area_km2":  5.1,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  104341
                    },
                    {
                        "id":  "kanto-11106",
@@ -373,11 +378,12 @@
                                         139.60079,
                                         35.86359
                                     ],
-                       "residents":  99166,
+                       "residents":  98661,
                        "kind":  "mixed",
                        "code":  "11106",
                        "area_km2":  17.18,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  99166
                    },
                    {
                        "id":  "kanto-11107",
@@ -386,11 +392,12 @@
                                         139.64793,
                                         35.88219
                                     ],
-                       "residents":  170319,
+                       "residents":  164822,
                        "kind":  "mixed",
                        "code":  "11107",
                        "area_km2":  9.54,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  170319
                    },
                    {
                        "id":  "kanto-11108",
@@ -399,11 +406,12 @@
                                         139.65032,
                                         35.84693
                                     ],
-                       "residents":  197091,
+                       "residents":  191563,
                        "kind":  "mixed",
                        "code":  "11108",
                        "area_km2":  18.68,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  197091
                    },
                    {
                        "id":  "kanto-11109",
@@ -412,11 +420,12 @@
                                         139.69646,
                                         35.88540
                                     ],
-                       "residents":  133537,
+                       "residents":  128321,
                        "kind":  "mixed",
                        "code":  "11109",
                        "area_km2":  27.55,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  133537
                    },
                    {
                        "id":  "kanto-11110",
@@ -425,11 +434,12 @@
                                         139.70980,
                                         35.94714
                                     ],
-                       "residents":  110280,
+                       "residents":  111815,
                        "kind":  "mixed",
                        "code":  "11110",
                        "area_km2":  49.63,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  110280
                    },
                    {
                        "id":  "kanto-11201",
@@ -438,7 +448,7 @@
                                         139.47589,
                                         35.90447
                                     ],
-                       "residents":  354680,
+                       "residents":  354571,
                        "kind":  "mixed",
                        "code":  "11201",
                        "area_km2":  106.05,
@@ -451,7 +461,7 @@
                                         139.37025,
                                         36.16015
                                     ],
-                       "residents":  194439,
+                       "residents":  194415,
                        "kind":  "mixed",
                        "code":  "11202",
                        "area_km2":  164.7,
@@ -464,7 +474,7 @@
                                         139.72837,
                                         35.83970
                                     ],
-                       "residents":  594461,
+                       "residents":  594274,
                        "kind":  "mixed",
                        "code":  "11203",
                        "area_km2":  61.29,
@@ -477,7 +487,7 @@
                                         139.48342,
                                         36.15105
                                     ],
-                       "residents":  78671,
+                       "residents":  78617,
                        "kind":  "mixed",
                        "code":  "11206",
                        "area_km2":  62.19,
@@ -490,7 +500,7 @@
                                         138.95413,
                                         35.98114
                                     ],
-                       "residents":  59706,
+                       "residents":  59674,
                        "kind":  "mixed",
                        "code":  "11207",
                        "area_km2":  580.89,
@@ -503,7 +513,7 @@
                                         139.45420,
                                         35.80278
                                     ],
-                       "residents":  342535,
+                       "residents":  342464,
                        "kind":  "mixed",
                        "code":  "11208",
                        "area_km2":  72.02,
@@ -516,7 +526,7 @@
                                         139.23524,
                                         35.88335
                                     ],
-                       "residents":  80391,
+                       "residents":  80361,
                        "kind":  "mixed",
                        "code":  "11209",
                        "area_km2":  192.81,
@@ -529,7 +539,7 @@
                                         139.60964,
                                         36.14208
                                     ],
-                       "residents":  111702,
+                       "residents":  111623,
                        "kind":  "mixed",
                        "code":  "11210",
                        "area_km2":  135.42,
@@ -542,7 +552,7 @@
                                         139.14386,
                                         36.20743
                                     ],
-                       "residents":  78623,
+                       "residents":  78569,
                        "kind":  "mixed",
                        "code":  "11211",
                        "area_km2":  87.78,
@@ -555,7 +565,7 @@
                                         139.39779,
                                         36.04304
                                     ],
-                       "residents":  91838,
+                       "residents":  91791,
                        "kind":  "mixed",
                        "code":  "11212",
                        "area_km2":  65.42,
@@ -568,7 +578,7 @@
                                         139.76525,
                                         35.98316
                                     ],
-                       "residents":  229767,
+                       "residents":  229792,
                        "kind":  "mixed",
                        "code":  "11214",
                        "area_km2":  66.62,
@@ -581,7 +591,7 @@
                                         139.41324,
                                         35.86501
                                     ],
-                       "residents":  148712,
+                       "residents":  148699,
                        "kind":  "mixed",
                        "code":  "11215",
                        "area_km2":  48.56,
@@ -594,7 +604,7 @@
                                         139.55547,
                                         36.17891
                                     ],
-                       "residents":  52879,
+                       "residents":  52862,
                        "kind":  "mixed",
                        "code":  "11216",
                        "area_km2":  60.89,
@@ -607,7 +617,7 @@
                                         139.51036,
                                         36.07850
                                     ],
-                       "residents":  116864,
+                       "residents":  116828,
                        "kind":  "mixed",
                        "code":  "11217",
                        "area_km2":  69.2,
@@ -620,7 +630,7 @@
                                         139.26555,
                                         36.17754
                                     ],
-                       "residents":  141336,
+                       "residents":  141268,
                        "kind":  "mixed",
                        "code":  "11218",
                        "area_km2":  144.06,
@@ -633,7 +643,7 @@
                                         139.58171,
                                         35.96050
                                     ],
-                       "residents":  227020,
+                       "residents":  226940,
                        "kind":  "mixed",
                        "code":  "11219",
                        "area_km2":  45.54,
@@ -646,7 +656,7 @@
                                         139.80254,
                                         35.83963
                                     ],
-                       "residents":  248037,
+                       "residents":  248304,
                        "kind":  "mixed",
                        "code":  "11221",
                        "area_km2":  29.43,
@@ -659,7 +669,7 @@
                                         139.79076,
                                         35.90126
                                     ],
-                       "residents":  341765,
+                       "residents":  341621,
                        "kind":  "mixed",
                        "code":  "11222",
                        "area_km2":  59.89,
@@ -672,7 +682,7 @@
                                         139.67580,
                                         35.82651
                                     ],
-                       "residents":  74326,
+                       "residents":  74283,
                        "kind":  "mixed",
                        "code":  "11223",
                        "area_km2":  1.61,
@@ -685,7 +695,7 @@
                                         139.65805,
                                         35.81344
                                     ],
-                       "residents":  140868,
+                       "residents":  140899,
                        "kind":  "mixed",
                        "code":  "11224",
                        "area_km2":  19.85,
@@ -698,7 +708,7 @@
                                         139.37092,
                                         35.81778
                                     ],
-                       "residents":  145723,
+                       "residents":  145651,
                        "kind":  "mixed",
                        "code":  "11225",
                        "area_km2":  42.99,
@@ -711,7 +721,7 @@
                                         139.60238,
                                         35.81222
                                     ],
-                       "residents":  141036,
+                       "residents":  141083,
                        "kind":  "mixed",
                        "code":  "11227",
                        "area_km2":  17.96,
@@ -724,7 +734,7 @@
                                         139.57770,
                                         35.83876
                                     ],
-                       "residents":  75377,
+                       "residents":  75346,
                        "kind":  "mixed",
                        "code":  "11228",
                        "area_km2":  9.83,
@@ -737,7 +747,7 @@
                                         139.62299,
                                         35.79515
                                     ],
-                       "residents":  83997,
+                       "residents":  83989,
                        "kind":  "mixed",
                        "code":  "11229",
                        "area_km2":  7.49,
@@ -750,7 +760,7 @@
                                         139.55371,
                                         35.79185
                                     ],
-                       "residents":  166104,
+                       "residents":  166017,
                        "kind":  "mixed",
                        "code":  "11230",
                        "area_km2":  27.61,
@@ -763,7 +773,7 @@
                                         139.55794,
                                         36.01165
                                     ],
-                       "residents":  74778,
+                       "residents":  74748,
                        "kind":  "mixed",
                        "code":  "11231",
                        "area_km2":  26.73,
@@ -776,7 +786,7 @@
                                         139.65994,
                                         36.08163
                                     ],
-                       "residents":  150599,
+                       "residents":  150582,
                        "kind":  "mixed",
                        "code":  "11232",
                        "area_km2":  78.97,
@@ -789,7 +799,7 @@
                                         139.52133,
                                         36.02547
                                     ],
-                       "residents":  65228,
+                       "residents":  65201,
                        "kind":  "mixed",
                        "code":  "11233",
                        "area_km2":  19.08,
@@ -802,7 +812,7 @@
                                         139.84298,
                                         35.81835
                                     ],
-                       "residents":  93412,
+                       "residents":  93363,
                        "kind":  "mixed",
                        "code":  "11234",
                        "area_km2":  12.78,
@@ -815,7 +825,7 @@
                                         139.55117,
                                         35.86610
                                     ],
-                       "residents":  111881,
+                       "residents":  111859,
                        "kind":  "mixed",
                        "code":  "11235",
                        "area_km2":  20.6,
@@ -828,7 +838,7 @@
                                         139.86379,
                                         35.83299
                                     ],
-                       "residents":  142177,
+                       "residents":  142145,
                        "kind":  "mixed",
                        "code":  "11237",
                        "area_km2":  29.25,
@@ -841,7 +851,7 @@
                                         139.64423,
                                         35.99700
                                     ],
-                       "residents":  61530,
+                       "residents":  61499,
                        "kind":  "mixed",
                        "code":  "11238",
                        "area_km2":  30.98,
@@ -854,7 +864,7 @@
                                         139.39820,
                                         35.95696
                                     ],
-                       "residents":  100300,
+                       "residents":  100275,
                        "kind":  "mixed",
                        "code":  "11239",
                        "area_km2":  41.34,
@@ -867,7 +877,7 @@
                                         139.74374,
                                         36.07503
                                     ],
-                       "residents":  50095,
+                       "residents":  50066,
                        "kind":  "mixed",
                        "code":  "11240",
                        "area_km2":  34.05,
@@ -880,7 +890,7 @@
                                         139.40107,
                                         35.93960
                                     ],
-                       "residents":  70198,
+                       "residents":  70117,
                        "kind":  "mixed",
                        "code":  "11241",
                        "area_km2":  16.62,
@@ -893,7 +903,7 @@
                                         139.33915,
                                         35.89815
                                     ],
-                       "residents":  54591,
+                       "residents":  54571,
                        "kind":  "mixed",
                        "code":  "11242",
                        "area_km2":  50.16,
@@ -906,7 +916,7 @@
                                         139.85429,
                                         35.88759
                                     ],
-                       "residents":  72028,
+                       "residents":  71979,
                        "kind":  "mixed",
                        "code":  "11243",
                        "area_km2":  28.83,
@@ -919,7 +929,7 @@
                                         139.50762,
                                         35.85902
                                     ],
-                       "residents":  113640,
+                       "residents":  113597,
                        "kind":  "mixed",
                        "code":  "11245",
                        "area_km2":  13.47,
@@ -932,7 +942,7 @@
                                         139.67923,
                                         36.01297
                                     ],
-                       "residents":  52223,
+                       "residents":  52214,
                        "kind":  "mixed",
                        "code":  "11246",
                        "area_km2":  19.66,
@@ -945,7 +955,7 @@
                                         139.62112,
                                         35.99312
                                     ],
-                       "residents":  44848,
+                       "residents":  44841,
                        "kind":  "mixed",
                        "code":  "11301",
                        "area_km2":  14.38,
@@ -958,7 +968,7 @@
                                         139.51488,
                                         35.83174
                                     ],
-                       "residents":  38452,
+                       "residents":  38434,
                        "kind":  "mixed",
                        "code":  "11324",
                        "area_km2":  16.43,
@@ -971,7 +981,7 @@
                                         139.30552,
                                         35.93684
                                     ],
-                       "residents":  35379,
+                       "residents":  35366,
                        "kind":  "mixed",
                        "code":  "11326",
                        "area_km2":  32.98,
@@ -984,7 +994,7 @@
                                         139.26583,
                                         35.95141
                                     ],
-                       "residents":  11042,
+                       "residents":  11029,
                        "kind":  "mixed",
                        "code":  "11327",
                        "area_km2":  39.47,
@@ -997,7 +1007,7 @@
                                         139.35064,
                                         36.07441
                                     ],
-                       "residents":  19682,
+                       "residents":  19732,
                        "kind":  "mixed",
                        "code":  "11341",
                        "area_km2":  31.51,
@@ -1010,7 +1020,7 @@
                                         139.31123,
                                         36.06638
                                     ],
-                       "residents":  17904,
+                       "residents":  17889,
                        "kind":  "mixed",
                        "code":  "11342",
                        "area_km2":  31.53,
@@ -1023,7 +1033,7 @@
                                         139.24251,
                                         36.05445
                                     ],
-                       "residents":  28536,
+                       "residents":  28524,
                        "kind":  "mixed",
                        "code":  "11343",
                        "area_km2":  60.04,
@@ -1036,7 +1046,7 @@
                                         139.49630,
                                         35.97956
                                     ],
-                       "residents":  19398,
+                       "residents":  19378,
                        "kind":  "mixed",
                        "code":  "11346",
                        "area_km2":  39.82,
@@ -1049,7 +1059,7 @@
                                         139.44981,
                                         36.04154
                                     ],
-                       "residents":  18196,
+                       "residents":  18192,
                        "kind":  "mixed",
                        "code":  "11347",
                        "area_km2":  37.54,
@@ -1062,7 +1072,7 @@
                                         139.33426,
                                         35.99063
                                     ],
-                       "residents":  13581,
+                       "residents":  13560,
                        "kind":  "mixed",
                        "code":  "11348",
                        "area_km2":  24.32,
@@ -1075,7 +1085,7 @@
                                         139.22588,
                                         35.99626
                                     ],
-                       "residents":  10547,
+                       "residents":  10540,
                        "kind":  "mixed",
                        "code":  "11349",
                        "area_km2":  56.41,
@@ -1127,7 +1137,7 @@
                                         138.91659,
                                         36.02044
                                     ],
-                       "residents":  10890,
+                       "residents":  10928,
                        "kind":  "mixed",
                        "code":  "11365",
                        "area_km2":  164.03,
@@ -1153,7 +1163,7 @@
                                         139.16773,
                                         36.16583
                                     ],
-                       "residents":  11040,
+                       "residents":  11039,
                        "kind":  "mixed",
                        "code":  "11381",
                        "area_km2":  28.45,
@@ -1166,7 +1176,7 @@
                                         139.05584,
                                         36.15829
                                     ],
-                       "residents":  13380,
+                       "residents":  13359,
                        "kind":  "mixed",
                        "code":  "11383",
                        "area_km2":  43.88,
@@ -1179,7 +1189,7 @@
                                         139.13192,
                                         36.25318
                                     ],
-                       "residents":  30347,
+                       "residents":  30343,
                        "kind":  "mixed",
                        "code":  "11385",
                        "area_km2":  30.07,
@@ -1192,7 +1202,7 @@
                                         139.20751,
                                         36.12029
                                     ],
-                       "residents":  32386,
+                       "residents":  32374,
                        "kind":  "mixed",
                        "code":  "11408",
                        "area_km2":  67.52,
@@ -1205,7 +1215,7 @@
                                         139.72054,
                                         36.02186
                                     ],
-                       "residents":  34163,
+                       "residents":  34147,
                        "kind":  "mixed",
                        "code":  "11442",
                        "area_km2":  13.84,
@@ -1218,7 +1228,7 @@
                                         139.75671,
                                         36.03763
                                     ],
-                       "residents":  43860,
+                       "residents":  43845,
                        "kind":  "mixed",
                        "code":  "11464",
                        "area_km2":  29.49,
@@ -1231,7 +1241,7 @@
                                         139.82204,
                                         35.93549
                                     ],
-                       "residents":  28272,
+                       "residents":  28266,
                        "kind":  "mixed",
                        "code":  "11465",
                        "area_km2":  18.02,
@@ -1244,11 +1254,12 @@
                                         140.13310,
                                         35.58432
                                     ],
-                       "residents":  223652,
+                       "residents":  211736,
                        "kind":  "mixed",
                        "code":  "12101",
                        "area_km2":  37.77,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  223652
                    },
                    {
                        "id":  "kanto-12102",
@@ -1257,11 +1268,12 @@
                                         140.10359,
                                         35.68347
                                     ],
-                       "residents":  177638,
+                       "residents":  177328,
                        "kind":  "mixed",
                        "code":  "12102",
                        "area_km2":  39.29,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  177638
                    },
                    {
                        "id":  "kanto-12103",
@@ -1270,11 +1282,12 @@
                                         140.12028,
                                         35.64224
                                     ],
-                       "residents":  160715,
+                       "residents":  160582,
                        "kind":  "mixed",
                        "code":  "12103",
                        "area_km2":  17.23,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  160715
                    },
                    {
                        "id":  "kanto-12104",
@@ -1283,11 +1296,12 @@
                                         140.21202,
                                         35.60696
                                     ],
-                       "residents":  144224,
+                       "residents":  146940,
                        "kind":  "mixed",
                        "code":  "12104",
                        "area_km2":  85.32,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  144224
                    },
                    {
                        "id":  "kanto-12105",
@@ -1296,11 +1310,12 @@
                                         140.22148,
                                         35.54583
                                     ],
-                       "residents":  128048,
+                       "residents":  129421,
                        "kind":  "mixed",
                        "code":  "12105",
                        "area_km2":  68.63,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  128048
                    },
                    {
                        "id":  "kanto-12106",
@@ -1309,11 +1324,12 @@
                                         140.07214,
                                         35.62955
                                     ],
-                       "residents":  156848,
+                       "residents":  148944,
                        "kind":  "mixed",
                        "code":  "12106",
                        "area_km2":  22.2,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  156848
                    },
                    {
                        "id":  "kanto-12202",
@@ -1322,7 +1338,7 @@
                                         140.77224,
                                         35.75164
                                     ],
-                       "residents":  58478,
+                       "residents":  58431,
                        "kind":  "mixed",
                        "code":  "12202",
                        "area_km2":  84.38,
@@ -1335,7 +1351,7 @@
                                         139.93268,
                                         35.72642
                                     ],
-                       "residents":  496943,
+                       "residents":  496676,
                        "kind":  "mixed",
                        "code":  "12203",
                        "area_km2":  58.3,
@@ -1348,7 +1364,7 @@
                                         140.01413,
                                         35.71652
                                     ],
-                       "residents":  642972,
+                       "residents":  642907,
                        "kind":  "mixed",
                        "code":  "12204",
                        "area_km2":  83.53,
@@ -1361,7 +1377,7 @@
                                         139.86083,
                                         34.97528
                                     ],
-                       "residents":  45177,
+                       "residents":  45153,
                        "kind":  "mixed",
                        "code":  "12205",
                        "area_km2":  111.32,
@@ -1374,7 +1390,7 @@
                                         139.99608,
                                         35.37774
                                     ],
-                       "residents":  136224,
+                       "residents":  136166,
                        "kind":  "mixed",
                        "code":  "12206",
                        "area_km2":  139.68,
@@ -1387,7 +1403,7 @@
                                         139.92591,
                                         35.78658
                                     ],
-                       "residents":  498293,
+                       "residents":  498232,
                        "kind":  "mixed",
                        "code":  "12207",
                        "area_km2":  63.28,
@@ -1400,7 +1416,7 @@
                                         139.86463,
                                         35.99315
                                     ],
-                       "residents":  152674,
+                       "residents":  152638,
                        "kind":  "mixed",
                        "code":  "12208",
                        "area_km2":  104.59,
@@ -1413,7 +1429,7 @@
                                         140.30304,
                                         35.44650
                                     ],
-                       "residents":  86821,
+                       "residents":  86782,
                        "kind":  "mixed",
                        "code":  "12210",
                        "area_km2":  100.93,
@@ -1426,7 +1442,7 @@
                                         140.36079,
                                         35.81210
                                     ],
-                       "residents":  132998,
+                       "residents":  132906,
                        "kind":  "mixed",
                        "code":  "12211",
                        "area_km2":  220.63,
@@ -1439,7 +1455,7 @@
                                         140.21285,
                                         35.69792
                                     ],
-                       "residents":  168858,
+                       "residents":  168743,
                        "kind":  "mixed",
                        "code":  "12212",
                        "area_km2":  106.03,
@@ -1452,7 +1468,7 @@
                                         140.34490,
                                         35.57720
                                     ],
-                       "residents":  58248,
+                       "residents":  58219,
                        "kind":  "mixed",
                        "code":  "12213",
                        "area_km2":  91.28,
@@ -1465,7 +1481,7 @@
                                         140.66247,
                                         35.73389
                                     ],
-                       "residents":  63788,
+                       "residents":  63745,
                        "kind":  "mixed",
                        "code":  "12215",
                        "area_km2":  127.96,
@@ -1478,7 +1494,7 @@
                                         140.04740,
                                         35.68376
                                     ],
-                       "residents":  176306,
+                       "residents":  176197,
                        "kind":  "mixed",
                        "code":  "12216",
                        "area_km2":  20.48,
@@ -1491,7 +1507,7 @@
                                         140.00434,
                                         35.85709
                                     ],
-                       "residents":  426552,
+                       "residents":  426468,
                        "kind":  "mixed",
                        "code":  "12217",
                        "area_km2":  114.59,
@@ -1504,7 +1520,7 @@
                                         140.27196,
                                         35.17477
                                     ],
-                       "residents":  16938,
+                       "residents":  16927,
                        "kind":  "mixed",
                        "code":  "12218",
                        "area_km2":  93.15,
@@ -1517,7 +1533,7 @@
                                         140.14564,
                                         35.42940
                                     ],
-                       "residents":  269653,
+                       "residents":  269524,
                        "kind":  "mixed",
                        "code":  "12219",
                        "area_km2":  373.81,
@@ -1530,7 +1546,7 @@
                                         139.91170,
                                         35.86162
                                     ],
-                       "residents":  199960,
+                       "residents":  199849,
                        "kind":  "mixed",
                        "code":  "12220",
                        "area_km2":  36.31,
@@ -1543,7 +1559,7 @@
                                         140.10694,
                                         35.72710
                                     ],
-                       "residents":  199597,
+                       "residents":  199498,
                        "kind":  "mixed",
                        "code":  "12221",
                        "area_km2":  48.49,
@@ -1556,7 +1572,7 @@
                                         140.06256,
                                         35.87563
                                     ],
-                       "residents":  130590,
+                       "residents":  130510,
                        "kind":  "mixed",
                        "code":  "12222",
                        "area_km2":  41.26,
@@ -1569,7 +1585,7 @@
                                         140.08123,
                                         35.13126
                                     ],
-                       "residents":  32149,
+                       "residents":  32116,
                        "kind":  "mixed",
                        "code":  "12223",
                        "area_km2":  191.49,
@@ -1582,7 +1598,7 @@
                                         139.99518,
                                         35.76626
                                     ],
-                       "residents":  109989,
+                       "residents":  109932,
                        "kind":  "mixed",
                        "code":  "12224",
                        "area_km2":  18.68,
@@ -1595,7 +1611,7 @@
                                         140.00877,
                                         35.27146
                                     ],
-                       "residents":  82249,
+                       "residents":  82206,
                        "kind":  "mixed",
                        "code":  "12225",
                        "area_km2":  320.87,
@@ -1608,7 +1624,7 @@
                                         139.89526,
                                         35.22432
                                     ],
-                       "residents":  42508,
+                       "residents":  42465,
                        "kind":  "mixed",
                        "code":  "12226",
                        "area_km2":  199.37,
@@ -1621,7 +1637,7 @@
                                         139.90028,
                                         35.64914
                                     ],
-                       "residents":  171424,
+                       "residents":  171362,
                        "kind":  "mixed",
                        "code":  "12227",
                        "area_km2":  18.59,
@@ -1634,7 +1650,7 @@
                                         140.17448,
                                         35.67135
                                     ],
-                       "residents":  93632,
+                       "residents":  93576,
                        "kind":  "mixed",
                        "code":  "12228",
                        "area_km2":  29.84,
@@ -1647,7 +1663,7 @@
                                         140.02056,
                                         35.41713
                                     ],
-                       "residents":  63906,
+                       "residents":  63883,
                        "kind":  "mixed",
                        "code":  "12229",
                        "area_km2":  91.56,
@@ -1660,7 +1676,7 @@
                                         140.29804,
                                         35.64029
                                     ],
-                       "residents":  67480,
+                       "residents":  67455,
                        "kind":  "mixed",
                        "code":  "12230",
                        "area_km2":  71.2,
@@ -1673,7 +1689,7 @@
                                         140.17987,
                                         35.80392
                                     ],
-                       "residents":  102651,
+                       "residents":  102609,
                        "kind":  "mixed",
                        "code":  "12231",
                        "area_km2":  126.07,
@@ -1686,7 +1702,7 @@
                                         140.06729,
                                         35.79763
                                     ],
-                       "residents":  62470,
+                       "residents":  62441,
                        "kind":  "mixed",
                        "code":  "12232",
                        "area_km2":  38.37,
@@ -1699,7 +1715,7 @@
                                         140.33417,
                                         35.72037
                                     ],
-                       "residents":  49762,
+                       "residents":  49735,
                        "kind":  "mixed",
                        "code":  "12233",
                        "area_km2":  54.75,
@@ -1712,7 +1728,7 @@
                                         139.90874,
                                         35.00520
                                     ],
-                       "residents":  35844,
+                       "residents":  35831,
                        "kind":  "mixed",
                        "code":  "12234",
                        "area_km2":  228.69,
@@ -1725,7 +1741,7 @@
                                         140.56020,
                                         35.71618
                                     ],
-                       "residents":  35099,
+                       "residents":  35040,
                        "kind":  "mixed",
                        "code":  "12235",
                        "area_km2":  102.34,
@@ -1738,7 +1754,7 @@
                                         140.52394,
                                         35.86012
                                     ],
-                       "residents":  72427,
+                       "residents":  72356,
                        "kind":  "mixed",
                        "code":  "12236",
                        "area_km2":  265.27,
@@ -1751,7 +1767,7 @@
                                         140.40736,
                                         35.62308
                                     ],
-                       "residents":  48462,
+                       "residents":  48444,
                        "kind":  "mixed",
                        "code":  "12237",
                        "area_km2":  149.81,
@@ -1764,7 +1780,7 @@
                                         140.33939,
                                         35.27041
                                     ],
-                       "residents":  35571,
+                       "residents":  35544,
                        "kind":  "mixed",
                        "code":  "12238",
                        "area_km2":  159.03,
@@ -1777,7 +1793,7 @@
                                         140.34479,
                                         35.50674
                                     ],
-                       "residents":  48155,
+                       "residents":  48129,
                        "kind":  "mixed",
                        "code":  "12239",
                        "area_km2":  59.92,
@@ -1790,7 +1806,7 @@
                                         140.27654,
                                         35.73002
                                     ],
-                       "residents":  20760,
+                       "residents":  20745,
                        "kind":  "mixed",
                        "code":  "12322",
                        "area_km2":  19.18,
@@ -1803,7 +1819,7 @@
                                         140.23331,
                                         35.84167
                                     ],
-                       "residents":  20140,
+                       "residents":  20127,
                        "kind":  "mixed",
                        "code":  "12329",
                        "area_km2":  28.16,
@@ -1829,7 +1845,7 @@
                                         140.46471,
                                         35.75950
                                     ],
-                       "residents":  13748,
+                       "residents":  13735,
                        "kind":  "mixed",
                        "code":  "12347",
                        "area_km2":  74.91,
@@ -1842,7 +1858,7 @@
                                         140.66988,
                                         35.81323
                                     ],
-                       "residents":  13235,
+                       "residents":  13228,
                        "kind":  "mixed",
                        "code":  "12349",
                        "area_km2":  42.34,
@@ -1855,7 +1871,7 @@
                                         140.42876,
                                         35.52629
                                     ],
-                       "residents":  14644,
+                       "residents":  14639,
                        "kind":  "mixed",
                        "code":  "12403",
                        "area_km2":  22.13,
@@ -1881,7 +1897,7 @@
                                         140.48655,
                                         35.67054
                                     ],
-                       "residents":  22091,
+                       "residents":  22075,
                        "kind":  "mixed",
                        "code":  "12410",
                        "area_km2":  64.59,
@@ -1894,7 +1910,7 @@
                                         140.37583,
                                         35.35219
                                     ],
-                       "residents":  11900,
+                       "residents":  11897,
                        "kind":  "mixed",
                        "code":  "12421",
                        "area_km2":  19.91,
@@ -1920,7 +1936,7 @@
                                         140.34643,
                                         35.40151
                                     ],
-                       "residents":  13808,
+                       "residents":  13803,
                        "kind":  "mixed",
                        "code":  "12423",
                        "area_km2":  29.81,
@@ -1933,7 +1949,7 @@
                                         140.37215,
                                         35.44773
                                     ],
-                       "residents":  10311,
+                       "residents":  10305,
                        "kind":  "mixed",
                        "code":  "12424",
                        "area_km2":  26.74,
@@ -1946,11 +1962,11 @@
                                         140.22523,
                                         35.44399
                                     ],
-                       "residents":  6726,
+                       "residents":  6721,
                        "kind":  "mixed",
                        "code":  "12426",
                        "area_km2":  43.93,
-                       "popDate":  "2020-derived"
+                       "popDate":  "2020"
                    },
                    {
                        "id":  "kanto-12427",
@@ -1959,11 +1975,11 @@
                                         140.25411,
                                         35.37668
                                     ],
-                       "residents":  7204,
+                       "residents":  7198,
                        "kind":  "mixed",
                        "code":  "12427",
                        "area_km2":  64.36,
-                       "popDate":  "2020-derived"
+                       "popDate":  "2020"
                    },
                    {
                        "id":  "kanto-12441",
@@ -1972,11 +1988,11 @@
                                         140.23009,
                                         35.24865
                                     ],
-                       "residents":  8900,
+                       "residents":  8885,
                        "kind":  "mixed",
                        "code":  "12441",
                        "area_km2":  129.53,
-                       "popDate":  "2020-derived"
+                       "popDate":  "2020"
                    },
                    {
                        "id":  "kanto-12443",
@@ -1998,11 +2014,11 @@
                                         139.88294,
                                         35.13361
                                     ],
-                       "residents":  7001,
+                       "residents":  6993,
                        "kind":  "mixed",
                        "code":  "12463",
                        "area_km2":  45.56,
-                       "popDate":  "2020-derived"
+                       "popDate":  "2020"
                    },
                    {
                        "id":  "kanto-13201",
@@ -2011,11 +2027,12 @@
                                         139.29367,
                                         35.65893
                                     ],
-                       "residents":  574439,
+                       "residents":  579355,
                        "kind":  "mixed",
                        "code":  "13201",
                        "area_km2":  187.09,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  574439
                    },
                    {
                        "id":  "kanto-13202",
@@ -2024,11 +2041,12 @@
                                         139.40218,
                                         35.71805
                                     ],
-                       "residents":  189982,
+                       "residents":  183581,
                        "kind":  "mixed",
                        "code":  "13202",
                        "area_km2":  24.46,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  189982
                    },
                    {
                        "id":  "kanto-13203",
@@ -2037,11 +2055,12 @@
                                         139.56232,
                                         35.70892
                                     ],
-                       "residents":  151117,
+                       "residents":  150149,
                        "kind":  "mixed",
                        "code":  "13203",
                        "area_km2":  9.94,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  151117
                    },
                    {
                        "id":  "kanto-13204",
@@ -2050,11 +2069,12 @@
                                         139.56698,
                                         35.68756
                                     ],
-                       "residents":  195476,
+                       "residents":  195391,
                        "kind":  "mixed",
                        "code":  "13204",
                        "area_km2":  12.68,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  195476
                    },
                    {
                        "id":  "kanto-13205",
@@ -2063,11 +2083,12 @@
                                         139.22589,
                                         35.80183
                                     ],
-                       "residents":  129125,
+                       "residents":  133535,
                        "kind":  "mixed",
                        "code":  "13205",
                        "area_km2":  103.78,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  129125
                    },
                    {
                        "id":  "kanto-13206",
@@ -2076,11 +2097,12 @@
                                         139.47166,
                                         35.67656
                                     ],
-                       "residents":  264108,
+                       "residents":  262790,
                        "kind":  "mixed",
                        "code":  "13206",
                        "area_km2":  32.53,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  264108
                    },
                    {
                        "id":  "kanto-13207",
@@ -2089,11 +2111,12 @@
                                         139.36698,
                                         35.70569
                                     ],
-                       "residents":  117575,
+                       "residents":  113949,
                        "kind":  "mixed",
                        "code":  "13207",
                        "area_km2":  16.21,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  117575
                    },
                    {
                        "id":  "kanto-13208",
@@ -2102,11 +2125,12 @@
                                         139.55374,
                                         35.66232
                                     ],
-                       "residents":  247230,
+                       "residents":  242614,
                        "kind":  "mixed",
                        "code":  "13208",
                        "area_km2":  28.02,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  247230
                    },
                    {
                        "id":  "kanto-13209",
@@ -2115,11 +2139,12 @@
                                         139.41242,
                                         35.57514
                                     ],
-                       "residents":  422016,
+                       "residents":  431079,
                        "kind":  "mixed",
                        "code":  "13209",
                        "area_km2":  75.49,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  422016
                    },
                    {
                        "id":  "kanto-13210",
@@ -2128,11 +2153,12 @@
                                         139.51681,
                                         35.70350
                                     ],
-                       "residents":  129793,
+                       "residents":  126074,
                        "kind":  "mixed",
                        "code":  "13210",
                        "area_km2":  10.32,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  129793
                    },
                    {
                        "id":  "kanto-13211",
@@ -2141,11 +2167,12 @@
                                         139.47306,
                                         35.72721
                                     ],
-                       "residents":  199493,
+                       "residents":  198739,
                        "kind":  "mixed",
                        "code":  "13211",
                        "area_km2":  19.83,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  199493
                    },
                    {
                        "id":  "kanto-13212",
@@ -2154,11 +2181,12 @@
                                         139.40620,
                                         35.66660
                                     ],
-                       "residents":  190863,
+                       "residents":  190435,
                        "kind":  "mixed",
                        "code":  "13212",
                        "area_km2":  23.39,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  190863
                    },
                    {
                        "id":  "kanto-13213",
@@ -2167,11 +2195,12 @@
                                         139.46997,
                                         35.75911
                                     ],
-                       "residents":  152530,
+                       "residents":  151815,
                        "kind":  "mixed",
                        "code":  "13213",
                        "area_km2":  17.02,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  152530
                    },
                    {
                        "id":  "kanto-13214",
@@ -2180,11 +2209,12 @@
                                         139.45793,
                                         35.70335
                                     ],
-                       "residents":  129191,
+                       "residents":  129242,
                        "kind":  "mixed",
                        "code":  "13214",
                        "area_km2":  10.11,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  129191
                    },
                    {
                        "id":  "kanto-13215",
@@ -2193,11 +2223,12 @@
                                         139.43425,
                                         35.68397
                                     ],
-                       "residents":  77360,
+                       "residents":  77130,
                        "kind":  "mixed",
                        "code":  "13215",
                        "area_km2":  8.97,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  77360
                    },
                    {
                        "id":  "kanto-13218",
@@ -2206,11 +2237,12 @@
                                         139.34029,
                                         35.73074
                                     ],
-                       "residents":  57348,
+                       "residents":  56414,
                        "kind":  "mixed",
                        "code":  "13218",
                        "area_km2":  10.67,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  57348
                    },
                    {
                        "id":  "kanto-13219",
@@ -2219,11 +2251,12 @@
                                         139.58187,
                                         35.63584
                                     ],
-                       "residents":  84110,
+                       "residents":  84772,
                        "kind":  "mixed",
                        "code":  "13219",
                        "area_km2":  3.74,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  84110
                    },
                    {
                        "id":  "kanto-13220",
@@ -2232,11 +2265,12 @@
                                         139.41789,
                                         35.75030
                                     ],
-                       "residents":  83213,
+                       "residents":  83901,
                        "kind":  "mixed",
                        "code":  "13220",
                        "area_km2":  12.21,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  83213
                    },
                    {
                        "id":  "kanto-13221",
@@ -2245,11 +2279,12 @@
                                         139.51657,
                                         35.77853
                                     ],
-                       "residents":  75344,
+                       "residents":  76208,
                        "kind":  "mixed",
                        "code":  "13221",
                        "area_km2":  10.68,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  75344
                    },
                    {
                        "id":  "kanto-13222",
@@ -2258,11 +2293,12 @@
                                         139.51467,
                                         35.75405
                                     ],
-                       "residents":  115852,
+                       "residents":  115271,
                        "kind":  "mixed",
                        "code":  "13222",
                        "area_km2":  10.22,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  115852
                    },
                    {
                        "id":  "kanto-13223",
@@ -2271,11 +2307,12 @@
                                         139.38400,
                                         35.75460
                                     ],
-                       "residents":  69149,
+                       "residents":  70829,
                        "kind":  "mixed",
                        "code":  "13223",
                        "area_km2":  13.74,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  69149
                    },
                    {
                        "id":  "kanto-13224",
@@ -2284,11 +2321,12 @@
                                         139.43271,
                                         35.63012
                                     ],
-                       "residents":  141450,
+                       "residents":  146951,
                        "kind":  "mixed",
                        "code":  "13224",
                        "area_km2":  21.08,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  141450
                    },
                    {
                        "id":  "kanto-13225",
@@ -2297,11 +2335,12 @@
                                         139.49535,
                                         35.63630
                                     ],
-                       "residents":  95941,
+                       "residents":  93151,
                        "kind":  "mixed",
                        "code":  "13225",
                        "area_km2":  13.82,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  95941
                    },
                    {
                        "id":  "kanto-13227",
@@ -2310,11 +2349,12 @@
                                         139.31046,
                                         35.75977
                                     ],
-                       "residents":  53434,
+                       "residents":  54326,
                        "kind":  "mixed",
                        "code":  "13227",
                        "area_km2":  10.15,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  53434
                    },
                    {
                        "id":  "kanto-13228",
@@ -2323,11 +2363,12 @@
                                         139.23345,
                                         35.73484
                                     ],
-                       "residents":  77030,
+                       "residents":  79292,
                        "kind":  "mixed",
                        "code":  "13228",
                        "area_km2":  74.88,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  77030
                    },
                    {
                        "id":  "kanto-13229",
@@ -2336,11 +2377,12 @@
                                         139.54105,
                                         35.73751
                                     ],
-                       "residents":  208784,
+                       "residents":  207388,
                        "kind":  "mixed",
                        "code":  "13229",
                        "area_km2":  13.52,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  208784
                    },
                    {
                        "id":  "kanto-13303",
@@ -2349,11 +2391,12 @@
                                         139.35743,
                                         35.77204
                                     ],
-                       "residents":  31077,
+                       "residents":  31765,
                        "kind":  "mixed",
                        "code":  "13303",
                        "area_km2":  18.23,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  31077
                    },
                    {
                        "id":  "kanto-13305",
@@ -2362,11 +2405,12 @@
                                         139.21529,
                                         35.76265
                                     ],
-                       "residents":  15829,
+                       "residents":  16958,
                        "kind":  "mixed",
                        "code":  "13305",
                        "area_km2":  26.5,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  15829
                    },
                    {
                        "id":  "kanto-13307",
@@ -2375,11 +2419,12 @@
                                         139.11107,
                                         35.71831
                                     ],
-                       "residents":  1735,
+                       "residents":  2003,
                        "kind":  "mixed",
                        "code":  "13307",
                        "area_km2":  107.24,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  1735
                    },
                    {
                        "id":  "kanto-13308",
@@ -2388,11 +2433,12 @@
                                         139.06214,
                                         35.82131
                                     ],
-                       "residents":  4044,
+                       "residents":  4750,
                        "kind":  "mixed",
                        "code":  "13308",
                        "area_km2":  220.16,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  4044
                    },
                    {
                        "id":  "kanto-14101",
@@ -2401,11 +2447,12 @@
                                         139.67402,
                                         35.51789
                                     ],
-                       "residents":  298225,
+                       "residents":  297437,
                        "kind":  "mixed",
                        "code":  "14101",
                        "area_km2":  25.1,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  298225
                    },
                    {
                        "id":  "kanto-14102",
@@ -2414,11 +2461,12 @@
                                         139.61554,
                                         35.48830
                                     ],
-                       "residents":  254248,
+                       "residents":  247267,
                        "kind":  "mixed",
                        "code":  "14102",
                        "area_km2":  24.21,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  254248
                    },
                    {
                        "id":  "kanto-14103",
@@ -2427,11 +2475,12 @@
                                         139.61775,
                                         35.45690
                                     ],
-                       "residents":  108599,
+                       "residents":  104935,
                        "kind":  "mixed",
                        "code":  "14103",
                        "area_km2":  6.11,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  108599
                    },
                    {
                        "id":  "kanto-14104",
@@ -2440,11 +2489,12 @@
                                         139.64746,
                                         35.43408
                                     ],
-                       "residents":  154438,
+                       "residents":  151388,
                        "kind":  "mixed",
                        "code":  "14104",
                        "area_km2":  23.18,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  154438
                    },
                    {
                        "id":  "kanto-14105",
@@ -2453,11 +2503,12 @@
                                         139.60250,
                                         35.43108
                                     ],
-                       "residents":  198910,
+                       "residents":  198157,
                        "kind":  "mixed",
                        "code":  "14105",
                        "area_km2":  11.86,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  198910
                    },
                    {
                        "id":  "kanto-14106",
@@ -2466,11 +2517,12 @@
                                         139.57454,
                                         35.46859
                                     ],
-                       "residents":  203746,
+                       "residents":  207811,
                        "kind":  "mixed",
                        "code":  "14106",
                        "area_km2":  20.14,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  203746
                    },
                    {
                        "id":  "kanto-14107",
@@ -2479,11 +2531,12 @@
                                         139.61299,
                                         35.39091
                                     ],
-                       "residents":  163695,
+                       "residents":  166731,
                        "kind":  "mixed",
                        "code":  "14107",
                        "area_km2":  19.77,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  163695
                    },
                    {
                        "id":  "kanto-14108",
@@ -2492,11 +2545,12 @@
                                         139.61474,
                                         35.34839
                                     ],
-                       "residents":  191825,
+                       "residents":  198939,
                        "kind":  "mixed",
                        "code":  "14108",
                        "area_km2":  31.55,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  191825
                    },
                    {
                        "id":  "kanto-14109",
@@ -2505,11 +2559,12 @@
                                         139.62766,
                                         35.52975
                                     ],
-                       "residents":  365441,
+                       "residents":  358530,
                        "kind":  "mixed",
                        "code":  "14109",
                        "area_km2":  34.06,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  365441
                    },
                    {
                        "id":  "kanto-14110",
@@ -2518,11 +2573,12 @@
                                         139.53650,
                                         35.40710
                                     ],
-                       "residents":  281098,
+                       "residents":  283709,
                        "kind":  "mixed",
                        "code":  "14110",
                        "area_km2":  35.92,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  281098
                    },
                    {
                        "id":  "kanto-14111",
@@ -2531,11 +2587,12 @@
                                         139.57719,
                                         35.39882
                                     ],
-                       "residents":  208695,
+                       "residents":  215248,
                        "kind":  "mixed",
                        "code":  "14111",
                        "area_km2":  19.18,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  208695
                    },
                    {
                        "id":  "kanto-14112",
@@ -2544,11 +2601,12 @@
                                         139.53191,
                                         35.47622
                                     ],
-                       "residents":  239402,
+                       "residents":  245174,
                        "kind":  "mixed",
                        "code":  "14112",
                        "area_km2":  34.32,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  239402
                    },
                    {
                        "id":  "kanto-14113",
@@ -2557,11 +2615,12 @@
                                         139.52861,
                                         35.51220
                                     ],
-                       "residents":  179975,
+                       "residents":  183082,
                        "kind":  "mixed",
                        "code":  "14113",
                        "area_km2":  22.55,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  179975
                    },
                    {
                        "id":  "kanto-14114",
@@ -2570,11 +2629,12 @@
                                         139.48336,
                                         35.48430
                                     ],
-                       "residents":  120124,
+                       "residents":  122623,
                        "kind":  "mixed",
                        "code":  "14114",
                        "area_km2":  13.99,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  120124
                    },
                    {
                        "id":  "kanto-14115",
@@ -2583,11 +2643,12 @@
                                         139.56418,
                                         35.36268
                                     ],
-                       "residents":  118698,
+                       "residents":  120194,
                        "kind":  "mixed",
                        "code":  "14115",
                        "area_km2":  18.18,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  118698
                    },
                    {
                        "id":  "kanto-14116",
@@ -2596,11 +2657,12 @@
                                         139.50570,
                                         35.42835
                                     ],
-                       "residents":  149885,
+                       "residents":  152378,
                        "kind":  "mixed",
                        "code":  "14116",
                        "area_km2":  24.54,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  149885
                    },
                    {
                        "id":  "kanto-14117",
@@ -2609,11 +2671,12 @@
                                         139.51376,
                                         35.56059
                                     ],
-                       "residents":  307381,
+                       "residents":  310756,
                        "kind":  "mixed",
                        "code":  "14117",
                        "area_km2":  38.09,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  307381
                    },
                    {
                        "id":  "kanto-14118",
@@ -2622,11 +2685,12 @@
                                         139.58345,
                                         35.54565
                                     ],
-                       "residents":  213506,
+                       "residents":  213132,
                        "kind":  "mixed",
                        "code":  "14118",
                        "area_km2":  27.93,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  213506
                    },
                    {
                        "id":  "kanto-14131",
@@ -2635,11 +2699,12 @@
                                         139.72695,
                                         35.52825
                                     ],
-                       "residents":  234937,
+                       "residents":  232965,
                        "kind":  "mixed",
                        "code":  "14131",
                        "area_km2":  29.61,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  234937
                    },
                    {
                        "id":  "kanto-14132",
@@ -2648,11 +2713,12 @@
                                         139.67802,
                                         35.54559
                                     ],
-                       "residents":  177212,
+                       "residents":  171119,
                        "kind":  "mixed",
                        "code":  "14132",
                        "area_km2":  8.52,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  177212
                    },
                    {
                        "id":  "kanto-14133",
@@ -2661,11 +2727,12 @@
                                         139.65060,
                                         35.57834
                                     ],
-                       "residents":  271383,
+                       "residents":  263683,
                        "kind":  "mixed",
                        "code":  "14133",
                        "area_km2":  13.58,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  271383
                    },
                    {
                        "id":  "kanto-14134",
@@ -2674,11 +2741,12 @@
                                         139.61330,
                                         35.58900
                                     ],
-                       "residents":  237954,
+                       "residents":  234328,
                        "kind":  "mixed",
                        "code":  "14134",
                        "area_km2":  14.83,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  237954
                    },
                    {
                        "id":  "kanto-14135",
@@ -2687,11 +2755,12 @@
                                         139.56226,
                                         35.61976
                                     ],
-                       "residents":  230793,
+                       "residents":  221734,
                        "kind":  "mixed",
                        "code":  "14135",
                        "area_km2":  22.2,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  230793
                    },
                    {
                        "id":  "kanto-14136",
@@ -2700,11 +2769,12 @@
                                         139.56971,
                                         35.58384
                                     ],
-                       "residents":  235384,
+                       "residents":  233728,
                        "kind":  "mixed",
                        "code":  "14136",
                        "area_km2":  18.05,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  235384
                    },
                    {
                        "id":  "kanto-14137",
@@ -2713,11 +2783,12 @@
                                         139.49538,
                                         35.60317
                                     ],
-                       "residents":  179661,
+                       "residents":  180705,
                        "kind":  "mixed",
                        "code":  "14137",
                        "area_km2":  20.15,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  179661
                    },
                    {
                        "id":  "kanto-14151",
@@ -2726,11 +2797,12 @@
                                         139.18908,
                                         35.57449
                                     ],
-                       "residents":  164698,
+                       "residents":  170207,
                        "kind":  "mixed",
                        "code":  "14151",
                        "area_km2":  244.7,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  164698
                    },
                    {
                        "id":  "kanto-14152",
@@ -2739,11 +2811,12 @@
                                         139.36787,
                                         35.56133
                                     ],
-                       "residents":  268157,
+                       "residents":  273875,
                        "kind":  "mixed",
                        "code":  "14152",
                        "area_km2":  36.61,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  268157
                    },
                    {
                        "id":  "kanto-14153",
@@ -2752,11 +2825,12 @@
                                         139.40969,
                                         35.53054
                                     ],
-                       "residents":  279305,
+                       "residents":  281411,
                        "kind":  "mixed",
                        "code":  "14153",
                        "area_km2":  39.41,
-                       "popDate":  "2026-08"
+                       "popDate":  "2020",
+                       "residentsEst2026":  279305
                    },
                    {
                        "id":  "kanto-14201",
@@ -2765,7 +2839,7 @@
                                         139.64707,
                                         35.25962
                                     ],
-                       "residents":  388504,
+                       "residents":  388078,
                        "kind":  "mixed",
                        "code":  "14201",
                        "area_km2":  102.24,
@@ -2778,7 +2852,7 @@
                                         139.31645,
                                         35.35208
                                     ],
-                       "residents":  258524,
+                       "residents":  258422,
                        "kind":  "mixed",
                        "code":  "14203",
                        "area_km2":  68.53,
@@ -2791,7 +2865,7 @@
                                         139.54166,
                                         35.33422
                                     ],
-                       "residents":  172821,
+                       "residents":  172710,
                        "kind":  "mixed",
                        "code":  "14204",
                        "area_km2":  44.29,
@@ -2804,7 +2878,7 @@
                                         139.45337,
                                         35.37353
                                     ],
-                       "residents":  437155,
+                       "residents":  436905,
                        "kind":  "mixed",
                        "code":  "14205",
                        "area_km2":  70.51,
@@ -2817,7 +2891,7 @@
                                         139.14567,
                                         35.27102
                                     ],
-                       "residents":  188986,
+                       "residents":  188856,
                        "kind":  "mixed",
                        "code":  "14206",
                        "area_km2":  114.82,
@@ -2830,7 +2904,7 @@
                                         139.40366,
                                         35.34449
                                     ],
-                       "residents":  242603,
+                       "residents":  242389,
                        "kind":  "mixed",
                        "code":  "14207",
                        "area_km2":  33.84,
@@ -2843,7 +2917,7 @@
                                         139.59175,
                                         35.30127
                                     ],
-                       "residents":  56981,
+                       "residents":  57060,
                        "kind":  "mixed",
                        "code":  "14208",
                        "area_km2":  14.43,
@@ -2856,7 +2930,7 @@
                                         139.63831,
                                         35.17714
                                     ],
-                       "residents":  42098,
+                       "residents":  42069,
                        "kind":  "mixed",
                        "code":  "14210",
                        "area_km2":  27.22,
@@ -2869,7 +2943,7 @@
                                         139.22686,
                                         35.39664
                                     ],
-                       "residents":  162579,
+                       "residents":  162439,
                        "kind":  "mixed",
                        "code":  "14211",
                        "area_km2":  102.75,
@@ -2882,7 +2956,7 @@
                                         139.32099,
                                         35.46602
                                     ],
-                       "residents":  223747,
+                       "residents":  223705,
                        "kind":  "mixed",
                        "code":  "14212",
                        "area_km2":  98.35,
@@ -2895,7 +2969,7 @@
                                         139.45357,
                                         35.47484
                                     ],
-                       "residents":  239269,
+                       "residents":  239169,
                        "kind":  "mixed",
                        "code":  "14213",
                        "area_km2":  29.51,
@@ -2908,7 +2982,7 @@
                                         139.29960,
                                         35.40911
                                     ],
-                       "residents":  101839,
+                       "residents":  101780,
                        "kind":  "mixed",
                        "code":  "14214",
                        "area_km2":  53.45,
@@ -2921,7 +2995,7 @@
                                         139.40683,
                                         35.43968
                                     ],
-                       "residents":  136581,
+                       "residents":  136516,
                        "kind":  "mixed",
                        "code":  "14215",
                        "area_km2":  24.44,
@@ -2934,7 +3008,7 @@
                                         139.40204,
                                         35.48453
                                     ],
-                       "residents":  132180,
+                       "residents":  132325,
                        "kind":  "mixed",
                        "code":  "14216",
                        "area_km2":  16.85,
@@ -2947,7 +3021,7 @@
                                         139.08502,
                                         35.31098
                                     ],
-                       "residents":  40859,
+                       "residents":  40841,
                        "kind":  "mixed",
                        "code":  "14217",
                        "area_km2":  78.82,
@@ -2960,7 +3034,7 @@
                                         139.43372,
                                         35.43992
                                     ],
-                       "residents":  83964,
+                       "residents":  83913,
                        "kind":  "mixed",
                        "code":  "14218",
                        "area_km2":  18.59,
@@ -2973,7 +3047,7 @@
                                         139.60013,
                                         35.27116
                                     ],
-                       "residents":  31627,
+                       "residents":  31665,
                        "kind":  "mixed",
                        "code":  "14301",
                        "area_km2":  16.95,
@@ -2986,7 +3060,7 @@
                                         139.38801,
                                         35.37918
                                     ],
-                       "residents":  48366,
+                       "residents":  48348,
                        "kind":  "mixed",
                        "code":  "14321",
                        "area_km2":  13.88,
@@ -2999,7 +3073,7 @@
                                         139.27708,
                                         35.31943
                                     ],
-                       "residents":  31673,
+                       "residents":  31634,
                        "kind":  "mixed",
                        "code":  "14341",
                        "area_km2":  14.32,
@@ -3012,7 +3086,7 @@
                                         139.24508,
                                         35.30811
                                     ],
-                       "residents":  27578,
+                       "residents":  27564,
                        "kind":  "mixed",
                        "code":  "14342",
                        "area_km2":  9.8,
@@ -3038,7 +3112,7 @@
                                         139.16696,
                                         35.33578
                                     ],
-                       "residents":  17138,
+                       "residents":  17129,
                        "kind":  "mixed",
                        "code":  "14362",
                        "area_km2":  13.79,
@@ -3051,7 +3125,7 @@
                                         139.12696,
                                         35.39038
                                     ],
-                       "residents":  10840,
+                       "residents":  10836,
                        "kind":  "mixed",
                        "code":  "14363",
                        "area_km2":  38.54,
@@ -3077,7 +3151,7 @@
                                         139.12989,
                                         35.33426
                                     ],
-                       "residents":  18333,
+                       "residents":  18329,
                        "kind":  "mixed",
                        "code":  "14366",
                        "area_km2":  3.77,
@@ -3090,7 +3164,7 @@
                                         139.02708,
                                         35.23433
                                     ],
-                       "residents":  11303,
+                       "residents":  11293,
                        "kind":  "mixed",
                        "code":  "14382",
                        "area_km2":  91.65,
@@ -3116,7 +3190,7 @@
                                         139.08031,
                                         35.17181
                                     ],
-                       "residents":  23433,
+                       "residents":  23426,
                        "kind":  "mixed",
                        "code":  "14384",
                        "area_km2":  41.18,
@@ -3129,7 +3203,7 @@
                                         139.29973,
                                         35.53016
                                     ],
-                       "residents":  39894,
+                       "residents":  39869,
                        "kind":  "mixed",
                        "code":  "14401",
                        "area_km2":  32.07,

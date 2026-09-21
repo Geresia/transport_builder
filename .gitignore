@@ -31,3 +31,12 @@ oa_*.json
 *.shp
 *.dbf
 *.shx
+
+# validate-pack fingerprint cache
+transitline/.cache/
+
+# raw e-Stat downloads and unpacked sheets (regenerate per packs/tokyo/README.md); small derived od-*.json are kept
+transitline/data-raw/od2020/*.xlsx
+transitline/data-raw/od2020/x*/
+transitline/data-raw/od2020/mismatch.json
+transitline/data-raw/demand.before-census.json

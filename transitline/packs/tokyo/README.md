@@ -60,6 +60,7 @@ vintage**:
   *change* (前回比 decrease amount + rate) rather than the raw 2020 figure.
   `prev = decrease/rate; pop2020 = prev - decrease`. Cross-checks the initial
   (now-replaced) figures for these four within 0.5%.
+- **[Superseded 2026-09-21: every point now carries the raw 2020 census figure, `popDate: "2020"`; the estimates below survive as `residentsEst2026` - see "Cross-check against the registry's Tokyo maps".]**
 - 74 points (30 Tokyo Tama-area municipalities + the 44 wards of designated
   cities さいたま市/千葉市/横浜市/川崎市/相模原市, which `kanto-region.json`
   already splits into wards, not one point per city) → `popDate: "2026-08"`,
@@ -407,6 +408,58 @@ footprints. The per-building weight was originally a guess (residential 0.1, roo
   the survey's PDF field definitions were unreadable, so class codes 111-150 follow the known Tokyo survey
   classification and are consistent with the observed counts; utilities fit to 0.
 - Regenerate: `node scripts/tokyo-job-coefficients.mjs <R03建物現況.dbf>` (scripts/tokyo-lu-dbf.mjs is a small DBF reader).
+
+## Commuter O/D (`od.json`) — measured, municipality level
+
+Home -> work flows of employed residents (15+) between the 242 municipalities in `demand.json`, straight from
+令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表 (常住地 x 従業地・通学地, 市区町村; e-Stat, tables for
+Saitama/Chiba/Tokyo/Kanagawa residents). It is a counted full matrix, not a gravity estimate.
+
+- Per origin (JIS 5-digit code): `workers` = `self` (own municipality, incl. `home` = at home) + `unknown` (workplace unknown/abroad, booked to the home
+  municipality) + `out` (outside the 242-municipality region) + sum of `dest` (region destinations by code); `validate-pack` enforces the identity. 38,805 nonzero flows, 15.88M workers, 0.9% go outside the region.
+- Students are excluded. Workers whose workplace is unknown/abroad are booked to their home municipality by the Statistics Bureau (note 1) and kept separately as `unknown` (0.5-3% of workers).
+- Cross-check vs `jobs.json` (Economic Census, by workplace): OD inflow into Chiyoda is 792k vs 1.20M census-of-establishment workers.
+  The Economic Census counts by establishment (head-office bookkeeping, dispatched/part-time staff) and includes commuters from
+  outside the four prefectures; expect it to exceed the population census in CBD wards. Not reconciled.
+- Regenerate: download the four `e03-{11,12,13,14}-01.xlsx` files (statInfId 000032214185/188/196/199) into `data-raw/od2020/`,
+  unzip, `node scripts/od-parse-2020.mjs <sheet1.xml> <sharedStrings.xml> od-<pref>.json <pref>`, then `node scripts/tokyo-od.mjs`.
+- Not yet consumed by the engine/viewer (demand model is still gravity in `demand.json`).
+- `manifest.json` `quality` records our self-assessment against the registry's data-quality rubric.
+
+**Per-ward fit quality and 23-ward per-building jobs (added 2026-09-21).** `job-coefficients.json` now carries `perWard`: for each ward
+the in-sample R2 and a **leave-one-ward-out** R2 (coefficients refit without that ward, scored on it) plus total bias. Out-of-sample R2 stays
+close to in-sample for most wards (0.33 Koto and 0.35 Sumida are the weak ones, both reclaimed land with factories/warehouses; best are
+Nakano 0.92, Bunkyo 0.88, Chiyoda 0.86), so the coefficients transfer between wards. The model **under-predicts commercial-core wards** by
+8-32% (Shibuya -32%, Toshima -30%, Chiyoda -25%, Shinagawa -25%); this does not affect per-building splits because each chome total is pinned to
+the census, but it means the absolute floor-area productivity of head-office districts is higher than the class averages. Refresh with
+`STATS_ONLY=1 node scripts/tokyo-job-coefficients.mjs <R03建物現況.dbf>` (leaves `jobs-buildings.json` untouched).
+
+`tokyo-buildings.pmtiles` also carries `jobs` (estimated workers per building) for all 1,119,872 buildings, built by
+`scripts/tokyo-building-jobs-lu.mjs` (sibling of `tokyo-building-pop-lu.mjs`: same survey-class x floor-area weight, chome totals from
+`jobs.json`). 8,450,066 of 8,454,122 workers allocated (99.95%); the rest sit in 10 chomes with no OSM building. Distribution is very skewed
+(median 0.1 worker, max 19,269), so `viewer.html` uses fixed colour cuts [0.5, 2, 5, 15, 50, 150, 500] rather than quantiles. Modeled, not measured.
+Not covered: Saitama/Chiba/Kanagawa (no equivalent land use survey - chome level only) and the four sparse-OSM wards remain biased per the OSM-gap note below.
+
+## Cross-check against the registry's Tokyo maps and the census (2026-09-21)
+
+Reference points: `jelegend-tokyo` (population 24,049,464, 30,488 demand points, "Greater Tokyo", clipped playable area) and
+`yukina-tokyo` (268 municipalities listed in its manifest, 23,744,038 playable population, 16,361 km2). Their ZIP demand data is not in the
+registry (only manifests), so the comparison is at municipality level using yukina's published municipality table and the census itself.
+
+- **Authoritative source used:** 令和2年国勢調査 第1-1表 (e-Stat statInfId 000032214141) via `scripts/muni-pop-2020.mjs` -> `data-raw/od2020/muni-pop-2020.json`
+  (常住人口 and 昼間人口 for 1,965 municipalities).
+- **Chome data is consistent:** the sum of `subward*.json` residents equals the census municipal total **exactly** for all 212 units
+  (32,599,858 people; Tokyo 23 wards + Kanagawa/Saitama/Chiba).
+- **`demand.json` was not:** only 35 of 242 points matched the census. 129 "2020" points were 0.05% high on median (max 0.35%, 120 of 129 above the
+  census - consistent with a different tabulation basis such as unknown-age imputation, not verified), and 74 points were 2026-08 estimates
+  (median 1.7% off, max 14.9%: Okutama -14.9%, Omiya +7.2%, Chiba Chuo +5.6%). Now **all 242 are the raw census figure** (`popDate: "2020"`);
+  the former estimate is kept as `residentsEst2026` on those 74. Total 36,889,715. Pre-change copy: `data-raw/demand.before-census.json`.
+- **yukina-tokyo:** its municipality table equals the census for 267 of 268 municipalities (川崎市川崎区 is 1 higher). Overlap with our 242: 238.
+  yukina-only (30, 1.81M people): Ibaraki (Tsukuba, Tsuchiura, Koga...), Noge (Tochigi), Uenohara (Yamanashi). Ours-only (4, 133k): Honjo and
+  Kodama-gun towns (Saitama). Our scope is wider on the Saitama side, narrower to the north-east.
+- **Scope, not error:** our 242 municipalities hold 36.9M people over 13,061 km2, versus 23.7M "playable" in both registry maps - they clip to a
+  core area rather than whole municipalities, so their totals are not comparable to ours.
+- **Not compared:** demand-point counts (30,488 / 83,157) - those depend on each map's point-generation scheme, not on source data.
 
 ## Basement floors (`obstacles.json` → `levels_underground`)
 
