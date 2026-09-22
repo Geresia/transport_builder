@@ -121,6 +121,12 @@ non-ODbL sources this pack also carries (Rule 3, [`../LICENSING.md`](../LICENSIN
   same Derivative Database obligations as the other OSM-derived files, see
   [`./LICENSE-DATA`](./LICENSE-DATA). See `README.md`'s "Walking barriers".
 
+- **© OpenStreetMap contributors, `existing-network.json`.** 195 real rail/subway/tram lines (OSM
+  `route=train|subway|light_rail|tram` relations and their ordered stop members), fetched via the
+  Overpass API and collapsed onto `demand.json`'s 242 points. ODbL-1.0 — same Derivative Database
+  obligations as the other OSM-derived files, see [`./LICENSE-DATA`](./LICENSE-DATA). Line colours,
+  where present, are also from OSM's own `colour` tag. See `README.md`'s "Existing rail network".
+
 - **© OpenStreetMap contributors, `building-labels.pmtiles`.** 15,081 named
   building footprints (OSM `building=*` with a `name` tag; name, `name:ko`,
   `name:en`), from Geofabrik's `kanto-latest.osm.pbf` of 2026-09-20, compiled

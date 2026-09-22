@@ -229,9 +229,41 @@ function updateAnalysis(state, depBars, arrBars) {
   setHist(arrBars, deliveredByHour);
 }
 
+// Two starting-network play modes, chosen by ?network= (both read the same pack — only whether
+// the real-world lines are pre-drawn differs):
+//   "existing" (default, when the pack has existingNetwork): keep + extend today's real network.
+//   "scratch": ignore it and start from a blank map, same as a pack with no existingNetwork at all.
+// A player can always reach the "scratch" state from "existing" via the Clear lines button too;
+// this flag only controls what's on the map when the pack first loads.
+function seedExistingNetwork(state, pack) {
+  if (!pack.existingNetwork || params.get("network") === "scratch") return;
+  for (const line of pack.existingNetwork.lines) {
+    const stationIds = line.stationIds.filter((id) => state.stations.has(id));
+    // dedupe consecutive repeats defensively (e.g. two source stops that map to the same station)
+    const path = stationIds.filter((id, i) => id !== stationIds[i - 1]);
+    if (path.length < 2) continue;
+    addLine(state, path, { name: line.name, color: line.color ?? undefined });
+  }
+}
+
+function syncNetworkModeUI(pack) {
+  const row = $("network-mode");
+  if (!pack.existingNetwork) { row.hidden = true; return; }
+  const scratch = params.get("network") === "scratch";
+  row.hidden = false;
+  $("network-mode-label").textContent = scratch ? "빈 지도" : "기존 철도망";
+  const link = $("network-mode-switch");
+  link.textContent = scratch ? "불러오기" : "새로 시작";
+  const url = new URL(location.href);
+  if (scratch) url.searchParams.delete("network"); else url.searchParams.set("network", "scratch");
+  link.href = url.href;
+}
+
 async function main() {
   const pack = await loadPack(packPath);
   const state = createState(pack);
+  seedExistingNetwork(state, pack);
+  syncNetworkModeUI(pack);
   const demandModel = buildDemandModel(state, pack.demand, params.get("od") === "0" ? null : pack.od); // ?od=0 forces gravity destinations
   const projection = makeProjection(pack.manifest.bbox, pack.manifest.origin);
 

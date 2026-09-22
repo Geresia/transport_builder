@@ -44,6 +44,9 @@ transitline/data-raw/demand.before-census.json
 # DEM / slope raw + derived data, too large to commit (see transitline/data-raw/terrain/README.md)
 transitline/data-raw/terrain/
 
+# raw Overpass OSM route-relation dumps, ~38MB, see transitline/data-raw/README.md
+transitline/data-raw/rail-network/
+
 # raw e-Stat CSVs for employed.json (regenerate per packs/tokyo/README.md)
 transitline/data-raw/emp2020/*.csv
 

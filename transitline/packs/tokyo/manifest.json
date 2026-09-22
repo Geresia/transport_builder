@@ -124,6 +124,7 @@
       "kanagawa-roads.pmtiles"
     ],
     "barriers": "barriers.json",
+    "existingNetwork": "existing-network.json",
     "buildingLabels": "building-labels.pmtiles",
     "buildingTilesRegional": [
       "saitama-buildings.pmtiles",

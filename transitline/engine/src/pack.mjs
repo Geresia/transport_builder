@@ -42,5 +42,13 @@ export async function loadPack(packPath) {
     catch (e) { console.warn("od.json not loaded, using gravity destinations:", e.message); }
   }
 
-  return { manifest, demand, od };
+  // Optional real-world starting network (existing-network.json). A missing or unreadable file
+  // must not stop the pack loading: the game is equally playable starting from a blank map.
+  let existingNetwork = null;
+  if (manifest.files?.existingNetwork) {
+    try { existingNetwork = await fetchJson(new URL(manifest.files.existingNetwork, new URL(base, document.baseURI)), manifest.compressed); }
+    catch (e) { console.warn("existing-network.json not loaded, starting blank:", e.message); }
+  }
+
+  return { manifest, demand, od, existingNetwork };
 }

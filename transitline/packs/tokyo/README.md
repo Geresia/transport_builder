@@ -292,6 +292,42 @@ duplicate drop keeps only the first.
 pack-level `ODbL-1.0`. This is the path `LICENSING.md` Rule 2 prescribes for
 queryable OSM geometry.
 
+### Existing rail network (`existing-network.json`) — real lines, for the engine's two start modes
+
+Gameplay data, not a rendering layer: today's real Kanto rail/subway/tram network, pre-collapsed onto
+`demand.json`'s 242 points so `engine/src/state.mjs`'s `addLine()` can draw it as the starting network.
+This is what makes the engine's two play modes possible — same pack either way, only whether these lines
+are pre-drawn differs (`engine/README.md` § "Two start modes"):
+
+- **existing** (default when this file is present): keep today's real network and extend it.
+- **scratch** (`?network=scratch`): ignore this file, start from a blank map — the pre-2026-09-22 behaviour,
+  and still what a pack without `existingNetwork` gets.
+
+195 lines (39 subway, 149 JR/private rail, 6 light rail, 1 tram), one per OSM `route=train|subway|
+light_rail|tram` relation in the pack bbox, fetched from Overpass (snapshot inside the file, `osmSnapshot`).
+Each line's real stops are collapsed onto whichever of the 242 demand points contains them
+(point-in-polygon against `wards-reference.json` / `kanto-region.json`, same test `barriers.json` above and
+`subward.json`'s ward-detail panel don't use but conceptually mirror); a real line naturally becomes an
+ordered list of municipalities. `color` and `operator` are carried from OSM's `colour`/`operator` tags when
+present (129 / 195 have a real colour; the engine falls back to its own palette for the rest via
+`addLine()`'s existing `opts.color ?? nextLineColor(state)`).
+
+**Simplifications, all from municipality-level granularity, not from the source data being synthetic:**
+direction pairs and short-turn variants of the same named line are merged into the fullest station set (a
+real line usually has 2+ OSM relations — up/down, sometimes an express/local split — and this format has no
+room for more than one path per named line); through-service lines that OSM tags as one relation across
+several operators keep that relation's own scope, not split or joined further; 2,361 of 8,973 real stops
+(26%) fall outside the pack bbox or more than 5km from any demand point and are dropped — mostly JR/Shinkansen
+lines that run on far past Kanto, so a long-distance line's `stationIds` is just its in-bbox portion, not
+wrong, just clipped. 28 of 242 demand points end up touched by no line (rural areas with no real station in
+their municipality, believed correct, not exhaustively checked one by one). Only `route` relations are read,
+not `route_master` (the OSM grouping relation some operators also publish over multiple `route` variants).
+
+**Licence:** ODbL Derivative Database, same as the pack's other OSM-derived files — attribution, share-alike,
+see `ATTRIBUTION.md`. **Rebuild:** `node transitline/scripts/tokyo-existing-network.mjs` (fetches to
+`data-raw/rail-network/raw/` if not cached, then rebuilds this file; ~5 min fetch when uncached, else
+instant).
+
 ### Walking barriers (`barriers.json`) — water, and the bridges across it
 
 Game data, not a visual layer: the places people **cannot walk across**, so a

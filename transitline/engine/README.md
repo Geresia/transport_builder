@@ -33,6 +33,26 @@ Then open `http://localhost:8000/engine/index.html`. It loads
 `../packs/example-radial` by default; pick another pack with
 `?pack=../packs/<id>` (e.g. `../packs/example-corridor` for the matrix model).
 
+## Two start modes
+
+A pack that carries `files.existingNetwork` (currently only `tokyo`, see
+`../packs/tokyo/README.md` § "Existing rail network") can be played two ways,
+picked by a `?network=` param on the same URL — the pack and its data are
+identical either way, only what's already drawn on the map at load differs:
+
+- **existing** (default): today's real rail/subway/tram network is pre-drawn
+  as starting lines. Play from there — extend it, add branches, leave it be.
+- **scratch** (`?network=scratch`): the file is ignored and play starts from
+  a blank map, same as any pack without `existingNetwork`.
+
+`src/main.mjs`'s `seedExistingNetwork()` does this once at load, via the same
+`addLine()` every player-drawn line goes through — a preloaded line is a
+completely ordinary line afterwards (renameable, deletable, extendable). The
+legend's **기존 철도망 / 빈 지도** row (`syncNetworkModeUI()`) shows which mode
+is active and links to the other one. A player can also reach the "scratch"
+state from "existing" mid-game with the existing **Clear lines** button —
+`?network=` only controls what's on the map when the pack first loads.
+
 ## How it works
 
 | File | What |
@@ -96,7 +116,7 @@ Not bugs — deliberate scope cuts to get a playable loop first:
   the period; otherwise a daily total scaled by the calendar factor), then
   scaled to a legible rate like gravity. Matrix packs have no residents/jobs,
   so station size on screen comes from each point's total trip volume.
-- **Measured O/D (optional).** If the pack declares `files.od` (`od.json`: census home->work flows between the demand points' municipalities), `gravity` takes two things from it (`src/od-flows.mjs`, wired in `buildDemandModel(state, demand, od)`): destinations are picked from the measured shares, and each origin's spawn volume is proportional to its commuters (`od.workers`, the employed residents) instead of total residents. The pack-wide spawn volume is unchanged (same total as gravity), so it redistributes trips rather than adding any. Own-municipality, unknown-workplace and out-of-region flows are dropped; an origin without an O/D row keeps its gravity volume and destinations. `?od=0` forces plain gravity. Note: the tokyo pack's demand points carry no `jobs`, so plain gravity has no destinations there at all - the O/D file is what makes its demand work. Test: `node engine/test/od-demand.test.mjs`.
+- **Measured O/D (optional).** If the pack declares `files.od` (`od.json`: census home->work flows between the demand points' municipalities), `gravity` takes two things from it (`src/od-flows.mjs`, wired in `buildDemandModel(state, demand, od)`): destinations are picked from the measured shares, and each origin's spawn volume is proportional to its commuters (`od.workers`, the employed residents) instead of total residents. The pack-wide spawn volume is unchanged (same total as gravity), so it redistributes trips rather than adding any. Own-municipality, unknown-workplace and out-of-region flows are dropped; an origin without an O/D row keeps its gravity volume and destinations. `?od=0` forces plain gravity. Note: before 2026-09-22 the tokyo pack's demand points carried no `jobs`, so plain gravity had no destinations there at all; every point now carries an O/D-derived workplace-here count (`scripts/tokyo-demand-jobs.mjs`), so plain gravity (`?od=0`) works too, just less accurately than the measured O/D. Test: `node engine/test/od-demand.test.mjs`.
 - **Attractor decay exponent** (`decayExponent`, or a per-`kind` engine
   default) sets how far an attractor pulls trips from — see the format doc.
   The per-kind defaults are this engine's own numbers.

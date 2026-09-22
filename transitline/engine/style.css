@@ -84,6 +84,8 @@ button:hover { background: #2c303e; }
 #legend h1 { font-size: 12px; margin: 0 0 6px; }
 #legend .row { display: flex; justify-content: space-between; gap: 12px; margin: 2px 0; color: var(--muted); }
 #legend .row span:last-child { color: var(--text); font-family: var(--mono); }
+#network-mode { margin-bottom: 8px; }
+#network-mode-switch { color: var(--text); font-family: inherit; text-decoration: underline; cursor: pointer; }
 #legend #clear-lines { margin-top: 10px; width: 100%; padding: 5px 0; }
 
 #palette { display: flex; gap: 6px; margin: 6px 0; }

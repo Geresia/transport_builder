@@ -71,6 +71,7 @@
         },
         "obstacles": { "type": "string", "description": "Building footprints used for gameplay collision." },
         "barriers": { "type": "string", "description": "Rivers, rail corridors and other linear barriers." },
+        "existingNetwork": { "type": "string", "description": "Real-world rail/subway/tram lines, pre-collapsed onto demand.json's points, that the engine can preload as the starting network." },
         "bathymetry": { "type": "string", "description": "Water depth grid (real sourced data)." },
         "region": { "type": "string", "description": "Region/municipality boundary polygons." },
         "subward": {
