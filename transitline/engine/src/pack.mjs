@@ -42,6 +42,14 @@ export async function loadPack(packPath) {
     catch (e) { console.warn("od.json not loaded, using gravity destinations:", e.message); }
   }
 
+  // Optional measured school-commute O/D (od-school.json), same shape as od.json. Folded into the same
+  // demand model as od.json (see demand-engine.mjs) - the engine has no separate "student" trip kind.
+  let odSchool = null;
+  if (manifest.files?.odSchool) {
+    try { odSchool = await fetchJson(new URL(manifest.files.odSchool, new URL(base, document.baseURI)), manifest.compressed); }
+    catch (e) { console.warn("od-school.json not loaded:", e.message); }
+  }
+
   // Optional real-world starting network (existing-network.json). A missing or unreadable file
   // must not stop the pack loading: the game is equally playable starting from a blank map.
   let existingNetwork = null;
@@ -50,5 +58,5 @@ export async function loadPack(packPath) {
     catch (e) { console.warn("existing-network.json not loaded, starting blank:", e.message); }
   }
 
-  return { manifest, demand, od, existingNetwork };
+  return { manifest, demand, od, odSchool, existingNetwork };
 }

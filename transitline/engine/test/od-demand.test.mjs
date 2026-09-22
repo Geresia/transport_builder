@@ -51,4 +51,25 @@ check(demand.points.every((p) => p.jobs !== undefined && p.jobs >= 0), "every de
 const anyNull = [...Array(2000)].some(() => grav.pick(state, idOf("13101"), rand) === null);
 check(!anyNull, "plain gravity (no od) now picks a real destination for every draw, not null");
 
+// 6. od-school.json (added 2026-09-22): merged with od.json into one undifferentiated demand model -
+// this engine has no separate "student" trip kind, so both files' flows just add into the same pool.
+const odSchool = JSON.parse(fs.readFileSync(P + "od-school.json", "utf8"));
+const combined = buildDemandModel(state, demand, od, odSchool);
+check(combined.measuredOrigins === demand.points.length, "od+odSchool model reports all origins measured");
+check(Math.abs(sum(combined) - sum(grav)) / sum(grav) < 1e-9, "od+odSchool pack-wide spawn volume still identical to gravity");
+const chiyodaCombinedRow = odRowsByStation(demand, od).get(idOf("13101")).row.length + odRowsByStation(demand, odSchool).get(idOf("13101")).row.length;
+// Total volume is conserved (redistributed, not additive - same as the od-only model vs gravity), so adding
+// students moves each origin's SHARE of the fixed pool rather than only ever increasing it; job-heavy,
+// residential-light Chiyoda (huge workers, comparatively few resident students) should lose share once
+// residential origins' students are counted too.
+check(combined.rate(state, idOf("13101")) < model.rate(state, idOf("13101")), "Chiyoda (job-heavy, few resident students) loses spawn share once odSchool is folded in");
+check(demand.points.some((p) => Math.abs(combined.rate(state, p.id) / model.rate(state, p.id) - 1) > 0.01), "odSchool measurably changes at least one origin's share vs od.json alone");
+const volOf = (p) => { const c = p.jisCode !== undefined ? String(p.jisCode).slice(0, 5) : p.code; return (od.origins[c]?.workers ?? 0) + (odSchool.origins[c]?.students ?? 0); };
+const ratio2 = demand.points.map((p) => combined.rate(state, p.id) / volOf(p));
+check(Math.max(...ratio2) / Math.min(...ratio2) < 1 + 1e-9, "combined model's origin rates are proportional to workers+students");
+check(chiyodaCombinedRow > chiyoda.row.length, "combined destination row is a real union, longer than od.json alone");
+// odSchool alone (no od) also works standalone, same shape as the od-only case
+const schoolOnly = buildDemandModel(state, demand, null, odSchool);
+check(schoolOnly.measuredOrigins === demand.points.length, "odSchool alone also builds a full model");
+
 process.exit(fail ? 1 : 0);

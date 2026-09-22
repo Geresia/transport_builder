@@ -1,6 +1,10 @@
-// Measured home->work destination choice from a pack's optional `od.json` (manifest.files.od).
-// od.json is keyed by 5-digit municipality code; stations are demand points, so codes are mapped to point ids
-// through each point's `code` / `jisCode`. Own-municipality flows, `unknown` and `out` are left out: at this
+// Measured home->work (od.json) or home->school (od-school.json) destination choice from a pack's optional
+// O/D file (manifest.files.od / .odSchool). Both files share one shape - od.json's field is `workers`,
+// od-school.json's is `students` - so the per-origin volume is read generically here (`volume`) and
+// demand-engine.mjs's buildDemandModel() merges the two into one undifferentiated trip pool: this engine
+// tracks no distinct passenger "kind", so "commuter" and "student" trips are not told apart downstream.
+// Keyed by 5-digit municipality code; stations are demand points, so codes are mapped to point ids through
+// each point's `code` / `jisCode`. Own-municipality flows, `unknown` and `out` are left out: at this
 // resolution a station cannot serve trips that never leave its own point, and out-of-region trips have no station.
 export function odRowsByStation(demand, od) {
   const idByCode = new Map();
@@ -20,7 +24,7 @@ export function odRowsByStation(demand, od) {
       row.push({ id: to, weight: n });
       total += n;
     }
-    if (total > 0) rows.set(from, { row, total, workers: r.workers ?? total });
+    if (total > 0) rows.set(from, { row, total, volume: r.workers ?? r.students ?? total });
   }
   return rows;
 }

@@ -1,8 +1,9 @@
-// Build packs/tokyo/od-school.json: municipality-level home->school commuter flows (15歳以上通学者)
-// from the same 令和2年国勢調査 従業地・通学地 第3表 as od.json, column M instead of L
-// (COL=M node od-parse-2020.mjs ... -> data-raw/od2020/od-school-<pref>.json). Structure mirrors
-// tokyo-od.mjs's od.json exactly, one field renamed (workers -> students) - see that file for the
-// field meanings (self/home/unknown/out/dest).
+// Build packs/tokyo/od-school.json: municipality-level home->school commuter flows, ALL AGES
+// (column N, "15歳未満を含む通学者" - the census table's own all-ages reference figure, chosen over
+// the 15+-only column M so this counts every student, not just high-school/university), from the same
+// 令和2年国勢調査 従業地・通学地 第3表 as od.json (COL=N node od-parse-2020.mjs ... ->
+// data-raw/od2020/od-school-<pref>.json). Structure mirrors tokyo-od.mjs's od.json exactly, one field
+// renamed (workers -> students) - see that file for the field meanings (self/home/unknown/out/dest).
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { writeChecked } from './safe-write.mjs';
@@ -25,8 +26,8 @@ for (const p of demand.points) {
 const json = {
   formatVersion: 1,
   source: '令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表 (常住地), 総務省統計局 / e-Stat',
-  unit: '15歳以上通学者 (15歳未満の通学者は含まない — 小中学生の大半がここに入らない点に注意), 人',
-  note: 'students = self + unknown + out + sum(dest). Same table and field meanings as od.json (workers), column M (12_15歳以上通学者) instead of L (11_15歳以上就業者). self: 自市区町村内(うち自宅 home) / dest: 領域内の他市区町村コード別 / out: 領域外 / unknown: 通学地不詳・外国 (統計局注記により常住市区町村に計上).',
+  unit: '通学者 (15歳未満を含む全年齢), 人',
+  note: 'students = self + unknown + out + sum(dest). Same table and field meanings as od.json (workers), column N (R1_（別掲）15歳未満通学者を含む通学者) instead of L (11_15歳以上就業者) - all-ages, so elementary/junior-high pupils are included, not just 15+. self: 自市区町村内(うち自宅 home) / dest: 領域内の他市区町村コード別 / out: 領域外 / unknown: 通学地不詳・外国 (統計局注記により常住市区町村に計上).',
   origins,
 };
 writeChecked(`${root}packs/tokyo/od-school.json`, JSON.stringify(json), { label: 'school O/D flows', count: (j) => Object.values(j.origins).reduce((t, o) => t + Object.keys(o.dest).length, 0) });

@@ -46,5 +46,6 @@ while ((n = fs.readSync(fd, buf, 0, buf.length, pos)) > 0) {
 const agg = new Set(Object.keys(names).filter(c => c.endsWith('000') || names[c] === '特別区部' ||
   Object.keys(names).some(o => o !== c && o.slice(0, 3) === c.slice(0, 3) && names[o].startsWith(names[c]) && names[o].length > names[c].length)));
 for (const r of Object.values(out)) for (const c of Object.keys(r.dest)) if (agg.has(c)) delete r.dest[c];
-fs.writeFileSync(outP, JSON.stringify({ source: '令和2年国勢調査 従業地・通学地 第3表', unit: COL === 'M' ? '15歳以上通学者' : '15歳以上就業者', origins: out }));
+const UNIT_BY_COL = { L: '15歳以上就業者', M: '15歳以上通学者', N: '通学者 (15歳未満を含む)' };
+fs.writeFileSync(outP, JSON.stringify({ source: '令和2年国勢調査 従業地・通学地 第3表', unit: UNIT_BY_COL[COL] ?? `column ${COL}`, origins: out }));
 console.log('origins', Object.keys(out).length);

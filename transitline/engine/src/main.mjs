@@ -264,7 +264,9 @@ async function main() {
   const state = createState(pack);
   seedExistingNetwork(state, pack);
   syncNetworkModeUI(pack);
-  const demandModel = buildDemandModel(state, pack.demand, params.get("od") === "0" ? null : pack.od); // ?od=0 forces gravity destinations
+  // ?od=0 forces gravity destinations, for both files - it means "ignore measured O/D", not "ignore commuters only"
+  const useOd = params.get("od") !== "0";
+  const demandModel = buildDemandModel(state, pack.demand, useOd ? pack.od : null, useOd ? pack.odSchool : null);
   const projection = makeProjection(pack.manifest.bbox, pack.manifest.origin);
 
   // Canvas backing store kept equal to its CSS size (no devicePixelRatio

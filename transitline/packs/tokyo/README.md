@@ -498,26 +498,41 @@ Saitama/Chiba/Tokyo/Kanagawa residents). It is a counted full matrix, not a grav
 
 ## School-commute O/D (`od-school.json`) — measured, municipality level (added 2026-09-22)
 
-Home -> school flows of students (15+) between the same 242 municipalities, from the exact same census
-table and file as `od.json` — that table's title, 従業地・**通学地**, always covered both; only the
-workers column (L, 11_15歳以上就業者) had been parsed before. Column M (12_15歳以上通学者) is the
-parallel student count on the same rows, so this needed no new download, just re-reading the already-cached
-`data-raw/od2020/x{11,12,13,14}/` sheet XML with a different column.
+Home -> school flows of students, **all ages**, between the same 242 municipalities, from the exact same
+census table and file as `od.json` — that table's title, 従業地・**通学地**, always covered both; only the
+workers column (L, 11_15歳以上就業者) had been parsed before. Column N
+(`R1_（別掲）15歳未満通学者を含む通学者`, the table's own all-ages reference figure) is the parallel
+student count on the same rows, so this needed no new download, just re-reading the already-cached
+`data-raw/od2020/x{11,12,13,14}/` sheet XML with a different column. Chosen over the 15+-only column M
+(実際: 3.38M vs 1.43M students) since most school-commuters are under 15 (elementary/junior-high) and
+excluding them would throw away the majority of real school trips for no reason.
 
 - Same shape as `od.json`, field `workers` renamed `students`: `self`/`home`/`unknown`/`out`/`dest`, same
   identity (`students = self + unknown + out + sum(dest)`).
-- 24,601 nonzero flows, 1.43M students, 1.0% go outside the region (vs `od.json`'s 38,805 flows / 15.88M
-  workers / 0.9% — a very different population size, similar leakage rate).
-- **Excludes under-15 students on purpose, to match `od.json`'s "15歳以上" population convention** —
-  which means most elementary/junior-high pupils are *not* in this file, since column M is 15+ only (mostly
-  high-school and university students commuting across municipality lines). The source table has a separate
-  reference column, `R1_（別掲）15歳未満通学者を含む通学者`, for all-ages school-commute; not extracted here.
-- Regenerate: `COL=M node scripts/od-parse-2020.mjs <sheet1.xml> <sharedStrings.xml> od-school-<pref>.json
-  <pref>` (same source files as `od.json`, `COL=L` is the default and gives the original `od.json` behaviour),
-  then `node scripts/tokyo-od-school.mjs`.
-- Registered in `manifest.json` as `files.odSchool`. Not consumed by the engine yet — `od.json` is the one
-  `engine/src/od-flows.mjs` reads; wiring school-commute in (e.g. weekday daytime-only trips, or a `kind:
-  "school"` attractor) is a separate decision, not made here.
+- 24,854 nonzero flows, 3.38M students, 0.5% go outside the region (vs `od.json`'s 38,805 flows / 15.88M
+  workers / 0.9% — younger students travel shorter distances, so less leaks outside the 4-prefecture area).
+- Regenerate: `COL=N node scripts/od-parse-2020.mjs <sheet1.xml> <sharedStrings.xml> od-school-<pref>.json
+  <pref>` (same source files as `od.json`; `COL` defaults to `L`, giving `od.json`'s own workers figures;
+  `COL=M` gives the 15+-only student figures instead, not used here but the same one line away), then
+  `node scripts/tokyo-od-school.mjs`.
+- Registered in `manifest.json` as `files.odSchool`. **Consumed by the engine**, folded into the same demand
+  model as `od.json` (`engine/src/demand-engine.mjs`'s `buildDemandModel`, both optional params) — see
+  "Engine: od.json + od-school.json merged into one demand pool" below.
+
+### Engine: `od.json` + `od-school.json` merged into one demand pool
+
+The engine tracks no separate "commuter" vs "student" trip kind (Phase 1 simplification, see
+`engine/README.md`), so wiring in a second O/D file means merging it into the *same* pool `od.json` already
+feeds, not adding a parallel one: `buildDemandModel(state, demand, od, odSchool)` concatenates each origin's
+`od.json` and `od-school.json` destination rows and sums `workers + students` for that origin's share of the
+pack-wide spawn total (still conserved — folding in school-commute redistributes trips among origins, same
+as `od.json` alone did versus plain gravity, it does not add trips beyond the gravity-model total). Either
+file may be absent; each origin independently falls back to gravity if it has a row in neither. `?od=0`
+disables both (forces plain gravity), matching its existing meaning of "ignore measured O/D".
+Verified in `engine/test/od-demand.test.mjs`: combined model covers all 242 origins, pack-wide volume still
+equals gravity's, each origin's rate is proportional to workers+students, Chiyoda (huge worker count, few
+resident students) visibly loses spawn share once students are folded in, and `od-school.json` also works
+standalone with no `od.json`.
 
 **`demand.json` `jobs` (added 2026-09-22).** Every one of the 242 points now carries `jobs`: workers who WORK in that municipality, from the same
 O/D matrix (`self` + everyone else's `dest` landing there) - `scripts/tokyo-demand-jobs.mjs`. This feeds the engine's per-station gravity

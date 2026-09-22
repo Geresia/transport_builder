@@ -44,27 +44,38 @@ function pickFromRow(row, total, rand) {
   return row[row.length - 1].id;
 }
 
-// `od` (optional, from manifest.files.od): measured commuter flows. Under gravity it replaces two things:
+// `od` / `odSchool` (optional, from manifest.files.od / .odSchool): measured commuter and school-commute
+// flows. Under gravity, having either one replaces two things:
 //  - destination choice: the measured origin->destination shares instead of distance decay;
-//  - origin volume: split in proportion to each origin's commuters (employed residents, od.workers) instead of total residents - the
-//    employed are the population that actually generates commutes.
-// The pack-wide spawn volume is unchanged (same total as gravity), so switching it on redistributes trips rather than adding any.
-// Origins without an O/D row keep their gravity volume and destination choice. Ignored for matrix packs.
-export function buildDemandModel(state, demand, od = null) {
+//  - origin volume: split in proportion to each origin's real trip-makers (od.workers + odSchool.students)
+//    instead of total residents - the people who actually travel are the ones who generate trips.
+// The pack-wide spawn volume is unchanged (same total as gravity), so switching either on redistributes
+// trips rather than adding any. When both are present their rows are merged into one undifferentiated
+// pool per origin (this engine tracks no separate "commuter" vs "student" trip kind - see od-flows.mjs).
+// Origins without any O/D row keep their gravity volume and destination choice. Ignored for matrix packs.
+export function buildDemandModel(state, demand, od = null, odSchool = null) {
   if (demand.model === "matrix") return buildMatrixModel(state, demand);
   const gravity = buildGravityModel(state);
-  if (!od) return gravity;
+  if (!od && !odSchool) return gravity;
   // Keep only destinations that are stations in this run (fixed for the model's lifetime), once, not per pick.
+  // Merge od + odSchool per origin: concatenate both files' weighted destinations and sum both volumes, so
+  // an origin present in only one file still works exactly like the single-file case did before.
   const rows = new Map();
-  for (const [id, r] of odRowsByStation(demand, od)) {
-    if (!state.stations.has(id)) continue;
-    const row = r.row.filter((x) => state.stations.has(x.id));
-    const total = row.reduce((t, x) => t + x.weight, 0);
-    if (total > 0) rows.set(id, { row, total, workers: r.workers });
+  for (const source of [od, odSchool]) {
+    if (!source) continue;
+    for (const [id, r] of odRowsByStation(demand, source)) {
+      if (!state.stations.has(id)) continue;
+      const row = r.row.filter((x) => state.stations.has(x.id));
+      const total = row.reduce((t, x) => t + x.weight, 0);
+      if (total <= 0) continue;
+      const prev = rows.get(id);
+      if (prev) { prev.row.push(...row); prev.total += total; prev.volume += r.volume; }
+      else rows.set(id, { row: [...row], total, volume: r.volume });
+    }
   }
-  let poolBase = 0, poolWorkers = 0;
-  for (const [id, r] of rows) { poolBase += gravity.baseRate(id); poolWorkers += r.workers; }
-  const base = (id) => (rows.has(id) && poolWorkers > 0 ? (poolBase * rows.get(id).workers) / poolWorkers : gravity.baseRate(id));
+  let poolBase = 0, poolVolume = 0;
+  for (const [id, r] of rows) { poolBase += gravity.baseRate(id); poolVolume += r.volume; }
+  const base = (id) => (rows.has(id) && poolVolume > 0 ? (poolBase * rows.get(id).volume) / poolVolume : gravity.baseRate(id));
   return {
     ...gravity,
     measuredOrigins: rows.size,
