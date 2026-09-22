@@ -134,6 +134,7 @@
     ],
     "basemap": "basemap.pmtiles",
     "od": "od.json",
+    "odSchool": "od-school.json",
     "bathymetry": "bathymetry.json",
     "specialDemand": "special-demand.json",
     "employed": "employed.json",

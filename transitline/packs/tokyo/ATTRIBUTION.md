@@ -160,6 +160,8 @@ strictest of these sources (`ODbL-1.0`) per
 
 - 通勤OD (`od.json`): 出典 総務省統計局「令和2年国勢調査 従業地・通学地による人口・就業状態等集計」第3表 (e-Stat)。加工: 市区町村別に領域内へ集約。政府標準利用規約2.0。
 
+- 通学OD (`od-school.json`, 2026-09-22 追加): `od.json` と同じ第3表・同じファイルの別列（15歳以上通学者）。出典・利用規約は同上。
+
 - **Terrain shading (`viewer.html`, fetched live, not shipped):** AWS Terrain Tiles (Terrarium, open data; derived from SRTM, GSI and other sources), `https://registry.opendata.aws/terrain-tiles/`. Used only for the optional hillshade layer; the pack works without it.
 
 - 学校・病院 (`special-demand.json`): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23, CC BY 4.0)」「医療機関データ (P04-20)」(https://nlftp.mlit.go.jp/ksj/)。加工: 大学・短大・高専と100床以上の病院を抽出し、収容人数(`capacity`)を推定値として付与。「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成。文化施設 (P27) は2013年版が非商用のため使用していない。

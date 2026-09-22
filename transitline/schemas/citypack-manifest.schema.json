@@ -86,6 +86,10 @@
           "type": "string",
           "description": "Measured municipality-to-municipality commuter flows (census). Optional; the engine uses it for destination choice."
         },
+        "odSchool": {
+          "type": "string",
+          "description": "Measured municipality-to-municipality school-commute flows (census, same table as od but the student column). Optional."
+        },
         "specialDemand": {
           "type": "string",
           "description": "Point demand outside the commute model (schools, hospitals, ...)."

@@ -17,7 +17,7 @@
 
 ## git에 올라간 것
 
-`od2020/`의 `muni-pop-2020.json`, `od-11.json` ~ `od-14.json` 5개는 크기가 작고 팩을 다시 만들 때 바로 쓰여서 추적한다. 원본 xlsx와 압축 해제 폴더(`x*/`), `mismatch.json`은 무시한다.
+`od2020/`의 `muni-pop-2020.json`, `od-11.json` ~ `od-14.json`, `od-school-11.json` ~ `od-school-14.json` (2026-09-22 추가, 통학 OD — `od-*.json`과 같은 파일·같은 파싱 스크립트, 컬럼만 다름) 총 9개는 크기가 작고 팩을 다시 만들 때 바로 쓰여서 추적한다. 원본 xlsx와 압축 해제 폴더(`x*/`), `mismatch.json`은 무시한다.
 
 ## 백업
 

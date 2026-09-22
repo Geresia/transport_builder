@@ -496,6 +496,29 @@ Saitama/Chiba/Tokyo/Kanagawa residents). It is a counted full matrix, not a grav
 - Consumed by the engine for destination choice (`engine/src/od-flows.mjs`); `demand.json`'s per-municipality `jobs` (added 2026-09-22, see below) is the fallback for plain gravity.
 - `manifest.json` `quality` records our self-assessment against the registry's data-quality rubric.
 
+## School-commute O/D (`od-school.json`) — measured, municipality level (added 2026-09-22)
+
+Home -> school flows of students (15+) between the same 242 municipalities, from the exact same census
+table and file as `od.json` — that table's title, 従業地・**通学地**, always covered both; only the
+workers column (L, 11_15歳以上就業者) had been parsed before. Column M (12_15歳以上通学者) is the
+parallel student count on the same rows, so this needed no new download, just re-reading the already-cached
+`data-raw/od2020/x{11,12,13,14}/` sheet XML with a different column.
+
+- Same shape as `od.json`, field `workers` renamed `students`: `self`/`home`/`unknown`/`out`/`dest`, same
+  identity (`students = self + unknown + out + sum(dest)`).
+- 24,601 nonzero flows, 1.43M students, 1.0% go outside the region (vs `od.json`'s 38,805 flows / 15.88M
+  workers / 0.9% — a very different population size, similar leakage rate).
+- **Excludes under-15 students on purpose, to match `od.json`'s "15歳以上" population convention** —
+  which means most elementary/junior-high pupils are *not* in this file, since column M is 15+ only (mostly
+  high-school and university students commuting across municipality lines). The source table has a separate
+  reference column, `R1_（別掲）15歳未満通学者を含む通学者`, for all-ages school-commute; not extracted here.
+- Regenerate: `COL=M node scripts/od-parse-2020.mjs <sheet1.xml> <sharedStrings.xml> od-school-<pref>.json
+  <pref>` (same source files as `od.json`, `COL=L` is the default and gives the original `od.json` behaviour),
+  then `node scripts/tokyo-od-school.mjs`.
+- Registered in `manifest.json` as `files.odSchool`. Not consumed by the engine yet — `od.json` is the one
+  `engine/src/od-flows.mjs` reads; wiring school-commute in (e.g. weekday daytime-only trips, or a `kind:
+  "school"` attractor) is a separate decision, not made here.
+
 **`demand.json` `jobs` (added 2026-09-22).** Every one of the 242 points now carries `jobs`: workers who WORK in that municipality, from the same
 O/D matrix (`self` + everyone else's `dest` landing there) - `scripts/tokyo-demand-jobs.mjs`. This feeds the engine's per-station gravity
 attractiveness (`state.jobs`), which is a different consumer from `job-coefficients.json`'s per-building split (that still fits to the Economic
