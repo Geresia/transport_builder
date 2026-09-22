@@ -32,6 +32,6 @@ const out = parts.map((chunk, i) => {
   return chunk.replace(/("residents":\s*\d+)/, `$1,\n                       "jobs":  ${jobs}`);
 });
 text = out.join("");
-writeChecked(demandPath, text, { label: "points with jobs", count: () => JSON.parse(text).points.filter((p) => p.jobs !== undefined).length });
+writeChecked(demandPath, text, { label: "points with jobs", count: (j) => j.points.filter((p) => p.jobs !== undefined).length });
 const d2 = JSON.parse(text);
 console.log("points", d2.points.length, "with jobs", d2.points.filter((p) => p.jobs !== undefined).length, "sum jobs", d2.points.reduce((s, p) => s + p.jobs, 0));

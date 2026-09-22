@@ -64,6 +64,15 @@ const missing = [...packAreas].filter((c) => areas[c] === undefined);
 const sums = {};
 for (const [c, e] of Object.entries(areas)) { const m = c.slice(0, 5); sums[m] = (sums[m] || 0) + e; }
 const bad = Object.entries(sums).filter(([m, s]) => municipalities[m] && municipalities[m].employed !== s);
+// The chome split is designed to reproduce each municipality's published total exactly (ordinary chomes are
+// copied 1:1, hidden groups use a largest-remainder split specifically so their sum matches) and every pack
+// area should get a value — so `missing`/`bad` being non-empty means the input or the split logic is wrong,
+// not an expected discrepancy. Fail before overwriting the file instead of only logging (code-review-2026-09-22.md
+// D-03). Set ALLOW_MISMATCH=1 if a specific mismatch is understood and intended.
+if ((missing.length > 0 || bad.length > 0) && process.env.ALLOW_MISMATCH !== "1") {
+  console.error({ missing: missing.length, missingSample: missing.slice(0, 5), municipalityMismatches: bad.length, sample: bad.slice(0, 5) });
+  throw new Error(`refusing to write employed.json: ${missing.length} pack areas with no value, ${bad.length} municipality totals that don't match the census. Set ALLOW_MISMATCH=1 if intended.`);
+}
 writeChecked(T + "employed.json", JSON.stringify({
   formatVersion: 1,
   source: "令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等 (e-Stat), 総務省統計局",

@@ -22,8 +22,13 @@ while ($listener.IsListening) {
   try {
     $path = [Uri]::UnescapeDataString($req.Url.AbsolutePath.TrimStart('/'))
     if ($path -eq "") { $path = $Index }
-    $full = Join-Path $root $path
-    if (Test-Path $full -PathType Leaf) {
+    # Resolve to a real absolute path and reject anything outside $root (e.g. an
+    # encoded "..\" segment) before touching the filesystem further.
+    $full = [IO.Path]::GetFullPath((Join-Path $root $path))
+    $rootWithSep = $root.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    if ($full -ne $root.TrimEnd('\', '/') -and -not $full.StartsWith($rootWithSep, [StringComparison]::OrdinalIgnoreCase)) {
+      $res.StatusCode = 403
+    } elseif (Test-Path $full -PathType Leaf) {
       $ext = [IO.Path]::GetExtension($full)
       $ct = $mime[$ext]
       if (-not $ct) { $ct = "application/octet-stream" }

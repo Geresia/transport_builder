@@ -163,6 +163,11 @@ const THEME = THEME_NAME === "dark" ? {
 const RAMP = THEME.ramp;
 const JRAMP = THEME.jramp;
 const nf = (n) => Math.round(Number(n)).toLocaleString("ja-JP");
+// Data-derived strings (area/building/region names from tile properties or JSON) go through popups'
+// innerHTML/setHTML as plain interpolated text — escape before every such use so a name containing
+// HTML-special characters can't inject markup (code-review-2026-09-22.md S-02).
+const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ESC_MAP[c]);
 // step 표현식은 경계값이 엄격하게 증가해야 함 — 0이 많은 데이터(지붕 등)는 분위수가 겹쳐서 중복 제거
 const stepExpr = (prop, cuts, ramp) => {
   const e = ["step", ["get", prop], ramp[0]];
@@ -512,6 +517,11 @@ map.on("load", async () => {
   let currentDetail = null;
   let applyMetric = () => {};
   let capUpdate = () => {}; // re-renders the explanatory panel text when the residents/jobs toggle changes
+  // 건물 표시(toggle-obstacles)와 3D(toggle-3d) 토글이 각자 레이어를 따로 건드리면 둘이 어긋난다 —
+  // 건물 숨김+3D 켬 상태에서 3D를 끄면 (꺼져 있던) 평면 레이어가 다시 보이거나, 3D가 켜진 채로 건물을
+  // 숨겨도 입체 레이어는 그대로 남는 식. 두 토글의 현재 체크 상태를 한 곳에서 같이 읽어 평면/입체 레이어
+  // 가시성을 매번 다시 계산한다 (code-review-2026-09-22.md D-05) — 아래에서 실제 구현으로 교체됨.
+  let applyBuildingVisibility = () => {};
   // 건물별 추정 거주 인구 (tokyo-buildings.pmtiles 의 pop 속성 — 정목 실제 인구를 건물 면적×층수×주거용도 가중치로 배분한 모델)
   // 0명(비주거 용도)은 회색, 나머지는 분위수 구간 색. 구간: 전체 건물 pop>0 의 1/8 분위수.
   const BLDG_POP_CUTS = [1.6, 2.5, 3.3, 4.2, 5.3, 7.1, 11.6];
@@ -638,10 +648,11 @@ map.on("load", async () => {
     const val = (a) => (metric === "jobs" ? wOf(a) : a.residents);
     const sorted = [...currentDetail.areas].sort((a, b) => val(b) - val(a));
     list.innerHTML = sorted.map((a) => {
-      const areaNameKo = kanaToKo(a.reading_kana);
-      const label = areaNameKo ? `${areaNameKo} <span class="dja">(${a.name_ja})</span>` : a.name_ja;
+      const areaNameKo = esc(kanaToKo(a.reading_kana));
+      const nameJa = esc(a.name_ja);
+      const label = areaNameKo ? `${areaNameKo} <span class="dja">(${nameJa})</span>` : nameJa;
       const other = metric === "jobs" ? `거주 ${nf(a.residents)}` : `일 ${nf(wOf(a))}`;
-      return `<div class="drow" data-code="${a.code}" data-lon="${a.location[0]}" data-lat="${a.location[1]}">`
+      return `<div class="drow" data-code="${esc(a.code)}" data-lon="${a.location[0]}" data-lat="${a.location[1]}">`
         + `<span class="dname">${label}</span><span class="dpop">${nf(val(a))}`
         + ` <span class="dja">/ ${other}</span></span></div>`;
     }).join("");
@@ -804,8 +815,8 @@ map.on("load", async () => {
       map.on("click", "jobsgrid-fill", (e) => {
         const p = e.features[0].properties;
         new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
-          .setHTML(`<div style="font:12.5px sans-serif;color:#000">${p.name} · 이 건물 종사자 약 <b>${nf(p.w)}</b>명`
-            + `<br>${p.area_m2}m² · ${p.levels}층${p.levels_known === true || p.levels_known === "true" ? "" : "(가정)"} · ${p.kind}`
+          .setHTML(`<div style="font:12.5px sans-serif;color:#000">${esc(p.name)} · 이 건물 종사자 약 <b>${nf(p.w)}</b>명`
+            + `<br>${esc(p.area_m2)}m² · ${esc(p.levels)}층${p.levels_known === true || p.levels_known === "true" ? "" : "(가정)"} · ${esc(p.kind)}`
             + `<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
           .addTo(map);
       });
@@ -980,7 +991,7 @@ map.on("load", async () => {
       new maplibregl.Popup({ closeButton: false })
         .setLngLat(e.lngLat)
         .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 거주 인구 <b>${nf(p.estimated_population)}</b>명`
-          + `<br>${p.area_m2}m² · ${p.levels}층 · ${p.sourceKind}<br>`
+          + `<br>${esc(p.area_m2)}m² · ${esc(p.levels)}층 · ${esc(p.sourceKind)}<br>`
           + `<span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
         .addTo(map);
     });
@@ -1008,12 +1019,12 @@ map.on("load", async () => {
       } });
     map.on("click", "special-demand-circle", (e) => {
       const p = e.features[0].properties;
-      const kindKo = p.kind === "university" ? `대학·전문 (${p.subType})` : "병원";
+      const kindKo = p.kind === "university" ? `대학·전문 (${esc(p.subType)})` : "병원";
       const extra = p.kind === "hospital"
         ? `<br>병상 ${nf(p.beds)}개${p.emergency ? " · 응급지정" : ""}${p.disasterBase ? " · 재해거점" : ""}`
         : "";
       new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
-        .setHTML(`<div style="font:12.5px sans-serif;color:#000"><b>${p.name}</b><br>${kindKo}${extra}`
+        .setHTML(`<div style="font:12.5px sans-serif;color:#000"><b>${esc(p.name)}</b><br>${kindKo}${extra}`
           + `<br>일일 이용객 약 <b>${nf(p.capacity)}</b>명 (모델 추정치)`
           + `<br><span style="color:#666">위치·병상수는 실측(MLIT 국토수치정보) — 정원은 실측 아님</span></div>`)
         .addTo(map);
@@ -1068,8 +1079,8 @@ map.on("load", async () => {
         map.on("click", "saitama-jobs-circle", (ev) => {
           const p = ev.features[0].properties;
           new maplibregl.Popup({ closeButton: false }).setLngLat(ev.lngLat)
-            .setHTML(`<div style="font:12.5px sans-serif;color:#000">${p.name_ja} · 이 건물 종사자 약 <b>${nf(p.workers)}</b>명`
-              + `<br>${p.use} · 연면적 ${nf(p.floor_m2)}m²${p.levels ? ` · ${p.levels}층` : ""}${p.surveyed ? "" : " (연면적 추정)"}`
+            .setHTML(`<div style="font:12.5px sans-serif;color:#000">${esc(p.name_ja)} · 이 건물 종사자 약 <b>${nf(p.workers)}</b>명`
+              + `<br>${esc(p.use)} · 연면적 ${nf(p.floor_m2)}m²${p.levels ? ` · ${esc(p.levels)}층` : ""}${p.surveyed ? "" : " (연면적 추정)"}`
               + `<br><span style="color:#666">町丁 합계는 실측(2021 경제센서스), 건물별 배분은 모델 추정치</span></div>`)
             .addTo(map);
         });
@@ -1109,12 +1120,17 @@ map.on("load", async () => {
     document.getElementById("toggle-rail").addEventListener("change", (e) => {
       if (map.getLayer("bm-rail")) map.setLayoutProperty("bm-rail", "visibility", e.target.checked ? "visible" : "none");
     });
-    document.getElementById("toggle-obstacles").addEventListener("change", (e) => {
-      const v = e.target.checked ? "visible" : "none";
-      const ids = map.getLayer("bldg23-fill") ? ["bldg23-fill", "bldg23-line"] : ["obstacles-fill", "obstacles-line"];
-      for (const k of ["saitama", "chiba", "kanagawa"]) ids.push(`bldg-${k}-fill`, `bldg-${k}-line`);
-      for (const id of ids) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", v);
-    });
+    applyBuildingVisibility = () => {
+      const show = document.getElementById("toggle-obstacles").checked;
+      const is3d = document.getElementById("toggle-3d").checked;
+      const flatIds = map.getLayer("bldg23-fill") ? ["bldg23-fill", "bldg23-line"] : ["obstacles-fill", "obstacles-line"];
+      const extrudedIds = ["bldg23-fill-3d"];
+      for (const k of ["saitama", "chiba", "kanagawa"]) { flatIds.push(`bldg-${k}-fill`, `bldg-${k}-line`); extrudedIds.push(`bldg-${k}-fill-3d`); }
+      const flatV = show && !is3d ? "visible" : "none", extrudedV = show && is3d ? "visible" : "none";
+      for (const id of flatIds) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", flatV);
+      for (const id of extrudedIds) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", extrudedV);
+    };
+    document.getElementById("toggle-obstacles").addEventListener("change", applyBuildingVisibility);
   } else {
     document.getElementById("cap").textContent = "obstacles.json 을 불러오지 못했습니다.";
   }
@@ -1146,7 +1162,7 @@ map.on("load", async () => {
         // Minato/Chuo/허브 정목은 building-population.json 레이어(bldgpop-fill)가 자체 팝업을 띄움 — 중복 방지
         if (map.getLayer("bldgpop-fill") && map.queryRenderedFeatures(e.point, { layers: ["bldgpop-fill"] }).length) return;
         const p = e.features[0].properties;
-        const lv = (LU_KO[p.lu] ? `용도 ${LU_KO[p.lu]} (토지이용조사)` : "용도 미상") + (p.levels && p.levels !== "null" ? ` · ${p.levels}층` : "");
+        const lv = (LU_KO[p.lu] ? `용도 ${LU_KO[p.lu]} (토지이용조사)` : "용도 미상") + (p.levels && p.levels !== "null" ? ` · ${esc(p.levels)}층` : "");
         new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
           .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 ${metric === "jobs" ? `종사자 <b>${Number(p.jobs).toFixed(1)}</b>` : `거주 인구 <b>${Number(p.pop).toFixed(1)}</b>명 (취업자 <b>${Number(p.emp).toFixed(1)}</b>`}명`
             + `<br>${lv}<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
@@ -1181,10 +1197,10 @@ map.on("load", async () => {
           // 사이타마시 건물별 직장 포인트(saitama-jobs-circle, PLATEAU 기반 더 정밀한 모델)가 이 픽셀에도 있으면 그쪽 팝업에 양보
           if (metric === "jobs" && map.getLayer("saitama-jobs-circle") && map.queryRenderedFeatures(e.point, { layers: ["saitama-jobs-circle"] }).length) return;
           const p = e.features[0].properties;
-          const lv = p.levels && p.levels !== "null" ? `${p.levels}층` : "층수 미상";
+          const lv = p.levels && p.levels !== "null" ? `${esc(p.levels)}층` : "층수 미상";
           new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
             .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 ${metric === "jobs" ? `종사자 <b>${Number(p.jobs ?? 0).toFixed(1)}</b>` : `거주 인구 <b>${Number(p.pop ?? 0).toFixed(1)}</b>`}명`
-              + `<br>${lv} · ${p.kind}<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
+              + `<br>${lv} · ${esc(p.kind)}<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
             .addTo(map);
         };
         for (const id of [`bldg-${k}-fill`, `bldg-${k}-fill-3d`]) {
@@ -1202,10 +1218,7 @@ map.on("load", async () => {
       const on = e.target.checked;
       map.easeTo({ pitch: on ? 55 : 0, duration: 700 });
       try { map.setTerrain(on && map.getSource("terrain") ? { source: "terrain", exaggeration: 1.4 } : null); } catch { /* 지형 소스 연결 실패 시 2D로 유지 */ }
-      const flat = ["bldg23-fill", "bldg23-line", "bldg-saitama-fill", "bldg-saitama-line", "bldg-chiba-fill", "bldg-chiba-line", "bldg-kanagawa-fill", "bldg-kanagawa-line"];
-      const extruded = ["bldg23-fill-3d", "bldg-saitama-fill-3d", "bldg-chiba-fill-3d", "bldg-kanagawa-fill-3d"];
-      for (const id of flat) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", on ? "none" : "visible");
-      for (const id of extruded) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", on ? "visible" : "none");
+      applyBuildingVisibility(); // 건물 숨김 상태를 그대로 존중해 평면/입체 중 맞는 쪽만 켠다 (D-05)
     });
 
     // ---- 도로: 차도(road) / 보행자 도로(path) — 현·도 4개 pmtiles, 토글로 켜고 끔 (기본 꺼짐) ----

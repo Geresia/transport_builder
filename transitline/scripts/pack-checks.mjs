@@ -21,9 +21,16 @@ try { if (useCache) cache = JSON.parse(fs.readFileSync(CACHE_FILE, "utf8")); } c
 const sig = (files) => files.map((f) => { try { const s = fs.statSync(f); return `${f}:${s.size}:${Math.floor(s.mtimeMs)}`; } catch { return `${f}:missing`; } }).join("|");
 const stats = { ran: 0, cached: 0 };
 
+// This file's own content is part of every cache signature, so editing a check invalidates every cached
+// result for it automatically - without this, a bug fix here would silently keep reusing pre-fix verdicts
+// (code-review-2026-09-22.md D-04).
+const SELF_SIG = crypto.createHash("sha256").update(fs.readFileSync(fileURLToPath(import.meta.url))).digest("hex").slice(0, 16);
+
 // Run fn() -> {errors, warnings} unless the inputs are unchanged since a previous successful run.
-function cached(key, files, fn) {
-  const s = sig(files), hit = cache[key];
+// (Named distinctly from the `cached` that runPackChecks defines below, which wraps this one -
+// reusing the name there would put it in the temporal dead zone of its own `const` declaration.)
+function runCached(key, files, fn) {
+  const s = SELF_SIG + "|" + sig(files), hit = cache[key];
   if (hit && hit.sig === s) { stats.cached++; return hit; }
   stats.ran++;
   const r = { errors: [], warnings: [] };
@@ -89,6 +96,14 @@ export function runPackChecks(dir, manifest, { fail, warn }) {
   const collect = (label, r) => { for (const e of r.errors) fail(`${label}: ${e}`); for (const w of r.warnings) warn(`${label}: ${w}`); };
   const jsonFiles = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
   const at = (f) => path.join(dir, f);
+  // Every check below reads the already-parsed `manifest` object (which file names, quality answers, etc.
+  // come from), but most pass only the *target* files' paths to cached() - manifest.json's own (size, mtime)
+  // was never part of the signature, so editing manifest.json (a different `files.demand` path, a changed
+  // quality answer, ...) without touching the target files could keep reusing a stale cached verdict
+  // (code-review-2026-09-22.md D-04). Folding manifest.json into every signature here covers all call sites
+  // below at once, since they all go through this shadowed `cached`.
+  const manifestPath = at("manifest.json");
+  const cached = (key, files, fn) => runCached(key, [manifestPath, ...files], fn);
 
   // 1. format ------------------------------------------------------------------------------------
   for (const f of jsonFiles) {

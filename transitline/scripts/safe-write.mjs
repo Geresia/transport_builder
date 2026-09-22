@@ -6,7 +6,7 @@ import fs from "node:fs";
 
 // count: (parsed JSON) -> number of entries that matter for this file (municipalities, chomes, buildings, ...)
 export function writeChecked(file, text, { count, label = "entries", minRatio = 0.9 }) {
-  if (fs.existsSync(file) && !process.env.ALLOW_SHRINK) {
+  if (fs.existsSync(file) && process.env.ALLOW_SHRINK !== "1") {
     let oldN = null;
     try { oldN = count(JSON.parse(fs.readFileSync(file, "utf8").replace(/^\uFEFF/, ""))); } catch { /* unreadable old file: nothing to protect */ }
     const newN = count(JSON.parse(text));

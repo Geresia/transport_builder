@@ -93,10 +93,25 @@ function partRanges(i) {
   for (let pi = p0; pi < p1; pi++) out.push([parts[pi], pi + 1 < p1 ? parts[pi + 1] : ptOff[i + 1]]);
   return out;
 }
+// Ring role is winding order, not position: per the Shapefile spec, outer rings are clockwise and holes
+// counter-clockwise, and ringArea's shoelace sum is negative for clockwise, positive for counter-clockwise.
+// Treating "ring 0 = outer, every other ring = hole" (the previous logic) silently zeroed out buildings
+// whose second+ ring is itself an outer part (a real, if rare, multi-polygon footprint) instead of a hole
+// — code-review-2026-09-22.md D-01, 34 of 1,808,305 polygons affected, areas up to ~2,400 m2 clamped to 0.5.
 for (let i = 0; i < n; i++) {
   if (!keep[i]) continue;
-  let s = 0; const rs = partRanges(i);
-  rs.forEach(([a, b], k) => { const ar = ringArea(a, b); s += k === 0 ? Math.abs(ar) : -Math.abs(ar); });
+  const rs = partRanges(i);
+  const signed = rs.map(([a, b]) => ringArea(a, b));
+  const hasOuter = signed.some((ar) => ar < 0);
+  let s = 0;
+  if (hasOuter) {
+    for (const ar of signed) s += ar < 0 ? Math.abs(ar) : -Math.abs(ar);
+  } else {
+    // no clockwise ring at all (malformed winding): fall back to "largest ring is the outer boundary"
+    let outerIdx = 0;
+    for (let k = 1; k < signed.length; k++) if (Math.abs(signed[k]) > Math.abs(signed[outerIdx])) outerIdx = k;
+    signed.forEach((ar, k) => { s += k === outerIdx ? Math.abs(ar) : -Math.abs(ar); });
+  }
   area[i] = Math.max(s, 0.5);
 }
 
