@@ -4,6 +4,10 @@
 // building extrusion heights. Reads the already-built <area>-roads.pmtiles (road layer already carries `bridge`
 // and `kind`), buffers each bridge-tagged line segment into a rectangle sized by road class, and gives it a
 // thin extrusion (base = deck height - 2m, top = deck height) rather than a solid pillar from the ground.
+// Each bridge way's two ends taper from full height down to 0 over RAMP_LEN meters, so the deck reads as rising
+// out of the ground instead of popping up as a flat-topped block (no real ramp-length data exists to do this
+// exactly — this is a cosmetic taper, not a modeled on/off-ramp). An end is NOT tapered when it sits on a tile
+// boundary, since that means the way continues as more bridge in the next tile rather than truly ending there.
 // Usage: DEPS=<dir with node_modules of pmtiles,@mapbox/vector-tile,pbf> node scripts/build-bridge-decks.mjs \
 //          <out.geojsonl> [report.json]
 import fs from "fs";
@@ -26,6 +30,8 @@ const CLASS = {
   tertiary: [6.5, 5.5], tertiary_link: [5.5, 5], residential: [5.5, 5], unclassified: [5.5, 5], living_street: [5, 5],
 };
 const classOf = (kind) => CLASS[kind] ?? [5.5, 5];
+const RAMP_LEN = 25; // meters over which a genuine bridge end fades from full height down to ground level
+const EDGE_EPS = 4; // tile-units: a vertex this close to 0/EXT is treated as a tile-clip artifact, not a real end
 
 const Z = 14;
 const tile2lon = (x, z) => x / 2 ** z * 360 - 180;
@@ -62,8 +68,43 @@ for (const area of AREAS) {
       const wx = widthM / mPerLon * EXT / (lonE - lonW), wy = widthM / KLAT * EXT / (latN - latS);
       for (const part of f.loadGeometry()) {
         if (part.length < 2) continue;
-        for (let i = 0; i < part.length - 1; i++) {
-          const a = part[i], b = part[i + 1];
+        // real-world cumulative distance along this (tile-clipped) part, in meters
+        const dist = [0];
+        for (let i = 1; i < part.length; i++) {
+          const dx = (part[i].x - part[i - 1].x) / EXT * (lonE - lonW) * mPerLon;
+          const dy = (part[i].y - part[i - 1].y) / EXT * (latN - latS) * KLAT;
+          dist.push(dist[i - 1] + Math.hypot(dx, dy));
+        }
+        const total = dist[dist.length - 1];
+        const onEdge = (v) => v.x <= EDGE_EPS || v.x >= EXT - EDGE_EPS || v.y <= EDGE_EPS || v.y >= EXT - EDGE_EPS;
+        const clippedStart = onEdge(part[0]), clippedEnd = onEdge(part[part.length - 1]);
+        const fracAt = (d) => {
+          const fs = clippedStart ? 1 : Math.min(1, d / RAMP_LEN);
+          const fe = clippedEnd ? 1 : Math.min(1, (total - d) / RAMP_LEN);
+          return Math.max(0, Math.min(fs, fe));
+        };
+        // subdivide only near a genuine (non-clipped) end, so the taper reads as a smooth ramp rather than one
+        // big segment jumping straight from ground level to full height
+        const pts = part.map((v, i) => ({ x: v.x, y: v.y, d: dist[i] }));
+        const dense = [pts[0]];
+        for (let i = 0; i < pts.length - 1; i++) {
+          const va = pts[i], vb = pts[i + 1], segLen = vb.d - va.d;
+          const nearRamp = (!clippedStart && va.d < RAMP_LEN + 5) || (!clippedEnd && total - vb.d < RAMP_LEN + 5);
+          if (nearRamp && segLen > 3) {
+            const steps = Math.min(8, Math.ceil(segLen / 3));
+            for (let s = 1; s < steps; s++) {
+              const t = s / steps;
+              dense.push({ x: va.x + (vb.x - va.x) * t, y: va.y + (vb.y - va.y) * t, d: va.d + segLen * t });
+            }
+          }
+          dense.push(vb);
+        }
+        for (let i = 0; i < dense.length - 1; i++) {
+          const a = dense[i], b = dense[i + 1];
+          const frac = fracAt((a.d + b.d) / 2);
+          const top = +(topM * frac).toFixed(2);
+          if (top < 0.1) continue; // tapered down to ~ground level here: nothing worth extruding
+          const base = +(baseM * frac).toFixed(2);
           const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy); if (len === 0) continue;
           // perpendicular offset, scaled independently in x/y tile-unit space (tile is roughly square in meters locally)
           const nx = -dy / len, ny = dx / len;
@@ -73,7 +114,7 @@ for (const area of AREAS) {
           ];
           const coords = quad.map(([x, y]) => [+(lonW + x / EXT * (lonE - lonW)).toFixed(7), +(latN - y / EXT * (latN - latS)).toFixed(7)]);
           coords.push(coords[0]);
-          buf.push(JSON.stringify({ type: "Feature", properties: { kind: p.kind ?? "unclassified", base: baseM, top: topM }, geometry: { type: "Polygon", coordinates: [coords] } }));
+          buf.push(JSON.stringify({ type: "Feature", properties: { kind: p.kind ?? "unclassified", base, top }, geometry: { type: "Polygon", coordinates: [coords] } }));
           pieces++;
         }
       }
