@@ -170,24 +170,30 @@ export function runPackChecks(dir, manifest, { fail, warn }) {
       const c = codeOf(p);
       if (c !== undefined) { if (codes.has(c)) e(`duplicate municipality code ${c} (${p.id})`); codes.add(c); }
       if (p.residents !== undefined && !(Number.isInteger(p.residents) && p.residents >= 0)) e(`${p.id}: residents must be a non-negative integer`);
+      if (p.jobs !== undefined && !(Number.isInteger(p.jobs) && p.jobs >= 0)) e(`${p.id}: jobs must be a non-negative integer`);
       if (p.residentsEst2026 !== undefined && p.popDate !== "2020") e(`${p.id}: residentsEst2026 present but popDate is ${p.popDate}`);
       if (p.popDate !== undefined && !["2020", "2020-derived"].includes(p.popDate)) w(`${p.id}: popDate '${p.popDate}' is not a census vintage (2020)`);
     }
   }));
   for (const p of demand.points) { const c = codeOf(p); if (c !== undefined) byCode.set(c, p); }
 
-  // O/D: origins/dests are demand municipalities, row sums add up
+  // O/D: origins/dests are demand municipalities, row sums add up, and demand.points[].jobs (if present) is the O/D workplace-here count
   if (manifest.files?.od && exists(at(manifest.files.od))) {
     collect("invariant od", cached(`${dir}|inv-od`, inputs(dir, [manifest.files.od, manifest.files.demand]), (e) => {
       const od = rdJson(at(manifest.files.od));
       for (const c of byCode.keys()) if (!od.origins[c]) e(`demand municipality ${c} has no O/D row`);
+      const here = {};
       for (const [o, r] of Object.entries(od.origins)) {
         if (!byCode.has(o)) { e(`O/D origin ${o} is not a demand municipality`); continue; }
         let s = r.self + (r.unknown ?? 0) + r.out;
-        for (const [d, n] of Object.entries(r.dest)) { if (!byCode.has(d)) e(`O/D ${o} -> ${d}: destination not in demand`); s += n; }
+        here[o] = (here[o] ?? 0) + r.self;
+        for (const [d, n] of Object.entries(r.dest)) { if (!byCode.has(d)) e(`O/D ${o} -> ${d}: destination not in demand`); s += n; here[d] = (here[d] ?? 0) + n; }
         if (s !== r.workers) e(`O/D ${o}: self+unknown+out+sum(dest)=${s} != workers ${r.workers}`);
         if (r.home > r.self) e(`O/D ${o}: home ${r.home} > self ${r.self}`);
       }
+      const jobbed = demand.points.filter((p) => p.jobs !== undefined);
+      if (jobbed.length > 0 && jobbed.length !== demand.points.length) e(`demand.points: ${jobbed.length}/${demand.points.length} have 'jobs' - expected all or none`);
+      for (const p of jobbed) { const c = codeOf(p); if (here[c] !== p.jobs) e(`${p.id}: demand.jobs ${p.jobs} != O/D workplace-here count ${here[c]} (rerun scripts/tokyo-demand-jobs.mjs)`); }
     }));
   }
 

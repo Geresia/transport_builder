@@ -11,8 +11,9 @@
 //     targets: residents (subward*.json), workers (jobs.json), employed residents (employed.json); chomes joined by ward + chome name.
 //  2. building weight = footprint x floors x coef[class]; a chome's census total is split by weight (fallback footprint x floors when all
 //     weights are 0). Buildings are assigned to a chome by centroid point-in-polygon on the census small-area polygons.
-// Survey classes other than 111-150 (about 18k polygons: codes 210/220/300/400/510/520/61x/700/800/900, definition sheet unreadable) are
-// not treated as buildings and are dropped. Floors: BV_3 (above ground), 1 when missing.
+// Survey classes other than 111-150 are land-use codes (210/220/300/400/510/520/611-613/700/800/900 - parks, roads, rail/harbor, farmland,
+// water, wasteland, forest, unclassified; per the database definition sheet's 土地利用コード表, distinct from its 建物用途コード表 = 111-150),
+// about 18k polygons; they are not buildings and are dropped. Floors: BV_3 = 建物地上階数 (above ground), 1 when missing.
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";

@@ -68,13 +68,14 @@
 - **외곽 3개 현 개선**: 다른 세션이 PLATEAU 건물 데이터로 작업 중이라 손대지 않았습니다. 현재 0.438(D)이며 그쪽이 끝나면 다시 채점하면 됩니다.
 - **viewer의 취업자 토글**: `emp` 값은 타일에 있고 팝업에 표시되지만, 거주/일자리 토글에 세 번째 항목을 넣는 UI 작업은 하지 않았습니다(다른 세션이 같은 파일을 수정 중).
 
-## 6. 남은 한계
+## 6. 남은 한계 (2026-09-22 추가 확인)
 
-- 품질 등급은 자기 채점입니다. 조사 폴리곤을 `exact_footprints`로 본 것과 적합한 용도별 계수를 `fine_types_calibrated`로 본 것은 검토자가 다르게 볼 수 있습니다. 이 두 해석이 A 등급을 좌우합니다(`exact_footprints` 대신 `osm_footprints`면 0.683 B).
-- 조사 데이터의 비건물 코드 18,283개는 정의서를 읽을 수 없어 제외했습니다. 일부는 실제 건물일 수 있습니다.
-- 건물별 인구·일자리·취업자는 모두 추정이며 실측이 아닙니다.
-- Tokyo 포인트에 `jobs`가 없어 `?od=0`(순수 gravity)은 Tokyo에서 의미가 없습니다. OD 유입량으로 `jobs`를 채우는 것이 다음 후보입니다.
-- OSM 기반 `tokyo-buildings.pmtiles`(28.5MB)는 viewer가 더 이상 읽지 않지만 그대로 두었습니다. 삭제 여부는 결정이 필요합니다.
+- **품질 등급은 여전히 자기 채점입니다.** 조사 폴리곤을 `exact_footprints`로, 적합한 용도별 계수를 `fine_types_calibrated`로 본 것은 검토자가 다르게 볼 수 있습니다. 이 두 해석이 A 등급을 좌우합니다(`exact_footprints` 대신 `osm_footprints`면 0.683 B). 이건 해석의 문제라 추가 조사로 해소되지 않습니다.
+- **[해결] 비건물 코드 18,283개.** 정의서(データベース定義書 PDF)를 직접 읽었습니다. 이전에 "읽을 수 없다"고 한 게 틀렸습니다 — 인코딩이 깨진 텍스트 추출만 실패했을 뿐, PDF 자체는 정상적으로 읽혔습니다. 배제한 코드(210·220·300·400·510·520·611-613·700·800·900)는 정의서의 **토지이용코드표**에 속하는 공원·도로·철도항만·농지·수면·원야·산림·불명 코드이고, 건물 코드는 정의서의 별도 **건물용도코드표**에 있는 111-150뿐이라는 게 확인됐습니다. 우리가 111-150만 건물로 남긴 판단이 정확했습니다.
+- **[해결] BV_4(지하층수) 필드 의미.** 이전에는 "정의서 라벨을 읽을 수 없어 추정했다"고 적었는데, 정의서에 `BV_4 建物地下階数 (지하 층수, 단위: 층)`이라고 명시돼 있습니다. 상관관계로 추정한 값이 정확했다는 뜻이고, 이제 추정이 아니라 확인된 사실로 문서를 고쳤습니다.
+- **[해결] Tokyo 포인트의 `jobs` 누락.** `demand.json` 242개 전부에 OD 전수표 기반 "이 시정촌에서 근무하는 사람 수"를 채웠습니다(`scripts/tokyo-demand-jobs.mjs`). 경제센서스(`jobs.json`)는 다마 지역 30개 시정촌을 커버하지 않아 쓸 수 없었고, 섞어 쓰면 다마 경계에서 값이 뚝 끊기므로 242개 전부 OD 기준으로 통일했습니다. `?od=0`(순수 gravity)이 이제 Tokyo에서도 실제로 목적지를 고릅니다(이전에는 5,000번 뽑아 전부 null이었습니다). 회귀 테스트 2개 추가.
+- **[결정] OSM 기반 `tokyo-buildings.pmtiles`(28.5MB)를 유지하기로 정했습니다.** viewer는 더 이상 읽지 않지만, 실측을 다시 모으려면 Overpass 재수집이 필요해 되돌리기 어려운 데이터라 삭제하지 않았습니다. README에 "레거시/비교용" 레이어로 명시했습니다.
+- 건물별 인구·일자리·취업자는 모두 추정이며 실측이 아닙니다. (변동 없음, 근본적으로 해소되지 않는 한계)
 
 ## 7. 파일과 상태
 
@@ -84,4 +85,8 @@
 - 수정: `scripts/pack-checks.mjs`, `tokyo-od.mjs`, `muni-pop-2020.mjs`, `tokyo-job-coefficients.mjs`, `engine/src/demand-engine.mjs`, `od-flows.mjs`, `engine/test/od-demand.test.mjs`, `engine/README.md`, `schemas/citypack-manifest.schema.json`, `packs/tokyo/manifest.json`, `viewer.html`(건물 소스·팝업·안내문), `README.md`, `ATTRIBUTION.md`, `tokyo-buildings.pmtiles`(`emp` 추가), `.gitignore`
 - 다른 세션 작업(건드리지 않음): `areas.pmtiles`, `labels.pmtiles`, `plateau-*`, `saitama-job-coefficients`, `tokyo-terrain`, `tokyo-dem-download`, `tokyo-korean-labels`, `docs/data-sources-kanto-3pref.md` 등. `manifest`·`viewer`·`README`·`ATTRIBUTION`은 두 세션의 수정이 같은 파일에 섞여 있어, 커밋할 때 제 hunk만 골라야 합니다.
 
-**검증 요약**: `validate-all` 3/3, 품질 루브릭 테스트 11/11, 엔진 OD 테스트 11/11.
+**검증 요약**: `validate-all` 3/3, 품질 루브릭 테스트 11/11, 엔진 OD 테스트 13/13.
+
+## 8. 2026-09-22 후속: "확인이 필요한 점" 처리
+
+앞서 6번에 적은 4가지 중 3가지를 실제로 해결했고, 1가지(자기 채점의 해석 문제)는 성격상 조사로 해소되지 않는다는 걸 확인했습니다. 새 파일: `scripts/tokyo-demand-jobs.mjs`. 수정: `scripts/pack-checks.mjs`(jobs==OD 항등식 추가), `packs/tokyo/demand.json`, `packs/tokyo/README.md`, `scripts/tokyo-survey-buildings.mjs`(주석), `engine/README.md`, `engine/test/od-demand.test.mjs`(테스트 2개 추가). 여기도 커밋하지 않았습니다.

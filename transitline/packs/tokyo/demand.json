@@ -11,6 +11,7 @@
                                         35.78084
                                     ],
                        "residents":  695043,
+                       "jobs":  187184,
                        "kind":  "mixed",
                        "jisCode":  131211,
                        "area_km2":  52.98
@@ -24,6 +25,7 @@
                                         35.73853
                                     ],
                        "residents":  217475,
+                       "jobs":  68406,
                        "kind":  "mixed",
                        "jisCode":  131181,
                        "area_km2":  10.11
@@ -37,6 +39,7 @@
                                         35.71883
                                     ],
                        "residents":  240069,
+                       "jobs":  174305,
                        "kind":  "mixed",
                        "jisCode":  131059,
                        "area_km2":  11.23
@@ -50,6 +53,7 @@
                                         35.69088
                                     ],
                        "residents":  66680,
+                       "jobs":  792309,
                        "kind":  "mixed",
                        "jisCode":  131016,
                        "area_km2":  11.33
@@ -63,6 +67,7 @@
                                         35.67927
                                     ],
                        "residents":  169179,
+                       "jobs":  533247,
                        "kind":  "mixed",
                        "jisCode":  131024,
                        "area_km2":  10.58
@@ -76,6 +81,7 @@
                                         35.71360
                                     ],
                        "residents":  697932,
+                       "jobs":  174184,
                        "kind":  "mixed",
                        "jisCode":  131237,
                        "area_km2":  48.52
@@ -89,6 +95,7 @@
                                         35.76394
                                     ],
                        "residents":  584483,
+                       "jobs":  161864,
                        "kind":  "mixed",
                        "jisCode":  131199,
                        "area_km2":  32.06
@@ -102,6 +109,7 @@
                                         35.75523
                                     ],
                        "residents":  453093,
+                       "jobs":  115996,
                        "kind":  "mixed",
                        "jisCode":  131229,
                        "area_km2":  34.7
@@ -115,6 +123,7 @@
                                         35.75780
                                     ],
                        "residents":  355213,
+                       "jobs":  114613,
                        "kind":  "mixed",
                        "jisCode":  131172,
                        "area_km2":  20.51
@@ -128,6 +137,7 @@
                                         35.67399
                                     ],
                        "residents":  524310,
+                       "jobs":  334789,
                        "kind":  "mixed",
                        "jisCode":  131083,
                        "area_km2":  40.93
@@ -141,6 +151,7 @@
                                         35.62925
                                     ],
                        "residents":  288088,
+                       "jobs":  117901,
                        "kind":  "mixed",
                        "jisCode":  131105,
                        "area_km2":  14.61
@@ -154,6 +165,7 @@
                                         35.65381
                                     ],
                        "residents":  260486,
+                       "jobs":  764910,
                        "kind":  "mixed",
                        "jisCode":  131032,
                        "area_km2":  20.96
@@ -167,6 +179,7 @@
                                         35.70920
                                     ],
                        "residents":  344880,
+                       "jobs":  108915,
                        "kind":  "mixed",
                        "jisCode":  131148,
                        "area_km2":  15.52
@@ -180,6 +193,7 @@
                                         35.74916
                                     ],
                        "residents":  752608,
+                       "jobs":  171333,
                        "kind":  "mixed",
                        "jisCode":  131202,
                        "area_km2":  47.84
@@ -193,6 +207,7 @@
                                         35.58202
                                     ],
                        "residents":  748081,
+                       "jobs":  311475,
                        "kind":  "mixed",
                        "jisCode":  131113,
                        "area_km2":  62.87
@@ -206,6 +221,7 @@
                                         35.63909
                                     ],
                        "residents":  943664,
+                       "jobs":  269149,
                        "kind":  "mixed",
                        "jisCode":  131121,
                        "area_km2":  57.75
@@ -219,6 +235,7 @@
                                         35.66918
                                     ],
                        "residents":  243883,
+                       "jobs":  366360,
                        "kind":  "mixed",
                        "jisCode":  131130,
                        "area_km2":  15.04
@@ -232,6 +249,7 @@
                                         35.61546
                                     ],
                        "residents":  422488,
+                       "jobs":  338870,
                        "kind":  "mixed",
                        "jisCode":  131091,
                        "area_km2":  23.41
@@ -245,6 +263,7 @@
                                         35.70441
                                     ],
                        "residents":  349385,
+                       "jobs":  506349,
                        "kind":  "mixed",
                        "jisCode":  131041,
                        "area_km2":  18.14
@@ -258,6 +277,7 @@
                                         35.69393
                                     ],
                        "residents":  591108,
+                       "jobs":  147527,
                        "kind":  "mixed",
                        "jisCode":  131156,
                        "area_km2":  33.9
@@ -271,6 +291,7 @@
                                         35.70474
                                     ],
                        "residents":  272085,
+                       "jobs":  131799,
                        "kind":  "mixed",
                        "jisCode":  131075,
                        "area_km2":  13.7
@@ -284,6 +305,7 @@
                                         35.71696
                                     ],
                        "residents":  211444,
+                       "jobs":  174463,
                        "kind":  "mixed",
                        "jisCode":  131067,
                        "area_km2":  10.06
@@ -297,6 +319,7 @@
                                         35.73074
                                     ],
                        "residents":  301599,
+                       "jobs":  198761,
                        "kind":  "mixed",
                        "jisCode":  131164,
                        "area_km2":  12.95
@@ -309,6 +332,7 @@
                                         35.91401
                                     ],
                        "residents":  93499,
+                       "jobs":  25351,
                        "kind":  "mixed",
                        "code":  "11101",
                        "area_km2":  30.87,
@@ -323,6 +347,7 @@
                                         35.93380
                                     ],
                        "residents":  149242,
+                       "jobs":  53566,
                        "kind":  "mixed",
                        "code":  "11102",
                        "area_km2":  13.04,
@@ -337,6 +362,7 @@
                                         35.89909
                                     ],
                        "residents":  117784,
+                       "jobs":  86047,
                        "kind":  "mixed",
                        "code":  "11103",
                        "area_km2":  13.61,
@@ -351,6 +377,7 @@
                                         35.92865
                                     ],
                        "residents":  165049,
+                       "jobs":  39431,
                        "kind":  "mixed",
                        "code":  "11104",
                        "area_km2":  33.38,
@@ -365,6 +392,7 @@
                                         35.87698
                                     ],
                        "residents":  103269,
+                       "jobs":  45669,
                        "kind":  "mixed",
                        "code":  "11105",
                        "area_km2":  5.1,
@@ -379,6 +407,7 @@
                                         35.86359
                                     ],
                        "residents":  98661,
+                       "jobs":  27736,
                        "kind":  "mixed",
                        "code":  "11106",
                        "area_km2":  17.18,
@@ -393,6 +422,7 @@
                                         35.88219
                                     ],
                        "residents":  164822,
+                       "jobs":  69799,
                        "kind":  "mixed",
                        "code":  "11107",
                        "area_km2":  9.54,
@@ -407,6 +437,7 @@
                                         35.84693
                                     ],
                        "residents":  191563,
+                       "jobs":  43741,
                        "kind":  "mixed",
                        "code":  "11108",
                        "area_km2":  18.68,
@@ -421,6 +452,7 @@
                                         35.88540
                                     ],
                        "residents":  128321,
+                       "jobs":  32242,
                        "kind":  "mixed",
                        "code":  "11109",
                        "area_km2":  27.55,
@@ -435,6 +467,7 @@
                                         35.94714
                                     ],
                        "residents":  111815,
+                       "jobs":  45856,
                        "kind":  "mixed",
                        "code":  "11110",
                        "area_km2":  49.63,
@@ -449,6 +482,7 @@
                                         35.90447
                                     ],
                        "residents":  354571,
+                       "jobs":  130605,
                        "kind":  "mixed",
                        "code":  "11201",
                        "area_km2":  106.05,
@@ -462,6 +496,7 @@
                                         36.16015
                                     ],
                        "residents":  194415,
+                       "jobs":  81620,
                        "kind":  "mixed",
                        "code":  "11202",
                        "area_km2":  164.7,
@@ -475,6 +510,7 @@
                                         35.83970
                                     ],
                        "residents":  594274,
+                       "jobs":  176609,
                        "kind":  "mixed",
                        "code":  "11203",
                        "area_km2":  61.29,
@@ -488,6 +524,7 @@
                                         36.15105
                                     ],
                        "residents":  78617,
+                       "jobs":  31187,
                        "kind":  "mixed",
                        "code":  "11206",
                        "area_km2":  62.19,
@@ -501,6 +538,7 @@
                                         35.98114
                                     ],
                        "residents":  59674,
+                       "jobs":  26419,
                        "kind":  "mixed",
                        "code":  "11207",
                        "area_km2":  580.89,
@@ -514,6 +552,7 @@
                                         35.80278
                                     ],
                        "residents":  342464,
+                       "jobs":  106227,
                        "kind":  "mixed",
                        "code":  "11208",
                        "area_km2":  72.02,
@@ -527,6 +566,7 @@
                                         35.88335
                                     ],
                        "residents":  80361,
+                       "jobs":  28481,
                        "kind":  "mixed",
                        "code":  "11209",
                        "area_km2":  192.81,
@@ -540,6 +580,7 @@
                                         36.14208
                                     ],
                        "residents":  111623,
+                       "jobs":  44058,
                        "kind":  "mixed",
                        "code":  "11210",
                        "area_km2":  135.42,
@@ -553,6 +594,7 @@
                                         36.20743
                                     ],
                        "residents":  78569,
+                       "jobs":  31395,
                        "kind":  "mixed",
                        "code":  "11211",
                        "area_km2":  87.78,
@@ -566,6 +608,7 @@
                                         36.04304
                                     ],
                        "residents":  91791,
+                       "jobs":  39690,
                        "kind":  "mixed",
                        "code":  "11212",
                        "area_km2":  65.42,
@@ -579,6 +622,7 @@
                                         35.98316
                                     ],
                        "residents":  229792,
+                       "jobs":  65902,
                        "kind":  "mixed",
                        "code":  "11214",
                        "area_km2":  66.62,
@@ -592,6 +636,7 @@
                                         35.86501
                                     ],
                        "residents":  148699,
+                       "jobs":  58274,
                        "kind":  "mixed",
                        "code":  "11215",
                        "area_km2":  48.56,
@@ -605,6 +650,7 @@
                                         36.17891
                                     ],
                        "residents":  52862,
+                       "jobs":  22288,
                        "kind":  "mixed",
                        "code":  "11216",
                        "area_km2":  60.89,
@@ -618,6 +664,7 @@
                                         36.07850
                                     ],
                        "residents":  116828,
+                       "jobs":  34307,
                        "kind":  "mixed",
                        "code":  "11217",
                        "area_km2":  69.2,
@@ -631,6 +678,7 @@
                                         36.17754
                                     ],
                        "residents":  141268,
+                       "jobs":  57115,
                        "kind":  "mixed",
                        "code":  "11218",
                        "area_km2":  144.06,
@@ -644,6 +692,7 @@
                                         35.96050
                                     ],
                        "residents":  226940,
+                       "jobs":  68647,
                        "kind":  "mixed",
                        "code":  "11219",
                        "area_km2":  45.54,
@@ -657,6 +706,7 @@
                                         35.83963
                                     ],
                        "residents":  248304,
+                       "jobs":  68535,
                        "kind":  "mixed",
                        "code":  "11221",
                        "area_km2":  29.43,
@@ -670,6 +720,7 @@
                                         35.90126
                                     ],
                        "residents":  341621,
+                       "jobs":  108129,
                        "kind":  "mixed",
                        "code":  "11222",
                        "area_km2":  59.89,
@@ -683,6 +734,7 @@
                                         35.82651
                                     ],
                        "residents":  74283,
+                       "jobs":  19890,
                        "kind":  "mixed",
                        "code":  "11223",
                        "area_km2":  1.61,
@@ -696,6 +748,7 @@
                                         35.81344
                                     ],
                        "residents":  140899,
+                       "jobs":  56465,
                        "kind":  "mixed",
                        "code":  "11224",
                        "area_km2":  19.85,
@@ -709,6 +762,7 @@
                                         35.81778
                                     ],
                        "residents":  145651,
+                       "jobs":  50264,
                        "kind":  "mixed",
                        "code":  "11225",
                        "area_km2":  42.99,
@@ -722,6 +776,7 @@
                                         35.81222
                                     ],
                        "residents":  141083,
+                       "jobs":  42149,
                        "kind":  "mixed",
                        "code":  "11227",
                        "area_km2":  17.96,
@@ -735,6 +790,7 @@
                                         35.83876
                                     ],
                        "residents":  75346,
+                       "jobs":  18147,
                        "kind":  "mixed",
                        "code":  "11228",
                        "area_km2":  9.83,
@@ -748,6 +804,7 @@
                                         35.79515
                                     ],
                        "residents":  83989,
+                       "jobs":  29986,
                        "kind":  "mixed",
                        "code":  "11229",
                        "area_km2":  7.49,
@@ -761,6 +818,7 @@
                                         35.79185
                                     ],
                        "residents":  166017,
+                       "jobs":  48040,
                        "kind":  "mixed",
                        "code":  "11230",
                        "area_km2":  27.61,
@@ -774,6 +832,7 @@
                                         36.01165
                                     ],
                        "residents":  74748,
+                       "jobs":  24675,
                        "kind":  "mixed",
                        "code":  "11231",
                        "area_km2":  26.73,
@@ -787,6 +846,7 @@
                                         36.08163
                                     ],
                        "residents":  150582,
+                       "jobs":  56300,
                        "kind":  "mixed",
                        "code":  "11232",
                        "area_km2":  78.97,
@@ -800,6 +860,7 @@
                                         36.02547
                                     ],
                        "residents":  65201,
+                       "jobs":  19485,
                        "kind":  "mixed",
                        "code":  "11233",
                        "area_km2":  19.08,
@@ -813,6 +874,7 @@
                                         35.81835
                                     ],
                        "residents":  93363,
+                       "jobs":  37724,
                        "kind":  "mixed",
                        "code":  "11234",
                        "area_km2":  12.78,
@@ -826,6 +888,7 @@
                                         35.86610
                                     ],
                        "residents":  111859,
+                       "jobs":  24195,
                        "kind":  "mixed",
                        "code":  "11235",
                        "area_km2":  20.6,
@@ -839,6 +902,7 @@
                                         35.83299
                                     ],
                        "residents":  142145,
+                       "jobs":  50397,
                        "kind":  "mixed",
                        "code":  "11237",
                        "area_km2":  29.25,
@@ -852,6 +916,7 @@
                                         35.99700
                                     ],
                        "residents":  61499,
+                       "jobs":  18920,
                        "kind":  "mixed",
                        "code":  "11238",
                        "area_km2":  30.98,
@@ -865,6 +930,7 @@
                                         35.95696
                                     ],
                        "residents":  100275,
+                       "jobs":  31297,
                        "kind":  "mixed",
                        "code":  "11239",
                        "area_km2":  41.34,
@@ -878,6 +944,7 @@
                                         36.07503
                                     ],
                        "residents":  50066,
+                       "jobs":  16105,
                        "kind":  "mixed",
                        "code":  "11240",
                        "area_km2":  34.05,
@@ -891,6 +958,7 @@
                                         35.93960
                                     ],
                        "residents":  70117,
+                       "jobs":  20990,
                        "kind":  "mixed",
                        "code":  "11241",
                        "area_km2":  16.62,
@@ -904,6 +972,7 @@
                                         35.89815
                                     ],
                        "residents":  54571,
+                       "jobs":  24466,
                        "kind":  "mixed",
                        "code":  "11242",
                        "area_km2":  50.16,
@@ -917,6 +986,7 @@
                                         35.88759
                                     ],
                        "residents":  71979,
+                       "jobs":  21418,
                        "kind":  "mixed",
                        "code":  "11243",
                        "area_km2":  28.83,
@@ -930,6 +1000,7 @@
                                         35.85902
                                     ],
                        "residents":  113597,
+                       "jobs":  31179,
                        "kind":  "mixed",
                        "code":  "11245",
                        "area_km2":  13.47,
@@ -943,6 +1014,7 @@
                                         36.01297
                                     ],
                        "residents":  52214,
+                       "jobs":  15371,
                        "kind":  "mixed",
                        "code":  "11246",
                        "area_km2":  19.66,
@@ -956,6 +1028,7 @@
                                         35.99312
                                     ],
                        "residents":  44841,
+                       "jobs":  16661,
                        "kind":  "mixed",
                        "code":  "11301",
                        "area_km2":  14.38,
@@ -969,6 +1042,7 @@
                                         35.83174
                                     ],
                        "residents":  38434,
+                       "jobs":  23168,
                        "kind":  "mixed",
                        "code":  "11324",
                        "area_km2":  16.43,
@@ -982,6 +1056,7 @@
                                         35.93684
                                     ],
                        "residents":  35366,
+                       "jobs":  12070,
                        "kind":  "mixed",
                        "code":  "11326",
                        "area_km2":  32.98,
@@ -995,6 +1070,7 @@
                                         35.95141
                                     ],
                        "residents":  11029,
+                       "jobs":  3402,
                        "kind":  "mixed",
                        "code":  "11327",
                        "area_km2":  39.47,
@@ -1008,6 +1084,7 @@
                                         36.07441
                                     ],
                        "residents":  19732,
+                       "jobs":  8169,
                        "kind":  "mixed",
                        "code":  "11341",
                        "area_km2":  31.51,
@@ -1021,6 +1098,7 @@
                                         36.06638
                                     ],
                        "residents":  17889,
+                       "jobs":  9228,
                        "kind":  "mixed",
                        "code":  "11342",
                        "area_km2":  31.53,
@@ -1034,6 +1112,7 @@
                                         36.05445
                                     ],
                        "residents":  28524,
+                       "jobs":  9566,
                        "kind":  "mixed",
                        "code":  "11343",
                        "area_km2":  60.04,
@@ -1047,6 +1126,7 @@
                                         35.97956
                                     ],
                        "residents":  19378,
+                       "jobs":  11542,
                        "kind":  "mixed",
                        "code":  "11346",
                        "area_km2":  39.82,
@@ -1060,6 +1140,7 @@
                                         36.04154
                                     ],
                        "residents":  18192,
+                       "jobs":  8341,
                        "kind":  "mixed",
                        "code":  "11347",
                        "area_km2":  37.54,
@@ -1073,6 +1154,7 @@
                                         35.99063
                                     ],
                        "residents":  13560,
+                       "jobs":  4378,
                        "kind":  "mixed",
                        "code":  "11348",
                        "area_km2":  24.32,
@@ -1086,6 +1168,7 @@
                                         35.99626
                                     ],
                        "residents":  10540,
+                       "jobs":  4821,
                        "kind":  "mixed",
                        "code":  "11349",
                        "area_km2":  56.41,
@@ -1099,6 +1182,7 @@
                                         35.96390
                                     ],
                        "residents":  7979,
+                       "jobs":  2721,
                        "kind":  "mixed",
                        "code":  "11361",
                        "area_km2":  48.89,
@@ -1112,6 +1196,7 @@
                                         36.07557
                                     ],
                        "residents":  9302,
+                       "jobs":  3731,
                        "kind":  "mixed",
                        "code":  "11362",
                        "area_km2":  65.69,
@@ -1125,6 +1210,7 @@
                                         36.12282
                                     ],
                        "residents":  6807,
+                       "jobs":  2526,
                        "kind":  "mixed",
                        "code":  "11363",
                        "area_km2":  29.1,
@@ -1138,6 +1224,7 @@
                                         36.02044
                                     ],
                        "residents":  10928,
+                       "jobs":  5003,
                        "kind":  "mixed",
                        "code":  "11365",
                        "area_km2":  164.03,
@@ -1151,6 +1238,7 @@
                                         36.03584
                                     ],
                        "residents":  2709,
+                       "jobs":  922,
                        "kind":  "mixed",
                        "code":  "11369",
                        "area_km2":  33.09,
@@ -1164,6 +1252,7 @@
                                         36.16583
                                     ],
                        "residents":  11039,
+                       "jobs":  5849,
                        "kind":  "mixed",
                        "code":  "11381",
                        "area_km2":  28.45,
@@ -1177,6 +1266,7 @@
                                         36.15829
                                     ],
                        "residents":  13359,
+                       "jobs":  4468,
                        "kind":  "mixed",
                        "code":  "11383",
                        "area_km2":  43.88,
@@ -1190,6 +1280,7 @@
                                         36.25318
                                     ],
                        "residents":  30343,
+                       "jobs":  9957,
                        "kind":  "mixed",
                        "code":  "11385",
                        "area_km2":  30.07,
@@ -1203,6 +1294,7 @@
                                         36.12029
                                     ],
                        "residents":  32374,
+                       "jobs":  15734,
                        "kind":  "mixed",
                        "code":  "11408",
                        "area_km2":  67.52,
@@ -1216,6 +1308,7 @@
                                         36.02186
                                     ],
                        "residents":  34147,
+                       "jobs":  7363,
                        "kind":  "mixed",
                        "code":  "11442",
                        "area_km2":  13.84,
@@ -1229,6 +1322,7 @@
                                         36.03763
                                     ],
                        "residents":  43845,
+                       "jobs":  14401,
                        "kind":  "mixed",
                        "code":  "11464",
                        "area_km2":  29.49,
@@ -1242,6 +1336,7 @@
                                         35.93549
                                     ],
                        "residents":  28266,
+                       "jobs":  7922,
                        "kind":  "mixed",
                        "code":  "11465",
                        "area_km2":  18.02,
@@ -1255,6 +1350,7 @@
                                         35.58432
                                     ],
                        "residents":  211736,
+                       "jobs":  128567,
                        "kind":  "mixed",
                        "code":  "12101",
                        "area_km2":  37.77,
@@ -1269,6 +1365,7 @@
                                         35.68347
                                     ],
                        "residents":  177328,
+                       "jobs":  43395,
                        "kind":  "mixed",
                        "code":  "12102",
                        "area_km2":  39.29,
@@ -1283,6 +1380,7 @@
                                         35.64224
                                     ],
                        "residents":  160582,
+                       "jobs":  50887,
                        "kind":  "mixed",
                        "code":  "12103",
                        "area_km2":  17.23,
@@ -1297,6 +1395,7 @@
                                         35.60696
                                     ],
                        "residents":  146940,
+                       "jobs":  42525,
                        "kind":  "mixed",
                        "code":  "12104",
                        "area_km2":  85.32,
@@ -1311,6 +1410,7 @@
                                         35.54583
                                     ],
                        "residents":  129421,
+                       "jobs":  34316,
                        "kind":  "mixed",
                        "code":  "12105",
                        "area_km2":  68.63,
@@ -1325,6 +1425,7 @@
                                         35.62955
                                     ],
                        "residents":  148944,
+                       "jobs":  81862,
                        "kind":  "mixed",
                        "code":  "12106",
                        "area_km2":  22.2,
@@ -1339,6 +1440,7 @@
                                         35.75164
                                     ],
                        "residents":  58431,
+                       "jobs":  23603,
                        "kind":  "mixed",
                        "code":  "12202",
                        "area_km2":  84.38,
@@ -1352,6 +1454,7 @@
                                         35.72642
                                     ],
                        "residents":  496676,
+                       "jobs":  132623,
                        "kind":  "mixed",
                        "code":  "12203",
                        "area_km2":  58.3,
@@ -1365,6 +1468,7 @@
                                         35.71652
                                     ],
                        "residents":  642907,
+                       "jobs":  185558,
                        "kind":  "mixed",
                        "code":  "12204",
                        "area_km2":  83.53,
@@ -1378,6 +1482,7 @@
                                         34.97528
                                     ],
                        "residents":  45153,
+                       "jobs":  20474,
                        "kind":  "mixed",
                        "code":  "12205",
                        "area_km2":  111.32,
@@ -1391,6 +1496,7 @@
                                         35.37774
                                     ],
                        "residents":  136166,
+                       "jobs":  55325,
                        "kind":  "mixed",
                        "code":  "12206",
                        "area_km2":  139.68,
@@ -1404,6 +1510,7 @@
                                         35.78658
                                     ],
                        "residents":  498232,
+                       "jobs":  128637,
                        "kind":  "mixed",
                        "code":  "12207",
                        "area_km2":  63.28,
@@ -1417,6 +1524,7 @@
                                         35.99315
                                     ],
                        "residents":  152638,
+                       "jobs":  55495,
                        "kind":  "mixed",
                        "code":  "12208",
                        "area_km2":  104.59,
@@ -1430,6 +1538,7 @@
                                         35.44650
                                     ],
                        "residents":  86782,
+                       "jobs":  34312,
                        "kind":  "mixed",
                        "code":  "12210",
                        "area_km2":  100.93,
@@ -1443,6 +1552,7 @@
                                         35.81210
                                     ],
                        "residents":  132906,
+                       "jobs":  88216,
                        "kind":  "mixed",
                        "code":  "12211",
                        "area_km2":  220.63,
@@ -1456,6 +1566,7 @@
                                         35.69792
                                     ],
                        "residents":  168743,
+                       "jobs":  51758,
                        "kind":  "mixed",
                        "code":  "12212",
                        "area_km2":  106.03,
@@ -1469,6 +1580,7 @@
                                         35.57720
                                     ],
                        "residents":  58219,
+                       "jobs":  25076,
                        "kind":  "mixed",
                        "code":  "12213",
                        "area_km2":  91.28,
@@ -1482,6 +1594,7 @@
                                         35.73389
                                     ],
                        "residents":  63745,
+                       "jobs":  28120,
                        "kind":  "mixed",
                        "code":  "12215",
                        "area_km2":  127.96,
@@ -1495,6 +1608,7 @@
                                         35.68376
                                     ],
                        "residents":  176197,
+                       "jobs":  57738,
                        "kind":  "mixed",
                        "code":  "12216",
                        "area_km2":  20.48,
@@ -1508,6 +1622,7 @@
                                         35.85709
                                     ],
                        "residents":  426468,
+                       "jobs":  136017,
                        "kind":  "mixed",
                        "code":  "12217",
                        "area_km2":  114.59,
@@ -1521,6 +1636,7 @@
                                         35.17477
                                     ],
                        "residents":  16927,
+                       "jobs":  6665,
                        "kind":  "mixed",
                        "code":  "12218",
                        "area_km2":  93.15,
@@ -1534,6 +1650,7 @@
                                         35.42940
                                     ],
                        "residents":  269524,
+                       "jobs":  105366,
                        "kind":  "mixed",
                        "code":  "12219",
                        "area_km2":  373.81,
@@ -1547,6 +1664,7 @@
                                         35.86162
                                     ],
                        "residents":  199849,
+                       "jobs":  43921,
                        "kind":  "mixed",
                        "code":  "12220",
                        "area_km2":  36.31,
@@ -1560,6 +1678,7 @@
                                         35.72710
                                     ],
                        "residents":  199498,
+                       "jobs":  57568,
                        "kind":  "mixed",
                        "code":  "12221",
                        "area_km2":  48.49,
@@ -1573,6 +1692,7 @@
                                         35.87563
                                     ],
                        "residents":  130510,
+                       "jobs":  25723,
                        "kind":  "mixed",
                        "code":  "12222",
                        "area_km2":  41.26,
@@ -1586,6 +1706,7 @@
                                         35.13126
                                     ],
                        "residents":  32116,
+                       "jobs":  16421,
                        "kind":  "mixed",
                        "code":  "12223",
                        "area_km2":  191.49,
@@ -1599,6 +1720,7 @@
                                         35.76626
                                     ],
                        "residents":  109932,
+                       "jobs":  25752,
                        "kind":  "mixed",
                        "code":  "12224",
                        "area_km2":  18.68,
@@ -1612,6 +1734,7 @@
                                         35.27146
                                     ],
                        "residents":  82206,
+                       "jobs":  38160,
                        "kind":  "mixed",
                        "code":  "12225",
                        "area_km2":  320.87,
@@ -1625,6 +1748,7 @@
                                         35.22432
                                     ],
                        "residents":  42465,
+                       "jobs":  17592,
                        "kind":  "mixed",
                        "code":  "12226",
                        "area_km2":  199.37,
@@ -1638,6 +1762,7 @@
                                         35.64914
                                     ],
                        "residents":  171362,
+                       "jobs":  75085,
                        "kind":  "mixed",
                        "code":  "12227",
                        "area_km2":  18.59,
@@ -1651,6 +1776,7 @@
                                         35.67135
                                     ],
                        "residents":  93576,
+                       "jobs":  22388,
                        "kind":  "mixed",
                        "code":  "12228",
                        "area_km2":  29.84,
@@ -1664,6 +1790,7 @@
                                         35.41713
                                     ],
                        "residents":  63883,
+                       "jobs":  27387,
                        "kind":  "mixed",
                        "code":  "12229",
                        "area_km2":  91.56,
@@ -1677,6 +1804,7 @@
                                         35.64029
                                     ],
                        "residents":  67455,
+                       "jobs":  22085,
                        "kind":  "mixed",
                        "code":  "12230",
                        "area_km2":  71.2,
@@ -1690,6 +1818,7 @@
                                         35.80392
                                     ],
                        "residents":  102609,
+                       "jobs":  37775,
                        "kind":  "mixed",
                        "code":  "12231",
                        "area_km2":  126.07,
@@ -1703,6 +1832,7 @@
                                         35.79763
                                     ],
                        "residents":  62441,
+                       "jobs":  19305,
                        "kind":  "mixed",
                        "code":  "12232",
                        "area_km2":  38.37,
@@ -1716,6 +1846,7 @@
                                         35.72037
                                     ],
                        "residents":  49735,
+                       "jobs":  17622,
                        "kind":  "mixed",
                        "code":  "12233",
                        "area_km2":  54.75,
@@ -1729,6 +1860,7 @@
                                         35.00520
                                     ],
                        "residents":  35831,
+                       "jobs":  13955,
                        "kind":  "mixed",
                        "code":  "12234",
                        "area_km2":  228.69,
@@ -1742,6 +1874,7 @@
                                         35.71618
                                     ],
                        "residents":  35040,
+                       "jobs":  13662,
                        "kind":  "mixed",
                        "code":  "12235",
                        "area_km2":  102.34,
@@ -1755,6 +1888,7 @@
                                         35.86012
                                     ],
                        "residents":  72356,
+                       "jobs":  26231,
                        "kind":  "mixed",
                        "code":  "12236",
                        "area_km2":  265.27,
@@ -1768,6 +1902,7 @@
                                         35.62308
                                     ],
                        "residents":  48444,
+                       "jobs":  18567,
                        "kind":  "mixed",
                        "code":  "12237",
                        "area_km2":  149.81,
@@ -1781,6 +1916,7 @@
                                         35.27041
                                     ],
                        "residents":  35544,
+                       "jobs":  12412,
                        "kind":  "mixed",
                        "code":  "12238",
                        "area_km2":  159.03,
@@ -1794,6 +1930,7 @@
                                         35.50674
                                     ],
                        "residents":  48129,
+                       "jobs":  11281,
                        "kind":  "mixed",
                        "code":  "12239",
                        "area_km2":  59.92,
@@ -1807,6 +1944,7 @@
                                         35.73002
                                     ],
                        "residents":  20745,
+                       "jobs":  6342,
                        "kind":  "mixed",
                        "code":  "12322",
                        "area_km2":  19.18,
@@ -1820,6 +1958,7 @@
                                         35.84167
                                     ],
                        "residents":  20127,
+                       "jobs":  4569,
                        "kind":  "mixed",
                        "code":  "12329",
                        "area_km2":  28.16,
@@ -1833,6 +1972,7 @@
                                         35.89264
                                     ],
                        "residents":  5816,
+                       "jobs":  1724,
                        "kind":  "mixed",
                        "code":  "12342",
                        "area_km2":  15.84,
@@ -1846,6 +1986,7 @@
                                         35.75950
                                     ],
                        "residents":  13735,
+                       "jobs":  7625,
                        "kind":  "mixed",
                        "code":  "12347",
                        "area_km2":  74.91,
@@ -1859,6 +2000,7 @@
                                         35.81323
                                     ],
                        "residents":  13228,
+                       "jobs":  4224,
                        "kind":  "mixed",
                        "code":  "12349",
                        "area_km2":  42.34,
@@ -1872,6 +2014,7 @@
                                         35.52629
                                     ],
                        "residents":  14639,
+                       "jobs":  4904,
                        "kind":  "mixed",
                        "code":  "12403",
                        "area_km2":  22.13,
@@ -1885,6 +2028,7 @@
                                         35.72451
                                     ],
                        "residents":  7033,
+                       "jobs":  7910,
                        "kind":  "mixed",
                        "code":  "12409",
                        "area_km2":  38.13,
@@ -1898,6 +2042,7 @@
                                         35.67054
                                     ],
                        "residents":  22075,
+                       "jobs":  7804,
                        "kind":  "mixed",
                        "code":  "12410",
                        "area_km2":  64.59,
@@ -1911,6 +2056,7 @@
                                         35.35219
                                     ],
                        "residents":  11897,
+                       "jobs":  3973,
                        "kind":  "mixed",
                        "code":  "12421",
                        "area_km2":  19.91,
@@ -1924,6 +2070,7 @@
                                         35.35903
                                     ],
                        "residents":  6760,
+                       "jobs":  2201,
                        "kind":  "mixed",
                        "code":  "12422",
                        "area_km2":  34.08,
@@ -1937,6 +2084,7 @@
                                         35.40151
                                     ],
                        "residents":  13803,
+                       "jobs":  4056,
                        "kind":  "mixed",
                        "code":  "12423",
                        "area_km2":  29.81,
@@ -1950,6 +2098,7 @@
                                         35.44773
                                     ],
                        "residents":  10305,
+                       "jobs":  3477,
                        "kind":  "mixed",
                        "code":  "12424",
                        "area_km2":  26.74,
@@ -1963,6 +2112,7 @@
                                         35.44399
                                     ],
                        "residents":  6721,
+                       "jobs":  3676,
                        "kind":  "mixed",
                        "code":  "12426",
                        "area_km2":  43.93,
@@ -1976,6 +2126,7 @@
                                         35.37668
                                     ],
                        "residents":  7198,
+                       "jobs":  3442,
                        "kind":  "mixed",
                        "code":  "12427",
                        "area_km2":  64.36,
@@ -1989,6 +2140,7 @@
                                         35.24865
                                     ],
                        "residents":  8885,
+                       "jobs":  4354,
                        "kind":  "mixed",
                        "code":  "12441",
                        "area_km2":  129.53,
@@ -2002,6 +2154,7 @@
                                         35.19408
                                     ],
                        "residents":  6874,
+                       "jobs":  1909,
                        "kind":  "mixed",
                        "code":  "12443",
                        "area_km2":  22.34,
@@ -2015,6 +2168,7 @@
                                         35.13361
                                     ],
                        "residents":  6993,
+                       "jobs":  2700,
                        "kind":  "mixed",
                        "code":  "12463",
                        "area_km2":  45.56,
@@ -2028,6 +2182,7 @@
                                         35.65893
                                     ],
                        "residents":  579355,
+                       "jobs":  200156,
                        "kind":  "mixed",
                        "code":  "13201",
                        "area_km2":  187.09,
@@ -2042,6 +2197,7 @@
                                         35.71805
                                     ],
                        "residents":  183581,
+                       "jobs":  94889,
                        "kind":  "mixed",
                        "code":  "13202",
                        "area_km2":  24.46,
@@ -2056,6 +2212,7 @@
                                         35.70892
                                     ],
                        "residents":  150149,
+                       "jobs":  66879,
                        "kind":  "mixed",
                        "code":  "13203",
                        "area_km2":  9.94,
@@ -2070,6 +2227,7 @@
                                         35.68756
                                     ],
                        "residents":  195391,
+                       "jobs":  59775,
                        "kind":  "mixed",
                        "code":  "13204",
                        "area_km2":  12.68,
@@ -2084,6 +2242,7 @@
                                         35.80183
                                     ],
                        "residents":  133535,
+                       "jobs":  43873,
                        "kind":  "mixed",
                        "code":  "13205",
                        "area_km2":  103.78,
@@ -2098,6 +2257,7 @@
                                         35.67656
                                     ],
                        "residents":  262790,
+                       "jobs":  102723,
                        "kind":  "mixed",
                        "code":  "13206",
                        "area_km2":  32.53,
@@ -2112,6 +2272,7 @@
                                         35.70569
                                     ],
                        "residents":  113949,
+                       "jobs":  43142,
                        "kind":  "mixed",
                        "code":  "13207",
                        "area_km2":  16.21,
@@ -2126,6 +2287,7 @@
                                         35.66232
                                     ],
                        "residents":  242614,
+                       "jobs":  71087,
                        "kind":  "mixed",
                        "code":  "13208",
                        "area_km2":  28.02,
@@ -2140,6 +2302,7 @@
                                         35.57514
                                     ],
                        "residents":  431079,
+                       "jobs":  128005,
                        "kind":  "mixed",
                        "code":  "13209",
                        "area_km2":  75.49,
@@ -2154,6 +2317,7 @@
                                         35.70350
                                     ],
                        "residents":  126074,
+                       "jobs":  31273,
                        "kind":  "mixed",
                        "code":  "13210",
                        "area_km2":  10.32,
@@ -2168,6 +2332,7 @@
                                         35.72721
                                     ],
                        "residents":  198739,
+                       "jobs":  52743,
                        "kind":  "mixed",
                        "code":  "13211",
                        "area_km2":  19.83,
@@ -2182,6 +2347,7 @@
                                         35.66660
                                     ],
                        "residents":  190435,
+                       "jobs":  54457,
                        "kind":  "mixed",
                        "code":  "13212",
                        "area_km2":  23.39,
@@ -2196,6 +2362,7 @@
                                         35.75911
                                     ],
                        "residents":  151815,
+                       "jobs":  36827,
                        "kind":  "mixed",
                        "code":  "13213",
                        "area_km2":  17.02,
@@ -2210,6 +2377,7 @@
                                         35.70335
                                     ],
                        "residents":  129242,
+                       "jobs":  33667,
                        "kind":  "mixed",
                        "code":  "13214",
                        "area_km2":  10.11,
@@ -2224,6 +2392,7 @@
                                         35.68397
                                     ],
                        "residents":  77130,
+                       "jobs":  24993,
                        "kind":  "mixed",
                        "code":  "13215",
                        "area_km2":  8.97,
@@ -2238,6 +2407,7 @@
                                         35.73074
                                     ],
                        "residents":  56414,
+                       "jobs":  18053,
                        "kind":  "mixed",
                        "code":  "13218",
                        "area_km2":  10.67,
@@ -2252,6 +2422,7 @@
                                         35.63584
                                     ],
                        "residents":  84772,
+                       "jobs":  17433,
                        "kind":  "mixed",
                        "code":  "13219",
                        "area_km2":  3.74,
@@ -2266,6 +2437,7 @@
                                         35.75030
                                     ],
                        "residents":  83901,
+                       "jobs":  20205,
                        "kind":  "mixed",
                        "code":  "13220",
                        "area_km2":  12.21,
@@ -2280,6 +2452,7 @@
                                         35.77853
                                     ],
                        "residents":  76208,
+                       "jobs":  19043,
                        "kind":  "mixed",
                        "code":  "13221",
                        "area_km2":  10.68,
@@ -2294,6 +2467,7 @@
                                         35.75405
                                     ],
                        "residents":  115271,
+                       "jobs":  28711,
                        "kind":  "mixed",
                        "code":  "13222",
                        "area_km2":  10.22,
@@ -2308,6 +2482,7 @@
                                         35.75460
                                     ],
                        "residents":  70829,
+                       "jobs":  21906,
                        "kind":  "mixed",
                        "code":  "13223",
                        "area_km2":  13.74,
@@ -2322,6 +2497,7 @@
                                         35.63012
                                     ],
                        "residents":  146951,
+                       "jobs":  60207,
                        "kind":  "mixed",
                        "code":  "13224",
                        "area_km2":  21.08,
@@ -2336,6 +2512,7 @@
                                         35.63630
                                     ],
                        "residents":  93151,
+                       "jobs":  24614,
                        "kind":  "mixed",
                        "code":  "13225",
                        "area_km2":  13.82,
@@ -2350,6 +2527,7 @@
                                         35.75977
                                     ],
                        "residents":  54326,
+                       "jobs":  21908,
                        "kind":  "mixed",
                        "code":  "13227",
                        "area_km2":  10.15,
@@ -2364,6 +2542,7 @@
                                         35.73484
                                     ],
                        "residents":  79292,
+                       "jobs":  22530,
                        "kind":  "mixed",
                        "code":  "13228",
                        "area_km2":  74.88,
@@ -2378,6 +2557,7 @@
                                         35.73751
                                     ],
                        "residents":  207388,
+                       "jobs":  49351,
                        "kind":  "mixed",
                        "code":  "13229",
                        "area_km2":  13.52,
@@ -2392,6 +2572,7 @@
                                         35.77204
                                     ],
                        "residents":  31765,
+                       "jobs":  18116,
                        "kind":  "mixed",
                        "code":  "13303",
                        "area_km2":  18.23,
@@ -2406,6 +2587,7 @@
                                         35.76265
                                     ],
                        "residents":  16958,
+                       "jobs":  7674,
                        "kind":  "mixed",
                        "code":  "13305",
                        "area_km2":  26.5,
@@ -2420,6 +2602,7 @@
                                         35.71831
                                     ],
                        "residents":  2003,
+                       "jobs":  1020,
                        "kind":  "mixed",
                        "code":  "13307",
                        "area_km2":  107.24,
@@ -2434,6 +2617,7 @@
                                         35.82131
                                     ],
                        "residents":  4750,
+                       "jobs":  2224,
                        "kind":  "mixed",
                        "code":  "13308",
                        "area_km2":  220.16,
@@ -2448,6 +2632,7 @@
                                         35.51789
                                     ],
                        "residents":  297437,
+                       "jobs":  100684,
                        "kind":  "mixed",
                        "code":  "14101",
                        "area_km2":  25.1,
@@ -2462,6 +2647,7 @@
                                         35.48830
                                     ],
                        "residents":  247267,
+                       "jobs":  99286,
                        "kind":  "mixed",
                        "code":  "14102",
                        "area_km2":  24.21,
@@ -2476,6 +2662,7 @@
                                         35.45690
                                     ],
                        "residents":  104935,
+                       "jobs":  141620,
                        "kind":  "mixed",
                        "code":  "14103",
                        "area_km2":  6.11,
@@ -2490,6 +2677,7 @@
                                         35.43408
                                     ],
                        "residents":  151388,
+                       "jobs":  144100,
                        "kind":  "mixed",
                        "code":  "14104",
                        "area_km2":  23.18,
@@ -2504,6 +2692,7 @@
                                         35.43108
                                     ],
                        "residents":  198157,
+                       "jobs":  44199,
                        "kind":  "mixed",
                        "code":  "14105",
                        "area_km2":  11.86,
@@ -2518,6 +2707,7 @@
                                         35.46859
                                     ],
                        "residents":  207811,
+                       "jobs":  54724,
                        "kind":  "mixed",
                        "code":  "14106",
                        "area_km2":  20.14,
@@ -2532,6 +2722,7 @@
                                         35.39091
                                     ],
                        "residents":  166731,
+                       "jobs":  48759,
                        "kind":  "mixed",
                        "code":  "14107",
                        "area_km2":  19.77,
@@ -2546,6 +2737,7 @@
                                         35.34839
                                     ],
                        "residents":  198939,
+                       "jobs":  76005,
                        "kind":  "mixed",
                        "code":  "14108",
                        "area_km2":  31.55,
@@ -2560,6 +2752,7 @@
                                         35.52975
                                     ],
                        "residents":  358530,
+                       "jobs":  132944,
                        "kind":  "mixed",
                        "code":  "14109",
                        "area_km2":  34.06,
@@ -2574,6 +2767,7 @@
                                         35.40710
                                     ],
                        "residents":  283709,
+                       "jobs":  89133,
                        "kind":  "mixed",
                        "code":  "14110",
                        "area_km2":  35.92,
@@ -2588,6 +2782,7 @@
                                         35.39882
                                     ],
                        "residents":  215248,
+                       "jobs":  53775,
                        "kind":  "mixed",
                        "code":  "14111",
                        "area_km2":  19.18,
@@ -2602,6 +2797,7 @@
                                         35.47622
                                     ],
                        "residents":  245174,
+                       "jobs":  59883,
                        "kind":  "mixed",
                        "code":  "14112",
                        "area_km2":  34.32,
@@ -2616,6 +2812,7 @@
                                         35.51220
                                     ],
                        "residents":  183082,
+                       "jobs":  48812,
                        "kind":  "mixed",
                        "code":  "14113",
                        "area_km2":  22.55,
@@ -2630,6 +2827,7 @@
                                         35.48430
                                     ],
                        "residents":  122623,
+                       "jobs":  31291,
                        "kind":  "mixed",
                        "code":  "14114",
                        "area_km2":  13.99,
@@ -2644,6 +2842,7 @@
                                         35.36268
                                     ],
                        "residents":  120194,
+                       "jobs":  28256,
                        "kind":  "mixed",
                        "code":  "14115",
                        "area_km2":  18.18,
@@ -2658,6 +2857,7 @@
                                         35.42835
                                     ],
                        "residents":  152378,
+                       "jobs":  36290,
                        "kind":  "mixed",
                        "code":  "14116",
                        "area_km2":  24.54,
@@ -2672,6 +2872,7 @@
                                         35.56059
                                     ],
                        "residents":  310756,
+                       "jobs":  77794,
                        "kind":  "mixed",
                        "code":  "14117",
                        "area_km2":  38.09,
@@ -2686,6 +2887,7 @@
                                         35.54565
                                     ],
                        "residents":  213132,
+                       "jobs":  92687,
                        "kind":  "mixed",
                        "code":  "14118",
                        "area_km2":  27.93,
@@ -2700,6 +2902,7 @@
                                         35.52825
                                     ],
                        "residents":  232965,
+                       "jobs":  140574,
                        "kind":  "mixed",
                        "code":  "14131",
                        "area_km2":  29.61,
@@ -2714,6 +2917,7 @@
                                         35.54559
                                     ],
                        "residents":  171119,
+                       "jobs":  75300,
                        "kind":  "mixed",
                        "code":  "14132",
                        "area_km2":  8.52,
@@ -2728,6 +2932,7 @@
                                         35.57834
                                     ],
                        "residents":  263683,
+                       "jobs":  89522,
                        "kind":  "mixed",
                        "code":  "14133",
                        "area_km2":  13.58,
@@ -2742,6 +2947,7 @@
                                         35.58900
                                     ],
                        "residents":  234328,
+                       "jobs":  66870,
                        "kind":  "mixed",
                        "code":  "14134",
                        "area_km2":  14.83,
@@ -2756,6 +2962,7 @@
                                         35.61976
                                     ],
                        "residents":  221734,
+                       "jobs":  48042,
                        "kind":  "mixed",
                        "code":  "14135",
                        "area_km2":  22.2,
@@ -2770,6 +2977,7 @@
                                         35.58384
                                     ],
                        "residents":  233728,
+                       "jobs":  49986,
                        "kind":  "mixed",
                        "code":  "14136",
                        "area_km2":  18.05,
@@ -2784,6 +2992,7 @@
                                         35.60317
                                     ],
                        "residents":  180705,
+                       "jobs":  43179,
                        "kind":  "mixed",
                        "code":  "14137",
                        "area_km2":  20.15,
@@ -2798,6 +3007,7 @@
                                         35.57449
                                     ],
                        "residents":  170207,
+                       "jobs":  58073,
                        "kind":  "mixed",
                        "code":  "14151",
                        "area_km2":  244.7,
@@ -2812,6 +3022,7 @@
                                         35.56133
                                     ],
                        "residents":  273875,
+                       "jobs":  95908,
                        "kind":  "mixed",
                        "code":  "14152",
                        "area_km2":  36.61,
@@ -2826,6 +3037,7 @@
                                         35.53054
                                     ],
                        "residents":  281411,
+                       "jobs":  75490,
                        "kind":  "mixed",
                        "code":  "14153",
                        "area_km2":  39.41,
@@ -2840,6 +3052,7 @@
                                         35.25962
                                     ],
                        "residents":  388078,
+                       "jobs":  138369,
                        "kind":  "mixed",
                        "code":  "14201",
                        "area_km2":  102.24,
@@ -2853,6 +3066,7 @@
                                         35.35208
                                     ],
                        "residents":  258422,
+                       "jobs":  99580,
                        "kind":  "mixed",
                        "code":  "14203",
                        "area_km2":  68.53,
@@ -2866,6 +3080,7 @@
                                         35.33422
                                     ],
                        "residents":  172710,
+                       "jobs":  65244,
                        "kind":  "mixed",
                        "code":  "14204",
                        "area_km2":  44.29,
@@ -2879,6 +3094,7 @@
                                         35.37353
                                     ],
                        "residents":  436905,
+                       "jobs":  157610,
                        "kind":  "mixed",
                        "code":  "14205",
                        "area_km2":  70.51,
@@ -2892,6 +3108,7 @@
                                         35.27102
                                     ],
                        "residents":  188856,
+                       "jobs":  79030,
                        "kind":  "mixed",
                        "code":  "14206",
                        "area_km2":  114.82,
@@ -2905,6 +3122,7 @@
                                         35.34449
                                     ],
                        "residents":  242389,
+                       "jobs":  59614,
                        "kind":  "mixed",
                        "code":  "14207",
                        "area_km2":  33.84,
@@ -2918,6 +3136,7 @@
                                         35.30127
                                     ],
                        "residents":  57060,
+                       "jobs":  13624,
                        "kind":  "mixed",
                        "code":  "14208",
                        "area_km2":  14.43,
@@ -2931,6 +3150,7 @@
                                         35.17714
                                     ],
                        "residents":  42069,
+                       "jobs":  14127,
                        "kind":  "mixed",
                        "code":  "14210",
                        "area_km2":  27.22,
@@ -2944,6 +3164,7 @@
                                         35.39664
                                     ],
                        "residents":  162439,
+                       "jobs":  52181,
                        "kind":  "mixed",
                        "code":  "14211",
                        "area_km2":  102.75,
@@ -2957,6 +3178,7 @@
                                         35.46602
                                     ],
                        "residents":  223705,
+                       "jobs":  132700,
                        "kind":  "mixed",
                        "code":  "14212",
                        "area_km2":  98.35,
@@ -2970,6 +3192,7 @@
                                         35.47484
                                     ],
                        "residents":  239169,
+                       "jobs":  69448,
                        "kind":  "mixed",
                        "code":  "14213",
                        "area_km2":  29.51,
@@ -2983,6 +3206,7 @@
                                         35.40911
                                     ],
                        "residents":  101780,
+                       "jobs":  39971,
                        "kind":  "mixed",
                        "code":  "14214",
                        "area_km2":  53.45,
@@ -2996,6 +3220,7 @@
                                         35.43968
                                     ],
                        "residents":  136516,
+                       "jobs":  53638,
                        "kind":  "mixed",
                        "code":  "14215",
                        "area_km2":  24.44,
@@ -3009,6 +3234,7 @@
                                         35.48453
                                     ],
                        "residents":  132325,
+                       "jobs":  39750,
                        "kind":  "mixed",
                        "code":  "14216",
                        "area_km2":  16.85,
@@ -3022,6 +3248,7 @@
                                         35.31098
                                     ],
                        "residents":  40841,
+                       "jobs":  14569,
                        "kind":  "mixed",
                        "code":  "14217",
                        "area_km2":  78.82,
@@ -3035,6 +3262,7 @@
                                         35.43992
                                     ],
                        "residents":  83913,
+                       "jobs":  32005,
                        "kind":  "mixed",
                        "code":  "14218",
                        "area_km2":  18.59,
@@ -3048,6 +3276,7 @@
                                         35.27116
                                     ],
                        "residents":  31665,
+                       "jobs":  7918,
                        "kind":  "mixed",
                        "code":  "14301",
                        "area_km2":  16.95,
@@ -3061,6 +3290,7 @@
                                         35.37918
                                     ],
                        "residents":  48348,
+                       "jobs":  20876,
                        "kind":  "mixed",
                        "code":  "14321",
                        "area_km2":  13.88,
@@ -3074,6 +3304,7 @@
                                         35.31943
                                     ],
                        "residents":  31634,
+                       "jobs":  7561,
                        "kind":  "mixed",
                        "code":  "14341",
                        "area_km2":  14.32,
@@ -3087,6 +3318,7 @@
                                         35.30811
                                     ],
                        "residents":  27564,
+                       "jobs":  5768,
                        "kind":  "mixed",
                        "code":  "14342",
                        "area_km2":  9.8,
@@ -3100,6 +3332,7 @@
                                         35.33000
                                     ],
                        "residents":  9300,
+                       "jobs":  7454,
                        "kind":  "mixed",
                        "code":  "14361",
                        "area_km2":  21.49,
@@ -3113,6 +3346,7 @@
                                         35.33578
                                     ],
                        "residents":  17129,
+                       "jobs":  6141,
                        "kind":  "mixed",
                        "code":  "14362",
                        "area_km2":  13.79,
@@ -3126,6 +3360,7 @@
                                         35.39038
                                     ],
                        "residents":  10836,
+                       "jobs":  3887,
                        "kind":  "mixed",
                        "code":  "14363",
                        "area_km2":  38.54,
@@ -3139,6 +3374,7 @@
                                         35.42774
                                     ],
                        "residents":  9761,
+                       "jobs":  4386,
                        "kind":  "mixed",
                        "code":  "14364",
                        "area_km2":  225.29,
@@ -3152,6 +3388,7 @@
                                         35.33426
                                     ],
                        "residents":  18329,
+                       "jobs":  6833,
                        "kind":  "mixed",
                        "code":  "14366",
                        "area_km2":  3.77,
@@ -3165,6 +3402,7 @@
                                         35.23433
                                     ],
                        "residents":  11293,
+                       "jobs":  10425,
                        "kind":  "mixed",
                        "code":  "14382",
                        "area_km2":  91.65,
@@ -3178,6 +3416,7 @@
                                         35.17540
                                     ],
                        "residents":  6722,
+                       "jobs":  1545,
                        "kind":  "mixed",
                        "code":  "14383",
                        "area_km2":  5.19,
@@ -3191,6 +3430,7 @@
                                         35.17181
                                     ],
                        "residents":  23426,
+                       "jobs":  7414,
                        "kind":  "mixed",
                        "code":  "14384",
                        "area_km2":  41.18,
@@ -3204,6 +3444,7 @@
                                         35.53016
                                     ],
                        "residents":  39869,
+                       "jobs":  21375,
                        "kind":  "mixed",
                        "code":  "14401",
                        "area_km2":  32.07,
@@ -3217,6 +3458,7 @@
                                         35.48719
                                     ],
                        "residents":  3038,
+                       "jobs":  1231,
                        "kind":  "mixed",
                        "code":  "14402",
                        "area_km2":  73.76,

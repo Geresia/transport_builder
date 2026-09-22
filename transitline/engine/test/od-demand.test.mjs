@@ -45,4 +45,10 @@ check(grav.measuredOrigins === undefined, "no od -> plain gravity model");
 const few = new Map([...stations].filter(([id]) => id === idOf("13101") || id === idOf("13103")));
 const m2 = buildDemandModel({ ...state, stations: few }, demand, od);
 check([...Array(200)].every(() => m2.pick(state, idOf("13101"), rand) === idOf("13103")), "only-station destination is always picked");
+// 5. demand.points[].jobs (added 2026-09-22, O/D-derived workplace-here counts) makes plain gravity work at all: before this,
+// tokyo's points had no jobs and every pick() returned null.
+check(demand.points.every((p) => p.jobs !== undefined && p.jobs >= 0), "every demand point carries a non-negative jobs count");
+const anyNull = [...Array(2000)].some(() => grav.pick(state, idOf("13101"), rand) === null);
+check(!anyNull, "plain gravity (no od) now picks a real destination for every draw, not null");
+
 process.exit(fail ? 1 : 0);
