@@ -89,6 +89,7 @@
   <label><input type="checkbox" id="toggle-obstacles" checked> 건물 footprint (토지이용조사, 줌 13+)</label>
   <label><input type="checkbox" id="toggle-theme"> 밝은 지도 (네이버 지도풍)</label>
   <label><input type="checkbox" id="toggle-terrain" checked> 지형 (숲·논밭·초지·산 음영)</label>
+  <label><input type="checkbox" id="toggle-rail" checked> 철도 (배경지도, 줌 9+)</label>
   <label><input type="checkbox" id="toggle-roads"> 차도 (OSM, 줌 13+)</label>
   <label><input type="checkbox" id="toggle-paths"> 보행자 도로 (OSM, 줌 14+ · 인도·횡단보도·계단 등)</label>
   <label><input type="checkbox" id="toggle-areas" checked> 공원·학교·토지 구획 (이름 표시, 줌 13+)</label>
@@ -1080,6 +1081,9 @@ map.on("load", async () => {
       th.addEventListener("change", () => { try { localStorage.setItem("tokyo-theme", th.checked ? "light" : "dark"); } catch {} location.reload(); }); }
     document.getElementById("toggle-terrain").addEventListener("change", (e) => {
       for (const id of ["bm-landuse", "bm-hillshade"]) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", e.target.checked ? "visible" : "none");
+    });
+    document.getElementById("toggle-rail").addEventListener("change", (e) => {
+      if (map.getLayer("bm-rail")) map.setLayoutProperty("bm-rail", "visibility", e.target.checked ? "visible" : "none");
     });
     document.getElementById("toggle-obstacles").addEventListener("change", (e) => {
       const v = e.target.checked ? "visible" : "none";
