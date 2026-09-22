@@ -2,12 +2,17 @@
 // so the "3D 보기" toggle shows overpasses actually lifted above the ground instead of flat like every other road.
 // Not measured — bridge height is a rough estimate by road class (real clearances vary), same disclosure as the
 // building extrusion heights. Reads the already-built <area>-roads.pmtiles (road layer already carries `bridge`
-// and `kind`), buffers each bridge-tagged line segment into a rectangle sized by road class, and gives it a
-// thin extrusion (base = deck height - 2m, top = deck height) rather than a solid pillar from the ground.
-// Each bridge way's two ends taper from full height down to 0 over RAMP_LEN meters, so the deck reads as rising
-// out of the ground instead of popping up as a flat-topped block (no real ramp-length data exists to do this
-// exactly — this is a cosmetic taper, not a modeled on/off-ramp). An end is NOT tapered when it sits on a tile
-// boundary, since that means the way continues as more bridge in the next tile rather than truly ending there.
+// and `kind`), buffers each bridge-tagged line into a rectangle sized by road class, and gives it a thin
+// extrusion (base = deck height - 2m, top = deck height) rather than a solid pillar from the ground.
+//
+// A real bridge corridor (e.g. an expressway viaduct) is usually chopped into many separate OSM ways (split at
+// every interchange/curve) *and* further split by the tiler at every tile edge. Tapering each of those pieces
+// independently at both ends produced a "sawtooth"/dashed look — the deck kept dropping to the ground and
+// popping back up at every way boundary, not just at the corridor's real ends. Fixed with two passes: (1) collect
+// every bridge line fragment (real-world lon/lat, already stitched back to whole OSM ways where a single way was
+// only split by tile edges — MapLibre-style vector tiles don't carry a way id, so this uses shared endpoint
+// coordinates as the join key, snapped to ~1m) and (2) only taper an endpoint that is not shared with any other
+// bridge fragment, i.e. only where the bridge corridor actually meets a non-bridge road.
 // Usage: DEPS=<dir with node_modules of pmtiles,@mapbox/vector-tile,pbf> node scripts/build-bridge-decks.mjs \
 //          <out.geojsonl> [report.json]
 import fs from "fs";
@@ -31,16 +36,13 @@ const CLASS = {
 };
 const classOf = (kind) => CLASS[kind] ?? [5.5, 5];
 const RAMP_LEN = 25; // meters over which a genuine bridge end fades from full height down to ground level
-const EDGE_EPS = 4; // tile-units: a vertex this close to 0/EXT is treated as a tile-clip artifact, not a real end
+const KLAT = 111320;
 
+// ---- pass 1: collect every bridge line fragment, in real-world lon/lat, across all 4 areas ----
 const Z = 14;
 const tile2lon = (x, z) => x / 2 ** z * 360 - 180;
 const tile2lat = (y, z) => { const n = Math.PI - 2 * Math.PI * y / 2 ** z; return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))); };
-const KLAT = 111320;
-
-const wfd = fs.openSync(out, "w");
-let buf = [], pieces = 0, bridges = 0;
-const byKind = {};
+const frags = []; // { pts: [[lon,lat],...], kind }
 for (const area of AREAS) {
   const tilesPath = T + `${area}-roads.pmtiles`;
   if (!fs.existsSync(tilesPath)) { console.warn("missing", tilesPath, "- skipped"); continue; }
@@ -52,81 +54,104 @@ for (const area of AREAS) {
   const lat2tile = (lat) => Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * 2 ** Z);
   const y0 = lat2tile(header.maxLat), y1 = lat2tile(header.minLat);
   console.log(area, "tile range", x1 - x0 + 1, "x", y1 - y0 + 1);
-  let areaBridges = 0;
+  const before = frags.length;
   for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
     const r = await pm.getZxy(Z, tx, ty); if (!r) continue;
     const vt = new VectorTile(new Pbf(new Uint8Array(r.data))); const L = vt.layers.road; if (!L) continue;
     const lonW = tile2lon(tx, Z), lonE = tile2lon(tx + 1, Z), latN = tile2lat(ty, Z), latS = tile2lat(ty + 1, Z);
-    const EXT = L.extent, mPerLon = KLAT * Math.cos((latN + latS) / 2 * Math.PI / 180);
+    const EXT = L.extent;
     for (let fi = 0; fi < L.length; fi++) {
       const f = L.feature(fi); if (f.type !== 2) continue;
       const p = f.properties;
       if (!p.bridge || p.bridge === "no" || p.bridge === "null") continue;
-      const [widthM, topM] = classOf(p.kind);
-      const baseM = Math.max(0, topM - 2);
-      // width in tile units (EXT covers the tile's lon/lat span)
-      const wx = widthM / mPerLon * EXT / (lonE - lonW), wy = widthM / KLAT * EXT / (latN - latS);
       for (const part of f.loadGeometry()) {
         if (part.length < 2) continue;
-        // real-world cumulative distance along this (tile-clipped) part, in meters
-        const dist = [0];
-        for (let i = 1; i < part.length; i++) {
-          const dx = (part[i].x - part[i - 1].x) / EXT * (lonE - lonW) * mPerLon;
-          const dy = (part[i].y - part[i - 1].y) / EXT * (latN - latS) * KLAT;
-          dist.push(dist[i - 1] + Math.hypot(dx, dy));
-        }
-        const total = dist[dist.length - 1];
-        const onEdge = (v) => v.x <= EDGE_EPS || v.x >= EXT - EDGE_EPS || v.y <= EDGE_EPS || v.y >= EXT - EDGE_EPS;
-        const clippedStart = onEdge(part[0]), clippedEnd = onEdge(part[part.length - 1]);
-        const fracAt = (d) => {
-          const fs = clippedStart ? 1 : Math.min(1, d / RAMP_LEN);
-          const fe = clippedEnd ? 1 : Math.min(1, (total - d) / RAMP_LEN);
-          return Math.max(0, Math.min(fs, fe));
-        };
-        // subdivide only near a genuine (non-clipped) end, so the taper reads as a smooth ramp rather than one
-        // big segment jumping straight from ground level to full height
-        const pts = part.map((v, i) => ({ x: v.x, y: v.y, d: dist[i] }));
-        const dense = [pts[0]];
-        for (let i = 0; i < pts.length - 1; i++) {
-          const va = pts[i], vb = pts[i + 1], segLen = vb.d - va.d;
-          const nearRamp = (!clippedStart && va.d < RAMP_LEN + 5) || (!clippedEnd && total - vb.d < RAMP_LEN + 5);
-          if (nearRamp && segLen > 3) {
-            const steps = Math.min(8, Math.ceil(segLen / 3));
-            for (let s = 1; s < steps; s++) {
-              const t = s / steps;
-              dense.push({ x: va.x + (vb.x - va.x) * t, y: va.y + (vb.y - va.y) * t, d: va.d + segLen * t });
-            }
-          }
-          dense.push(vb);
-        }
-        for (let i = 0; i < dense.length - 1; i++) {
-          const a = dense[i], b = dense[i + 1];
-          const frac = fracAt((a.d + b.d) / 2);
-          const top = +(topM * frac).toFixed(2);
-          if (top < 0.1) continue; // tapered down to ~ground level here: nothing worth extruding
-          const base = +(baseM * frac).toFixed(2);
-          const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy); if (len === 0) continue;
-          // perpendicular offset, scaled independently in x/y tile-unit space (tile is roughly square in meters locally)
-          const nx = -dy / len, ny = dx / len;
-          const quad = [
-            [a.x + nx * wx / 2, a.y + ny * wy / 2], [b.x + nx * wx / 2, b.y + ny * wy / 2],
-            [b.x - nx * wx / 2, b.y - ny * wy / 2], [a.x - nx * wx / 2, a.y - ny * wy / 2],
-          ];
-          const coords = quad.map(([x, y]) => [+(lonW + x / EXT * (lonE - lonW)).toFixed(7), +(latN - y / EXT * (latN - latS)).toFixed(7)]);
-          coords.push(coords[0]);
-          buf.push(JSON.stringify({ type: "Feature", properties: { kind: p.kind ?? "unclassified", base, top }, geometry: { type: "Polygon", coordinates: [coords] } }));
-          pieces++;
-        }
+        const pts = part.map((v) => [+(lonW + v.x / EXT * (lonE - lonW)).toFixed(7), +(latN - v.y / EXT * (latN - latS)).toFixed(7)]);
+        frags.push({ pts, kind: p.kind ?? "unclassified" });
       }
-      bridges++; areaBridges++;
-      byKind[p.kind] = (byKind[p.kind] || 0) + 1;
     }
-    if (buf.length > 20000) { fs.writeSync(wfd, buf.join("\n") + "\n"); buf = []; }
   }
-  console.log(area, "bridge features", areaBridges);
+  console.log(area, "bridge fragments", frags.length - before);
+}
+console.log("total fragments (pre-merge)", frags.length);
+
+// ---- pass 2: join fragments that share an endpoint into full corridors ----
+// key = endpoint snapped to ~1m; two fragments whose ends land in the same cell are treated as one continuous
+// bridge for tapering purposes, even though they stay separate output features (avoids a full linestring merge).
+const SNAP = 0.00001; // ~1.1m of longitude at this latitude, safely above the tile-quantization rounding error
+const snapKey = ([lon, lat]) => `${Math.round(lon / SNAP)},${Math.round(lat / SNAP)}`;
+const endpointCount = new Map();
+for (const fr of frags) {
+  for (const end of [fr.pts[0], fr.pts[fr.pts.length - 1]]) {
+    const k = snapKey(end);
+    endpointCount.set(k, (endpointCount.get(k) || 0) + 1);
+  }
+}
+// an endpoint used by >1 fragment-end is a real junction/continuation -> don't taper there
+const isJoined = (pt) => (endpointCount.get(snapKey(pt)) || 0) > 1;
+
+// ---- pass 3: buffer + taper each fragment, emit quads ----
+const wfd = fs.openSync(out, "w");
+let buf = [], pieces = 0;
+const byKind = {};
+for (const fr of frags) {
+  const [widthM, topM] = classOf(fr.kind);
+  const baseM = Math.max(0, topM - 2);
+  byKind[fr.kind] = (byKind[fr.kind] || 0) + 1;
+  const pts = fr.pts;
+  const mPerLonAt = (lat) => KLAT * Math.cos(lat * Math.PI / 180);
+  // cumulative real-world distance along the fragment
+  const dist = [0];
+  for (let i = 1; i < pts.length; i++) {
+    const midLat = (pts[i][1] + pts[i - 1][1]) / 2, mLon = mPerLonAt(midLat);
+    const dx = (pts[i][0] - pts[i - 1][0]) * mLon, dy = (pts[i][1] - pts[i - 1][1]) * KLAT;
+    dist.push(dist[i - 1] + Math.hypot(dx, dy));
+  }
+  const total = dist[dist.length - 1];
+  const clippedStart = isJoined(pts[0]), clippedEnd = isJoined(pts[pts.length - 1]);
+  const fracAt = (d) => {
+    const fs = clippedStart ? 1 : Math.min(1, d / RAMP_LEN);
+    const fe = clippedEnd ? 1 : Math.min(1, (total - d) / RAMP_LEN);
+    return Math.max(0, Math.min(fs, fe));
+  };
+  // subdivide only near a genuine (non-joined) end, so the taper reads as a smooth ramp rather than one big
+  // segment jumping straight from ground level to full height
+  const nodes = pts.map((v, i) => ({ lon: v[0], lat: v[1], d: dist[i] }));
+  const dense = [nodes[0]];
+  for (let i = 0; i < nodes.length - 1; i++) {
+    const a = nodes[i], b = nodes[i + 1], segLen = b.d - a.d;
+    const nearRamp = (!clippedStart && a.d < RAMP_LEN + 5) || (!clippedEnd && total - b.d < RAMP_LEN + 5);
+    if (nearRamp && segLen > 3) {
+      const steps = Math.min(8, Math.ceil(segLen / 3));
+      for (let s = 1; s < steps; s++) {
+        const t = s / steps;
+        dense.push({ lon: a.lon + (b.lon - a.lon) * t, lat: a.lat + (b.lat - a.lat) * t, d: a.d + segLen * t });
+      }
+    }
+    dense.push(b);
+  }
+  for (let i = 0; i < dense.length - 1; i++) {
+    const a = dense[i], b = dense[i + 1];
+    const frac = fracAt((a.d + b.d) / 2);
+    const top = +(topM * frac).toFixed(2);
+    if (top < 0.1) continue; // tapered down to ~ground level here: nothing worth extruding
+    const base = +(baseM * frac).toFixed(2);
+    const midLat = (a.lat + b.lat) / 2, mLon = mPerLonAt(midLat);
+    // work in a local meters-ish plane (lon scaled by mLon) so the perpendicular offset comes out isotropic
+    const ax = a.lon * mLon, ay = a.lat * KLAT, bx = b.lon * mLon, by = b.lat * KLAT;
+    const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy); if (len === 0) continue;
+    const nx = -dy / len, ny = dx / len;
+    const half = widthM / 2;
+    const quadM = [[ax + nx * half, ay + ny * half], [bx + nx * half, by + ny * half], [bx - nx * half, by - ny * half], [ax - nx * half, ay - ny * half]];
+    const coords = quadM.map(([x, y]) => [+(x / mLon).toFixed(7), +(y / KLAT).toFixed(7)]);
+    coords.push(coords[0]);
+    buf.push(JSON.stringify({ type: "Feature", properties: { kind: fr.kind, base, top }, geometry: { type: "Polygon", coordinates: [coords] } }));
+    pieces++;
+  }
+  if (buf.length > 20000) { fs.writeSync(wfd, buf.join("\n") + "\n"); buf = []; }
 }
 if (buf.length) fs.writeSync(wfd, buf.join("\n") + "\n");
 fs.closeSync(wfd);
-const rep = { pieces, bridgeFeatures: bridges, byKind };
+const rep = { pieces, bridgeFragments: frags.length, byKind };
 if (reportPath) fs.writeFileSync(reportPath, JSON.stringify(rep, null, 1));
 console.log(rep);
