@@ -459,7 +459,7 @@ map.on("load", async () => {
       const code = String(p.code);
       const pref = PREF_FILES[code.slice(0, 2)];
       const hasPref = !!(pref && loadPref);
-      if (!hasPref) closeDetail();
+      if (!hasPref) showRegionDetail(code, regionFeatureByCode.get(code));
       else map.setFilter("wards-sel", ["==", ["get", "name"], ""]);
       document.getElementById("card").classList.add("on");
       document.getElementById("cname").textContent = p.name_ko;
@@ -524,6 +524,9 @@ map.on("load", async () => {
   // 분포가 극단적으로 치우쳐(중앙값 0.1명, 최대 1.9만명) 분위수 대신 고정 구간을 씀. 0명은 회색.
   const BLDG_JOB_CUTS = [0.5, 2, 5, 15, 50, 150, 500];
   const bldg23JobColor = ["case", ["<=", ["coalesce", ["get", "jobs"], 0], 0], THEME.zero, stepExpr("jobs", BLDG_JOB_CUTS, JRAMP)];
+  // 사이타마·지바·가나가와 건물별 추정 종사자 — OSM 건물 태그(용도)×층수×업종별 종사자밀도(job-coefficients.json)로
+  // 정목 실제 종사자(2021 경제센서스)를 배분한 모델. 도쿄와 같은 구간을 써서 색이 서로 비교 가능.
+  const bldgRegJobColor = ["case", ["<=", ["coalesce", ["get", "jobs"], 0], 0], THEME.zero, stepExpr("jobs", BLDG_JOB_CUTS, JRAMP)];
   // 일반 지도의 건물 색 (네이버 규칙): 주거 = 연노랑, 학교·관공서·병원 = 회녹, 공장·창고 = 연보라 회색, 상업·기타 = 흰색
   const RES_KINDS = ["apartments", "residential", "house", "detached", "dormitory", "terrace", "semidetached_house", "bungalow", "condominium", "duplex", "static_caravan"];
   const PUB_KINDS = ["school", "university", "college", "kindergarten", "government", "public", "civic", "hospital", "clinic", "fire_station", "police", "museum", "library", "townhall"];
@@ -570,6 +573,26 @@ map.on("load", async () => {
     if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], "__none__"]);
     for (const id of ["jobsgrid-fill", "jobsgrid-line"]) if (map.getLayer(id)) map.setFilter(id, ["==", ["get", "wardJis"], "__none__"]);
     if (subwardActive) { map.flyTo(initialView); subwardActive = false; }
+  }
+
+  // 다마 지역·도서(섬) 시정촌처럼 정목 상세 데이터가 아예 없는 지역(region-fill, hasPref===false) 클릭용.
+  // 예전엔 이 경우 무조건 closeDetail()을 불러서, 구를 확대해 보다가 다마 지역을 클릭하면 항상
+  // 초기 화면(간토 전체, 줌 9.3)으로 리셋됐다 — "다른 구 누르면 줌아웃"의 실제 원인. wards-fill의
+  // showWardDetail과 같은 패턴(같은 지역 재클릭이 아닐 때만 그 지역 경계로 fitBounds)으로 바꿔서,
+  // 리셋 대신 클릭한 지역으로 확대하게 한다.
+  function showRegionDetail(jis, feature) {
+    document.getElementById("detail").classList.remove("on");
+    if (map.getLayer("wards-sel")) map.setFilter("wards-sel", ["==", ["get", "name"], ""]);
+    if (map.getLayer("subward-fill")) map.setFilter("subward-fill", ["==", ["get", "wardJis"], "__none__"]);
+    if (map.getLayer("subward-line")) map.setFilter("subward-line", ["==", ["get", "wardJis"], "__none__"]);
+    if (map.getLayer("subward-sel")) map.setFilter("subward-sel", ["==", ["get", "code"], "__none__"]);
+    if (map.getLayer("bldgpop-fill")) map.setFilter("bldgpop-fill", ["==", ["get", "wardJis"], "__none__"]);
+    if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], "__none__"]);
+    for (const id of ["jobsgrid-fill", "jobsgrid-line"]) if (map.getLayer(id)) map.setFilter(id, ["==", ["get", "wardJis"], "__none__"]);
+    if (feature && jis !== currentWardJis) map.fitBounds(bboxOfCoords(feature.geometry.coordinates), { padding: 60, duration: 800 });
+    currentWardJis = jis;
+    subwardActive = true;
+    currentDetail = null;
   }
 
   function showMissingDetail(nameKo) {
@@ -802,14 +825,15 @@ map.on("load", async () => {
       for (const id of ["bldgpop-fill", "bldgpop-line"]) {
         if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", overlay === "res" ? "visible" : "none");
       }
-      // 23구 전체 건물(tokyo-buildings.pmtiles)의 pop 속성 색: 거주 모드에서만 (종사자 모드는 회색 + jobsgrid)
+      // 사이타마·지바·가나가와 건물 색: 거주 모드는 pop, 종사자 모드는 jobs, 그 외에는 일반 지도 색
       for (const k of ["saitama", "chiba", "kanagawa"]) {
         if (!map.getLayer(`bldg-${k}-fill`)) continue;
-        map.setPaintProperty(`bldg-${k}-fill`, "fill-color", overlay === "res" ? bldgRegPopColor : bldgBaseReg);
-        map.setPaintProperty(`bldg-${k}-fill`, "fill-opacity", overlay === "res" ? 0.9 : THEME.bldgOp);
+        const regColor = overlay === "res" ? bldgRegPopColor : overlay === "jobs" ? bldgRegJobColor : bldgBaseReg;
+        map.setPaintProperty(`bldg-${k}-fill`, "fill-color", regColor);
+        map.setPaintProperty(`bldg-${k}-fill`, "fill-opacity", overlay === "none" ? THEME.bldgOp : 0.9);
         if (map.getLayer(`bldg-${k}-fill-3d`)) {
-          map.setPaintProperty(`bldg-${k}-fill-3d`, "fill-extrusion-color", overlay === "res" ? bldgRegPopColor : bldgBaseReg);
-          map.setPaintProperty(`bldg-${k}-fill-3d`, "fill-extrusion-opacity", overlay === "res" ? 0.9 : THEME.bldgOp);
+          map.setPaintProperty(`bldg-${k}-fill-3d`, "fill-extrusion-color", regColor);
+          map.setPaintProperty(`bldg-${k}-fill-3d`, "fill-extrusion-opacity", overlay === "none" ? THEME.bldgOp : 0.9);
         }
       }
       if (map.getLayer("bldg23-fill")) {
@@ -1150,21 +1174,22 @@ map.on("load", async () => {
           layout: { visibility: "none" },
           paint: { "fill-extrusion-color": THEME.bldg, "fill-extrusion-opacity": THEME.bldgOp,
             "fill-extrusion-height": REG_HEIGHT, "fill-extrusion-base": 0 } });
-        // 클릭/호버는 평면(bldg-${k}-fill)과 3D 입체(bldg-${k}-fill-3d) 레이어 둘 다에 건다 — 3D 보기 중에도 팝업이 뜨도록
+        // 클릭/호버는 평면(bldg-${k}-fill)과 3D 입체(bldg-${k}-fill-3d) 레이어 둘 다에 건다 — 3D 보기 중에도 팝업이 뜨도록.
+        // 거주/종사자 둘 다 pref-building-pop.mjs / pref-building-jobs.mjs 로 만든 pop/jobs 속성이 있어 도쿄와 동일하게 동작.
         const regClick = (e) => {
-          if (metric === "jobs" || !e.features.length) return;
-          // 사이타마시 건물별 직장 포인트(saitama-jobs-circle)가 이 픽셀에도 있으면 그쪽 팝업이 더 자세하므로 양보
-          if (map.getLayer("saitama-jobs-circle") && map.queryRenderedFeatures(e.point, { layers: ["saitama-jobs-circle"] }).length) return;
+          if (!e.features.length) return;
+          // 사이타마시 건물별 직장 포인트(saitama-jobs-circle, PLATEAU 기반 더 정밀한 모델)가 이 픽셀에도 있으면 그쪽 팝업에 양보
+          if (metric === "jobs" && map.getLayer("saitama-jobs-circle") && map.queryRenderedFeatures(e.point, { layers: ["saitama-jobs-circle"] }).length) return;
           const p = e.features[0].properties;
           const lv = p.levels && p.levels !== "null" ? `${p.levels}층` : "층수 미상";
           new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
-            .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 거주 인구 <b>${Number(p.pop).toFixed(1)}</b>명`
+            .setHTML(`<div style="font:12.5px sans-serif;color:#000">이 건물 추정 ${metric === "jobs" ? `종사자 <b>${Number(p.jobs ?? 0).toFixed(1)}</b>` : `거주 인구 <b>${Number(p.pop ?? 0).toFixed(1)}</b>`}명`
               + `<br>${lv} · ${p.kind}<br><span style="color:#000">모델 추정치 — 실측 아님</span></div>`)
             .addTo(map);
         };
         for (const id of [`bldg-${k}-fill`, `bldg-${k}-fill-3d`]) {
           map.on("click", id, regClick);
-          map.on("mouseenter", id, () => { if (metric !== "jobs") map.getCanvas().style.cursor = "pointer"; });
+          map.on("mouseenter", id, () => { map.getCanvas().style.cursor = "pointer"; });
           map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));
         }
       }
