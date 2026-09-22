@@ -522,6 +522,7 @@ map.on("load", async () => {
   // 숨겨도 입체 레이어는 그대로 남는 식. 두 토글의 현재 체크 상태를 한 곳에서 같이 읽어 평면/입체 레이어
   // 가시성을 매번 다시 계산한다 (code-review-2026-09-22.md D-05) — 아래에서 실제 구현으로 교체됨.
   let applyBuildingVisibility = () => {};
+  let applyBridgeVisibility = () => {}; // 고가도로 3D 데크(bridges-3d.pmtiles) — 차도 표시 + 3D 보기가 둘 다 켜져 있을 때만
   // 건물별 추정 거주 인구 (tokyo-buildings.pmtiles 의 pop 속성 — 정목 실제 인구를 건물 면적×층수×주거용도 가중치로 배분한 모델)
   // 0명(비주거 용도)은 회색, 나머지는 분위수 구간 색. 구간: 전체 건물 pop>0 의 1/8 분위수.
   const BLDG_POP_CUTS = [1.6, 2.5, 3.3, 4.2, 5.3, 7.1, 11.6];
@@ -1219,6 +1220,7 @@ map.on("load", async () => {
       map.easeTo({ pitch: on ? 55 : 0, duration: 700 });
       try { map.setTerrain(on && map.getSource("terrain") ? { source: "terrain", exaggeration: 1.4 } : null); } catch { /* 지형 소스 연결 실패 시 2D로 유지 */ }
       applyBuildingVisibility(); // 건물 숨김 상태를 그대로 존중해 평면/입체 중 맞는 쪽만 켠다 (D-05)
+      applyBridgeVisibility();
     });
 
     // ---- 도로: 차도(road) / 보행자 도로(path) — 현·도 4개 pmtiles, 토글로 켜고 끔 (기본 꺼짐) ----
@@ -1252,6 +1254,22 @@ map.on("load", async () => {
       });
       wireToggle("toggle-roads", "road");
       wireToggle("toggle-paths", "path");
+
+      // ---- 고가도로 3D 데크 (bridges-3d.pmtiles: OSM bridge=* 를 도로 등급별 폭×높이로 얇게 세운 것) ----
+      // 실측 높이가 아니라 등급별 추정(고속도로 약 9~10m, 간선 6.5~7m, 그 외 5m) — 3D 보기 + 차도 표시가 둘 다 켜져 있을 때만 보임.
+      map.addSource("bridges", { type: "vector",
+        url: "pmtiles://" + new URL("./bridges-3d.pmtiles", location.href).href,
+        attribution: '&copy; OpenStreetMap contributors, ODbL' });
+      const bridgeColor = roadClass("#f5a04a", "#e0b820", "#c7b98a", "#9aa6ab");
+      map.addLayer({ id: "bridge-3d", source: "bridges", "source-layer": "bridge", type: "fill-extrusion", minzoom: 13,
+        layout: { visibility: "none" },
+        paint: { "fill-extrusion-color": bridgeColor, "fill-extrusion-opacity": 0.95,
+          "fill-extrusion-height": ["get", "top"], "fill-extrusion-base": ["get", "base"] } });
+      applyBridgeVisibility = () => {
+        const show = document.getElementById("toggle-roads").checked && document.getElementById("toggle-3d").checked;
+        if (map.getLayer("bridge-3d")) map.setLayoutProperty("bridge-3d", "visibility", show ? "visible" : "none");
+      };
+      document.getElementById("toggle-roads").addEventListener("change", applyBridgeVisibility);
     } catch (err) { console.warn("도로 pmtiles 연결 실패:", err); }
 
     // ---- 공원·학교·병원 + 토지 용도 구획 (areas.pmtiles: OSM 폴리곤) — 색으로 구분하고 이름을 붙인다 ----

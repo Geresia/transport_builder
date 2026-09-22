@@ -174,6 +174,8 @@ public domain and may be used free of charge; GEBCO asks that the source is ackn
 
 - **© OpenStreetMap contributors, `areas.pmtiles`.** Parks, schools, hospitals, water and land-use polygons from Geofabrik `kanto-latest.osm.pbf`. ODbL-1.0, same Derivative Database obligations as the other OSM-derived files, see [`./LICENSE-DATA`](./LICENSE-DATA).
 
+- **© OpenStreetMap contributors, `bridges-3d.pmtiles`.** Elevated-road (`bridge=*`) footprints derived from the `<area>-roads.pmtiles` files, buffered and given an estimated deck height for the 3D view. ODbL-1.0, same Derivative Database obligations as the other OSM-derived files, see [`./LICENSE-DATA`](./LICENSE-DATA).
+
 - さいたま市の用途別従業者係数 (`job-coefficients-saitama.json`, `jobs-buildings-saitama.json`): 出典 国土交通省 Project PLATEAU 3D都市モデル さいたま市 (2020年度) (https://www.geospatial.jp/ckan/dataset/plateau-11100-saitama-shi-2020)、PDL1.0。加工: 建物属性 (都市計画基礎調査 建物利用現況) を町丁別・用途別に集計し、経済センサスの従業者数と回帰して係数を推定。建物ごとの従業者数は町丁の従業者数を用途別係数で配分した推定値 (`jobs-buildings-saitama.json`)。
 
 - 就業者数 (`employed.json`, 建物別 `emp`): 総務省統計局「令和2年国勢調査 小地域集計」第16-2表 (e-Stat)。加工: 秘匿された町丁は合算値を居住人口で按分。政府標準利用規約2.0。

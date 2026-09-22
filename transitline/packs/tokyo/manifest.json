@@ -123,6 +123,7 @@
       "chiba-roads.pmtiles",
       "kanagawa-roads.pmtiles"
     ],
+    "bridgeTiles": "bridges-3d.pmtiles",
     "barriers": "barriers.json",
     "existingNetwork": "existing-network.json",
     "buildingLabels": "building-labels.pmtiles",

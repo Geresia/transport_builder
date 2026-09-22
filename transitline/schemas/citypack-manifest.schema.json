@@ -100,6 +100,7 @@
           "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }],
           "description": "PMTiles of roads and pedestrian ways."
         },
+        "bridgeTiles": { "type": "string", "description": "PMTiles of MODELED elevated-road (bridge) deck extrusions, for the viewer's 3D view only." },
         "basemap": { "type": "string", "description": "PMTiles basemap (roads/rail/water/land)." },
         "employed": {
           "type": "string",
