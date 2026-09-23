@@ -160,7 +160,9 @@ strictest of these sources (`ODbL-1.0`) per
 
 - 通勤OD (`od.json`): 出典 総務省統計局「令和2年国勢調査 従業地・通学地による人口・就業状態等集計」第3表 (e-Stat)。加工: 市区町村別に領域内へ集約。政府標準利用規約2.0。
 
-- 通学OD (`od-school.json`, 2026-09-22 追加): `od.json` と同じ第3表・同じファイルの別列（15歳以上通学者）。出典・利用規約は同上。
+- 通学OD (`od-school.json`, 2026-09-22 追加): `od.json` と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）。出典・利用規約は同上。
+
+- 時間帯別発生係数 (`demand.json` の `calendar`, 2026-09-23 追加): 出典 総務省統計局「令和3年社会生活基本調査」第10表「時間帯，行動の種類別主行動の行動者率－平日，15歳以上」(e-Stat)。加工: 通勤(131)・通学の15分刻み全国行動者率を1時間単位に集約し、本パック独自の `od.json`/`od-school.json` 合計（就業者:通学者 ≈ 82:18）で加重合成、平均1.0に正規化。政府標準利用規約2.0。
 
 - **Terrain shading (`viewer.html`, fetched live, not shipped):** AWS Terrain Tiles (Terrarium, open data; derived from SRTM, GSI and other sources), `https://registry.opendata.aws/terrain-tiles/`. Used only for the optional hillshade layer; the pack works without it.
 

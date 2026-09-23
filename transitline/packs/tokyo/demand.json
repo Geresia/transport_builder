@@ -3464,5 +3464,43 @@
                        "area_km2":  73.76,
                        "popDate":  "2020"
                    }
-               ]
+               ],
+    "calendar": {
+        "dayTypes": [
+            { "id": "weekday", "name": "평일", "weight": 5 },
+            { "id": "saturday", "name": "토요일", "weight": 1 },
+            { "id": "holiday", "name": "일요일·공휴일", "weight": 1 }
+        ],
+        "periods": [
+            { "id": "h0", "startMinute": 0, "endMinute": 60 },
+            { "id": "h1", "startMinute": 60, "endMinute": 120 },
+            { "id": "h2", "startMinute": 120, "endMinute": 180 },
+            { "id": "h3", "startMinute": 180, "endMinute": 240 },
+            { "id": "h4", "startMinute": 240, "endMinute": 300 },
+            { "id": "h5", "startMinute": 300, "endMinute": 360 },
+            { "id": "h6", "startMinute": 360, "endMinute": 420 },
+            { "id": "h7", "startMinute": 420, "endMinute": 480 },
+            { "id": "h8", "startMinute": 480, "endMinute": 540 },
+            { "id": "h9", "startMinute": 540, "endMinute": 600 },
+            { "id": "h10", "startMinute": 600, "endMinute": 660 },
+            { "id": "h11", "startMinute": 660, "endMinute": 720 },
+            { "id": "h12", "startMinute": 720, "endMinute": 780 },
+            { "id": "h13", "startMinute": 780, "endMinute": 840 },
+            { "id": "h14", "startMinute": 840, "endMinute": 900 },
+            { "id": "h15", "startMinute": 900, "endMinute": 960 },
+            { "id": "h16", "startMinute": 960, "endMinute": 1020 },
+            { "id": "h17", "startMinute": 1020, "endMinute": 1080 },
+            { "id": "h18", "startMinute": 1080, "endMinute": 1140 },
+            { "id": "h19", "startMinute": 1140, "endMinute": 1200 },
+            { "id": "h20", "startMinute": 1200, "endMinute": 1260 },
+            { "id": "h21", "startMinute": 1260, "endMinute": 1320 },
+            { "id": "h22", "startMinute": 1320, "endMinute": 1380 },
+            { "id": "h23", "startMinute": 1380, "endMinute": 1440 }
+        ],
+        "factors": {
+            "weekday": { "h0": 0.059, "h1": 0.057, "h2": 0.04, "h3": 0.058, "h4": 0.126, "h5": 0.402, "h6": 1.432, "h7": 4.58, "h8": 3.837, "h9": 1.039, "h10": 0.338, "h11": 0.226, "h12": 0.342, "h13": 0.375, "h14": 0.36, "h15": 0.514, "h16": 1.04, "h17": 2.711, "h18": 2.673, "h19": 1.659, "h20": 1.015, "h21": 0.649, "h22": 0.354, "h23": 0.114 },
+            "saturday": { "h0": 1, "h1": 1, "h2": 1, "h3": 1, "h4": 1, "h5": 1, "h6": 1, "h7": 1, "h8": 1, "h9": 1, "h10": 1, "h11": 1, "h12": 1, "h13": 1, "h14": 1, "h15": 1, "h16": 1, "h17": 1, "h18": 1, "h19": 1, "h20": 1, "h21": 1, "h22": 1, "h23": 1 },
+            "holiday": { "h0": 1, "h1": 1, "h2": 1, "h3": 1, "h4": 1, "h5": 1, "h6": 1, "h7": 1, "h8": 1, "h9": 1, "h10": 1, "h11": 1, "h12": 1, "h13": 1, "h14": 1, "h15": 1, "h16": 1, "h17": 1, "h18": 1, "h19": 1, "h20": 1, "h21": 1, "h22": 1, "h23": 1 }
+        }
+    }
 }

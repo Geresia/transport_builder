@@ -534,6 +534,33 @@ equals gravity's, each origin's rate is proportional to workers+students, Chiyod
 resident students) visibly loses spawn share once students are folded in, and `od-school.json` also works
 standalone with no `od.json`.
 
+### `demand.json` `calendar` — real rush-hour shape (added 2026-09-23)
+
+Without a `calendar`, `od.json`/`od-school.json`'s daily totals spawn at a **flat, constant rate all day** —
+no morning/evening rush. `demand.json` now carries one (`docs/citypack-format.md` § calendar), built from
+real measured data rather than a guessed shape:
+
+- **Source**: 令和3年社会生活基本調査 (2021 Social Life Survey) 第10表 "時間帯，行動の種類別主行動の
+  行動者率－平日，15歳以上" (総務省統計局 / e-Stat, 政府標準利用規約2.0) — the % of the national 15+
+  population whose *primary activity* is 通勤 (commuting, code 131) or 通学 (going to school) at each
+  15-minute slice of a weekday, all 96 slices real.
+- Resampled to 24 one-hour periods (`h0`…`h23`), combining the two curves weighted by this pack's own
+  `od.json` + `od-school.json` totals (workers 15,881,914 : students 3,378,661 ≈ 82:18), then normalized so
+  the 24-hour average factor is exactly 1.0 (preserves the pack-wide daily trip total `od.json` already
+  sets — the calendar only reshapes *when* those trips happen, not *how many*). Peaks: **7am ×4.58**, 8am
+  ×3.84, evening 5–6pm ×2.7–2.7; overnight (1–4am) ×0.04–0.13.
+- **Caveats**: this is one *national* curve (not Tokyo-specific, not per-municipality) applied uniformly
+  everywhere in the pack — real Tokyo peaks are almost certainly sharper than the national average. The
+  source table is 15+ only, so it doesn't directly measure under-15 school-commute timing (assumed to
+  roughly follow the same 通学 curve here — a reasonable but unverified extrapolation). `saturday` and
+  `holiday` are **flat placeholders (factor 1.0 all day, not measured)** — the same survey publishes
+  Saturday/Sunday tables too but they weren't pulled this round; regenerate by re-running the extraction
+  below against those tables' `stat_infid` if wanted.
+- Rebuild: download table 10 (weekday) from e-Stat (toukei=00200533, search "第10表 時間帯，行動の種類別
+  主行動の行動者率－平日"), find the 通勤(131) and 通学 rows' 96 quarter-hour values, combine weighted by
+  `od.json`/`od-school.json` totals, bucket to hours, normalize to mean 1. Not yet scripted as a standalone
+  `scripts/*.mjs` (done as a one-off; worth promoting to a script if the source data changes).
+
 **`demand.json` `jobs` (added 2026-09-22).** Every one of the 242 points now carries `jobs`: workers who WORK in that municipality, from the same
 O/D matrix (`self` + everyone else's `dest` landing there) - `scripts/tokyo-demand-jobs.mjs`. This feeds the engine's per-station gravity
 attractiveness (`state.jobs`), which is a different consumer from `job-coefficients.json`'s per-building split (that still fits to the Economic
