@@ -130,19 +130,37 @@ for (const fr of frags) {
     }
     dense.push(b);
   }
-  for (let i = 0; i < dense.length - 1; i++) {
-    const a = dense[i], b = dense[i + 1];
+  // Local meters-ish plane (lon scaled by a shared reference mLon so x/y are locally isotropic) — needed to get a
+  // single normal per point instead of one per segment, which is what actually closes the curve-boundary gaps.
+  const refLat = (dense[0].lat + dense[dense.length - 1].lat) / 2, mLon = mPerLonAt(refLat);
+  const P = dense.map((v) => ({ x: v.lon * mLon, y: v.lat * KLAT, d: v.d }));
+  const segNormal = (p, q) => { const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy) || 1; return [-dy / len, dx / len]; };
+  // per-point offset direction: the plain segment normal at the two open ends, and a clamped MITER of the two
+  // adjacent segment normals at every interior point — this is what makes quad_i and quad_{i+1} share the exact
+  // same edge on a curve (both use pointNormal[i+1]) instead of each independently offsetting by its own segment's
+  // normal, which used to leave a sliver gap/overlap at every bend and rendered as a jagged step once extruded.
+  const pointNormal = new Array(P.length);
+  pointNormal[0] = segNormal(P[0], P[1]);
+  pointNormal[P.length - 1] = segNormal(P[P.length - 2], P[P.length - 1]);
+  for (let i = 1; i < P.length - 1; i++) {
+    const n1 = segNormal(P[i - 1], P[i]), n2 = segNormal(P[i], P[i + 1]);
+    let mx = n1[0] + n2[0], my = n1[1] + n2[1];
+    const mlen = Math.hypot(mx, my);
+    if (mlen < 1e-6) { pointNormal[i] = n1; continue; } // near-180° reversal: fall back to one side's normal
+    mx /= mlen; my /= mlen;
+    const cosHalf = mx * n1[0] + my * n1[1];
+    const scale = Math.min(cosHalf > 1e-3 ? 1 / cosHalf : 4, 4); // clamp so a sharp switchback doesn't spike out
+    pointNormal[i] = [mx * scale, my * scale];
+  }
+  for (let i = 0; i < P.length - 1; i++) {
+    const a = P[i], b = P[i + 1];
+    if (a.x === b.x && a.y === b.y) continue; // duplicate point (zero-length sub-segment)
     const frac = fracAt((a.d + b.d) / 2);
     const top = +(topM * frac).toFixed(2);
     if (top < 0.1) continue; // tapered down to ~ground level here: nothing worth extruding
     const base = +(baseM * frac).toFixed(2);
-    const midLat = (a.lat + b.lat) / 2, mLon = mPerLonAt(midLat);
-    // work in a local meters-ish plane (lon scaled by mLon) so the perpendicular offset comes out isotropic
-    const ax = a.lon * mLon, ay = a.lat * KLAT, bx = b.lon * mLon, by = b.lat * KLAT;
-    const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy); if (len === 0) continue;
-    const nx = -dy / len, ny = dx / len;
-    const half = widthM / 2;
-    const quadM = [[ax + nx * half, ay + ny * half], [bx + nx * half, by + ny * half], [bx - nx * half, by - ny * half], [ax - nx * half, ay - ny * half]];
+    const half = widthM / 2, [nax, nay] = pointNormal[i], [nbx, nby] = pointNormal[i + 1];
+    const quadM = [[a.x + nax * half, a.y + nay * half], [b.x + nbx * half, b.y + nby * half], [b.x - nbx * half, b.y - nby * half], [a.x - nax * half, a.y - nay * half]];
     const coords = quadM.map(([x, y]) => [+(x / mLon).toFixed(7), +(y / KLAT).toFixed(7)]);
     coords.push(coords[0]);
     buf.push(JSON.stringify({ type: "Feature", properties: { kind: fr.kind, base, top }, geometry: { type: "Polygon", coordinates: [coords] } }));
