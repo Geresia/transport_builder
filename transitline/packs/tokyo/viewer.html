@@ -89,13 +89,13 @@
   <label><input type="checkbox" id="toggle-obstacles" checked> 건물 footprint (토지이용조사, 줌 13+)</label>
   <label><input type="checkbox" id="toggle-theme"> 밝은 지도 (네이버 지도풍)</label>
   <label><input type="checkbox" id="toggle-terrain" checked> 지형 (숲·논밭·초지·산 음영)</label>
-  <label><input type="checkbox" id="toggle-rail" checked> 철도 (배경지도, 줌 9+)</label>
+  <label><input type="checkbox" id="toggle-rail"> 철도 (배경지도, 줌 9+)</label>
   <label><input type="checkbox" id="toggle-roads"> 차도 (OSM, 줌 13+)</label>
   <label><input type="checkbox" id="toggle-paths"> 보행자 도로 (OSM, 줌 14+ · 인도·횡단보도·계단 등)</label>
   <label><input type="checkbox" id="toggle-areas" checked> 공원·학교·토지 구획 (이름 표시, 줌 13+)</label>
   <label><input type="checkbox" id="toggle-rnames" checked> 도로 이름 (한글 발음, 줌 11+)</label>
   <div class="cap" style="margin:2px 0 6px">도로 색: <b style="color:#f5a04a">주황</b> 고속도로·자동차전용도로 · <b style="color:#e0b820">노랑</b> 간선도로 · 흰색 골목 · <b style="color:#9b5fc0">보라</b> 철도</div>
-  <label><input type="checkbox" id="toggle-labels" checked> 큰 건물 이름 (OSM, 줌 15+)</label>
+  <label><input type="checkbox" id="toggle-labels"> 큰 건물 이름 (OSM, 줌 15+)</label>
   <div class="ovl-title">특수 수요 · 시범 데이터</div>
   <label><input type="checkbox" id="toggle-special"> 대학·병원 (MLIT, 4개 도현 · 위치 실측 · 정원은 모델 추정)</label>
   <label><input type="checkbox" id="toggle-saitama-jobs"> 사이타마시 건물별 직장 (모델, 줌 13+ · 사이타마시만)</label>
@@ -386,6 +386,7 @@ async function addBasemap() {
       filter: road("highway"), paint: { "line-color": THEME.road.highway, "line-width": 2.2 } },
     { id: "bm-rail", source: "basemap", "source-layer": "roads", type: "line", minzoom: 9,
       filter: ["all", ["==", ["get", "kind"], "rail"], ["!=", ["get", "kind_detail"], "light_rail"]],
+      layout: { visibility: "none" }, // 기본 숨김 — "철도" 체크박스로 켬
       paint: { "line-color": THEME.road.rail, "line-width": 1.4, "line-opacity": 0.85 } },
   ];
   for (const l of layers) map.addLayer(l);
@@ -1278,8 +1279,10 @@ map.on("load", async () => {
       map.addSource("areas", { type: "vector", url: "pmtiles://" + new URL("./areas.pmtiles", location.href).href,
         attribution: '&copy; OpenStreetMap contributors, ODbL' });
       const A = THEME.area, cls = ["get", "cls"], kind = ["get", "kind"];
+      // "railway"(역·조차장 등 landuse=railway 부지)는 색상표에서 빼서 항상 투명 — 역 이름(bldg-label)·철도선(bm-rail)에
+      // 이어 역의 마지막 흔적인 이 뭉텅한 부지 채색까지 지워 달라는 요청.
       const landColor = ["match", kind, "commercial", A.commercial, "retail", A.commercial, "industrial", A.industrial, "farmland", A.farm, "allotments", A.farm,
-        "forest", A.forest, "grass", A.grass, "meadow", A.grass, "railway", A.railway, "military", A.military, "rgba(0,0,0,0)"];
+        "forest", A.forest, "grass", A.grass, "meadow", A.grass, "military", A.military, "rgba(0,0,0,0)"];
       const before = map.getLayer("bm-road-case-minor") ? "bm-road-case-minor" : undefined;
       map.addLayer({ id: "area-land", source: "areas", "source-layer": "area", type: "fill", minzoom: 13,
         filter: ["==", cls, "land"], paint: { "fill-color": landColor } }, before);
@@ -1342,6 +1345,7 @@ map.on("load", async () => {
           "text-size": ["interpolate", ["linear"], ["zoom"], 15, 10, 18, 13],
           "text-max-width": 7,
           "text-padding": 3,
+          visibility: "none", // 기본 숨김 — "큰 건물 이름" 체크박스로 켬 (역 이름도 여기 포함됨, 따로 뺄 레이어 없음)
         },
         paint: { "text-color": THEME.label.text, "text-halo-color": THEME.label.halo, "text-halo-width": 1.4 } });
       document.getElementById("toggle-labels").addEventListener("change", (e) =>

@@ -122,3 +122,52 @@ airport, amusement_park, aquarium, bathhouse, convention_center, cultural_center
 - **수요 가공 메서드**: `sanitize`, `scale_demand`, `enforce_max_pop_size`(큰 pop 분할), `consolidate_pops`(pop 크기별 거리 기준 [25/10/5/2명 → 2/4/80/16km]로 병합), `agglomerate_pops`(도심과 비도심에 서로 다른 거리 기준), `merge_identical_commutes`, `cluster_points`, `move/add/del_points`, `calculate_routes`(OSMnx 또는 로컬 OSRM으로 이동 시간·거리), `create_config`·`create_description`(Railyard 등록용). §5와 대부분 겹친다.
 - **특수 수요 분류** (`special_demand_types.json`, 25종): 공항, 놀이공원, 수족관, 온천시설, 컨벤션, 문화시설, 관공서, 유적, 병원, 도서관, 군사기지, 박물관, 자연경관, 공원, 항만, 종교시설(신사·절 하위 종류), 리조트, 학교, 상업시설, 스포츠시설, 대학, 동물원, 域外接続 등. 종마다 코드(AIR, UNI…)와 **일본어 이름**, 하위 종류가 있다. 도쿄 팩의 명소 목록을 만들 때 분류 틀로 쓸 만하다.
 - **기타**: 지도 라벨은 OSM `place` 태그를 도시·교외·동네 세 단계로 나눠 줌 수준별로 표시한다(`check_labels`로 태그 분포 확인).
+
+## 10. save-merger (2026-09-22)
+
+`C:\Users\이상재\Downloads\save-merger-main` — Subway Builder 세이브 2개를 합치는 독립 실행 Python CLI(표준 라이브러리만 사용, 655줄 이하). **LICENSE 파일 없음** → template-mod 타입 정의와 같은 상황(저작권 기본 규칙 적용, 재배포·코드 복사 권한 불명확) → **읽기만, 코드 금지**.
+
+- **`.metro` 바이너리 포맷을 리버스 엔지니어링해 문서화한 첫 자료다.** 4096바이트 고정 헤더 + `METR` 매직 바이트. 헤더 오프셋 8에 `<6I`(리틀엔디언 unsigned int 6개)로 autosave 인덱스/썸네일/게임데이터의 (offset, size) 3쌍이 있다. 오프셋 32에 int64 타임스탬프, 40(256바이트)에 이름, 296(32바이트)에 cityCode, 328(64바이트)에 세션 ID, 392(512바이트)에 stats JSON, 912에 압축 데이터의 CRC32 — 전부 널 종료 UTF-8 고정폭 문자열. 게임 본체는 헤더 뒤에 gzip 압축된 JSON(`{mainSave: {data: {...}}, autosaves: []}`)으로 온다.
+- **세이브 데이터의 7개 최상위 컬렉션이 실제로 확인됐다**: `tracks`, `trackGroups`, `signals`, `stNodes`, `stations`, `routes`, `trains`. §1의 타입 정의 기반 모델과 일치하지만, `signals`가 StCombo.path 안에 파묻힌 값이 아니라 **최상위 컬렉션**(다른 엔티티들이 id로 참조)이라는 점은 타입 정의만으로는 몰랐던 부분이다.
+- **엔티티 간 연결은 문자열 id 배열**(`trackIds`, `stNodeIds`, `routeIds`)로 저장된다. 공유 병합 시 이 세 필드만 합집합으로 합치고 나머지 필드는 base 세이브 값을 유지한다 — 즉 이 세 필드가 "다대다 관계"의 정본이고 나머지(이름 등)는 각 엔티티가 소유.
+- **세이브 최상위에 `money`, `elapsedSeconds`가 있다** — §6 표의 "경제: 자금 … 없음(Phase 3)" 갭과 직결되는 실제 필드명. 병합 시 base 세이브 값을 그대로 유지(경제 상태는 공유 대상이 아님).
+- `cityCode`가 저장 파일 자체의 필드다(두 세이브가 같은 도시인지 검증하는 키) — 우리 CityPack의 `manifest.id`와 개념은 같지만 이쪽은 게임이 부여한 코드.
+
+## 11. city-code-changer (2026-09-23)
+
+`github.com/Subway-Builder-Modded/city-code-changer` — `.metro`의 `cityCode`만 바꿔서 다른 지도로 네트워크를 옮기는 285줄짜리 독립 실행 Python 스크립트(`change_city_code.py` 한 개, 표준 라이브러리만 사용). **MIT 라이선스** — save-merger·depot·monorepo와 달리 코드를 그대로 가져다 써도 된다. `gh repo clone`으로 `Downloads/city-code-changer`에 받음.
+
+- **§10 save-merger의 `.metro` 헤더 리버스 엔지니어링을 그대로 확인해준다**: 매직 `METR`, 4096바이트 헤더, 오프셋 8/12/16/20/24/28에 autosave 인덱스·썸네일·게임데이터의 (offset,size) 세 쌍(`<6I`), 32(리틀엔디언 u32+i32로 나눈 64비트 타임스탬프), 40(이름 256B), 296(cityCode 32B), 328(세션ID 64B), 392(stats JSON 512B), 912(CRC32) — 전부 동일. 독립적인 두 소스가 일치해서 이 포맷 문서화의 신뢰도가 올라갔다.
+- **추가로 확인된 것**: 압축은 raw zlib이 아니라 **gzip 헤더 포함**(`zlib.compressobj(wbits=16+MAX_WBITS)`로 쓰고 `zlib.decompress(data, 15+32)`로 읽음 — 15+32는 zlib/gzip 자동 판별). `stats` JSON의 기본 키는 `{stations, routes, trains, money}` 4개(§10에서 본 최상위 `money`/`elapsedSeconds`와는 별개로, 헤더 안에도 요약 통계가 한 번 더 있다는 뜻).
+- **우리 반영**: 없음. 이 저장소는 **세이브 파일**(플레이어가 지은 네트워크 상태)을 다루고, `transitline/subway-builder-export/`가 만드는 건 **맵팩 파일**(`demand_data.json`, `buildings_index.json` 등 depot이 만드는 것과 같은 종류)이라 대상이 다르다. 나중에 우리 엔진 상태를 실제 `.metro`로 내보내는 기능을 만들 때, MIT라서 이 파서/시리얼라이저를 그대로 포팅해 쓸 수 있는 후보로 남겨둔다. 원 저작자는 이 코드가 `ejfox/metro-savefile-doctor`(TS)를 참고했다고 밝힘 — 그쪽은 라이선스 미확인.
+
+## 12. website-legacy + map-manager (2026-09-23)
+
+`github.com/Subway-Builder-Modded/website-legacy`(구 공식 위키, archived, **LICENSE 없음 → 읽기만**)와
+`github.com/Subway-Builder-Modded/map-manager`(Kronifer의 구버전 맵 패처, archived, **ISC 라이선스 →
+코드 재사용 가능**)를 `gh repo clone`으로 받아 읽음. website-legacy는 "구버전" 표시가 있어 depot 이전
+파이프라인 문서라 상당 부분 depot로 대체됐지만, depot에는 없는 두 가지가 있다.
+
+- **맵팩 배포 형식이 정확히 나온다** (`modding-docs/creating-maps/making-custom-maps.mdx`): 최종 zip은
+  `demand_data.json`, `buildings_index.json`, `roads.geojson`, `runways_taxiways.geojson`, `XXX.pmtiles`
+  (`XXX`=도시 코드), `config.json` 6개 파일이 **서브폴더 없이 zip 루트**에 있어야 한다. `config.json` 스키마:
+  `name, code, description, population, initialViewState{zoom,latitude,longitude,bearing}, creator, version`
+  (선택: `thumbnailBbox`, `country`=ISO 3166-1 alpha-2).
+- **Railyard 등록 절차** (`modding-docs/railyard/publishing-map-packs.mdx`): GitHub에 소스+릴리스를 올리고,
+  레지스트리 이슈("Publish New Map")를 열어 Map ID(kebab-case, 영구 고정)/City Name/City Code/Country
+  Code/Population/Description/Tags/Data Source/Source URL/Update Type(GitHub Releases 또는 자체 호스팅
+  `update.json`)을 입력하면 자동으로 PR이 생성되고 관리자가 검토한다. `update.json` 스키마(버전별
+  download URL + sha256)도 있음. **[[project-subway-builder-export]]가 실제로 Railyard에 낼 단계까지
+  가면 이 문서가 그 다음 단계다.**
+- **map-manager**(`map_scripts/`, Node.js): depot 이전에 쓰이던 실제 코드. `download_data.js`가
+  Overpass로 도로(`highway=*`)를 받아 **`roads.geojson`을 정확히 어떤 모양으로 만드는지** 보여준다 —
+  `{type:"Feature", properties:{roadClass, structure:"normal", name}, geometry:{type:"LineString",...}}`,
+  `roadClass`는 `motorway→highway, trunk/primary→major, secondary/tertiary/unclassified/residential→minor`
+  (참고: [[project-subway-builder-export]]가 실제 게임 설치본에서 확인한 `roadClass`는 3종 동일, `structure`는
+  bridge/normal/tunnel 3종 — 이 스크립트는 tunnel/bridge 구분을 안 하는 구버전이라 그 부분만 낡음). ISC라
+  이 쿼리·매핑 로직을 그대로 가져다 `roads.geojson`을 채우는 데 쓸 수 있다(Option B).
+  `process_data.js`의 `squareFeetPerPopulation`/`squareFeetPerJob`는 monorepo foundry가 나중에 베낀
+  **원조 "감으로 정한" 수치**임을 확인(주석이 "vibes vibes vibes", "TIL..." 등 — 실측 아님이 코드 주석에도
+  써 있다). 우리가 이미 실측 데이터로 대체하기로 한 결정([[feedback-real-data-over-synthetic]])이 맞았다는
+  재확인일 뿐, 반영할 내용 없음. `buildings_index.json`의 압축 배열 스키마(`{cs, bbox, grid:[cols,rows],
+  cells:[[x,y,...ids]], buildings:[{b:bbox,f:foundationDepth,p:polygon}]}`)도 확인 가능.
