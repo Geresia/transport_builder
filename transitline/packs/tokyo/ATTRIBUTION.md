@@ -162,7 +162,9 @@ strictest of these sources (`ODbL-1.0`) per
 
 - 通学OD (`od-school.json`, 2026-09-22 追加): `od.json` と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）。出典・利用規約は同上。
 
-- 時間帯別発生係数 (`demand.json` の `calendar`, 2026-09-23 追加): 出典 総務省統計局「令和3年社会生活基本調査」第10表「時間帯，行動の種類別主行動の行動者率－平日，15歳以上」(e-Stat)。加工: 通勤(131)・通学の15分刻み全国行動者率を1時間単位に集約し、本パック独自の `od.json`/`od-school.json` 合計（就業者:通学者 ≈ 82:18）で加重合成、平均1.0に正規化。政府標準利用規約2.0。
+- 時間帯別発生係数・平日 (`demand.json` の `calendar.factors.weekday`, 2026-09-23 追加): 出典 総務省統計局「令和3年社会生活基本調査」第10表「時間帯，行動の種類別主行動の行動者率－平日，15歳以上」(e-Stat)。加工: 通勤(131)・通学の15分刻み全国行動者率を1時間単位に集約し、本パック独自の `od.json`/`od-school.json` 合計（就業者:通学者 ≈ 82:18）で加重合成、平均1.0に正規化。政府標準利用規約2.0。
+
+- 時間帯別発生係数・土休日 (`demand.json` の `calendar.factors.saturday`/`.holiday`, 2026-09-23 追加): 出典 JR東日本 公式デジタル時刻表 (`timetables.jreast.co.jp`) — 山手線（新宿駅）・中央線快速（高尾→東京）の平日・土休日時刻表、実際の列車本数を時間帯別に集計。加工: 各路線の土休日/平日の時間帯別シェア比を算出し2路線平均、上記の平日実測係数に適用して平均1.0に再正規化。運行本数（供給側）を需要の代理指標として使用したモデルであり、乗車人員の直接測定ではない。JR東日本の著作物のうち本数の集計値のみを利用（時刻表原文は転記していない）。
 
 - **Terrain shading (`viewer.html`, fetched live, not shipped):** AWS Terrain Tiles (Terrarium, open data; derived from SRTM, GSI and other sources), `https://registry.opendata.aws/terrain-tiles/`. Used only for the optional hillshade layer; the pack works without it.
 

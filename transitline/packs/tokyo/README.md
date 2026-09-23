@@ -551,15 +551,41 @@ real measured data rather than a guessed shape:
   ×3.84, evening 5–6pm ×2.7–2.7; overnight (1–4am) ×0.04–0.13.
 - **Caveats**: this is one *national* curve (not Tokyo-specific, not per-municipality) applied uniformly
   everywhere in the pack — real Tokyo peaks are almost certainly sharper than the national average. The
-  source table is 15+ only, so it doesn't directly measure under-15 school-commute timing (assumed to
-  roughly follow the same 通学 curve here — a reasonable but unverified extrapolation). `saturday` and
-  `holiday` are **flat placeholders (factor 1.0 all day, not measured)** — the same survey publishes
-  Saturday/Sunday tables too but they weren't pulled this round; regenerate by re-running the extraction
-  below against those tables' `stat_infid` if wanted.
-- Rebuild: download table 10 (weekday) from e-Stat (toukei=00200533, search "第10表 時間帯，行動の種類別
-  主行動の行動者率－平日"), find the 通勤(131) and 通学 rows' 96 quarter-hour values, combine weighted by
-  `od.json`/`od-school.json` totals, bucket to hours, normalize to mean 1. Not yet scripted as a standalone
-  `scripts/*.mjs` (done as a one-off; worth promoting to a script if the source data changes).
+  source table is 15+ only, so it directly measures high-school/university students (both are 15+, part of
+  the same 通学 figure as everyone else in that column) but not under-15 school-commute timing (mostly
+  elementary/junior-high) — that's assumed to roughly follow the same 通学 curve, a reasonable but
+  unverified extrapolation, not a claim that students are missing.
+- Rebuild (weekday): download table 10 (weekday) from e-Stat (toukei=00200533, search "第10表 時間帯，
+  行動の種類別主行動の行動者率－平日"), find the 通勤(131) and 通学 rows' 96 quarter-hour values, combine
+  weighted by `od.json`/`od-school.json` totals, bucket to hours, normalize to mean 1. Not yet scripted as a
+  standalone `scripts/*.mjs` (done as a one-off; worth promoting to a script if the source data changes).
+
+**`saturday`/`holiday` (added 2026-09-23, also real, different source).** The 2021 survey's exact
+time-of-day/activity table (above) was only published for weekday — no Saturday/Sunday file exists in its
+"主要統計表" listing, and the "database" system that does have a 曜日 (day-of-week) dimension for related
+tables needs an e-Stat API key to query cleanly, which wasn't pursued. Instead, the weekday shape above is
+**reshaped by real train schedule data**, since JR publishes separate 平日 (weekday) and 土休日 (Saturday
+**and** holiday combined — JR itself doesn't distinguish the two, so `saturday` and `holiday` legitimately
+share one factor set here, not a shortcut) timetables per line:
+
+- Trains/hour, self-counted from JR East's official digital timetables (`timetables.jreast.co.jp`), two
+  lines: **山手線** outer loop at Shinjuku (a dense inner-city loop, runs frequently all week — a weak
+  signal on its own) and **中央線快速** inbound Takao→Tokyo (a suburban commuter line whose extra rush-only
+  rapid trains are simply absent on Sat/Hol — a strong signal, and a closer match to what `od.json` actually
+  measures: suburban-to-core commuting). Each line's Sat/Hol hourly share of its own daily total is divided
+  by its weekday hourly share, and the two lines' ratios averaged, giving one real weekday→weekend
+  *reshaping* curve (weekday 7am, the sharpest cut: ×0.69 Yamanote, ×0.68 Chuo — almost halved on Chuo since
+  its rush-only trains vanish; overnight and midday mostly ratio ≈ 1, since off-peak trains barely change).
+- That ratio is applied to the real weekday activity-survey factors above, then renormalized to mean 1.0.
+  Result: 7am drops from ×4.58 (weekday) to ×3.51 (Sat/Hol), 8am ×3.84→×3.08, while midday 12–15h rises
+  (×0.34–0.51 weekday → ×0.43–0.68 Sat/Hol) — a flatter, later-shifted day, matching the general known shape
+  of Japanese weekend travel, without inventing numbers: every input is a real published count.
+- **Caveat, stated plainly**: this measures *train supply* (how many trains are scheduled), not *ridership*
+  (how many people actually travel) — the two correlate but aren't identical, and only two lines were
+  sampled. It is real data used as a proxy, not a direct measurement of Saturday/Sunday commute timing.
+- Rebuild: from a JR East station timetable page (`timetables.jreast.co.jp`), count trains per hour for both
+  the 平日 and 土休日 versions, take each hour's share of that day's daily total, divide Sat/Hol share by
+  weekday share per hour, apply to the weekday factors above, renormalize to mean 1. One-off, not scripted.
 
 **`demand.json` `jobs` (added 2026-09-22).** Every one of the 242 points now carries `jobs`: workers who WORK in that municipality, from the same
 O/D matrix (`self` + everyone else's `dest` landing there) - `scripts/tokyo-demand-jobs.mjs`. This feeds the engine's per-station gravity
