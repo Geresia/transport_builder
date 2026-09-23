@@ -29,10 +29,13 @@ if (!out) throw new Error("usage: <out.geojsonl> [report.json]");
 
 const AREAS = ["tokyo", "saitama", "chiba", "kanagawa"];
 // road class -> [deck width m, deck top height m above ground]
+// link/ramp roads are usually a single lane, so keep them narrower than the mainline they connect to — this also
+// leaves more margin before a tight loop ramp's curve radius gets smaller than the deck's half-width, which is
+// what actually causes an offset polygon to fold over itself on the inside of the curve (see MITER_LIMIT below).
 const CLASS = {
-  motorway: [12, 10], motorway_link: [9, 9], trunk: [11, 9], trunk_link: [8, 8],
-  primary: [9, 7], primary_link: [7, 6.5], secondary: [8, 6.5], secondary_link: [6.5, 6],
-  tertiary: [6.5, 5.5], tertiary_link: [5.5, 5], residential: [5.5, 5], unclassified: [5.5, 5], living_street: [5, 5],
+  motorway: [12, 10], motorway_link: [5, 9], trunk: [11, 9], trunk_link: [5, 8],
+  primary: [9, 7], primary_link: [4.5, 6.5], secondary: [8, 6.5], secondary_link: [4.5, 6],
+  tertiary: [6.5, 5.5], tertiary_link: [4, 5], residential: [5.5, 5], unclassified: [5.5, 5], living_street: [5, 5],
 };
 const classOf = (kind) => CLASS[kind] ?? [5.5, 5];
 const RAMP_LEN = 25; // meters over which a genuine bridge end fades from full height down to ground level
@@ -43,6 +46,16 @@ const Z = 14;
 const tile2lon = (x, z) => x / 2 ** z * 360 - 180;
 const tile2lat = (y, z) => { const n = Math.PI - 2 * Math.PI * y / 2 ** z; return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))); };
 const frags = []; // { pts: [[lon,lat],...], kind }
+// Kanto's per-prefecture OSM extracts overlap slightly at their shared borders (Tamagawa etc.), so the same real
+// bridge way can show up once in e.g. tokyo-roads.pmtiles and again in kanagawa-roads.pmtiles — since both use
+// the exact same Z14 tile grid, a way fully inside one tile clips to identical coordinates in both files. Two
+// literally-identical decks at the same spot don't add up visually, they z-fight (flicker between the two
+// almost-but-not-quite-coplanar surfaces), which looked exactly like the jagged/faceted look this was chasing —
+// and no amount of fixing the *geometry* of either copy fixes a problem that's really about there being two of
+// them. Dedup by (kind, first point, last point, point count): legitimate distinct bridges essentially never
+// share all three by coincidence, so this only ever collapses genuine duplicates.
+const seenFrag = new Set();
+let dupSkipped = 0;
 for (const area of AREAS) {
   const tilesPath = T + `${area}-roads.pmtiles`;
   if (!fs.existsSync(tilesPath)) { console.warn("missing", tilesPath, "- skipped"); continue; }
@@ -67,13 +80,17 @@ for (const area of AREAS) {
       for (const part of f.loadGeometry()) {
         if (part.length < 2) continue;
         const pts = part.map((v) => [+(lonW + v.x / EXT * (lonE - lonW)).toFixed(7), +(latN - v.y / EXT * (latN - latS)).toFixed(7)]);
-        frags.push({ pts, kind: p.kind ?? "unclassified" });
+        const kind = p.kind ?? "unclassified";
+        const sig = `${kind}|${pts.length}|${pts[0].join(",")}|${pts[pts.length - 1].join(",")}`;
+        if (seenFrag.has(sig)) { dupSkipped++; continue; }
+        seenFrag.add(sig);
+        frags.push({ pts, kind });
       }
     }
   }
   console.log(area, "bridge fragments", frags.length - before);
 }
-console.log("total fragments (pre-merge)", frags.length);
+console.log("total fragments (pre-merge)", frags.length, "cross-border duplicates skipped", dupSkipped);
 
 // ---- pass 2: join fragments that share an endpoint into full corridors ----
 // key = endpoint snapped to ~1m; two fragments whose ends land in the same cell are treated as one continuous
@@ -114,15 +131,19 @@ for (const fr of frags) {
     const fe = clippedEnd ? 1 : Math.min(1, (total - d) / RAMP_LEN);
     return Math.max(0, Math.min(fs, fe));
   };
-  // subdivide only near a genuine (non-joined) end, so the taper reads as a smooth ramp rather than one big
-  // segment jumping straight from ground level to full height
+  // Subdivide near a genuine (non-joined) end so the taper reads as a smooth ramp rather than one big segment
+  // jumping straight from ground level to full height. Each sub-segment is its own flat-topped quad (a fill-
+  // extrusion feature can't have a sloped top), so the taper is really a staircase, not a ramp — RAMP_STEP has to
+  // be short enough that individual risers (a few tens of cm each here) blend together at normal viewing distance
+  // instead of reading as visible steps the way ~1m-tall risers on 3m treads did.
+  const RAMP_STEP = 0.8;
   const nodes = pts.map((v, i) => ({ lon: v[0], lat: v[1], d: dist[i] }));
   const dense = [nodes[0]];
   for (let i = 0; i < nodes.length - 1; i++) {
     const a = nodes[i], b = nodes[i + 1], segLen = b.d - a.d;
     const nearRamp = (!clippedStart && a.d < RAMP_LEN + 5) || (!clippedEnd && total - b.d < RAMP_LEN + 5);
-    if (nearRamp && segLen > 3) {
-      const steps = Math.min(8, Math.ceil(segLen / 3));
+    if (nearRamp && segLen > RAMP_STEP) {
+      const steps = Math.min(40, Math.ceil(segLen / RAMP_STEP));
       for (let s = 1; s < steps; s++) {
         const t = s / steps;
         dense.push({ lon: a.lon + (b.lon - a.lon) * t, lat: a.lat + (b.lat - a.lat) * t, d: a.d + segLen * t });
@@ -135,32 +156,46 @@ for (const fr of frags) {
   const refLat = (dense[0].lat + dense[dense.length - 1].lat) / 2, mLon = mPerLonAt(refLat);
   const P = dense.map((v) => ({ x: v.lon * mLon, y: v.lat * KLAT, d: v.d }));
   const segNormal = (p, q) => { const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy) || 1; return [-dy / len, dx / len]; };
-  // per-point offset direction: the plain segment normal at the two open ends, and a clamped MITER of the two
-  // adjacent segment normals at every interior point — this is what makes quad_i and quad_{i+1} share the exact
-  // same edge on a curve (both use pointNormal[i+1]) instead of each independently offsetting by its own segment's
-  // normal, which used to leave a sliver gap/overlap at every bend and rendered as a jagged step once extruded.
-  const pointNormal = new Array(P.length);
-  pointNormal[0] = segNormal(P[0], P[1]);
-  pointNormal[P.length - 1] = segNormal(P[P.length - 2], P[P.length - 1]);
+  // Each straight sub-segment becomes its own flat quad, so a curve is really a chain of flat facets — and
+  // fill-extrusion side walls are each lit by their own facing direction, so a curve built out of a few *large*
+  // facets doesn't just have geometric seams, it visibly strobes light/dark facet to facet (the "staircase" look
+  // even after the seams themselves were closed). The fix is a ROUND JOIN at every bend: instead of one offset
+  // point going straight from the incoming segment's normal to the outgoing one, fan out several points around
+  // the turn, each still at *exactly* half-width (so, unlike a miter, it can never overshoot into a self-
+  // intersection on a tight inside curve) and each only ROUND_STEP_DEG apart (so neighboring facets are similar
+  // enough in facing direction that the lighting strobe disappears). A near-straight vertex needs zero extra
+  // points; a sharp one gets a small fan; nothing is added along straight runs at all.
+  const ROUND_STEP_DEG = 5;
+  function roundFan(n1, n2) {
+    const dot = Math.max(-1, Math.min(1, n1[0] * n2[0] + n1[1] * n2[1]));
+    const ang = Math.acos(dot); // radians, unsigned
+    if (ang < 1e-4) return [];
+    const steps = Math.min(24, Math.max(1, Math.round((ang * 180 / Math.PI) / ROUND_STEP_DEG)));
+    if (steps <= 1) return [];
+    const sign = n1[0] * n2[1] - n1[1] * n2[0] >= 0 ? 1 : -1;
+    const a1 = Math.atan2(n1[1], n1[0]);
+    const out = [];
+    for (let s = 1; s < steps; s++) { const a = a1 + sign * ang * (s / steps); out.push([Math.cos(a), Math.sin(a)]); }
+    return out;
+  }
+  const stations = [{ x: P[0].x, y: P[0].y, d: P[0].d, n: segNormal(P[0], P[1]) }];
   for (let i = 1; i < P.length - 1; i++) {
     const n1 = segNormal(P[i - 1], P[i]), n2 = segNormal(P[i], P[i + 1]);
-    let mx = n1[0] + n2[0], my = n1[1] + n2[1];
-    const mlen = Math.hypot(mx, my);
-    if (mlen < 1e-6) { pointNormal[i] = n1; continue; } // near-180° reversal: fall back to one side's normal
-    mx /= mlen; my /= mlen;
-    const cosHalf = mx * n1[0] + my * n1[1];
-    const scale = Math.min(cosHalf > 1e-3 ? 1 / cosHalf : 4, 4); // clamp so a sharp switchback doesn't spike out
-    pointNormal[i] = [mx * scale, my * scale];
+    stations.push({ x: P[i].x, y: P[i].y, d: P[i].d, n: n1 });
+    for (const n of roundFan(n1, n2)) stations.push({ x: P[i].x, y: P[i].y, d: P[i].d, n });
+    stations.push({ x: P[i].x, y: P[i].y, d: P[i].d, n: n2 });
   }
-  for (let i = 0; i < P.length - 1; i++) {
-    const a = P[i], b = P[i + 1];
-    if (a.x === b.x && a.y === b.y) continue; // duplicate point (zero-length sub-segment)
+  stations.push({ x: P[P.length - 1].x, y: P[P.length - 1].y, d: P[P.length - 1].d, n: segNormal(P[P.length - 2], P[P.length - 1]) });
+
+  for (let i = 0; i < stations.length - 1; i++) {
+    const a = stations[i], b = stations[i + 1];
+    if (a.x === b.x && a.y === b.y && a.n[0] === b.n[0] && a.n[1] === b.n[1]) continue; // exact duplicate
     const frac = fracAt((a.d + b.d) / 2);
     const top = +(topM * frac).toFixed(2);
     if (top < 0.1) continue; // tapered down to ~ground level here: nothing worth extruding
     const base = +(baseM * frac).toFixed(2);
-    const half = widthM / 2, [nax, nay] = pointNormal[i], [nbx, nby] = pointNormal[i + 1];
-    const quadM = [[a.x + nax * half, a.y + nay * half], [b.x + nbx * half, b.y + nby * half], [b.x - nbx * half, b.y - nby * half], [a.x - nax * half, a.y - nay * half]];
+    const half = widthM / 2;
+    const quadM = [[a.x + a.n[0] * half, a.y + a.n[1] * half], [b.x + b.n[0] * half, b.y + b.n[1] * half], [b.x - b.n[0] * half, b.y - b.n[1] * half], [a.x - a.n[0] * half, a.y - a.n[1] * half]];
     const coords = quadM.map(([x, y]) => [+(x / mLon).toFixed(7), +(y / KLAT).toFixed(7)]);
     coords.push(coords[0]);
     buf.push(JSON.stringify({ type: "Feature", properties: { kind: fr.kind, base, top }, geometry: { type: "Polygon", coordinates: [coords] } }));
