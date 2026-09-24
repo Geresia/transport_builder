@@ -609,6 +609,18 @@ the census, but it means the absolute floor-area productivity of head-office dis
 (median 0.1 worker, max 19,269), so `viewer.html` uses fixed colour cuts [0.5, 2, 5, 15, 50, 150, 500] rather than quantiles. Modeled, not measured.
 Not covered: Saitama/Chiba/Kanagawa (no equivalent land use survey - chome level only) and the four sparse-OSM wards remain biased per the OSM-gap note below.
 
+### Viewer: click a building → where its people go (added 2026-09-24)
+
+`viewer.html` draws the real commute destinations when a building is clicked (zoom 13+, any building layer, incl. the
+obstacles / building-population layers). It reads `od.json` (orange, workers) and, behind the legend toggle
+"건물 클릭 시 통학 이동도 같이 표시", `od-school.json` (green, students). Every destination is drawn, not a top-N;
+line width/opacity scale with that destination's share of the origin area's total flow. Click empty map to clear.
+
+Caveat — the data is **municipality level, not building level**: the clicked point is matched to its ward/city
+(point-in-polygon on `wards-reference.json` / `kanto-region.json`), and lines run from the clicked point to the
+destination municipalities' `demand.json` points. Two buildings in the same ward therefore show the same destination
+set. Flows whose destination is outside the 242 pack points (`out`/`unknown`) have no coordinate and are omitted.
+
 ## Cross-check against the registry's Tokyo maps and the census (2026-09-21)
 
 Reference points: `jelegend-tokyo` (population 24,049,464, 30,488 demand points, "Greater Tokyo", clipped playable area) and

@@ -87,6 +87,7 @@
   <div class="ramp" id="ramp" style="display:none"></div>
   <div class="scale" id="scale" style="display:none"></div>
   <label><input type="checkbox" id="toggle-obstacles" checked> 건물 footprint (토지이용조사, 줌 13+)</label>
+  <label><input type="checkbox" id="toggle-commute-school"> 건물 클릭 시 통학 이동도 같이 표시</label>
   <label><input type="checkbox" id="toggle-theme"> 밝은 지도 (네이버 지도풍)</label>
   <label><input type="checkbox" id="toggle-terrain" checked> 지형 (숲·논밭·초지·산 음영)</label>
   <label><input type="checkbox" id="toggle-rail"> 철도 (배경지도, 줌 9+)</label>
@@ -96,6 +97,7 @@
   <label><input type="checkbox" id="toggle-rnames" checked> 도로 이름 (한글 발음, 줌 11+)</label>
   <div class="cap" style="margin:2px 0 6px">도로 색: <b style="color:#f5a04a">주황</b> 고속도로·자동차전용도로 · <b style="color:#e0b820">노랑</b> 간선도로 · 흰색 골목 · <b style="color:#9b5fc0">보라</b> 철도</div>
   <label><input type="checkbox" id="toggle-labels"> 큰 건물 이름 (OSM, 줌 15+)</label>
+  <div class="cap" id="commute-cap" style="display:none"></div>
   <div class="ovl-title">특수 수요 · 시범 데이터</div>
   <label><input type="checkbox" id="toggle-special"> 대학·병원 (MLIT, 4개 도현 · 위치 실측 · 정원은 모델 추정)</label>
   <label><input type="checkbox" id="toggle-saitama-jobs"> 사이타마시 건물별 직장 (모델, 줌 13+ · 사이타마시만)</label>
@@ -397,12 +399,13 @@ map.on("load", async () => {
   await addBasemap().catch((err) => console.warn("basemap.pmtiles 연결 실패, OSM 래스터로 대체:", err));
   const manifest = await loadJSON("./manifest.json");
   for (const f of Object.keys(manifest?.compressed ?? {})) gzFiles.add(f);
-  const [demand, wards, obstacles, region, subward, buildingPop, jobs, jobsGrid, muniKana, specialDemand] = await Promise.all([
+  const [demand, wards, obstacles, region, subward, buildingPop, jobs, jobsGrid, muniKana, specialDemand, od, odSchool] = await Promise.all([
     loadJSON("./demand.json"),
     loadJSON("./wards-reference.json"), loadJSON("./obstacles.json"),
     loadJSON("./kanto-region.json"), loadJSON("./subward.json"),
     loadJSON("./building-population.json"), loadJSON("./jobs.json"), loadJSON("./jobs-buildings.json"),
     loadJSON("./municipality-kana.json"), loadJSON("./special-demand.json"),
+    loadJSON("./od.json"), loadJSON("./od-school.json"),
   ]);
 
   const PREF_FILES = { "11": "saitama", "12": "chiba", "14": "kanagawa" };
@@ -1354,6 +1357,105 @@ map.on("load", async () => {
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
-  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor", "region-label", "wards-label"]) if (map.getLayer(id)) map.moveLayer(id);
+  // ---- 건물 클릭 시 실제 통근/통학 목적지 선 (od.json / od-school.json — 시정촌 단위 실측, 건물 단위 아님) ----
+  // 건물이 속한 지역(구/시정촌)을 wards-reference.json/kanto-region.json 폴리곤으로 점-내-다각형 판정한 뒤,
+  // 그 지역의 od.json/od-school.json 행을 그대로 선으로 그린다 — 건물별 실측이 아니라 "이 건물이 속한
+  // 지역 전체가 실제로 가는 곳"이라는 뜻. 목적지가 242개 지점 밖(out/unknown)인 흐름은 그릴 좌표가 없어 제외.
+  if (od && wards && region && demand) {
+    const codeToLoc = new Map();
+    for (const p of demand.points) {
+      const code = p.jisCode !== undefined ? String(p.jisCode).slice(0, 5) : p.code;
+      if (code !== undefined) codeToLoc.set(String(code), p.location);
+    }
+    // even-odd 점-내-다각형(barriers.json 등과 같은 방식) — 23구(6자리 jisCode)와 광역권(5자리 code) 둘 다 검사
+    const inRing = (lon, lat, ring) => {
+      let c = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i], [xj, yj] = ring[j];
+        if (yi > lat !== yj > lat && lon < xi + ((lat - yi) * (xj - xi)) / (yj - yi)) c = !c;
+      }
+      return c;
+    };
+    const inMulti = (lon, lat, polygons) => polygons.some((poly) => poly.some((ring) => inRing(lon, lat, ring)));
+    const zones = [
+      ...wards.wards.map((w) => ({ code: String(w.code).slice(0, 5), polygons: w.polygons })),
+      ...region.municipalities.map((m) => ({ code: String(m.code), polygons: m.polygons })),
+    ];
+    const codeAt = (lon, lat) => zones.find((z) => inMulti(lon, lat, z.polygons))?.code ?? null;
+
+    map.addSource("commute-lines", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addSource("commute-lines-school", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    // 가장 작은 흐름도 밝은 지도 위에서 보이도록 최소 굵기 1.2px / 최소 불투명도 0.5 를 준다 (전부 그리기).
+    const commuteWidth = ["interpolate", ["linear"], ["get", "share"], 0, 1.2, 0.02, 2.5, 0.1, 6, 0.3, 11];
+    const commuteOpacity = ["interpolate", ["linear"], ["get", "share"], 0, 0.5, 0.05, 0.7, 0.3, 0.95];
+    const commuteCase = ["+", commuteWidth, 2];
+    map.addSource("commute-origin", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    // 흰 테두리를 먼저 깔아 복잡한 배경 위에서도 선이 분리돼 보이게 한다
+    map.addLayer({ id: "commute-lines-school-case", source: "commute-lines-school", type: "line", layout: { visibility: "none", "line-cap": "round" },
+      paint: { "line-color": "#ffffff", "line-width": commuteCase, "line-opacity": 0.55 } });
+    map.addLayer({ id: "commute-lines-school", source: "commute-lines-school", type: "line", layout: { visibility: "none", "line-cap": "round" },
+      paint: { "line-color": "#0aa37a", "line-width": commuteWidth, "line-opacity": commuteOpacity } });
+    map.addLayer({ id: "commute-lines-case", source: "commute-lines", type: "line", layout: { "line-cap": "round" },
+      paint: { "line-color": "#ffffff", "line-width": commuteCase, "line-opacity": 0.55 } });
+    map.addLayer({ id: "commute-lines", source: "commute-lines", type: "line", layout: { "line-cap": "round" },
+      paint: { "line-color": "#e8590c", "line-width": commuteWidth, "line-opacity": commuteOpacity } });
+    map.addLayer({ id: "commute-origin", source: "commute-origin", type: "circle",
+      paint: { "circle-radius": 7, "circle-color": "#e8590c", "circle-stroke-color": "#ffffff", "circle-stroke-width": 2.5 } });
+
+    const linesFor = (originCode, from, odData) => {
+      const row = odData?.origins?.[originCode];
+      if (!row || !row.dest) return { type: "FeatureCollection", features: [] };
+      const total = Object.values(row.dest).reduce((a, b) => a + b, 0) || 1;
+      const features = [];
+      for (const [destCode, weight] of Object.entries(row.dest)) {
+        const to = codeToLoc.get(destCode);
+        if (!to || weight <= 0) continue;
+        features.push({ type: "Feature", properties: { weight, share: weight / total },
+          geometry: { type: "LineString", coordinates: [from, to] } });
+      }
+      return { type: "FeatureCollection", features };
+    };
+    const BUILDING_LAYERS = ["bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d",
+      "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "obstacles-fill", "bldgpop-fill"];
+    let commuteOriginCode = null;
+    const clearCommute = () => {
+      commuteOriginCode = null;
+      map.getSource("commute-lines")?.setData({ type: "FeatureCollection", features: [] });
+      map.getSource("commute-lines-school")?.setData({ type: "FeatureCollection", features: [] });
+      map.getSource("commute-origin")?.setData({ type: "FeatureCollection", features: [] });
+      document.getElementById("commute-cap").style.display = "none";
+    };
+    const showCommute = (from, originCode) => {
+      commuteOriginCode = originCode;
+      map.getSource("commute-origin").setData({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: from } });
+      map.getSource("commute-lines").setData(linesFor(originCode, from, od));
+      map.getSource("commute-lines-school").setData(odSchool ? linesFor(originCode, from, odSchool) : { type: "FeatureCollection", features: [] });
+      const cap = document.getElementById("commute-cap");
+      const row = od.origins?.[originCode];
+      cap.style.display = "block";
+      cap.textContent = row
+        ? `이 건물이 속한 지역(${originCode})의 실제 통근 목적지 — 주황 = 출퇴근(od.json), 초록 = 통학(od-school.json, 토글). 선 굵기·진하기는 그 지역 전체 이동 중 비중.`
+        : `이 지역(${originCode})은 od.json에 실제 통근 데이터가 없습니다(영역 밖이거나 흐름이 0).`;
+    };
+    map.on("click", BUILDING_LAYERS, (e) => {
+      if (!e.features.length) return;
+      const code = codeAt(e.lngLat.lng, e.lngLat.lat);
+      if (!code) return;
+      showCommute([e.lngLat.lng, e.lngLat.lat], code);
+    });
+    for (const id of BUILDING_LAYERS) map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
+    // 건물이 아닌 빈 곳을 클릭하면 지움 (건물 클릭도 이 핸들러가 같이 받으므로, 그때는 무시)
+    map.on("click", (e) => {
+      const hitBuilding = map.queryRenderedFeatures(e.point, { layers: BUILDING_LAYERS.filter((id) => map.getLayer(id)) }).length > 0;
+      if (!hitBuilding && commuteOriginCode) clearCommute();
+    });
+    document.getElementById("toggle-commute-school").addEventListener("change", (e) => {
+      for (const id of ["commute-lines-school", "commute-lines-school-case"])
+        if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", e.target.checked ? "visible" : "none");
+    });
+  }
+
+  // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
+  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor", "region-label", "wards-label", "commute-lines-school-case", "commute-lines-school", "commute-lines-case", "commute-lines", "commute-origin"]) if (map.getLayer(id)) map.moveLayer(id);
 });
 </script>
