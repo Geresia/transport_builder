@@ -31,7 +31,11 @@
       "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
       "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
       "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
-      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成"
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "さいたま市の用途別従業者係数・建物別従業者数 (job-coefficients-saitama.json, jobs-buildings-saitama.json): 国土交通省 Project PLATEAU 3D都市モデル さいたま市 (2020年度), PDL1.0. 加工: 町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分。",
+      "川崎市の用途別従業者係数・建物別従業者数 (job-coefficients-kawasaki.json, jobs-buildings-kawasaki.json): 国土交通省 Project PLATEAU 3D都市モデル 川崎市 (2020年度), PDL1.0. 加工: さいたま市と同じ方法。建物属性に地下階数(basement_levels)を含む。",
+      "相模原市の用途別従業者係数・建物別従業者数 (job-coefficients-sagamihara.json, jobs-buildings-sagamihara.json): 国土交通省 Project PLATEAU 3D都市モデル 相模原市 (2020年度), PDL1.0. 加工: さいたま市と同じ方法。",
+      "横須賀市の用途別従業者係数・建物別従業者数 (job-coefficients-yokosuka.json, jobs-buildings-yokosuka.json): 国土交通省 Project PLATEAU 3D都市モデル 横須賀市 (2020年度), PDL1.0. 加工: さいたま市と同じ方法。"
     ],
     "sources": [
       {
@@ -108,6 +112,21 @@
         "name": "東京都 令和3年度 区部土地利用現況調査 建物現況 (R03), 東京都都市整備局 — building polygons with use class and floors (tokyo-survey-buildings.pmtiles) and the use-class fits (job/pop-coefficients.json)",
         "url": "https://catalog.data.metro.tokyo.lg.jp/",
         "license": "CC-BY-4.0"
+      },
+      {
+        "name": "国土交通省 Project PLATEAU 3D都市モデル 川崎市 (2020年度)",
+        "url": "https://www.geospatial.jp/ckan/dataset/plateau-14130-kawasaki-shi-2020",
+        "license": "PDL1.0 (commercial use and modification allowed, CC BY 4.0 compatible)"
+      },
+      {
+        "name": "国土交通省 Project PLATEAU 3D都市モデル 相模原市 (2020年度)",
+        "url": "https://www.geospatial.jp/ckan/dataset/plateau-14150-sagamihara-shi-2020",
+        "license": "PDL1.0 (commercial use and modification allowed, CC BY 4.0 compatible)"
+      },
+      {
+        "name": "国土交通省 Project PLATEAU 3D都市モデル 横須賀市 (2020年度)",
+        "url": "https://www.geospatial.jp/ckan/dataset/plateau-14201-yokosuka-shi-2020",
+        "license": "PDL1.0 (commercial use and modification allowed, CC BY 4.0 compatible)"
       }
     ]
   },
@@ -142,7 +161,10 @@
     "specialDemand": "special-demand.json",
     "employed": "employed.json",
     "buildingTilesSurvey": "tokyo-survey-buildings.pmtiles",
-    "jobsBuildingsSaitama": "jobs-buildings-saitama.json"
+    "jobsBuildingsSaitama": "jobs-buildings-saitama.json",
+    "jobsBuildingsKawasaki": "jobs-buildings-kawasaki.json",
+    "jobsBuildingsSagamihara": "jobs-buildings-sagamihara.json",
+    "jobsBuildingsYokosuka": "jobs-buildings-yokosuka.json"
   },
   "quality": {
     "scheme": "Subway-Builder-Modded data-quality rubric (registry docs/data-quality.md), self-assessed with scripts/quality-rubric.mjs",
@@ -273,6 +295,24 @@
       "encoding": "gzip",
       "bytes": 14570236,
       "gzBytes": 1629636
+    },
+    "jobs-buildings-kawasaki.json": {
+      "file": "jobs-buildings-kawasaki.json.gz",
+      "encoding": "gzip",
+      "bytes": 10725420,
+      "gzBytes": 1076774
+    },
+    "jobs-buildings-sagamihara.json": {
+      "file": "jobs-buildings-sagamihara.json.gz",
+      "encoding": "gzip",
+      "bytes": 7524426,
+      "gzBytes": 635818
+    },
+    "jobs-buildings-yokosuka.json": {
+      "file": "jobs-buildings-yokosuka.json.gz",
+      "encoding": "gzip",
+      "bytes": 3512577,
+      "gzBytes": 345724
     }
   }
 }

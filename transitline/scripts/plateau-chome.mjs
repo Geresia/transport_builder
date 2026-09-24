@@ -25,7 +25,8 @@ export function chomeIndex(wards, lo = 11101, hi = 11110) {
   return { areas, locate };
 }
 
-// rows from plateau-buildings.mjs -> [{ id, lon, lat, use (null if unknown), floorM2, footprintM2, storeys, surveyed, chome }]
+// rows from plateau-buildings.mjs -> [{ id, lon, lat, use (null if unknown), floorM2, footprintM2, storeys,
+// surveyed, chome, basementLevels (null if the city's dataset doesn't carry 地下階数, e.g. Saitama) }]
 export function buildingRecords(rows, locate) {
   const byId = new Map();
   for (const r of rows) (byId.get(r[11]) ?? byId.set(r[11], []).get(r[11])).push(r);
@@ -39,7 +40,9 @@ export function buildingRecords(rows, locate) {
     if (!surveyed) floorM2 = parts.reduce((s, r) => s + (r[12] > 0 ? r[12] * Math.max(1, Math.round((r[10] ?? 3) / 3)) : 0), 0);
     if (!(floorM2 > 0)) { stat.noArea++; continue; }
     stat[surveyed ? "surveyed" : "estimated"]++;
-    out.push({ id, lon, lat, use, floorM2, footprintM2, storeys, surveyed, chome });
+    // basement levels repeats per-part like the other 建物ID-level fields; the parts' max is the building's depth
+    const basementLevels = parts.reduce((m, r) => (r[13] > (m ?? -1) ? r[13] : m), null);
+    out.push({ id, lon, lat, use, floorM2, footprintM2, storeys, surveyed, chome, basementLevels });
   }
   return { records: out, stat };
 }

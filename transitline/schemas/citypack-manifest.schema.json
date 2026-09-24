@@ -3,58 +3,104 @@
   "$id": "https://transitline.dev/schemas/citypack-manifest.schema.json",
   "title": "CityPack Manifest",
   "type": "object",
-  "required": ["formatVersion", "id", "name", "version", "bbox", "origin", "data", "files"],
+  "required": [
+    "formatVersion",
+    "id",
+    "name",
+    "version",
+    "bbox",
+    "origin",
+    "data",
+    "files"
+  ],
   "additionalProperties": true,
   "properties": {
-    "formatVersion": { "const": 1 },
+    "formatVersion": {
+      "const": 1
+    },
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9-]*$",
       "description": "Stable slug. Also the pack directory name."
     },
-    "name": { "type": "string", "minLength": 1 },
-    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
     "bbox": {
       "type": "array",
-      "items": { "type": "number" },
+      "items": {
+        "type": "number"
+      },
       "minItems": 4,
       "maxItems": 4,
       "description": "[minLon, minLat, maxLon, maxLat] in WGS84."
     },
     "origin": {
       "type": "array",
-      "items": { "type": "number" },
+      "items": {
+        "type": "number"
+      },
       "minItems": 2,
       "maxItems": 2,
       "description": "[lon, lat] anchor for the engine's local metric projection."
     },
     "data": {
       "type": "object",
-      "required": ["license", "attribution", "sources"],
+      "required": [
+        "license",
+        "attribution",
+        "sources"
+      ],
       "additionalProperties": false,
       "properties": {
         "license": {
           "type": "string",
           "description": "SPDX identifier, or 'proprietary'. Drives attribution UI and the Rule 3 boundary check.",
-          "examples": ["CC0-1.0", "ODbL-1.0", "CDLA-Permissive-2.0", "proprietary"]
+          "examples": [
+            "CC0-1.0",
+            "ODbL-1.0",
+            "CDLA-Permissive-2.0",
+            "proprietary"
+          ]
         },
         "attribution": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Strings the engine must display. May be empty only for CC0-1.0."
         },
         "sources": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["name", "license"],
+            "required": [
+              "name",
+              "license"
+            ],
             "additionalProperties": false,
             "properties": {
-              "name": { "type": "string" },
-              "url": { "type": "string" },
-              "license": { "type": "string" },
-              "retrieved": { "type": "string", "format": "date" },
-              "note": { "type": "string" }
+              "name": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "license": {
+                "type": "string"
+              },
+              "retrieved": {
+                "type": "string",
+                "format": "date"
+              },
+              "note": {
+                "type": "string"
+              }
             }
           }
         }
@@ -62,26 +108,59 @@
     },
     "files": {
       "type": "object",
-      "required": ["demand"],
+      "required": [
+        "demand"
+      ],
       "additionalProperties": false,
       "properties": {
         "demand": {
           "type": "string",
           "description": "Municipality-level demand points (gravity or matrix model). Required."
         },
-        "obstacles": { "type": "string", "description": "Building footprints used for gameplay collision." },
-        "barriers": { "type": "string", "description": "Rivers, rail corridors and other linear barriers." },
-        "existingNetwork": { "type": "string", "description": "Real-world rail/subway/tram lines, pre-collapsed onto demand.json's points, that the engine can preload as the starting network." },
-        "bathymetry": { "type": "string", "description": "Water depth grid (real sourced data)." },
-        "region": { "type": "string", "description": "Region/municipality boundary polygons." },
+        "obstacles": {
+          "type": "string",
+          "description": "Building footprints used for gameplay collision."
+        },
+        "barriers": {
+          "type": "string",
+          "description": "Rivers, rail corridors and other linear barriers."
+        },
+        "existingNetwork": {
+          "type": "string",
+          "description": "Real-world rail/subway/tram lines, pre-collapsed onto demand.json's points, that the engine can preload as the starting network."
+        },
+        "bathymetry": {
+          "type": "string",
+          "description": "Water depth grid (real sourced data)."
+        },
+        "region": {
+          "type": "string",
+          "description": "Region/municipality boundary polygons."
+        },
         "subward": {
           "type": "string",
           "description": "Town-level (chome) population, one file per wards group; may have a .gz sibling (see `compressed`)."
         },
-        "buildingPopulation": { "type": "string", "description": "MODELED per-building residents for a pilot area." },
-        "jobs": { "type": "string", "description": "Workers per town from the Economic Census." },
-        "jobsBuildings": { "type": "string", "description": "MODELED per-building workers for a pilot area." },
-        "jobsBuildingsSaitama": { "type": "string", "description": "MODELED per-building workers for Saitama City (PLATEAU buildings), same shape as jobsBuildings." },
+        "buildingPopulation": {
+          "type": "string",
+          "description": "MODELED per-building residents for a pilot area."
+        },
+        "jobs": {
+          "type": "string",
+          "description": "Workers per town from the Economic Census."
+        },
+        "jobsBuildings": {
+          "type": "string",
+          "description": "MODELED per-building workers for a pilot area."
+        },
+        "jobsBuildingsSaitama": {
+          "type": "string",
+          "description": "MODELED per-building workers for Saitama City (PLATEAU buildings), same shape as jobsBuildings."
+        },
+        "jobsBuildingsKawasaki": {
+          "type": "string",
+          "description": "MODELED per-building workers for Kawasaki City (PLATEAU buildings), same shape as jobsBuildings. Buildings also carry a real basement_levels field where surveyed."
+        },
         "od": {
           "type": "string",
           "description": "Measured municipality-to-municipality commuter flows (census). Optional; the engine uses it for destination choice."
@@ -94,18 +173,52 @@
           "type": "string",
           "description": "Point demand outside the commute model (schools, hospitals, ...)."
         },
-        "buildingTiles": { "type": "string", "description": "PMTiles of building footprints for rendering." },
+        "buildingTiles": {
+          "type": "string",
+          "description": "PMTiles of building footprints for rendering."
+        },
         "buildingTilesRegional": {
-          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }],
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            }
+          ],
           "description": "Additional building PMTiles for surrounding regions."
         },
-        "buildingLabels": { "type": "string", "description": "PMTiles of named large buildings." },
+        "buildingLabels": {
+          "type": "string",
+          "description": "PMTiles of named large buildings."
+        },
         "roadTiles": {
-          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }],
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            }
+          ],
           "description": "PMTiles of roads and pedestrian ways."
         },
-        "bridgeTiles": { "type": "string", "description": "PMTiles of MODELED elevated-road (bridge) deck extrusions, for the viewer's 3D view only." },
-        "basemap": { "type": "string", "description": "PMTiles basemap (roads/rail/water/land)." },
+        "bridgeTiles": {
+          "type": "string",
+          "description": "PMTiles of MODELED elevated-road (bridge) deck extrusions, for the viewer's 3D view only."
+        },
+        "basemap": {
+          "type": "string",
+          "description": "PMTiles basemap (roads/rail/water/land)."
+        },
         "employed": {
           "type": "string",
           "description": "Employed residents (15+) per town from the census small-area tables; the origin set that generates commutes."
@@ -113,6 +226,14 @@
         "buildingTilesSurvey": {
           "type": "string",
           "description": "PMTiles of official survey building polygons (use class, floors) with modeled per-building pop / jobs / emp."
+        },
+        "jobsBuildingsSagamihara": {
+          "type": "string",
+          "description": "MODELED per-building workers for Sagamihara City (PLATEAU buildings), same shape as jobsBuildings."
+        },
+        "jobsBuildingsYokosuka": {
+          "type": "string",
+          "description": "MODELED per-building workers for Yokosuka City (PLATEAU buildings), same shape as jobsBuildings."
         }
       },
       "description": "Relative paths (a value may be a list of paths). An absent key means that layer is not present. Every key a pack uses must be declared here - validate-pack enforces it."
@@ -120,51 +241,150 @@
     "quality": {
       "type": "object",
       "description": "Self-assessment against the registry data-quality rubric (see scripts/quality-rubric.mjs). answers = the pack's main area; areas = named sub-areas scored separately. validate-pack rejects non-rubric values and recomputes `computed`.",
-      "required": ["answers", "rubric_version"],
+      "required": [
+        "answers",
+        "rubric_version"
+      ],
       "properties": {
-        "scheme": { "type": "string" },
-        "rubric_version": { "type": "integer", "minimum": 1 },
-        "assessedAt": { "type": "string" },
-        "notes": { "type": "string" },
+        "scheme": {
+          "type": "string"
+        },
+        "rubric_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "assessedAt": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
         "provenance": {
           "type": "object",
-          "required": ["method"],
+          "required": [
+            "method"
+          ],
           "properties": {
-            "method": { "enum": ["self-reported", "reviewed", "backfill"] },
-            "submitted_by": { "type": "string" },
-            "reviewed_by": { "type": ["string", "null"] },
-            "date": { "type": "string" }
+            "method": {
+              "enum": [
+                "self-reported",
+                "reviewed",
+                "backfill"
+              ]
+            },
+            "submitted_by": {
+              "type": "string"
+            },
+            "reviewed_by": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "date": {
+              "type": "string"
+            }
           }
         },
-        "answers": { "type": "object", "additionalProperties": { "type": ["string", "null"] } },
+        "answers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
         "computed": {
           "type": "object",
-          "required": ["raw_score", "weighted_score", "tier"],
+          "required": [
+            "raw_score",
+            "weighted_score",
+            "tier"
+          ],
           "properties": {
-            "raw_score": { "type": "number", "minimum": 0, "maximum": 1 },
-            "weighted_score": { "type": "number", "minimum": 0, "maximum": 1 },
-            "tier": { "enum": ["very-high", "high", "medium", "low", "very-low", "absent"] },
-            "grade": { "type": "string" },
-            "pillars": { "type": "object" }
+            "raw_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "weighted_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "tier": {
+              "enum": [
+                "very-high",
+                "high",
+                "medium",
+                "low",
+                "very-low",
+                "absent"
+              ]
+            },
+            "grade": {
+              "type": "string"
+            },
+            "pillars": {
+              "type": "object"
+            }
           }
         },
         "areas": {
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "required": ["answers"],
+            "required": [
+              "answers"
+            ],
             "properties": {
-              "description": { "type": "string" },
-              "answers": { "type": "object", "additionalProperties": { "type": ["string", "null"] } },
+              "description": {
+                "type": "string"
+              },
+              "answers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
               "computed": {
                 "type": "object",
-                "required": ["raw_score", "weighted_score", "tier"],
+                "required": [
+                  "raw_score",
+                  "weighted_score",
+                  "tier"
+                ],
                 "properties": {
-                  "raw_score": { "type": "number", "minimum": 0, "maximum": 1 },
-                  "weighted_score": { "type": "number", "minimum": 0, "maximum": 1 },
-                  "tier": { "enum": ["very-high", "high", "medium", "low", "very-low", "absent"] },
-                  "grade": { "type": "string" },
-                  "pillars": { "type": "object" }
+                  "raw_score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "weighted_score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "tier": {
+                    "enum": [
+                      "very-high",
+                      "high",
+                      "medium",
+                      "low",
+                      "very-low",
+                      "absent"
+                    ]
+                  },
+                  "grade": {
+                    "type": "string"
+                  },
+                  "pillars": {
+                    "type": "object"
+                  }
                 }
               }
             }
@@ -177,12 +397,25 @@
       "description": "Files that also exist as a gzip sibling: { 'x.json': { file, encoding:'gzip', bytes, gzBytes } }.",
       "additionalProperties": {
         "type": "object",
-        "required": ["file", "encoding"],
+        "required": [
+          "file",
+          "encoding"
+        ],
         "properties": {
-          "file": { "type": "string" },
-          "encoding": { "const": "gzip" },
-          "bytes": { "type": "integer", "minimum": 0 },
-          "gzBytes": { "type": "integer", "minimum": 0 }
+          "file": {
+            "type": "string"
+          },
+          "encoding": {
+            "const": "gzip"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "gzBytes": {
+            "type": "integer",
+            "minimum": 0
+          }
         }
       }
     }
@@ -190,10 +423,28 @@
   "allOf": [
     {
       "if": {
-        "properties": { "data": { "properties": { "license": { "not": { "const": "CC0-1.0" } } } } }
+        "properties": {
+          "data": {
+            "properties": {
+              "license": {
+                "not": {
+                  "const": "CC0-1.0"
+                }
+              }
+            }
+          }
+        }
       },
       "then": {
-        "properties": { "data": { "properties": { "attribution": { "minItems": 1 } } } },
+        "properties": {
+          "data": {
+            "properties": {
+              "attribution": {
+                "minItems": 1
+              }
+            }
+          }
+        },
         "description": "Any pack that is not CC0 must carry at least one attribution string."
       }
     }

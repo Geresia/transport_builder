@@ -3,10 +3,17 @@
 // radial direction at the triangle (after the glTF Y-up -> Z-up rotation). Caps (roof, and floor if present) carry it; walls contribute ~0.
 // Returns Float64Array: horizontal triangle area per batch id. LOD1 meshes have a roof AND a floor, so the
 // footprint of a part is half of this (verified: mesh / 図上面積 = 2.0 for single-part buildings).
+// Some cities' tiles (newer FME exports, e.g. Sagamihara 2020's "FME 2023.1.2.0" vs Saitama/Kawasaki's
+// "FME 2021.2.4.0") require KHR_draco_mesh_compression: the accessors carry no bufferView/byteOffset at
+// all (the real data sits Draco-encoded in one shared bufferView instead), which this raw binary reader
+// cannot decode - implementing a Draco decoder was out of scope. Returns null for such a tile; the caller
+// (plateau-buildings.mjs) then reports 0 footprint for every building in it, so mesh-fallback floor area
+// silently becomes unavailable there (buildings with a real surveyed 延床面積 are unaffected).
 export function meshHorizontalArea(b3dm, batchLength) {
   const ftJ = b3dm.readUInt32LE(12), ftB = b3dm.readUInt32LE(16), btJ = b3dm.readUInt32LE(20), btB = b3dm.readUInt32LE(24);
   const glb = b3dm.subarray(28 + ftJ + ftB + btJ + btB);
   const jl = glb.readUInt32LE(12), j = JSON.parse(glb.subarray(20, 20 + jl).toString("utf8"));
+  if (j.extensionsRequired?.includes("KHR_draco_mesh_compression")) return null;
   const binOff = 20 + jl + 8;
   const c = j.extensions?.CESIUM_RTC?.center ?? [0, 0, 0];
   const acc = (i) => {

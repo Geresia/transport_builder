@@ -1,0 +1,83 @@
+{
+ "formatVersion": 1,
+ "modeled": true,
+ "city": "Sagamihara City (3 wards)",
+ "method": "Non-negative weighted least squares (weight 1/(workers+200)), chome workers ~ sum over 用途 of floor area, no intercept. Buildings assigned to chome by point-in-polygon.",
+ "sources": [
+  "国土交通省 Project PLATEAU 3D都市モデル 相模原市 (2020年度), building attributes from the city's 都市計画基礎調査 建物利用現況 (survey year 2016); PDL1.0. Modified: extracted and aggregated by chome.",
+  "2021 Economic Census - Activity Survey, e-Stat table 32-1-11 (jobs-kanagawa.json)"
+ ],
+ "parts": 250093,
+ "buildingIds": 250093,
+ "buildingsUsed": 201430,
+ "floorAreaSurveyed": 201430,
+ "floorAreaEstimatedFromMeshAndHeight": 0,
+ "outsideSagamiharaChome": 494,
+ "skippedNoFloorArea": 48169,
+ "chomeUsed": 398,
+ "chomeWithJobs": 5067,
+ "r2": 0.869,
+ "perWard": {
+  "14151": {
+   "chome": 108,
+   "workers": 65989,
+   "r2InSample": 0.861,
+   "r2LeaveWardOut": 0.841,
+   "biasInSamplePct": -15,
+   "biasLeaveWardOutPct": -13.8
+  },
+  "14152": {
+   "chome": 155,
+   "workers": 107405,
+   "r2InSample": 0.885,
+   "r2LeaveWardOut": 0.823,
+   "biasInSamplePct": -9.5,
+   "biasLeaveWardOutPct": -8.2
+  },
+  "14153": {
+   "chome": 135,
+   "workers": 83343,
+   "r2InSample": 0.852,
+   "r2LeaveWardOut": 0.797,
+   "biasInSamplePct": -8.8,
+   "biasLeaveWardOutPct": -3
+  }
+ },
+ "perWardNote": "r2LeaveWardOut refits without that ward and scores on it (out-of-sample); bias = predicted/observed - 1 over the ward total. Judge extending the coefficients by these, not the in-sample R2.",
+ "useJobsPer1000m2": {
+  "住宅": 0.39,
+  "作業所併用住宅": 0,
+  "供給処理施設": 10.04,
+  "共同住宅": 1.16,
+  "商業施設": 13.65,
+  "商業系複合施設": 5.8,
+  "官公庁施設": 48.25,
+  "宿泊施設": 6.14,
+  "工場": 9.12,
+  "店舗等併用住宅": 18.43,
+  "店舗等併用共同住宅": 15.22,
+  "文教厚生施設": 6.04,
+  "業務施設": 28.9,
+  "農林漁業用施設": 5.64,
+  "運輸倉庫施設": 10.56,
+  "防衛施設": 0
+ },
+ "useFloorAreaM2": {
+  "住宅": 17639742,
+  "作業所併用住宅": 120398,
+  "供給処理施設": 225094,
+  "共同住宅": 9883940,
+  "商業施設": 1755437,
+  "商業系複合施設": 848652,
+  "官公庁施設": 272627,
+  "宿泊施設": 135518,
+  "工場": 3545058,
+  "店舗等併用住宅": 1682307,
+  "店舗等併用共同住宅": 2105739,
+  "文教厚生施設": 4145031,
+  "業務施設": 907247,
+  "農林漁業用施設": 146378,
+  "運輸倉庫施設": 2092190,
+  "防衛施設": 64
+ }
+}

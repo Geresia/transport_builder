@@ -1,0 +1,69 @@
+{
+ "formatVersion": 1,
+ "modeled": true,
+ "city": "Yokosuka City (single)",
+ "method": "Non-negative weighted least squares (weight 1/(workers+200)), chome workers ~ sum over 用途 of floor area, no intercept. Buildings assigned to chome by point-in-polygon.",
+ "sources": [
+  "国土交通省 Project PLATEAU 3D都市モデル 横須賀市 (2020年度), building attributes from the city's 都市計画基礎調査 建物利用現況 (survey year 2020); PDL1.0. Modified: extracted and aggregated by chome.",
+  "2021 Economic Census - Activity Survey, e-Stat table 32-1-11 (jobs-kanagawa.json)"
+ ],
+ "parts": 148212,
+ "buildingIds": 148212,
+ "buildingsUsed": 147570,
+ "floorAreaSurveyed": 129587,
+ "floorAreaEstimatedFromMeshAndHeight": 17983,
+ "outsideYokosukaChome": 27,
+ "skippedNoFloorArea": 615,
+ "chomeUsed": 334,
+ "chomeWithJobs": 5067,
+ "r2": 0.671,
+ "perWard": {
+  "14201": {
+   "chome": 334,
+   "workers": 139585,
+   "r2InSample": 0.671,
+   "r2LeaveWardOut": -0.271,
+   "biasInSamplePct": -20.6,
+   "biasLeaveWardOutPct": -100
+  }
+ },
+ "perWardNote": "r2LeaveWardOut refits without that ward and scores on it (out-of-sample); bias = predicted/observed - 1 over the ward total. Judge extending the coefficients by these, not the in-sample R2.",
+ "useJobsPer1000m2": {
+  "不明": 1.24,
+  "住宅": 0,
+  "作業所併用住宅": 4.01,
+  "供給処理施設": 5.81,
+  "共同住宅": 0.3,
+  "商業施設": 18.63,
+  "商業系複合施設": 12.2,
+  "官公庁施設": 19.86,
+  "宿泊施設": 3.82,
+  "工場": 5.78,
+  "店舗等併用住宅": 20.7,
+  "店舗等併用共同住宅": 20.12,
+  "文教厚生施設": 7.69,
+  "業務施設": 16.18,
+  "農林漁業用施設": 17.36,
+  "運輸倉庫施設": 24.71,
+  "防衛施設": 0
+ },
+ "useFloorAreaM2": {
+  "不明": 1778832,
+  "住宅": 11710766,
+  "作業所併用住宅": 64277,
+  "供給処理施設": 335538,
+  "共同住宅": 4326780,
+  "商業施設": 725664,
+  "商業系複合施設": 664233,
+  "官公庁施設": 189727,
+  "宿泊施設": 66457,
+  "工場": 2109737,
+  "店舗等併用住宅": 832104,
+  "店舗等併用共同住宅": 722520,
+  "文教厚生施設": 2309063,
+  "業務施設": 540510,
+  "農林漁業用施設": 30434,
+  "運輸倉庫施設": 345216,
+  "防衛施設": 3858
+ }
+}

@@ -184,6 +184,12 @@ public domain and may be used free of charge; GEBCO asks that the source is ackn
 
 - さいたま市の用途別従業者係数 (`job-coefficients-saitama.json`, `jobs-buildings-saitama.json`): 出典 国土交通省 Project PLATEAU 3D都市モデル さいたま市 (2020年度) (https://www.geospatial.jp/ckan/dataset/plateau-11100-saitama-shi-2020)、PDL1.0。加工: 建物属性 (都市計画基礎調査 建物利用現況) を町丁別・用途別に集計し、経済センサスの従業者数と回帰して係数を推定。建物ごとの従業者数は町丁の従業者数を用途別係数で配分した推定値 (`jobs-buildings-saitama.json`)。
 
+- 川崎市の用途別従業者係数 (`job-coefficients-kawasaki.json`, `jobs-buildings-kawasaki.json`): 出典 国土交通省 Project PLATEAU 3D都市モデル 川崎市 (2020年度) (https://www.geospatial.jp/ckan/dataset/plateau-14130-kawasaki-shi-2020)、PDL1.0。加工: さいたま市と同じ方法。建物属性に地下階数 (`basement_levels`) を含む(さいたま市データにはない項目)。
+
+- 相模原市の用途別従業者係数 (`job-coefficients-sagamihara.json`, `jobs-buildings-sagamihara.json`): 出典 国土交通省 Project PLATEAU 3D都市モデル 相模原市 (2020年度) (https://www.geospatial.jp/ckan/dataset/plateau-14150-sagamihara-shi-2020)、PDL1.0。加工: さいたま市と同じ方法。
+
+- 横須賀市の用途別従業者係数 (`job-coefficients-yokosuka.json`, `jobs-buildings-yokosuka.json`): 出典 国土交通省 Project PLATEAU 3D都市モデル 横須賀市 (2020年度) (https://www.geospatial.jp/ckan/dataset/plateau-14201-yokosuka-shi-2020)、PDL1.0。加工: さいたま市と同じ方法。
+
 - 就業者数 (`employed.json`, 建物別 `emp`): 総務省統計局「令和2年国勢調査 小地域集計」第16-2表 (e-Stat)。加工: 秘匿された町丁は合算値を居住人口で按分。政府標準利用規約2.0。
 
 - 建物ポリゴン・用途・階数 (`tokyo-survey-buildings.pmtiles`): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0)。加工: 座標変換 (平面直角座標系IX系→WGS84)、建物単位の推計人口・従業者数・就業者数を付与。

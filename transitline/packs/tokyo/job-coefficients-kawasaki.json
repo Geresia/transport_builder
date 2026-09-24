@@ -1,0 +1,115 @@
+{
+ "formatVersion": 1,
+ "modeled": true,
+ "city": "Kawasaki City (7 wards)",
+ "method": "Non-negative weighted least squares (weight 1/(workers+200)), chome workers ~ sum over 用途 of floor area, no intercept. Buildings assigned to chome by point-in-polygon.",
+ "sources": [
+  "国土交通省 Project PLATEAU 3D都市モデル 川崎市 (2020年度), building attributes from the city's 都市計画基礎調査 建物利用現況 (survey year 2015); PDL1.0. Modified: extracted and aggregated by chome.",
+  "2021 Economic Census - Activity Survey, e-Stat table 32-1-11 (jobs-kanagawa.json)"
+ ],
+ "parts": 305843,
+ "buildingIds": 305843,
+ "buildingsUsed": 304809,
+ "floorAreaSurveyed": 277693,
+ "floorAreaEstimatedFromMeshAndHeight": 27116,
+ "outsideKawasakiChome": 123,
+ "skippedNoFloorArea": 911,
+ "chomeUsed": 666,
+ "chomeWithJobs": 5067,
+ "r2": 0.61,
+ "perWard": {
+  "14131": {
+   "chome": 138,
+   "workers": 168920,
+   "r2InSample": 0.764,
+   "r2LeaveWardOut": -1.853,
+   "biasInSamplePct": -7.7,
+   "biasLeaveWardOutPct": 44.9
+  },
+  "14132": {
+   "chome": 67,
+   "workers": 78756,
+   "r2InSample": 0.421,
+   "r2LeaveWardOut": 0.328,
+   "biasInSamplePct": -24.5,
+   "biasLeaveWardOutPct": -22.5
+  },
+  "14133": {
+   "chome": 76,
+   "workers": 108390,
+   "r2InSample": 0.609,
+   "r2LeaveWardOut": 0.535,
+   "biasInSamplePct": -26.9,
+   "biasLeaveWardOutPct": -29.5
+  },
+  "14134": {
+   "chome": 73,
+   "workers": 73790,
+   "r2InSample": 0.74,
+   "r2LeaveWardOut": 0.719,
+   "biasInSamplePct": -23.6,
+   "biasLeaveWardOutPct": -25.6
+  },
+  "14135": {
+   "chome": 107,
+   "workers": 48612,
+   "r2InSample": 0.559,
+   "r2LeaveWardOut": 0.514,
+   "biasInSamplePct": -9.2,
+   "biasLeaveWardOutPct": -6.2
+  },
+  "14136": {
+   "chome": 85,
+   "workers": 49761,
+   "r2InSample": 0.581,
+   "r2LeaveWardOut": 0.555,
+   "biasInSamplePct": -18,
+   "biasLeaveWardOutPct": -18.2
+  },
+  "14137": {
+   "chome": 120,
+   "workers": 47302,
+   "r2InSample": 0.655,
+   "r2LeaveWardOut": 0.628,
+   "biasInSamplePct": -28.8,
+   "biasLeaveWardOutPct": -29.7
+  }
+ },
+ "perWardNote": "r2LeaveWardOut refits without that ward and scores on it (out-of-sample); bias = predicted/observed - 1 over the ward total. Judge extending the coefficients by these, not the in-sample R2.",
+ "useJobsPer1000m2": {
+  "不明": 1.23,
+  "住宅": 0,
+  "作業所併用住宅": 52.77,
+  "供給処理施設": 10.47,
+  "共同住宅": 0.71,
+  "商業施設": 15.9,
+  "商業系複合施設": 68.11,
+  "官公庁施設": 34.38,
+  "宿泊施設": 31.29,
+  "工場": 6.16,
+  "店舗等併用住宅": 31.66,
+  "店舗等併用共同住宅": 13.96,
+  "文教厚生施設": 10.52,
+  "業務施設": 17.51,
+  "農林漁業用施設": 7.92,
+  "運輸倉庫施設": 2.91
+ },
+ "useFloorAreaM2": {
+  "不明": 10741049,
+  "住宅": 21248284,
+  "作業所併用住宅": 361272,
+  "供給処理施設": 668153,
+  "共同住宅": 29061758,
+  "商業施設": 2460367,
+  "商業系複合施設": 785968,
+  "官公庁施設": 391091,
+  "宿泊施設": 187266,
+  "工場": 6372499,
+  "店舗等併用住宅": 1452339,
+  "店舗等併用共同住宅": 5376795,
+  "文教厚生施設": 5544046,
+  "業務施設": 3928100,
+  "農林漁業用施設": 147748,
+  "運輸倉庫施設": 3941539
+ }
+}
