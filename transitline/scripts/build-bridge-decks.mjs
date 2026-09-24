@@ -95,23 +95,37 @@ console.log("total fragments (pre-merge)", frags.length, "cross-border duplicate
 // ---- pass 2: join fragments that share an endpoint into full corridors ----
 // key = endpoint snapped to ~1m; two fragments whose ends land in the same cell are treated as one continuous
 // bridge for tapering purposes, even though they stay separate output features (avoids a full linestring merge).
-const SNAP = 0.00001; // ~1.1m of longitude at this latitude, safely above the tile-quantization rounding error
-const snapKey = ([lon, lat]) => `${Math.round(lon / SNAP)},${Math.round(lat / SNAP)}`;
-const endpointCount = new Map();
-for (const fr of frags) {
-  for (const end of [fr.pts[0], fr.pts[fr.pts.length - 1]]) {
-    const k = snapKey(end);
-    endpointCount.set(k, (endpointCount.get(k) || 0) + 1);
+// A diverging/merging ramp joins the mainline at a vertex in the *middle* of the mainline way, not at one of its two
+// ends, so matching endpoint-to-endpoint alone calls every such ramp end a "genuine" end and tapers it down to the
+// ground over 25m — at a big interchange (Hakozaki/Edobashi JCT etc.) that piles up dozens of half-tapered slabs
+// at different heights, which is the shingled/staircase look. So index EVERY vertex of EVERY fragment and call an
+// endpoint joined if any *other* fragment has a vertex near it. Neighbouring grid cells are checked too: a snap-
+// to-grid key alone splits two points 0.3m apart whenever they straddle a cell edge.
+const SNAP = 0.00001; // ~1.1m at this latitude; endpoint matching radius is effectively 1 cell in each direction
+const cellOf = (v, s) => Math.round(v / s);
+const vertexOwners = new Map(); // "cx,cy" -> frag indexes having a vertex in that cell
+frags.forEach((fr, fi) => {
+  for (const [lon, lat] of fr.pts) {
+    const k = `${cellOf(lon, SNAP)},${cellOf(lat, SNAP)}`;
+    const a = vertexOwners.get(k);
+    if (!a) vertexOwners.set(k, [fi]); else if (a[a.length - 1] !== fi) a.push(fi);
   }
-}
-// an endpoint used by >1 fragment-end is a real junction/continuation -> don't taper there
-const isJoined = (pt) => (endpointCount.get(snapKey(pt)) || 0) > 1;
+});
+const isJoined = (pt, selfIdx) => {
+  const cx = cellOf(pt[0], SNAP), cy = cellOf(pt[1], SNAP);
+  for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+    const a = vertexOwners.get(`${cx + dx},${cy + dy}`);
+    if (a) for (const o of a) if (o !== selfIdx) return true;
+  }
+  return false;
+};
 
 // ---- pass 3: buffer + taper each fragment, emit quads ----
 const wfd = fs.openSync(out, "w");
 let buf = [], pieces = 0;
 const byKind = {};
-for (const fr of frags) {
+for (let fragIdx = 0; fragIdx < frags.length; fragIdx++) {
+  const fr = frags[fragIdx];
   const [widthM, topM] = classOf(fr.kind);
   const baseM = Math.max(0, topM - 2);
   byKind[fr.kind] = (byKind[fr.kind] || 0) + 1;
@@ -125,7 +139,7 @@ for (const fr of frags) {
     dist.push(dist[i - 1] + Math.hypot(dx, dy));
   }
   const total = dist[dist.length - 1];
-  const clippedStart = isJoined(pts[0]), clippedEnd = isJoined(pts[pts.length - 1]);
+  const clippedStart = isJoined(pts[0], fragIdx), clippedEnd = isJoined(pts[pts.length - 1], fragIdx);
   const fracAt = (d) => {
     const fs = clippedStart ? 1 : Math.min(1, d / RAMP_LEN);
     const fe = clippedEnd ? 1 : Math.min(1, (total - d) / RAMP_LEN);

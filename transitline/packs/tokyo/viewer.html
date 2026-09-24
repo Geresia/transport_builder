@@ -83,7 +83,8 @@
   <label><input type="checkbox" id="toggle-ov-res"> 인구 밀도 (거주 · 흰색→노랑→빨강)</label>
   <label><input type="checkbox" id="toggle-ov-jobs"> 회사원(종사자) 밀도 (일자리 · 흰색→파랑)</label>
   <label><input type="checkbox" id="toggle-munilabels" checked> 구·시·정·촌 이름 표시</label>
-  <label><input type="checkbox" id="toggle-3d"> 3D 보기 (건물 입체 + 지형 고도, 줌 14+ 권장)</label>
+  <label><input type="checkbox" id="toggle-3d"> 3D 보기 (건물·고가도로 입체, 줌 14+ 권장)</label>
+  <label style="margin-left:18px"><input type="checkbox" id="toggle-3d-terrain"> 3D 지형 고도 (산지용 — 켜면 도심 고가도로가 계단처럼 보임)</label>
   <div class="ramp" id="ramp" style="display:none"></div>
   <div class="scale" id="scale" style="display:none"></div>
   <label><input type="checkbox" id="toggle-obstacles" checked> 건물 footprint (토지이용조사, 줌 13+)</label>
@@ -1219,13 +1220,22 @@ map.on("load", async () => {
 
     // ---- 3D 보기: 건물을 입체로 세우고(층수×3.2m 추정) 지형 고도를 실제로 들어올림 (기존 음영은 유지) ----
     // 실측 3D가 아니라 2D 데이터에서 만든 근사 — 높이는 토지이용조사/OSM 층수·height 태그 기반 추정치.
+    // 지형 고도(map.setTerrain)는 별도 체크박스로 분리했다. MapLibre 는 지형이 켜져 있으면 fill-extrusion 을 "피처마다
+    // 그 도형 중심점의 지형 고도만큼 통째로" 들어올리는데, 고가도로 데크는 작은 판 수천 개라 판마다 다른 고도가 붙어
+    // 계단(비늘) 모양이 된다 — 데이터 높이는 전부 같은 10m 인데도. 도쿄 도심은 평지라 지형 고도 이득이 거의 없고 산지에서만
+    // 의미가 있으므로, 기본은 꺼두고 원할 때만 켜게 한다.
+    const applyTerrain3d = () => {
+      const want = document.getElementById("toggle-3d").checked && document.getElementById("toggle-3d-terrain").checked;
+      try { map.setTerrain(want && map.getSource("terrain") ? { source: "terrain", exaggeration: 1.4 } : null); } catch { /* 지형 소스 연결 실패 시 2D로 유지 */ }
+    };
     document.getElementById("toggle-3d").addEventListener("change", (e) => {
       const on = e.target.checked;
       map.easeTo({ pitch: on ? 55 : 0, duration: 700 });
-      try { map.setTerrain(on && map.getSource("terrain") ? { source: "terrain", exaggeration: 1.4 } : null); } catch { /* 지형 소스 연결 실패 시 2D로 유지 */ }
+      applyTerrain3d();
       applyBuildingVisibility(); // 건물 숨김 상태를 그대로 존중해 평면/입체 중 맞는 쪽만 켠다 (D-05)
       applyBridgeVisibility();
     });
+    document.getElementById("toggle-3d-terrain").addEventListener("change", applyTerrain3d);
 
     // ---- 도로: 차도(road) / 보행자 도로(path) — 현·도 4개 pmtiles, 토글로 켜고 끔 (기본 꺼짐) ----
     // 건물 아래에 깐다 (건물 사이 빈 곳에 길이 보이도록). 차도는 등급별 색·굵기, 보행자는 가는 점선.
