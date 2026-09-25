@@ -7,9 +7,8 @@
  *    2020 census municipality-to-municipality O/D spread over chomes by employed-residents x workers weights.
  *    Follows the internal rules measured on the real game's own Tokyo file (see subway-builder-export/README.md).
  *  - buildings_index.all.json: real, all 23 wards (1,790,011 buildings, ~588 MB).
- *  - roads.chiyoda.geojson: real OSM roads (Overpass), Chiyoda ward only so far - 1,986 ways, roadClass/
- *    structure/name all populated (export-subway-builder-roads.mjs). Every other ward still has nothing to
- *    route driving-demand paths on; run that script per ward to extend it.
+ *  - roads.all.geojson: real OSM roads (Overpass), all 23 wards, roadClass/structure/name populated
+ *    (export-subway-builder-roads.mjs). Outside the 23 wards there are no roads to route driving-demand on.
  */
 
 const MOD_ID = 'com.transitline.tokyo-citypack';
@@ -44,7 +43,7 @@ if (!api) {
       api.cities.setCityDataFiles(CITY_CODE, {
         buildingsIndex: 'data/buildings_index.all.json',
         demandData: 'data/demand_data.chome.json',
-        roads: 'data/roads.chiyoda.geojson', // real, Chiyoda ward only - see file header
+        roads: 'data/roads.all.geojson', // real, 23 wards - see file header
       });
 
       api.ui.showNotification(`${TAG} Tokyo CityPack registered (code ${CITY_CODE}).`, 'success');
