@@ -411,6 +411,8 @@ map.on("load", async () => {
   ]);
 
   const PREF_FILES = { "11": "saitama", "12": "chiba", "14": "kanagawa" };
+  // 도쿄 다마 30개 시정촌(13201~13308)은 subward-tama.json / jobs-tama.json. 23구(wards-fill)와 13361 이상 도서(섬) 지역은 해당 없음.
+  const prefOf = (code) => PREF_FILES[code.slice(0, 2)] ?? (+code >= 13201 && +code <= 13308 ? "tama" : undefined);
   // 건물별 직장을 PLATEAU 실측 속성(용도·연면적, 도쿄 토지이용조사와 같은 방식)으로 배분한 도시들
   // (jobs-buildings-<slug>.json). OSM 태그만으로 만든 사이타마·지바·가나가와 현 전체 pref-building-jobs.mjs
   // 모델보다 정밀해서, 겹치는 픽셀에서는 이쪽 팝업이 우선한다(regClick 가드 참고).
@@ -474,7 +476,7 @@ map.on("load", async () => {
       if (hitsDetailLayer(e) || hitsWardsFill(e)) return;
       const p = e.features[0].properties;
       const code = String(p.code);
-      const pref = PREF_FILES[code.slice(0, 2)];
+      const pref = prefOf(code);
       const hasPref = !!(pref && loadPref);
       if (!hasPref) showRegionDetail(code, regionFeatureByCode.get(code));
       else map.setFilter("wards-sel", ["==", ["get", "name"], ""]);
@@ -954,7 +956,7 @@ map.on("load", async () => {
     resBox.addEventListener("change", () => { overlay = resBox.checked ? "res" : "none"; syncOverlay(); });
     jobBox.addEventListener("change", () => { overlay = jobBox.checked ? "jobs" : "none"; syncOverlay(); });
     // 종사자 총계를 불러와 wdensity(종사자/km²)를 구·광역권 도형에 붙임
-    Promise.all(["saitama", "chiba", "kanagawa"].map((p) => loadJSON(`./jobs-${p}.json`))).then((arr) => {
+    Promise.all(["saitama", "chiba", "kanagawa", "tama"].map((p) => loadJSON(`./jobs-${p}.json`))).then((arr) => {
       for (const j of arr) if (j && j.wards) for (const [k, w] of Object.entries(j.wards)) workers.set(String(k).slice(0, 5), w.workers_total);
       const put = (feats, codeOf, areaOf) => feats.map((f) => { const w = workers.get(codeOf(f)); return { ...f, properties: { ...f.properties, wdensity: w != null && areaOf(f) > 0 ? w / areaOf(f) : null } }; });
       const rf = put([...regionFeatureByCode.values()], (f) => String(f.properties.code), (f) => f.properties.area);
