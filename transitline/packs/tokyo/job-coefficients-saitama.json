@@ -1,139 +1,137 @@
 {
  "formatVersion": 1,
  "modeled": true,
- "city": "Saitama City (10 wards)",
- "method": "Non-negative weighted least squares (weight 1/(workers+200)), chome workers ~ sum over 用途 of floor area, no intercept. Buildings assigned to chome by point-in-polygon.",
+ "city": "さいたま市 (10 wards)",
+ "method": "Non-negative weighted least squares (weight 1/(workers+200)), chome workers ~ sum over 用途 of floor area, no intercept. Buildings assigned to chome by point-in-polygon; unsurveyed floor area = mesh footprint x learned floor/footprint ratio by height band.",
  "sources": [
-  "国土交通省 Project PLATEAU 3D都市モデル さいたま市 (2020年度), building attributes from the city's 都市計画基礎調査 建物利用現況 (survey year 2016); PDL1.0. Modified: extracted and aggregated by chome.",
-  "2021 Economic Census - Activity Survey, e-Stat table 32-1-11 (jobs-saitama.json)"
+  "国土交通省 Project PLATEAU 3D都市モデル さいたま市 (2020年度), https://www.geospatial.jp/ckan/dataset/plateau-11100-saitama-shi-2020; PDL1.0. Modified: extracted and aggregated by chome.",
+  "2021 Economic Census - Activity Survey, e-Stat (jobs-saitama.json)"
  ],
- "parts": 491874,
  "buildingIds": 444404,
- "buildingsUsed": 439775,
  "floorAreaSurveyed": 369990,
- "floorAreaEstimatedFromMeshAndHeight": 69785,
- "outsideSaitamaChome": 987,
+ "floorAreaEstimated": 69785,
+ "floorRatioSource": "own city (369786 surveyed buildings)",
+ "outsideChome": 987,
  "skippedNoFloorArea": 3642,
  "chomeUsed": 690,
- "chomeWithJobs": 5936,
- "r2": 0.762,
+ "r2": 0.765,
  "perWard": {
   "111015": {
    "chome": 41,
    "workers": 28207,
    "r2InSample": 0.887,
-   "r2LeaveWardOut": 0.883,
-   "biasInSamplePct": -5.4,
-   "biasLeaveWardOutPct": -5.5
+   "r2LeaveWardOut": 0.884,
+   "biasInSamplePct": -4.9,
+   "biasLeaveWardOutPct": -4.9
   },
   "111023": {
    "chome": 27,
    "workers": 63768,
-   "r2InSample": 0.85,
-   "r2LeaveWardOut": 0.817,
-   "biasInSamplePct": -8.6,
-   "biasLeaveWardOutPct": -7.7
+   "r2InSample": 0.847,
+   "r2LeaveWardOut": 0.815,
+   "biasInSamplePct": -8.5,
+   "biasLeaveWardOutPct": -7.5
   },
   "111031": {
    "chome": 55,
    "workers": 128577,
-   "r2InSample": 0.565,
-   "r2LeaveWardOut": 0.38,
-   "biasInSamplePct": -45.2,
-   "biasLeaveWardOutPct": -52.9
+   "r2InSample": 0.57,
+   "r2LeaveWardOut": 0.386,
+   "biasInSamplePct": -44.9,
+   "biasLeaveWardOutPct": -52.7
   },
   "111040": {
    "chome": 69,
    "workers": 41881,
-   "r2InSample": 0.677,
-   "r2LeaveWardOut": 0.623,
-   "biasInSamplePct": 1.2,
-   "biasLeaveWardOutPct": 4.5
+   "r2InSample": 0.68,
+   "r2LeaveWardOut": 0.625,
+   "biasInSamplePct": 1.6,
+   "biasLeaveWardOutPct": 4.9
   },
   "111058": {
    "chome": 69,
    "workers": 57635,
-   "r2InSample": 0.975,
-   "r2LeaveWardOut": 0.93,
+   "r2InSample": 0.976,
+   "r2LeaveWardOut": 0.936,
    "biasInSamplePct": -0.4,
-   "biasLeaveWardOutPct": 5.5
+   "biasLeaveWardOutPct": 5.2
   },
   "111066": {
    "chome": 62,
    "workers": 30533,
-   "r2InSample": 0.73,
-   "r2LeaveWardOut": 0.167,
-   "biasInSamplePct": -14.1,
-   "biasLeaveWardOutPct": -2.9
+   "r2InSample": 0.738,
+   "r2LeaveWardOut": 0.163,
+   "biasInSamplePct": -13.9,
+   "biasLeaveWardOutPct": -2.6
   },
   "111074": {
    "chome": 87,
    "workers": 72926,
-   "r2InSample": 0.667,
-   "r2LeaveWardOut": 0.619,
-   "biasInSamplePct": -18.1,
-   "biasLeaveWardOutPct": -18.1
+   "r2InSample": 0.67,
+   "r2LeaveWardOut": 0.622,
+   "biasInSamplePct": -17.8,
+   "biasLeaveWardOutPct": -17.7
   },
   "111082": {
    "chome": 83,
    "workers": 53032,
-   "r2InSample": 0.463,
-   "r2LeaveWardOut": -6.168,
-   "biasInSamplePct": -7.7,
-   "biasLeaveWardOutPct": 31.2
+   "r2InSample": 0.465,
+   "r2LeaveWardOut": -6.093,
+   "biasInSamplePct": -7.9,
+   "biasLeaveWardOutPct": 30.7
   },
   "111091": {
    "chome": 76,
    "workers": 33089,
-   "r2InSample": 0.783,
-   "r2LeaveWardOut": 0.768,
-   "biasInSamplePct": -8,
-   "biasLeaveWardOutPct": -6.5
+   "r2InSample": 0.79,
+   "r2LeaveWardOut": 0.774,
+   "biasInSamplePct": -7.6,
+   "biasLeaveWardOutPct": -6
   },
   "111104": {
    "chome": 121,
    "workers": 49220,
-   "r2InSample": 0.774,
-   "r2LeaveWardOut": 0.585,
-   "biasInSamplePct": -2.2,
-   "biasLeaveWardOutPct": -2.4
+   "r2InSample": 0.789,
+   "r2LeaveWardOut": 0.614,
+   "biasInSamplePct": -2.6,
+   "biasLeaveWardOutPct": -3.2
   }
  },
- "perWardNote": "r2LeaveWardOut refits without that ward and scores on it (out-of-sample); bias = predicted/observed - 1 over the ward total. Judge extending the coefficients by these, not the in-sample R2.",
+ "perWardNote": "r2LeaveWardOut refits without that ward and scores on it (out-of-sample); bias = predicted/observed - 1 over the ward total.",
  "useJobsPer1000m2": {
-  "その他": 832.16,
-  "不明": 1.13,
-  "住宅": 0.67,
+  "その他": 813.15,
+  "不明": 1.23,
+  "住宅": 0.71,
   "作業所併用住宅": 0,
-  "供給処理施設": 0.91,
-  "共同住宅": 1.46,
-  "商業施設": 14.25,
-  "商業系複合施設": 11.99,
-  "官公庁施設": 21.91,
-  "宿泊施設": 10.27,
-  "工場": 5.1,
-  "店舗等併用住宅": 4.42,
-  "文教厚生施設": 4.43,
+  "供給処理施設": 0.88,
+  "共同住宅": 1.44,
+  "商業施設": 15.11,
+  "商業系複合施設": 11.96,
+  "官公庁施設": 21.89,
+  "宿泊施設": 9.76,
+  "工場": 5.15,
+  "店舗等併用住宅": 4.36,
+  "文教厚生施設": 4.47,
   "業務施設": 42.43,
   "農林漁業用施設": 0,
-  "運輸倉庫施設": 5.65
+  "運輸倉庫施設": 5.64
  },
  "useFloorAreaM2": {
   "その他": 1492,
-  "不明": 10219049,
-  "住宅": 40129925,
-  "作業所併用住宅": 503084,
-  "供給処理施設": 595596,
-  "共同住宅": 24644367,
-  "商業施設": 4604776,
-  "商業系複合施設": 2659347,
-  "官公庁施設": 943668,
-  "宿泊施設": 224863,
-  "工場": 5033872,
-  "店舗等併用住宅": 6986224,
-  "文教厚生施設": 8706010,
-  "業務施設": 3764482,
-  "農林漁業用施設": 409266,
-  "運輸倉庫施設": 3051116
+  "不明": 8802793,
+  "住宅": 39547304,
+  "作業所併用住宅": 496121,
+  "供給処理施設": 592058,
+  "共同住宅": 24579712,
+  "商業施設": 4532970,
+  "商業系複合施設": 2658670,
+  "官公庁施設": 943253,
+  "宿泊施設": 224831,
+  "工場": 4973458,
+  "店舗等併用住宅": 6942267,
+  "文教厚生施設": 8661054,
+  "業務施設": 3747788,
+  "農林漁業用施設": 392826,
+  "運輸倉庫施設": 3033922
  }
 }

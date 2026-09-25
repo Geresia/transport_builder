@@ -1,0 +1,166 @@
+{
+ "formatVersion": 1,
+ "note": "Cities with PLATEAU-based per-building workers (MODELED). Each entry's file holds the buildings; bbox = [minLon, minLat, maxLon, maxLat] of the listed buildings. surveyedWorkersShare = share of the city's workers landing on buildings whose floor area is surveyed (the rest use the learned-ratio estimate).",
+ "cities": [
+  {
+   "slug": "atsugi",
+   "ja": "厚木市",
+   "ko": "아쓰기시",
+   "file": "jobs-buildings-atsugi.json",
+   "bbox": [
+    139.2724,
+    35.3944,
+    139.3768,
+    35.5257
+   ],
+   "chome": 144,
+   "buildings": 16619,
+   "workers": 158631,
+   "unmatchedWorkers": 0,
+   "r2": 0.758,
+   "surveyedWorkersShare": 0.978,
+   "year": 2023,
+   "dataset": "plateau-14212-atsugi-shi-2023"
+  },
+  {
+   "slug": "fujisawa",
+   "ja": "藤沢市",
+   "ko": "후지사와시",
+   "file": "jobs-buildings-fujisawa.json",
+   "bbox": [
+    139.396,
+    35.2984,
+    139.5161,
+    35.4287
+   ],
+   "chome": 220,
+   "buildings": 21567,
+   "workers": 172181,
+   "unmatchedWorkers": 0,
+   "r2": 0.937,
+   "surveyedWorkersShare": 0.966,
+   "year": 2025,
+   "dataset": "plateau-14205-fujisawa-shi-2025"
+  },
+  {
+   "slug": "kamakura",
+   "ja": "鎌倉市",
+   "ko": "가마쿠라시",
+   "file": "jobs-buildings-kamakura.json",
+   "bbox": [
+    139.4888,
+    35.3016,
+    139.5892,
+    35.3679
+   ],
+   "chome": 152,
+   "buildings": 10322,
+   "workers": 71427,
+   "unmatchedWorkers": 0,
+   "r2": 0.857,
+   "surveyedWorkersShare": 0.773,
+   "year": 2024,
+   "dataset": "plateau-14204-kamakura-shi-2024"
+  },
+  {
+   "slug": "kawasaki",
+   "ja": "川崎市",
+   "ko": "가와사키시",
+   "file": "jobs-buildings-kawasaki.json",
+   "bbox": [
+    139.4519,
+    35.4706,
+    139.7945,
+    35.641
+   ],
+   "chome": 666,
+   "buildings": 57339,
+   "workers": 575531,
+   "unmatchedWorkers": 0,
+   "r2": 0.612,
+   "surveyedWorkersShare": 0.972,
+   "year": 2020,
+   "dataset": "plateau-14130-kawasaki-shi-2020"
+  },
+  {
+   "slug": "sagamihara",
+   "ja": "相模原市",
+   "ko": "사가미하라시",
+   "file": "jobs-buildings-sagamihara.json",
+   "bbox": [
+    139.1172,
+    35.4913,
+    139.4584,
+    35.6251
+   ],
+   "chome": 398,
+   "buildings": 41612,
+   "workers": 256737,
+   "unmatchedWorkers": 452,
+   "r2": 0.867,
+   "surveyedWorkersShare": 0.976,
+   "year": 2020,
+   "dataset": "plateau-14150-sagamihara-shi-2020"
+  },
+  {
+   "slug": "saitama",
+   "ja": "さいたま市",
+   "ko": "사이타마시",
+   "file": "jobs-buildings-saitama.json",
+   "bbox": [
+    139.5508,
+    35.8288,
+    139.755,
+    36.0017
+   ],
+   "chome": 690,
+   "buildings": 89947,
+   "workers": 558868,
+   "unmatchedWorkers": 0,
+   "r2": 0.765,
+   "surveyedWorkersShare": 0.953,
+   "year": 2020,
+   "dataset": "plateau-11100-saitama-shi-2020"
+  },
+  {
+   "slug": "yachiyo",
+   "ja": "八千代市",
+   "ko": "야치요시",
+   "file": "jobs-buildings-yachiyo.json",
+   "bbox": [
+    140.0653,
+    35.693,
+    140.1448,
+    35.7832
+   ],
+   "chome": 112,
+   "buildings": 9148,
+   "workers": 63428,
+   "unmatchedWorkers": 0,
+   "r2": 0.595,
+   "surveyedWorkersShare": 0.001,
+   "year": 2022,
+   "dataset": "plateau-12221-yachiyo-shi-2022"
+  },
+  {
+   "slug": "yokosuka",
+   "ja": "横須賀市",
+   "ko": "요코스카시",
+   "file": "jobs-buildings-yokosuka.json",
+   "bbox": [
+    139.5835,
+    35.1909,
+    139.7417,
+    35.3298
+   ],
+   "chome": 334,
+   "buildings": 18953,
+   "workers": 139585,
+   "unmatchedWorkers": 5070,
+   "r2": 0.671,
+   "surveyedWorkersShare": 0.983,
+   "year": 2020,
+   "dataset": "plateau-14201-yokosuka-shi-2020"
+  }
+ ]
+}

@@ -101,7 +101,8 @@
   <div class="cap" id="commute-cap" style="display:none"></div>
   <div class="ovl-title">특수 수요 · 시범 데이터</div>
   <label><input type="checkbox" id="toggle-special"> 대학·병원 (MLIT, 4개 도현 · 위치 실측 · 정원은 모델 추정)</label>
-  <label><input type="checkbox" id="toggle-saitama-jobs"> 사이타마시 건물별 직장 (모델, 줌 13+ · 사이타마시만)</label>
+  <label><input type="checkbox" id="toggle-plateau-jobs"> 건물별 직장 — PLATEAU 도시 <span id="plateau-jobs-count"></span> (모델, 줌 13+)</label>
+  <div class="cap" id="plateau-jobs-status" style="margin:0 0 6px 20px"></div>
   <div class="cap" id="cap">manifest.json 불러오는 중…</div>
 </div>
 
@@ -410,6 +411,12 @@ map.on("load", async () => {
   ]);
 
   const PREF_FILES = { "11": "saitama", "12": "chiba", "14": "kanagawa" };
+  // 건물별 직장을 PLATEAU 실측 속성(용도·연면적, 도쿄 토지이용조사와 같은 방식)으로 배분한 도시들
+  // (jobs-buildings-<slug>.json). OSM 태그만으로 만든 사이타마·지바·가나가와 현 전체 pref-building-jobs.mjs
+  // 모델보다 정밀해서, 겹치는 픽셀에서는 이쪽 팝업이 우선한다(regClick 가드 참고).
+  // plateau-jobs-index.json 의 도시 목록(불러온 뒤 채움). loaded = 이 도시의 파일과 레이어를 이미 만들었는가.
+  let plateauJobsCities = [];
+  const plateauJobLayerIds = () => plateauJobsCities.filter((c) => c.loaded).map((c) => `plateau-jobs-${c.slug}-circle`);
   const prefMunis = new Map();
   const regionFeatureByCode = new Map();
   let loadPref = null;
@@ -508,7 +515,7 @@ map.on("load", async () => {
   let currentWardJis = null;
   // 건물/정목 레이어를 누른 클릭이 아래 깔린 구/광역권 클릭 핸들러까지 전달되어 줌아웃되는 것을 막음
   const hitsDetailLayer = (e) => {
-    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d", "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "special-demand-circle", "saitama-jobs-circle"].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
+    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d", "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "special-demand-circle", ...plateauJobLayerIds()].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
     return ls.length > 0 && map.queryRenderedFeatures(e.point, { layers: ls }).length > 0;
   };
   // wards-fill(23구)이 region-fill(간토 전역 시정촌) 위에 겹쳐 있어, 구를 클릭하면 두 레이어의
@@ -1048,55 +1055,67 @@ map.on("load", async () => {
   // 용도별 계수로 배분한 모델, 13.8MB라 토글을 처음 켤 때만 불러옴). 건물 위치는 중심점 하나뿐
   // (도쿄 jobs-buildings.json 과 달리 폴리곤 없음), 사이타마시 10개 구만 해당. ----
   {
-    let saitamaJobsLoaded = false;
-    document.getElementById("toggle-saitama-jobs").addEventListener("change", async (e) => {
-      if (!e.target.checked) {
-        if (map.getLayer("saitama-jobs-circle")) map.setLayoutProperty("saitama-jobs-circle", "visibility", "none");
-        return;
-      }
-      if (saitamaJobsLoaded) { map.setLayoutProperty("saitama-jobs-circle", "visibility", "visible"); return; }
-      saitamaJobsLoaded = true;
-      const cb = e.target;
-      cb.disabled = true;
-      const data = await loadJSON("./jobs-buildings-saitama.json");
-      cb.disabled = false;
-      if (!data || !data.areas) { cb.checked = false; cb.disabled = true; return; }
-      const features = [];
-      for (const a of Object.values(data.areas)) {
-        for (const b of a.buildings) {
-          features.push({ type: "Feature",
-            properties: { name_ja: a.name_ja, use: b.use || "불명", floor_m2: b.floor_m2, area_m2: b.area_m2,
-              levels: b.levels, surveyed: b.floor_area_surveyed, workers: b.workers },
+    const box = document.getElementById("toggle-plateau-jobs"), statusEl = document.getElementById("plateau-jobs-status"), countEl = document.getElementById("plateau-jobs-count");
+    const idx = await loadJSON("./plateau-jobs-index.json");
+    if (!idx || !idx.cities?.length) { box.disabled = true; }
+    else {
+      plateauJobsCities = idx.cities.map((c) => ({ ...c, loaded: false, loading: false }));
+      countEl.textContent = `${plateauJobsCities.length}곳`;
+      const jobColor = stepExpr("workers", BLDG_JOB_CUTS, JRAMP); // 도쿄 23구 건물 색과 같은 고정 구간 — 도시끼리도 비교 가능
+      const status = () => {
+        const n = plateauJobsCities.filter((c) => c.loaded).length;
+        statusEl.textContent = box.checked ? `불러온 도시 ${n}/${plateauJobsCities.length} — 확대해서 도시 위로 가면 자동으로 불러옵니다` : "";
+      };
+      const addCity = async (c) => {
+        c.loading = true; status();
+        const data = await loadJSON(`./${c.file}`);
+        c.loading = false;
+        if (!data || !data.areas) { c.failed = true; return; }
+        const features = [];
+        for (const a of Object.values(data.areas)) for (const b of a.buildings) {
+          features.push({ type: "Feature", properties: { name_ja: a.name_ja, city: c.ko, use: b.use || "불명", floor_m2: b.floor_m2, area_m2: b.area_m2,
+            levels: b.levels, basement_levels: b.basement_levels ?? null, surveyed: b.floor_area_surveyed, workers: b.workers },
             geometry: { type: "Point", coordinates: b.location } });
         }
-      }
-      const fc = { type: "FeatureCollection", features };
-      const vals = features.map((f) => f.properties.workers).sort((x, y) => x - y);
-      const cuts = Array.from({ length: 7 }, (_, i) => vals[Math.floor(((i + 1) / 8) * (vals.length - 1))]);
-      const color = stepExpr("workers", cuts, JRAMP);
-      if (!map.getSource("saitama-jobs")) {
-        map.addSource("saitama-jobs", { type: "geojson", data: fc });
-        map.addLayer({ id: "saitama-jobs-circle", source: "saitama-jobs", type: "circle", minzoom: 13,
+        const layerId = `plateau-jobs-${c.slug}-circle`, sourceId = `plateau-jobs-${c.slug}`;
+        map.addSource(sourceId, { type: "geojson", data: { type: "FeatureCollection", features } });
+        map.addLayer({ id: layerId, source: sourceId, type: "circle", minzoom: 13,
+          layout: { visibility: box.checked ? "visible" : "none" },
           paint: {
-            "circle-color": color,
+            "circle-color": jobColor,
             "circle-radius": ["interpolate", ["linear"], ["zoom"], 13, ["+", 0.8, ["*", 0.22, ["sqrt", ["get", "workers"]]]], 17, ["+", 1.8, ["*", 0.55, ["sqrt", ["get", "workers"]]]]],
             "circle-stroke-color": "#0c1114", "circle-stroke-width": 0.4, "circle-opacity": 0.75,
           } });
-        map.on("click", "saitama-jobs-circle", (ev) => {
+        map.on("click", layerId, (ev) => {
           const p = ev.features[0].properties;
           new maplibregl.Popup({ closeButton: false }).setLngLat(ev.lngLat)
-            .setHTML(`<div style="font:12.5px sans-serif;color:#000">${esc(p.name_ja)} · 이 건물 종사자 약 <b>${nf(p.workers)}</b>명`
-              + `<br>${esc(p.use)} · 연면적 ${nf(p.floor_m2)}m²${p.levels ? ` · ${esc(p.levels)}층` : ""}${p.surveyed ? "" : " (연면적 추정)"}`
+            .setHTML(`<div style="font:12.5px sans-serif;color:#000">${esc(p.city)} ${esc(p.name_ja)} · 이 건물 종사자 약 <b>${nf(p.workers)}</b>명`
+              + `<br>${esc(p.use)} · 연면적 ${nf(p.floor_m2)}m²${p.levels ? ` · ${esc(p.levels)}층` : ""}${p.basement_levels ? ` (지하 ${esc(p.basement_levels)}층)` : ""}${p.surveyed ? "" : " (연면적 추정)"}`
               + `<br><span style="color:#666">町丁 합계는 실측(2021 경제센서스), 건물별 배분은 모델 추정치</span></div>`)
             .addTo(map);
         });
-        map.on("mouseenter", "saitama-jobs-circle", () => (map.getCanvas().style.cursor = "pointer"));
-        map.on("mouseleave", "saitama-jobs-circle", () => (map.getCanvas().style.cursor = ""));
-      } else {
-        map.getSource("saitama-jobs").setData(fc);
-        map.setLayoutProperty("saitama-jobs-circle", "visibility", "visible");
-      }
-    });
+        map.on("mouseenter", layerId, () => (map.getCanvas().style.cursor = "pointer"));
+        map.on("mouseleave", layerId, () => (map.getCanvas().style.cursor = ""));
+        c.loaded = true; status();
+      };
+      // 화면(약간 여유)과 겹치는 도시만, 줌 12 이상에서 불러온다 — 시 파일은 0.2~10MB(gzip 0.2~1.6MB)
+      const loadVisible = () => {
+        if (!box.checked || map.getZoom() < 12) return;
+        const b = map.getBounds(), pad = 0.02;
+        for (const c of plateauJobsCities) {
+          if (c.loaded || c.loading || c.failed) continue;
+          const [x0, y0, x1, y1] = c.bbox;
+          if (x1 < b.getWest() - pad || x0 > b.getEast() + pad || y1 < b.getSouth() - pad || y0 > b.getNorth() + pad) continue;
+          addCity(c);
+        }
+      };
+      box.addEventListener("change", () => {
+        const v = box.checked ? "visible" : "none";
+        for (const id of plateauJobLayerIds()) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", v);
+        status(); loadVisible();
+      });
+      map.on("moveend", loadVisible);
+    }
   }
 
   // ---- 건물 footprint (4개 허브 지구, obstacles.json) ----
@@ -1200,8 +1219,11 @@ map.on("load", async () => {
         // 거주/종사자 둘 다 pref-building-pop.mjs / pref-building-jobs.mjs 로 만든 pop/jobs 속성이 있어 도쿄와 동일하게 동작.
         const regClick = (e) => {
           if (!e.features.length) return;
-          // 사이타마시 건물별 직장 포인트(saitama-jobs-circle, PLATEAU 기반 더 정밀한 모델)가 이 픽셀에도 있으면 그쪽 팝업에 양보
-          if (metric === "jobs" && map.getLayer("saitama-jobs-circle") && map.queryRenderedFeatures(e.point, { layers: ["saitama-jobs-circle"] }).length) return;
+          // PLATEAU 건물별 직장 포인트(사이타마·가와사키·사가미하라·요코스카시, 더 정밀한 모델)가 이 픽셀에도 있으면 그쪽
+          // 팝업에 양보한다 — 이 포인트 레이어는 res/jobs 밀도 토글(metric)과 무관하게 자체 체크박스로 켜지므로
+          // metric 값을 조건에 넣으면 안 된다 (res 모드에서 이 조건을 넣었다가 중복 팝업이 재발한 적 있음).
+          const plateauLayers = plateauJobLayerIds().filter((id) => map.getLayer(id));
+          if (plateauLayers.length && map.queryRenderedFeatures(e.point, { layers: plateauLayers }).length) return;
           const p = e.features[0].properties;
           const lv = p.levels && p.levels !== "null" ? `${esc(p.levels)}층` : "층수 미상";
           new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
@@ -1366,7 +1388,6 @@ map.on("load", async () => {
     } catch (err) { console.warn("건물 이름 pmtiles 연결 실패:", err); }
   }
 
-  // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
   // ---- 건물 클릭 시 실제 통근/통학 목적지 선 (od.json / od-school.json — 시정촌 단위 실측, 건물 단위 아님) ----
   // 건물이 속한 지역(구/시정촌)을 wards-reference.json/kanto-region.json 폴리곤으로 점-내-다각형 판정한 뒤,
   // 그 지역의 od.json/od-school.json 행을 그대로 선으로 그린다 — 건물별 실측이 아니라 "이 건물이 속한

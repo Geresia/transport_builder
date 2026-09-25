@@ -20,9 +20,10 @@
 // plateau-chome.mjs still works unchanged - groups of size 1 there are a no-op.
 import fs from "fs";
 import path from "path";
-import { meshHorizontalArea } from "./plateau-footprint.mjs";
+import { meshHorizontalArea, loadDraco } from "./plateau-footprint.mjs";
 
 const [dir, out] = process.argv.slice(2);
+const dracoReady = await loadDraco(); // needs `npm install draco3d` in $DEPS; without it Draco tiles get no mesh footprint
 if (!dir || !out) throw new Error("usage: plateau-buildings.mjs <dir> <out.json>");
 
 function* walk(d) {
@@ -94,6 +95,7 @@ fs.writeFileSync(out, JSON.stringify(rows));
 const tally = (i) => { const c = {}; for (const r of rows) c[r[i]] = (c[r[i]] ?? 0) + 1; return Object.entries(c).sort((a, b) => b[1] - a[1]); };
 const nn = (i) => rows.filter((r) => r[i] != null).length;
 console.log({ tiles, dracoTiles, buildings: rows.length, duplicatesSkipped: dup, withStoreys: nn(3), withFloorArea: nn(5), withUse: nn(2) });
-if (dracoTiles) console.log(`NOTE: ${dracoTiles}/${tiles} tiles are Draco-compressed and could not be decoded for a mesh-fallback footprint - buildings there without a surveyed 延床面積 will be skipped downstream (0 footprint -> noArea), not estimated.`);
+if (dracoTiles) console.log(`NOTE: ${dracoTiles}/${tiles} tiles are Draco-compressed and could not be decoded (draco3d not loaded: set DEPS=<dir with node_modules/draco3d>) - buildings there without a surveyed 延床面積 will be skipped downstream (0 footprint -> noArea), not estimated.`);
+else if (dracoReady) console.log('draco3d loaded: Draco-compressed tiles (if any) were decoded for mesh footprints.');
 console.log("years", tally(6).slice(0, 6));
 console.log("用途", tally(2).slice(0, 20));

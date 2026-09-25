@@ -1,0 +1,89 @@
+{
+ "edges": [
+  0,
+  3,
+  4.5,
+  6,
+  7.5,
+  9,
+  10.5,
+  12,
+  15,
+  18,
+  24,
+  36,
+  60,
+  1000000000
+ ],
+ "n": 1249210,
+ "ratios": [
+  0.8982,
+  0.9948,
+  1.6332,
+  1.675,
+  1.8113,
+  1.8755,
+  1.8122,
+  2.3844,
+  3.4718,
+  4.3332,
+  5.2412,
+  8.3652,
+  15.0944
+ ],
+ "binN": [
+  9212,
+  72383,
+  100870,
+  275922,
+  414444,
+  173077,
+  38837,
+  26281,
+  9614,
+  7973,
+  4684,
+  1445,
+  124
+ ],
+ "unknown": 0.9976,
+ "all": 1.6743,
+ "pooledFrom": {
+  "saitama": {
+   "surveyedWithMesh": 369786,
+   "all": 1.9889,
+   "unknown": 1
+  },
+  "kawasaki": {
+   "surveyedWithMesh": 275971,
+   "all": 1.8135,
+   "unknown": 0.998
+  },
+  "yokosuka": {
+   "surveyedWithMesh": 129041,
+   "all": 1.6326,
+   "unknown": 0.8976
+  },
+  "sagamihara": {
+   "surveyedWithMesh": 201439,
+   "all": 1.6745,
+   "unknown": 0.9987
+  },
+  "atsugi": {
+   "surveyedWithMesh": 85609,
+   "all": 1.4547,
+   "unknown": 0.9057
+  },
+  "kamakura": {
+   "surveyedWithMesh": 55975,
+   "all": 1.6341,
+   "unknown": 0.8971
+  },
+  "fujisawa": {
+   "surveyedWithMesh": 131389,
+   "all": 1.634,
+   "unknown": 0.8983
+  }
+ },
+ "note": "median(surveyed 延床面積 / mesh footprint) per 計測高さ band, pooled over the listed cities; used only where a city has < 300 surveyed buildings of its own"
+}

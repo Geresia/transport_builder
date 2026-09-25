@@ -153,14 +153,6 @@
           "type": "string",
           "description": "MODELED per-building workers for a pilot area."
         },
-        "jobsBuildingsSaitama": {
-          "type": "string",
-          "description": "MODELED per-building workers for Saitama City (PLATEAU buildings), same shape as jobsBuildings."
-        },
-        "jobsBuildingsKawasaki": {
-          "type": "string",
-          "description": "MODELED per-building workers for Kawasaki City (PLATEAU buildings), same shape as jobsBuildings. Buildings also carry a real basement_levels field where surveyed."
-        },
         "od": {
           "type": "string",
           "description": "Measured municipality-to-municipality commuter flows (census). Optional; the engine uses it for destination choice."
@@ -227,13 +219,9 @@
           "type": "string",
           "description": "PMTiles of official survey building polygons (use class, floors) with modeled per-building pop / jobs / emp."
         },
-        "jobsBuildingsSagamihara": {
+        "plateauJobs": {
           "type": "string",
-          "description": "MODELED per-building workers for Sagamihara City (PLATEAU buildings), same shape as jobsBuildings."
-        },
-        "jobsBuildingsYokosuka": {
-          "type": "string",
-          "description": "MODELED per-building workers for Yokosuka City (PLATEAU buildings), same shape as jobsBuildings."
+          "description": "Index (cities[]: slug, ko/ja name, file, bbox, counts, r2, source dataset) of PLATEAU-based MODELED per-building workers; each city has its own jobs-buildings-<slug>.json (same shape as jobsBuildings, with a .gz sibling listed in compressed). Loaded per city on demand."
         }
       },
       "description": "Relative paths (a value may be a list of paths). An absent key means that layer is not present. Every key a pack uses must be declared here - validate-pack enforces it."

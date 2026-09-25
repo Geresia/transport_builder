@@ -32,10 +32,7 @@
       "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
       "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
       "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
-      "さいたま市の用途別従業者係数・建物別従業者数 (job-coefficients-saitama.json, jobs-buildings-saitama.json): 国土交通省 Project PLATEAU 3D都市モデル さいたま市 (2020年度), PDL1.0. 加工: 町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分。",
-      "川崎市の用途別従業者係数・建物別従業者数 (job-coefficients-kawasaki.json, jobs-buildings-kawasaki.json): 国土交通省 Project PLATEAU 3D都市モデル 川崎市 (2020年度), PDL1.0. 加工: さいたま市と同じ方法。建物属性に地下階数(basement_levels)を含む。",
-      "相模原市の用途別従業者係数・建物別従業者数 (job-coefficients-sagamihara.json, jobs-buildings-sagamihara.json): 国土交通省 Project PLATEAU 3D都市モデル 相模原市 (2020年度), PDL1.0. 加工: さいたま市と同じ方法。",
-      "横須賀市の用途別従業者係数・建物別従業者数 (job-coefficients-yokosuka.json, jobs-buildings-yokosuka.json): 国土交通省 Project PLATEAU 3D都市モデル 横須賀市 (2020年度), PDL1.0. 加工: さいたま市と同じ方法。"
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
     ],
     "sources": [
       {
@@ -114,18 +111,8 @@
         "license": "CC-BY-4.0"
       },
       {
-        "name": "国土交通省 Project PLATEAU 3D都市モデル 川崎市 (2020年度)",
-        "url": "https://www.geospatial.jp/ckan/dataset/plateau-14130-kawasaki-shi-2020",
-        "license": "PDL1.0 (commercial use and modification allowed, CC BY 4.0 compatible)"
-      },
-      {
-        "name": "国土交通省 Project PLATEAU 3D都市モデル 相模原市 (2020年度)",
-        "url": "https://www.geospatial.jp/ckan/dataset/plateau-14150-sagamihara-shi-2020",
-        "license": "PDL1.0 (commercial use and modification allowed, CC BY 4.0 compatible)"
-      },
-      {
-        "name": "国土交通省 Project PLATEAU 3D都市モデル 横須賀市 (2020年度)",
-        "url": "https://www.geospatial.jp/ckan/dataset/plateau-14201-yokosuka-shi-2020",
+        "name": "国土交通省 Project PLATEAU 3D都市モデル (per-city datasets listed in plateau-jobs-index.json)",
+        "url": "https://www.mlit.go.jp/plateau/open-data/",
         "license": "PDL1.0 (commercial use and modification allowed, CC BY 4.0 compatible)"
       }
     ]
@@ -161,10 +148,7 @@
     "specialDemand": "special-demand.json",
     "employed": "employed.json",
     "buildingTilesSurvey": "tokyo-survey-buildings.pmtiles",
-    "jobsBuildingsSaitama": "jobs-buildings-saitama.json",
-    "jobsBuildingsKawasaki": "jobs-buildings-kawasaki.json",
-    "jobsBuildingsSagamihara": "jobs-buildings-sagamihara.json",
-    "jobsBuildingsYokosuka": "jobs-buildings-yokosuka.json"
+    "plateauJobs": "plateau-jobs-index.json"
   },
   "quality": {
     "scheme": "Subway-Builder-Modded data-quality rubric (registry docs/data-quality.md), self-assessed with scripts/quality-rubric.mjs",
@@ -293,26 +277,50 @@
     "jobs-buildings-saitama.json": {
       "file": "jobs-buildings-saitama.json.gz",
       "encoding": "gzip",
-      "bytes": 14570236,
-      "gzBytes": 1629636
+      "bytes": 16646764,
+      "gzBytes": 1645188
     },
     "jobs-buildings-kawasaki.json": {
       "file": "jobs-buildings-kawasaki.json.gz",
       "encoding": "gzip",
-      "bytes": 10725420,
-      "gzBytes": 1076774
+      "bytes": 10795981,
+      "gzBytes": 1083061
     },
     "jobs-buildings-sagamihara.json": {
       "file": "jobs-buildings-sagamihara.json.gz",
       "encoding": "gzip",
-      "bytes": 7524426,
-      "gzBytes": 635818
+      "bytes": 7782901,
+      "gzBytes": 764566
     },
     "jobs-buildings-yokosuka.json": {
       "file": "jobs-buildings-yokosuka.json.gz",
       "encoding": "gzip",
-      "bytes": 3512577,
-      "gzBytes": 345724
+      "bytes": 3571284,
+      "gzBytes": 350399
+    },
+    "jobs-buildings-atsugi.json": {
+      "file": "jobs-buildings-atsugi.json.gz",
+      "encoding": "gzip",
+      "bytes": 3046112,
+      "gzBytes": 306586
+    },
+    "jobs-buildings-kamakura.json": {
+      "file": "jobs-buildings-kamakura.json.gz",
+      "encoding": "gzip",
+      "bytes": 1893902,
+      "gzBytes": 181273
+    },
+    "jobs-buildings-fujisawa.json": {
+      "file": "jobs-buildings-fujisawa.json.gz",
+      "encoding": "gzip",
+      "bytes": 3974261,
+      "gzBytes": 393292
+    },
+    "jobs-buildings-yachiyo.json": {
+      "file": "jobs-buildings-yachiyo.json.gz",
+      "encoding": "gzip",
+      "bytes": 1716441,
+      "gzBytes": 159220
     }
   }
 }

@@ -1,0 +1,16 @@
+{
+    "id": "com.transitline.tokyo-citypack",
+    "name": "Tokyo CityPack (Transitline export)",
+    "description": "Registers Greater Tokyo as a playable city, using real 2020/2021 census demand and official-survey building footprints from the transitline project. Proof of concept: demand covers all 242 municipalities, buildings are exported for Chiyoda ward only so far.",
+    "version": "0.1.0",
+    "author": {
+        "name": "transitline",
+        "url": "https://github.com/subway-builder-modded"
+    },
+    "main": "index.js",
+    "license": "CC0-1.0",
+    "subwayBuilderVersion": "<=1.3.0",
+    "dependencies": {
+        "subway-builder": "<=1.3.0"
+    }
+}
