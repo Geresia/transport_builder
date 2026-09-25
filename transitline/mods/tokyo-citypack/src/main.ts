@@ -3,7 +3,7 @@
  * (../scripts/export-subway-builder-*.mjs -> ../../subway-builder-export/*.json).
  *
  * Status (proof of concept, not yet tested in-game - see mods/tokyo-citypack/README.md):
- *  - demand_data.chome.json: game-native, chome level (17,529 points, 74,445 pops of exactly 200 people) - the real
+ *  - demand_data.chome.json: game-native, chome level (19,614 points, 77,762 pops of exactly 200 people) - the real
  *    2020 census municipality-to-municipality O/D spread over chomes by employed-residents x workers weights.
  *    Follows the internal rules measured on the real game's own Tokyo file (see subway-builder-export/README.md).
  *  - buildings_index.all.json: real, all 23 wards (1,790,011 buildings, ~588 MB).
@@ -34,7 +34,7 @@ if (!api) {
         name: 'Greater Tokyo (Transitline)',
         code: CITY_CODE,
         description:
-          'Real 2020/2021 census commuter flows for Tokyo + Saitama/Chiba/Kanagawa, at chome level (Tama-area cities: one point each). ' +
+          'Real 2020/2021 census commuter flows for Tokyo + Saitama/Chiba/Kanagawa, at chome level. ' +
           'Building footprints are the official Tokyo land-use survey, all 23 special wards.',
         population: 36889715,
         initialViewState: { zoom: 9.7, latitude: 36.02814, longitude: 139.5232, bearing: 0 },

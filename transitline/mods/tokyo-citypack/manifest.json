@@ -1,7 +1,7 @@
 {
     "id": "com.transitline.tokyo-citypack",
     "name": "Tokyo CityPack (Transitline export)",
-    "description": "Registers Greater Tokyo as a playable city, using real 2020/2021 census demand and official-survey building footprints from the transitline project. Proof of concept: chome-level demand for the four prefectures (Tama-area cities: one point each), buildings and roads for the 23 special wards.",
+    "description": "Registers Greater Tokyo as a playable city, using real 2020/2021 census demand and official-survey building footprints from the transitline project. Proof of concept: chome-level demand for the four prefectures, buildings and roads for the 23 special wards.",
     "version": "0.1.0",
     "author": {
         "name": "transitline",

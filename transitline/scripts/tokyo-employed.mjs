@@ -23,7 +23,7 @@ const num = (s) => (s === "-" ? 0 : /^\d+$/.test(s) ? Number(s) : null); // null
 
 // residents per chome from the pack's own sub-ward layers (needed to split hidden groups)
 const residents = new Map(), packAreas = new Set();
-for (const f of ["subward.json", "subward-kanagawa.json", "subward-saitama.json", "subward-chiba.json"])
+for (const f of ["subward.json", "subward-kanagawa.json", "subward-saitama.json", "subward-chiba.json", "subward-tama.json"])
   for (const w of Object.values(readPackJson(T + f).wards)) for (const a of w.areas) { residents.set(a.code, a.residents || 0); packAreas.add(a.code); }
 
 const areas = {}, estimated = [], municipalities = {};

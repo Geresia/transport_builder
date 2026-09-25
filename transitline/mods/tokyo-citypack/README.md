@@ -2,14 +2,14 @@
 
 Registers Greater Tokyo as a playable city in Subway Builder, backed by `../../subway-builder-export/`'s
 generated data files. See that folder's README for what's real, what's modeled, and what's still missing
-(most importantly: the 30 Tama-area municipalities have no chome-level data, and nothing has been loaded in the game).
+(most importantly: nothing has been loaded in the game; buildings and roads cover the 23 wards only).
 
 ## Status: builds cleanly, never opened in-game
 
 Scaffolded from `template-mod-main` (Subway Builder's official generic starter, MIT - a cleaner reference than
 `compatibility-test-mod`, which is a leftover compatibility-test stub). As of 2026-09-24 it loads:
 
-- `data/demand_data.chome.json` - game-native chome-level demand (17,529 points, 74,445 pops of exactly 200);
+- `data/demand_data.chome.json` - game-native chome-level demand (19,614 points, 77,762 pops of exactly 200);
 - `data/buildings_index.all.json` - all 23 wards, 1,790,011 official-survey buildings (~588 MB);
 - `data/roads.all.geojson` - real OSM roads for the 23 wards (`roadClass`/`structure`/`name`).
 

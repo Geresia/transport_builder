@@ -11,6 +11,7 @@
 | `od2020/` | 465MB | 결과 JSON 5개만 추적, 나머지 무시 | 令和2年国勢調査 통근 OD(`e03-{11,12,13,14}-01.xlsx`)와 시정촌 인구(`t1-1.xlsx`) | e-Stat. statInfId 000032214185 / 188 / 196 / 199 (도도부현 11·12·13·14 순서), 인구는 000032214141. 파싱은 `scripts/od-parse-2020.mjs`, `scripts/muni-pop-2020.mjs` |
 | `mlit/` | 154MB | 무시 | 国土数値情報 P29-23 학교(2023), P04-20 의료기관(2020). 도도부현 11–14 | 国土数値情報 다운로드 사이트에서 코드별, 도도부현별 GML. 사용은 `scripts/tokyo-special-demand.mjs` |
 | `emp2020/` | 8MB | 무시 | 令和2年国勢調査 町丁 단위 취업자 CSV (`h16_02_{11..14}.csv`, Shift-JIS) | e-Stat. statInfId 000032226887 / 888 / 889 / 890 (사이타마·지바·도쿄·가나가와). 사용은 `scripts/tokyo-employed.mjs` |
+| `tama/` | 6MB | 무시 | 다마 30개 시정촌 町丁 경계·인구 topojson (`r2ka13xxx.topojson`, NII Geoshape 2020)와 경제센서스 町丁별 종사자 `b2_032-1_13.xlsx` (도쿄) | 두 스크립트가 없으면 알아서 내려받는다: `scripts/tama-subward.mjs`, `scripts/tama-jobs.mjs`. e-Stat statInfId 000040068157 |
 | `rail-network/` | 38MB | 무시 | OSM route=train/subway/light_rail/tram 관계 원본 (Overpass, 간토 bbox) — 여기서 `packs/tokyo/existing-network.json`(실제 철도망, 게임 시작 노선)을 만듦 | Overpass API (kumi.systems / monicz.dev). `scripts/tokyo-existing-network.mjs`, 약 5분 |
 
 도도부현 번호는 11 사이타마, 12 지바, 13 도쿄, 14 가나가와다.

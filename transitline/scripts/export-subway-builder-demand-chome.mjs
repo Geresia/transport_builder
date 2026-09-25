@@ -24,9 +24,9 @@
 //
 // Dropped, and reported: flows that cannot be placed without a same-point pop. Inside a municipality the
 // same-chome share is removed and renormalised over the other chome pairs (commuting from a chome to itself is
-// not a trip between two points), but Tokyo's 30 Tama-area municipalities exist here as ONE point each (no
-// chome-level data anywhere in this project for them yet - subward*.json/employed.json/jobs.json never covered
-// them), so their within-municipality flow has nowhere to go and is dropped.
+// not a trip between two points). Tokyo's 30 Tama-area municipalities have chome-level data since 2026-09-25
+// (subward-tama.json / jobs-tama.json, scripts/tama-*.mjs; employed.json covers them). A municipality without
+// chome data would still become ONE point and lose its within-municipality flow.
 //
 // Driving distance/time come from subway-builder-driving.mjs (calibrated against the real file's medians).
 // Usage: node --max-old-space-size=4096 scripts/export-subway-builder-demand-chome.mjs
@@ -40,8 +40,8 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const UNIT = 200;
 const rd = (f) => JSON.parse(fs.readFileSync(T + f, "utf8"));
-const sw = [rd("subward.json"), rd("subward-saitama.json"), rd("subward-chiba.json"), rd("subward-kanagawa.json")];
-const jobsFiles = [rd("jobs.json"), rd("jobs-saitama.json"), rd("jobs-chiba.json"), rd("jobs-kanagawa.json")];
+const sw = [rd("subward.json"), rd("subward-saitama.json"), rd("subward-chiba.json"), rd("subward-kanagawa.json"), rd("subward-tama.json")];
+const jobsFiles = [rd("jobs.json"), rd("jobs-saitama.json"), rd("jobs-chiba.json"), rd("jobs-kanagawa.json"), rd("jobs-tama.json")];
 const employed = rd("employed.json");
 const od = rd("od.json").origins;
 const demand242 = rd("demand.json");

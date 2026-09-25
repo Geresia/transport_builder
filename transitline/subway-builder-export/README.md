@@ -13,7 +13,7 @@ editing by hand. **This folder was wiped once by an `rm -rf` reproducibility tes
 
 | File | What it is | Status |
 |---|---|---|
-| `demand_data.chome.json` | **The file the mod loads.** Game-native, chome level: 17,529 points, 74,445 pops of exactly 200 people, 11.7 MB. | Real census O/D, spread over chomes by a **modeled** split (see below). Follows the four internal rules of the game's own Tokyo file. |
+| `demand_data.chome.json` | **The file the mod loads.** Game-native, chome level: 19,614 points, 77,762 pops of exactly 200 people, 12.3 MB. | Real census O/D, spread over chomes by a **modeled** split (see below). Follows the four internal rules of the game's own Tokyo file. |
 | `demand_data.json` | Exact-O/D reference: 242 municipality points, 39,047 pops with the real census flow counts as sizes. | Real, but does **not** follow the game's internal rules (variable pop sizes, census-valued points). Kept for analysis, not loaded. |
 | `buildings_index.all.json` | All 23 special wards: 1,790,011 official-survey building footprints, 588 MB. | Real. `foundationDepth` is 0 (see gaps). |
 | `buildings_index.chiyoda.json` | Chiyoda only, 11,338 buildings. | Small test fixture. |
@@ -62,10 +62,11 @@ pops; unused points). The game may well rely on them, so `demand_data.chome.json
 - Real `TOK` is the whole Greater-Tokyo region: 4,973 points in Tokyo (13), 3,585 Kanagawa (14), 2,408 Chiba (12),
   1,921 Saitama (11), 8 Ibaraki - 16,532,400 commuters, all three totals (residents = jobs = pop sizes) equal.
   Our `employed.json` totals 16.35M for the same four prefectures - two unrelated methods within 1%.
-- Ours has 3,132 Tokyo points to their 4,973. **The difference (~1,840 points) is exactly Tokyo's 30 Tama-area
-  municipalities**, for which this project has no chome-level data (`subward*.json`, `employed.json`, `jobs.json`
-  were only ever built for the 23 wards + Saitama/Chiba/Kanagawa). They are one point each here.
-- Pop count: 74,445 (real: 82,662). Densest job point: Marunouchi 1-chome (`13101001001`) - 69,000 for us
+- Ours now has 5,196 Tokyo points (23 wards + 2,034 in the 30 Tama-area municipalities) to their 4,973, plus
+  Saitama 5,046 / Chiba 4,638 / Kanagawa 4,734 (theirs 1,921 / 2,408 / 3,585): we keep one point per census chome
+  that has residents or workers, the real file evidently merges some. Until 2026-09-25 the Tama municipalities were
+  one point each (3,132 Tokyo points); `subward-tama.json` / `jobs-tama.json` (`scripts/tama-*.mjs`) fixed that.
+- Pop count: 77,762 (real: 82,662). Densest job point: Marunouchi 1-chome (`13101001001`) - 68,000 for us
   (the exporter's OD-derived share), 92,000 in the real file; the same chome tops both.
 - Commute distance is shorter in ours (median 10 km vs 19 km, routed). That is a difference between real census
   commuting and the game's own model, not something to "fix" toward theirs.
@@ -88,15 +89,19 @@ data uses, unlike the flat 25 km/h straight-line guess it replaces.
   bounds the running error below one unit, so every municipality pair re-aggregates to `od.json` within 200
   people (measured worst case: 199) and the total within 83 people. Same technique as this project's per-building
   splits (`job-coefficients.json`).
-- **Dropped, reported**: within-municipality commutes of the 30 single-point Tama municipalities (663,385
-  workers) - a same-point pop would break rule 3. Inside every other municipality the same-chome share is
-  removed and renormalised over the other chome pairs. Also outside the file: commutes leaving the region
-  (`out`, 141,603) and workplace-unknown (`unknown`, 188,009), which have no destination point.
-- 2,687 chomes with neither employed residents nor jobs appear in no pop and so are not points (rule 4).
+- **Dropped, reported**: inside every municipality the same-chome share is removed and renormalised over the
+  other chome pairs (a same-point pop would break rule 3). Nothing else is dropped since the Tama municipalities
+  got chome data (previously 663,385 within-municipality Tama workers were). Outside the file: commutes leaving the
+  region (`out`, 141,603) and workplace-unknown (`unknown`, 188,009), which have no destination point.
+- 2,810 chomes with neither employed residents nor jobs appear in no pop and so are not points (rule 4).
+- **Tama chome weights**: residents/boundaries from the 2020 census small-area layer (`subward-tama.json`; disjoint
+  pieces of one chome merged), employed residents from census table 16-2 (same as the other prefectures), workers
+  from the Economic Census by name-matching town names (`jobs-tama.json`, 99.90% of workers matched; unmatched are
+  post-2020 new chome names in Machida - 金井ヶ丘, 藤の台 - and a few "その他" rows).
 
 ## Known gaps
 
-- **Tama chome-level data** (above) is the main data gap to chome parity with the real game.
+- Tama has chome-level demand now, but no per-building data: buildings and roads still cover the 23 wards only.
 - `foundationDepth` is 0 for every building. A real value needs basement counts, which exist only for a *different*
   building set (`obstacles.json`'s OSM footprints, `levels_underground`).
 - Roads cover the 23 wards only (the area buildings cover); the demand region is four prefectures.

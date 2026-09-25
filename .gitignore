@@ -55,6 +55,7 @@ transitline/data-raw/rail-network/
 transitline/data-raw/emp2020/*.csv
 
 # raw downloads, see transitline/data-raw/README.md
+transitline/data-raw/tama/
 transitline/data-raw/mlit/
 transitline/data-raw/plateau/
 
