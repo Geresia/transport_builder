@@ -59,6 +59,14 @@ test("scenario runtime connects a map plan to suspended construction, fleet, com
   }
   assert.equal(project.status, "available");
   assert.equal(runtime.game.vehicleOrders[0].stage, "accepted");
+
+  const conflict = project.assets.find((asset) => asset.kind === "station");
+  state.stations.set(conflict.id, { id: conflict.id, name: "Conflict", location: conflict.location });
+  assert.throws(() => runtime.open(geometry.planId, { color: "#e63946" }), /already exists/);
+  assert.equal(runtime.game.services.length, 0, "failed commissioning must also roll back service creation");
+  assert.equal(runtime.projectForPlan(geometry.planId).commissionedLineId, undefined);
+  state.stations.delete(conflict.id);
+
   const opened = runtime.open(geometry.planId, { color: "#e63946" });
   assert.equal(opened.service.status, "open");
   assert.equal(state.lines.filter((line) => line.owned).length, 1);

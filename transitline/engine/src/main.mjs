@@ -439,6 +439,8 @@ async function main() {
       const record = plan ? runtime.latestPlan(plan.planId) : null;
       const project = plan ? runtime.projectForPlan(plan.planId) : null;
       const order = project ? runtime.game.vehicleOrders.find((item) => item.id === `fleet:${project.planId.replace(/[^a-zA-Z0-9_-]/g, "-")}`) : null;
+      const constructionActive = Boolean(project && ["contracted", "underConstruction", "inspection", "suspended"].includes(project.status));
+      const vehicleActive = Boolean(order && order.stage !== "accepted" && order.stage !== "cancelled");
       $("scenario-country").textContent = countryId === "JP" ? `일본 · ${difficulty}` : `한국 · ${difficulty}`;
       $("scenario-cash").textContent = yen.format(runtime.game.ledger.cash);
       $("scenario-plan").textContent = line?.name ?? "없음";
@@ -447,7 +449,7 @@ async function main() {
       $("scenario-approve").disabled = record?.status !== "assessed";
       $("scenario-contract").disabled = !project || !["estimated", "approved"].includes(project.status);
       $("scenario-prepare").disabled = !project || !["contracted", "underConstruction", "inspection", "suspended"].includes(project.status) || Boolean(order);
-      $("scenario-month").disabled = !project || (!["contracted", "underConstruction", "inspection", "suspended"].includes(project.status) && order?.stage === "accepted");
+      $("scenario-month").disabled = !constructionActive && !vehicleActive;
       $("scenario-year").disabled = $("scenario-month").disabled;
       $("scenario-suspend").disabled = !project || !["contracted", "underConstruction", "inspection", "suspended"].includes(project.status);
       $("scenario-suspend").textContent = project?.status === "suspended" ? "공사 재개" : "공사 중단";

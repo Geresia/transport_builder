@@ -30,7 +30,7 @@
 
 값을 못 구하면 **0으로 채우지 않고 `null`**, 이름을 `unknown[]`에 적는다. 추정한 값은 `inferred[]`와 `…Basis`에 근거를 적는다.
 
-- 예외: `platformLengthM`은 엔진이 `null`을 0으로 읽어 "승강장 짧음"으로 오판하므로 **키를 생략**하고 `unknown[]`에만 적는다.
+- 예외: `platformLengthM`은 기존 v1 예제의 바이트 호환을 위해 **키를 생략**하고 `unknown[]`에만 적는다. 엔진은 생략과 `null`을 모두 미상으로 처리하며 0으로 비교하지 않는다.
 - `dataQuality`는 `high|medium|low`만 낸다(`unknown`은 내지 않음). 지반 자료(지하수·연약지반)가 어떤 팩에도 없어서 `constraintUnknown`이 항상 있고, 그래서 현재는 `high`가 나오지 않는다.
 - 레이어가 구간을 덮지 못하면(예: 건물 자료는 신주쿠 등 4개 구역뿐) 그 교차 값은 0이 아니라 `null`.
 - 예외 하나: `scratch` 모드의 `crossings.railway`는 0이다. 그 세계에는 외부 철도망이 없다는 것이 사실이기 때문.
@@ -53,7 +53,7 @@
 | `dataQuality` | `unknown` 허용 | `high/medium/low`만 |
 | 추가 필드 | — | `crossings`, `steepShare`, `unknown/inferred`, `sources` 등. 엔진은 무시 |
 
-`null`과 생략 중 무엇이 맞는지는 엔진 쪽 합의가 필요하다. 현재 `engine/test/map-contract.test.mjs`는 `null`을 기대한다.
+통합 규칙은 숫자 결측을 `null + unknown[]`으로 표현하는 것이다. 다만 `platformLengthM`의 생략은 v1 호환 입력으로 계속 허용하며 엔진은 `null`과 같은 의미로 읽는다.
 
 ## 공사 상태 표시 (엔진 → 지도)
 
@@ -69,7 +69,7 @@
 | 프로젝트 `available`, 기록 `assets-available`, `commissioned` | 사용 가능 |
 | 그 외 | 상태 불명 (추정하지 않고 경고) |
 
-- 엔진에는 전용 "공사 중단" 상태가 아직 없어 취소(`cancelled`)를 그렇게 표시한다. 전용 상태가 생기면 `PROJECT_PHASE`만 고치면 된다.
+- 엔진은 `suspended`와 `resume`을 지원한다. 중단 중에는 공정·기성금 지급이 멈추며, `cancelled`는 복구되지 않는 취소로 별도 유지한다.
 - 위반은 오류, 누락 입력·조건부 판정은 경고, 지도 쪽 미상·추정은 정보로 표시하며, 엔진 메시지의 `Segment N`, `Station <id>`, `stationCandidates.<id>.…`로 대상 구간·역을 찾는다(못 찾으면 계획 전체).
 - 편집 화면에서는 `window.transitlineMap.setEngineReport(report)`로 보고서를 넘긴다. 지도 코드는 원장·계약·공사 상태를 쓰지 않고 `management`를 import하지 않는다(테스트가 검사).
 

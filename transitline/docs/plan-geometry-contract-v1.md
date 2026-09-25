@@ -69,7 +69,7 @@
 - 좌표 순서는 `[경도, 위도]`다.
 - 길이와 고도는 미터, 곡선반경은 미터, 접근시간은 분이다.
 - 접근 링크의 표준 역 참조는 `stationId`다. 초기 합성 입력의 `stationCandidateId` 별칭도 엔진이 호환한다.
-- 자료가 없으면 숫자 `0`을 만들지 않고 필드를 생략한다.
+- 자료가 없으면 숫자 `0`을 만들지 않고 `null`로 두며 해당 필드명을 `unknown[]`에 기록한다. `platformLengthM` 생략은 기존 v1 입력 호환을 위해 `null`과 같은 의미로 허용한다.
 - `dataQuality`는 `high`, `medium`, `low`, `unknown` 중 하나다.
 - `structureHint`는 `surface`, `elevated`, `cut-cover`, `shield`,
   `deep`, `bridge`, `embankment`, `cutting` 중 하나다.
@@ -86,6 +86,10 @@ submitPlan(planGeometry, technicalProfileId)
 → 차량·기지·통합시험 완료
 → commission({ projectId, serviceId })
 ```
+
+활성 공사는 `suspendProject(projectId, reason)`으로 일시 중단하고
+`resumeProject(projectId)`으로 재개할 수 있다. 중단 기간에는 진척과 기성금이
+발생하지 않는다. 취소와 일시 중단은 서로 다른 상태다.
 
 ## 반환 상태
 

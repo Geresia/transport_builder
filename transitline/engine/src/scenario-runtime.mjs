@@ -144,39 +144,45 @@ export class ScenarioRuntime {
     if (order?.stage !== "accepted") throw new Error("영업용 차량 인수가 아직 끝나지 않았습니다.");
     const serviceId = `service:${suffix}`;
     if (this.game.services.some((service) => service.id === serviceId)) throw new Error("이미 개통한 서비스입니다.");
+    const checkpoint = this.save();
     const facts = routeFacts(project);
     const model = VEHICLE_MODELS[order.modelId];
     const profile = TECHNICAL_PROFILES[project.technicalProfileId];
     const knownLengths = project.planGeometry.stationCandidates.map((station) => station.platformLengthM).filter(Number.isFinite);
     const platformLengthM = knownLengths.length ? Math.min(...knownLengths) : model.cars * profile.platformLengthPerCarM;
-    const service = this.game.createService({
-      id: serviceId,
-      name: project.planGeometry.name ?? project.planId,
-      projectId: project.id,
-      vehicleOrderId: orderId,
-      depotId,
-      modelId: order.modelId,
-      ...facts,
-      commercialSpeedKph: 30,
-      trainsPerHour,
-      staffReady: true,
-      timetableReady: true,
-      trialOperationPassed: true,
-      approvalsValid: true,
-      platformLengthM,
-      passengerWeight: 100,
-    });
-    if (service.status !== "open") throw new Error(service.readiness.reasons.join("; "));
-    const commissioned = this.bridge.commission({ projectId: project.id, serviceId, color, lineName: service.name });
-    const lineId = String(commissioned.lineId);
-    service.engineCursor = {
-      day: Math.floor(this.operationalState.simMinutes / 1440),
-      delivered: this.operationalState.stats.deliveredByLine[lineId] ?? 0,
-      trainKm: this.operationalState.stats.trainKmByLine[lineId] ?? 0,
-    };
-    service.operationsStartedAtSimMinute = this.operationalState.simMinutes;
-    service.operationsStartedAtGameMinute = this.game.clock.minute;
-    return { service: structuredClone(service), commissioned };
+    try {
+      const service = this.game.createService({
+        id: serviceId,
+        name: project.planGeometry.name ?? project.planId,
+        projectId: project.id,
+        vehicleOrderId: orderId,
+        depotId,
+        modelId: order.modelId,
+        ...facts,
+        commercialSpeedKph: 30,
+        trainsPerHour,
+        staffReady: true,
+        timetableReady: true,
+        trialOperationPassed: true,
+        approvalsValid: true,
+        platformLengthM,
+        passengerWeight: 100,
+      });
+      if (service.status !== "open") throw new Error(service.readiness.reasons.join("; "));
+      const commissioned = this.bridge.commission({ projectId: project.id, serviceId, color, lineName: service.name });
+      const lineId = String(commissioned.lineId);
+      service.engineCursor = {
+        day: Math.floor(this.operationalState.simMinutes / 1440),
+        delivered: this.operationalState.stats.deliveredByLine[lineId] ?? 0,
+        trainKm: this.operationalState.stats.trainKmByLine[lineId] ?? 0,
+      };
+      service.operationsStartedAtSimMinute = this.operationalState.simMinutes;
+      service.operationsStartedAtGameMinute = this.game.clock.minute;
+      return { service: structuredClone(service), commissioned };
+    } catch (error) {
+      this.load(checkpoint);
+      throw error;
+    }
   }
 
   settleOperatingDays() {

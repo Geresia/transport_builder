@@ -30,8 +30,17 @@ powershell -File ../docs/serve.ps1 -Root .. -Index engine/index.html
 ```
 
 Then open `http://localhost:8000/engine/index.html`. It loads
-`../packs/example-radial` by default; pick another pack with
-`?pack=../packs/<id>` (e.g. `../packs/example-corridor` for the matrix model).
+`../packs/example-radial` in the integrated construction scenario by default.
+Draw a plan, choose the running system/structure/platform, then pass technical
+review, approval, contracting, depot/fleet procurement, construction and
+commissioning. Use `?play=sandbox` for free instant lines, or choose another
+pack with `?pack=../packs/<id>`.
+
+Scenario query parameters are `country=JP|KR`, `network=existing|scratch`,
+`difficulty=easy|normal|hard`, and `funding=limited|sandbox`. The integrated
+screen saves the map, company, construction, fleet, trains, passengers and RNG
+together. `src/scenario-runtime.mjs` owns this workflow; the map layer remains
+read-only with respect to money and construction state.
 
 Open `http://localhost:8000/engine/management.html` for the company-management
 scenario. It connects the public O&M tender, construction, rolling-stock,
@@ -39,7 +48,7 @@ depot, opening-readiness and 30-day operating flow. Add `?country=KR` to use
 the Korean procedure and cost profile. The screen saves locally in the
 browser; the underlying save format has a versioned programmatic API.
 
-Run all engine regressions and the one-year save/resume scenario with:
+Run all engine regressions, map contract checks and integrated save/resume scenarios with:
 
 ```powershell
 npm test
@@ -88,14 +97,17 @@ state from "existing" mid-game with the existing **Clear lines** button —
 | `src/geometry.mjs` | Transit-diagram geometry: 0/45/90-degree legs between stations, shared legs fanned side by side, point-along-polyline for trains |
 | `src/render.mjs` | Canvas drawing: the network as a transit diagram (line legs, white station markers, larger at interchanges, letter badges, station names), demand discs, attractors, trains |
 | `src/loop.mjs` | Fixed-ratio sim tick + render, updates the HTML HUD |
-| `src/main.mjs` | Wires everything together; also owns the UI panels: routes list, Route Details (name, per-band frequency, delete), Analysis, and the bottom bar (pause/1x/2x/4x, Day/clock; Space toggles pause) |
+| `src/main.mjs` | Wires the map, construction scenario panel, route controls, analysis and simulation bar together |
+| `src/scenario-runtime.mjs` | Map-plan submission, project/fleet workflow, commissioning, actual operating settlement and integrated save/load |
 
 ## Known Phase 1 simplifications
 
 Not bugs — deliberate scope cuts to get a playable loop first:
 
-- **Stations are exactly `demand.json.points`.** The player never places new
-  ones.
+- **Planning anchors are existing visible points.** Commissioning creates
+  separate physical stations and access links, but the current drag editor
+  still starts from demand points or already visible stations rather than
+  arbitrary map coordinates.
 - **Attractors aren't boardable.** They have their own `location` in the
   format, but Phase 1 has no notion of a station that isn't a pack point, so
   `demand-engine.mjs` folds each attractor's generated trips into its
@@ -107,17 +119,15 @@ Not bugs — deliberate scope cuts to get a playable loop first:
   the rest waiting. Cars per train (1-15) is set per line. Trains dwell 20 s
   at each stop (Subway Builder's `STATION_STOP_TIME`) but still run at a
   constant speed — no acceleration, gradients or signals.
-- **Riders board regardless of direction on the outbound leg**, and only for
-  stations still ahead on the return leg, so nobody is stranded when a train
-  retires. A real timetable-aware boarding rule is not implemented.
+- **Routing is frequency-based, not timetable-based.** Directional boarding
+  is enforced, but passengers do not plan against an exact published timetable.
 - **Frequency is trains/hour per demand band** (High/Medium/Low/Very Low),
   after Subway Builder's Route Details panel. Trains are dispatched from the
   line's first station at that headway, run out and back, then retire. The
   hour-to-band table (`BANDS` in `state.mjs`) is the engine's own default
   timetable; it schedules trains only and does not shape passenger demand.
-- **No money.** Subway Builder's funds, per-hour cost and per-car operating
-  cost have no counterpart yet — the bottom bar has no funds readout on
-  purpose rather than a fake one.
+- **Management economy is scenario-only.** Scenario play has construction,
+  rolling-stock and operating ledgers; `?play=sandbox` intentionally bypasses them.
 - **Mode choice is a lowest-noisy-travel-time pick** among walking (1 m/s),
   driving (30 kph x 1.3 road factor + 5 min parking) and transit (in-vehicle
   time + half the headway). Only transit riders reach stations; drivers and
@@ -125,8 +135,8 @@ Not bugs — deliberate scope cuts to get a playable loop first:
   not calibrated. Departure times count every trip, but "Transit Arrival
   Times" counts transit deliveries only — walkers and drivers have no
   arrival event.
-- **No construction cost.** Lines are free and instant. Subway Builder's
-  tunnel/viaduct/cut-and-cover tradeoffs are Phase 2/3 economy territory.
+- **Sandbox construction is instant.** The default scenario charges by
+  structure and consumes months; only `?play=sandbox` keeps free instant lines.
 - **The diagram is schematic in line shape only.** Stations keep their projected positions; each leg between two stations is one diagonal run plus one straight run. Legs shared by several lines are offset per leg, so a line's stroke can step sideways at a station where the set of lines sharing changes. Station names are drawn only for points the pack actually names (`name`), and on packs over 40 stations only where a line stops.
 - **No pan/zoom.** The camera fits the whole `bbox` once, on load and resize.
 - **Demand models**: `gravity` and `matrix` both run. Matrix flows follow
