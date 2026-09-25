@@ -5,7 +5,10 @@ import { chooseMode } from "./mode-choice.mjs";
 import { hourOfDay, trainCapacity } from "./state.mjs";
 import { randomFrom } from "./rng.mjs";
 
-const ABANDON_AFTER_MINUTES = 25;
+// Commuters do not give up on a crowded platform (user decision 2026-09-26; the reference game has no wait limit
+// either). Only a passenger stuck for a whole 12 h - e.g. stranded by a deleted line - is swept away, like the game's
+// hourly stuck-movement sweep. `stats.abandoned` now counts those stranded ones.
+const ABANDON_AFTER_MINUTES = 12 * 60;
 
 export function spawnPassengers(state, model, graph, dtMinutes) {
   const random = randomFrom(state);

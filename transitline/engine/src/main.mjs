@@ -8,6 +8,7 @@ import { makeProjection } from "./projection.mjs";
 import { buildDemandModel } from "./demand-engine.mjs";
 import { attachInput } from "./input.mjs";
 import { startLoop } from "./loop.mjs";
+import { startPopLoop } from "./pop-loop.mjs";
 import { withStationAccess } from "./access-demand.mjs";
 import { buildMapExport, drawnLinesFromState } from "./map/plan-geometry.mjs";
 import { buildOverlayModel, renderDiagnosticsPanel } from "./map/overlay.mjs";
@@ -531,7 +532,8 @@ async function main() {
 
   // Panels refresh ~4x/second — no need to rewrite the DOM every frame.
   let lastUi = 0;
-  startLoop(state, demandModel, projection, ctx, canvas, hud, input, (now) => {
+  // ?model=pop: game-style pop simulation beside the default individual-passenger one (docs: mechanics study, section 5)
+  (params.get("model") === "pop" ? startPopLoop : startLoop)(state, demandModel, projection, ctx, canvas, hud, input, (now) => {
     if (now - lastUi < 250) return;
     lastUi = now;
     updateRoutePanelLive(state);

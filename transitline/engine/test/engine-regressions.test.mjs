@@ -75,13 +75,17 @@ test("boarding respects train direction", () => {
   assert.equal(state.passengers.find((p) => p.id === 2).state, "onboard");
 });
 
-test("transfer waiting time resets independently from trip start", () => {
+test("commuters never give up on a crowded platform; only 12 h stranded passengers are swept", () => {
   const state = createState(makePack(3));
   state.simMinutes = 100;
   state.passengers = [{ id: 1, state: "waiting", spawnedAt: 0, waitingSince: 90 }];
   expirePassengers(state);
+  state.simMinutes = 116; // the old 25-minute rule would have removed this one
+  expirePassengers(state);
+  state.simMinutes = 90 + 12 * 60; // exactly 12 h of waiting: still there
+  expirePassengers(state);
   assert.equal(state.passengers.length, 1);
-  state.simMinutes = 116;
+  state.simMinutes += 1; // transfer wait is measured from waitingSince, not the trip start
   expirePassengers(state);
   assert.equal(state.passengers.length, 0);
 });
