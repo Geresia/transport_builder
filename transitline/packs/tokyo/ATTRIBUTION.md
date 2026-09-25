@@ -166,6 +166,7 @@ strictest of these sources (`ODbL-1.0`) per
 
 - 時間帯別発生係数・土休日 (`demand.json` の `calendar.factors.saturday`/`.holiday`, 2026-09-23 追加): 出典 JR東日本 公式デジタル時刻表 (`timetables.jreast.co.jp`) — 山手線（新宿駅）・中央線快速（高尾→東京）の平日・土休日時刻表、実際の列車本数を時間帯別に集計。加工: 各路線の土休日/平日の時間帯別シェア比を算出し2路線平均、上記の平日実測係数に適用して平均1.0に再正規化。運行本数（供給側）を需要の代理指標として使用したモデルであり、乗車人員の直接測定ではない。JR東日本の著作物のうち本数の集計値のみを利用（時刻表原文は転記していない）。
 
+- 경사 구간과 봉우리 (`slope-zones.pmtiles`, `peaks.json`): 出典 国土地理院 標高タイル DEM10B (https://cyberjapandata.gsi.go.jp/xyz/dem_png/, 国土地理院コンテンツ利用規約、出典明記で利用可)。加工: 標高から傾斜を算出し(Horn法、約31mメッシュ平均)、傾斜10°・20°・30°以上の領域を入れ子のポリゴンにした。봉우리 위치·이름·표고(`ele`)는 OpenStreetMap contributors (ODbL)、`dem_ele`(地点の標高)と`slope_mean_200m`は上記DEMから算出。閾値は歩行可否の基準ではなく判断値。
 - **Terrain shading (`viewer.html`, fetched live, not shipped):** AWS Terrain Tiles (Terrarium, open data; derived from SRTM, GSI and other sources), `https://registry.opendata.aws/terrain-tiles/`. Used only for the optional hillshade layer; the pack works without it.
 
 - 学校・病院 (`special-demand.json`): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23, CC BY 4.0)」「医療機関データ (P04-20)」(https://nlftp.mlit.go.jp/ksj/)。加工: 大学・短大・高専と100床以上の病院を抽出し、収容人数(`capacity`)を推定値として付与。「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成。文化施設 (P27) は2013年版が非商用のため使用していない。

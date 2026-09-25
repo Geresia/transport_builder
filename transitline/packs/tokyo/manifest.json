@@ -148,6 +148,8 @@
     "specialDemand": "special-demand.json",
     "employed": "employed.json",
     "buildingTilesSurvey": "tokyo-survey-buildings.pmtiles",
+    "slopeTiles": "slope-zones.pmtiles",
+    "peaks": "peaks.json",
     "plateauJobs": "plateau-jobs-index.json"
   },
   "quality": {

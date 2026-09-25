@@ -350,8 +350,10 @@ walker or station-to-station transfer doesn't fly over a river or a bay. Format:
   (`kind: bridge`, motorways/trunks excluded) and footway/path bridges
   (`kind: footbridge`). Tunnels and railway bridges are not listed. Segments are
   cut at z14 tile borders, so one long bridge can appear as several pieces.
-- **Not done: mountains / steep terrain.** That needs an elevation model (slope
-  polygons); the format has room for another barrier `kind`, nothing populates it yet.
+- **Not done: mountains / steep terrain as a barrier.** The slope data now exists and is shown in the viewer
+  (`slope-zones.pmtiles`: nested mean-slope ≥10°/20°/30° polygons; `peaks.json`: 1,642 OSM peaks with DEM elevation; both from the GSI 10 m DEM, see
+  `data-raw/terrain/README.md`), but nothing turns it into a barrier: the format has room for another barrier `kind`, nothing populates it, and
+  the "≥30°" threshold is a judgement call, not a walkability standard.
 - The engine does **not** use it yet — `engine/src/mode-choice.mjs` still walks in
   a straight line. Checked by drawing both layers over OSM (Tokyo Bay, Sumida,
   Koto canals, Tama river): outlines and bridge positions line up.

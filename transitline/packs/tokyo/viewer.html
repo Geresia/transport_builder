@@ -91,6 +91,8 @@
   <label><input type="checkbox" id="toggle-commute-school"> 건물 클릭 시 통학 이동도 같이 표시</label>
   <label><input type="checkbox" id="toggle-theme"> 밝은 지도 (네이버 지도풍)</label>
   <label><input type="checkbox" id="toggle-terrain" checked> 지형 (숲·논밭·초지·산 음영)</label>
+  <label><input type="checkbox" id="toggle-slope"> 경사 구간 (국토지리원 DEM · 평균 10°/20°/30° 이상)</label>
+  <label><input type="checkbox" id="toggle-peaks"> 봉우리 (OSM 위치 · 표고, 줌 8+ · 클릭하면 상세)</label>
   <label><input type="checkbox" id="toggle-rail"> 철도 (배경지도, 줌 9+)</label>
   <label><input type="checkbox" id="toggle-roads"> 차도 (OSM, 줌 13+)</label>
   <label><input type="checkbox" id="toggle-paths"> 보행자 도로 (OSM, 줌 14+ · 인도·횡단보도·계단 등)</label>
@@ -517,7 +519,7 @@ map.on("load", async () => {
   let currentWardJis = null;
   // 건물/정목 레이어를 누른 클릭이 아래 깔린 구/광역권 클릭 핸들러까지 전달되어 줌아웃되는 것을 막음
   const hitsDetailLayer = (e) => {
-    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d", "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "special-demand-circle", ...plateauJobLayerIds()].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
+    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d", "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "special-demand-circle", "peaks-major", "peaks-mid", "peaks-minor", ...plateauJobLayerIds()].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
     return ls.length > 0 && map.queryRenderedFeatures(e.point, { layers: ls }).length > 0;
   };
   // wards-fill(23구)이 region-fill(간토 전역 시정촌) 위에 겹쳐 있어, 구를 클릭하면 두 레이어의
@@ -1370,6 +1372,70 @@ map.on("load", async () => {
         for (const id of ["road-name-major", "road-name-mid", "road-name-minor"]) map.setLayoutProperty(id, "visibility", e.target.checked ? "visible" : "none");
       });
     } catch (err) { console.warn("도로 이름 pmtiles 연결 실패:", err); }
+
+    // ---- 경사 구간 (slope-zones.pmtiles: 국토지리원 10m DEM의 평균 경사 ≥10°/20°/30° 폴리곤) + 봉우리 (peaks.json) ----
+    // 폴리곤이 중첩돼 있어(≥30° 영역은 ≥20°·≥10° 안에도 들어 있음) 오름차순으로 겹쳐 그린다. 문턱값은 걷기 가능 기준이 아니라 판단용.
+    // 봉우리는 OSM 점 + DEM 표고. 지도 글꼴에 일본어 글리프가 없어서 지도 라벨은 name_ko/name_en 이 있는 것만, 일본어 이름은 클릭 팝업에서 보여준다.
+    // 둘 다 기본 꺼짐.
+    try {
+      map.addSource("slope", { type: "vector", url: "pmtiles://" + new URL("./slope-zones.pmtiles", location.href).href,
+        attribution: "国土地理院 標高タイル DEM10B" });
+      const slopeBefore = map.getLayer("bm-road-case-minor") ? "bm-road-case-minor" : undefined;
+      const slopeIds = [[10, "#f2d35a", 0.32], [20, "#e8873a", 0.38], [30, "#b3362f", 0.45]].map(([deg, color, op]) => {
+        const id = `slope-${deg}`;
+        map.addLayer({ id, source: "slope", "source-layer": "slope", type: "fill", filter: ["==", ["get", "min_deg"], deg],
+          layout: { visibility: "none" }, paint: { "fill-color": color, "fill-opacity": op } }, slopeBefore);
+        return id;
+      });
+      document.getElementById("toggle-slope").addEventListener("change", (e) => {
+        for (const id of slopeIds) map.setLayoutProperty(id, "visibility", e.target.checked ? "visible" : "none");
+      });
+
+      loadJSON("./peaks.json").then((peaks) => {
+        if (!peaks) return;
+        const feats = peaks.filter((p) => p.kind !== "saddle").map((p) => {
+          const nm = p.name_ko || p.name_en || "";
+          return { type: "Feature", geometry: { type: "Point", coordinates: [p.lon, p.lat] },
+            properties: { name: p.name, name_en: p.name_en, name_ko: p.name_ko, kind: p.kind, ele: p.ele, dem_ele: p.dem_ele,
+              prominence: p.prominence, slope: p.slope_mean_200m, label: nm + (p.ele != null ? (nm ? " " : "") + Math.round(p.ele) + "m" : "") } };
+        });
+        map.addSource("peaks", { type: "geojson", data: { type: "FeatureCollection", features: feats } });
+        const ele = ["coalesce", ["get", "ele"], 0];
+        const isMajor = ["any", ["==", ["get", "kind"], "volcano"], [">=", ele, 1500]];
+        const isMid = ["all", ["!", isMajor], [">=", ele, 700]];
+        const tier = [["peaks-major", 8, isMajor, 5], ["peaks-mid", 10.5, isMid, 4], ["peaks-minor", 12.5, ["all", ["!", isMajor], ["!", isMid]], 3]];
+        const peakIds = [];
+        for (const [id, minzoom, filter, r] of tier) {
+          map.addLayer({ id, source: "peaks", type: "circle", minzoom, filter, layout: { visibility: "none" },
+            paint: { "circle-radius": r, "circle-color": "#7a4b2a", "circle-stroke-color": "#fff", "circle-stroke-width": 1 } });
+          peakIds.push(id);
+        }
+        for (const [id, minzoom, filter] of [["peaks-label-major", 8, isMajor], ["peaks-label-mid", 10.5, isMid]]) {
+          map.addLayer({ id, source: "peaks", type: "symbol", minzoom, filter: ["all", filter, ["!=", ["get", "label"], ""]], layout: { visibility: "none",
+            "text-field": ["get", "label"], "text-font": ["Noto Sans Regular"], "text-size": 11, "text-offset": [0, 0.9], "text-anchor": "top", "text-max-width": 8 },
+            paint: { "text-color": THEME.label.text, "text-halo-color": THEME.label.halo, "text-halo-width": 1.4 } });
+          peakIds.push(id);
+        }
+        document.getElementById("toggle-peaks").addEventListener("change", (e) => {
+          for (const id of peakIds) map.setLayoutProperty(id, "visibility", e.target.checked ? "visible" : "none");
+        });
+        for (const id of ["peaks-major", "peaks-mid", "peaks-minor"]) {
+          map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
+          map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));
+          map.on("click", id, (e) => {
+            const p = e.features[0].properties;
+            const box = document.createElement("div");
+            box.style.cssText = "color:#111;font-size:12px;line-height:1.5";
+            const line = (text, bold) => { const d = document.createElement("div"); d.textContent = text; if (bold) d.style.fontWeight = "700"; box.appendChild(d); };
+            line([p.name, p.name_en, p.name_ko].filter(Boolean).join(" · ") || "(이름 없음)", true);
+            line(`${{ peak: "봉우리", volcano: "화산" }[p.kind] || p.kind}${p.ele != null ? ` · OSM 표고 ${p.ele}m` : ""}${p.dem_ele != null ? ` · DEM ${p.dem_ele}m` : ""}`);
+            if (p.prominence != null && p.prominence !== "null") line(`상대 높이(prominence) ${p.prominence}m`);
+            if (p.slope != null && p.slope !== "null") line(`주변 200m 평균 경사 ${p.slope}°`);
+            new maplibregl.Popup({ maxWidth: "260px" }).setLngLat(e.lngLat).setDOMContent(box).addTo(map);
+          });
+        }
+      });
+    } catch (err) { console.warn("경사·봉우리 연결 실패:", err); }
 
     // ---- 큰 건물 이름 (building-labels.pmtiles: 이름 있는 건물 중 한 변 약 40m 이상만, 줌 15+) ----
     // 이름은 한글 발음(labels.pmtiles 의 ko — name:ko 가 있으면 그것, 없으면 일본어 이름을 한글로 옮긴 근사 발음).

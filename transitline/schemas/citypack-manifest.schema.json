@@ -219,6 +219,14 @@
           "type": "string",
           "description": "PMTiles of official survey building polygons (use class, floors) with modeled per-building pop / jobs / emp."
         },
+        "slopeTiles": {
+          "type": "string",
+          "description": "PMTiles of nested terrain slope zones (layer `slope`, attribute `min_deg` = 10 / 20 / 30: mean slope at least that many degrees) derived from the GSI 10 m DEM. Nested, not bands: draw ascending."
+        },
+        "peaks": {
+          "type": "string",
+          "description": "OSM natural=peak/volcano/saddle points (kind, name, name_en, name_ko, ele, prominence, lon, lat) with the GSI DEM elevation at the point (dem_ele) and mean slope within 200 m."
+        },
         "plateauJobs": {
           "type": "string",
           "description": "Index (cities[]: slug, ko/ja name, file, bbox, counts, r2, source dataset) of PLATEAU-based MODELED per-building workers; each city has its own jobs-buildings-<slug>.json (same shape as jobsBuildings, with a .gz sibling listed in compressed). Loaded per city on demand."
