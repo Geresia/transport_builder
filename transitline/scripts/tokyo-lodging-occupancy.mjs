@@ -57,13 +57,14 @@ function tableRow(n, m, pref) {
 const r3 = (x) => Math.round(x * 1000) / 1000;
 const prefectures = {};
 for (const [p, name] of Object.entries(PREFS)) {
-  const o = { name, persons: [], personsPerRoom: [], occupancyAll: [], occupancyHotel: [], occupancyInn: [], residentShare: [], _avail: { hotel: [], inn: [] } };
+  const o = { name, persons: [], personsPerRoom: [], occupancyAll: [], occupancyHotel: [], occupancyInn: [], residentShare: [], tourismShare: [], _avail: { hotel: [], inn: [] } };
   for (let m = 1; m <= 12; m++) {
     const P = num(tableRow(2, m, p).B), U = tableRow(7, m, p), O = tableRow(8, m, p), R = tableRow(9, m, p);
     o.persons.push(P);
     o.personsPerRoom.push(r3(P / num(U.B)));
     o.occupancyAll.push(r3(num(O.B) / 100));
     o.residentShare.push(r3(num(R.C) / (num(R.C) + num(R.D))));
+    o.tourismShare.push(r3(num(U.C) / (num(U.C) + num(U.D)))); // share of used rooms in facilities where 50%+ of the guests are there for tourism (table 7 C vs D)
     for (const [g, cols] of Object.entries(GROUP_COLS)) {
       let used = 0, avail = 0;
       for (const c of cols) { const u = num(U[c]), oc = num(O[c]); if (u > 0 && oc > 0) { used += u; avail += u / (oc / 100); } }
@@ -154,6 +155,7 @@ const out = {
     + `lambda (Tokyo municipalities only) = that municipality's share of hotel-weighted NTT overnight visitors divided by its share of rooms, damped (power ${SHRINK}), limited to ${LAMBDA_MIN}-${LAMBDA_MAX} and re-centred to a room-weighted mean of 1 each month, because NTT overnight also counts stays at relatives' homes; 1 elsewhere. `
     + "scale = official available rooms / OSM rooms of the group (OSM is incomplete and its room counts are mostly modeled: see hotels.json sizeBasis). "
     + "dayOfWeek is an ASSUMED placeholder (no source), re-normalised so each month's mean stays the official value; public holidays are not modeled. "
+    + "tourismShare[month] = share of used rooms in facilities where tourism is 50%+ of the guests (official table 7): a facility-level proxy for the leisure share of guests, the rest is treated as business/other. "
     + "Official facilities are those with 10+ employees; 会社・団体の宿泊所 and 民泊 are outside both groups.",
   hotelShare: { ...hotelShare, basis: "share of overnight respondents in Tokyo who used a hotel (multi-answer): domestic 観光地点パラメータ調査 R7, foreign 国・地域別外国人旅行者行動特性調査 R7" },
   groups: { hotel: "OSM hotel, motel <-> official リゾートホテル+ビジネスホテル+シティホテル", inn: "OSM guest_house, hostel, apartment, chalet <-> official 旅館+簡易宿所" },

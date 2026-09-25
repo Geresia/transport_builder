@@ -79,8 +79,8 @@ const AREA = [
 ];
 for (const a of AREA) for (const c of a[1]) if (!munis[c]) throw new Error(`survey area ${a[0]}: ${c} is not a municipality in the mobile data`);
 const TRANSPORT = ["JR", "京成電鉄", "モノレール", "京急電鉄", "地下鉄", "鉄道（上記以外）", "空港リムジンバス", "貸切バス", "定期観光バス", "路線バス", "タクシー", "水上バス・屋形船", "船（都内移動のみ）", "自転車", "電動キックボード", "親族・知人の車", "レンタカー", "その他"];
-const kmaster = readXlsx(await xlsxIn("kunibetsu", "国・地域別外国人旅行者行動特性調査_マスタ"), ["B2_入国空海港", "F4_交通", "G2_訪問地"]);
-for (const [sheet, ours] of [["B2_入国空海港", Object.values(AIRPORT)], ["F4_交通", TRANSPORT], ["G2_訪問地", AREA.map((a) => a[0])]]) {
+const kmaster = readXlsx(await xlsxIn("kunibetsu", "国・地域別外国人旅行者行動特性調査_マスタ"), ["B2_入国空海港", "F4_交通", "G2_訪問地", "C3_訪都目的"]);
+for (const [sheet, ours] of [["B2_入国空海港", Object.values(AIRPORT)], ["F4_交通", TRANSPORT], ["G2_訪問地", AREA.map((a) => a[0])], ["C3_訪都目的", ["観光", "親族", "ビジネス", "国際会議"]]]) {
   const got = kmaster[sheet].slice(1).map((r) => r.B); // first value column = R7
   ours.forEach((n, i) => { if (!got[i]?.startsWith(n)) throw new Error(`${sheet} code ${i + 1}: expected "${n}", master says "${got[i]}" - R7 code list changed`); });
 }
@@ -90,9 +90,14 @@ const flagCols = (prefix, n) => Array.from({ length: n }, (_, i) => col[prefix +
 const areaCols = flagCols("訪問地", AREA.length), trCols = flagCols("交通", TRANSPORT.length);
 const stat = { rows: 0, notTokyo: 0, noAirport: 0 };
 const acc = {}; // airport code -> { n, area: [], transport: [] }
+// by trip purpose (訪都目的: 1 観光・レジャー; 3 ビジネス, 4 国際会議・展示会 = business), only respondents who slept in Tokyo
+const PURPOSE = { 1: "leisure", 3: "business", 4: "business" };
+const pur = { leisure: { n: 0, nights: 0, areas: Array(AREA.length).fill(0) }, business: { n: 0, nights: 0, areas: Array(AREA.length).fill(0) } };
 for (const r of survey.slice(1)) {
   stat.rows++;
   if (+r[col["訪都有無"]] !== 1) { stat.notTokyo++; continue; }
+  const grp = PURPOSE[+r[col["訪都目的"]]], nights = +r[col["都内泊数"]];
+  if (grp && nights > 0) { const p = pur[grp]; p.n++; p.nights += nights; areaCols.forEach((c, i) => { if (+r[c] === 1) p.areas[i]++; }); }
   const ap = +r[col["入国空港"]];
   if (!AIRPORT[ap]) { stat.noAirport++; continue; }
   const a = (acc[ap] ??= { n: 0, area: Array(AREA.length).fill(0), transport: Array(TRANSPORT.length).fill(0) });
@@ -106,6 +111,12 @@ const gateways = Object.entries(acc).map(([ap, a]) => ({
   visitedAreaShare: Object.fromEntries(AREA.map(([nm], i) => [nm, share(a.area[i], a.n)]).filter(([, s]) => s > 0)),
   transportShare: Object.fromEntries(TRANSPORT.map((nm, i) => [nm, share(a.transport[i], a.n)]).filter(([, s]) => s > 0)),
 })).sort((x, y) => y.respondents - x.respondents);
+const NAMED = AREA.length - 2; // the last two areas (islands, "other") are not places to go from a hotel
+const purposes = Object.fromEntries(Object.entries(pur).map(([k, p]) => [k, {
+  respondents: p.n, meanNights: Math.round((p.nights / p.n) * 100) / 100,
+  namedAreasPerNight: Math.round((p.areas.slice(0, NAMED).reduce((a, b) => a + b, 0) / p.nights) * 1000) / 1000, // visits to the named areas per night slept in Tokyo
+  visitedAreaShare: Object.fromEntries(AREA.slice(0, NAMED).map(([nm], i) => [nm, share(p.areas[i], p.n)]).filter(([, s]) => s > 0)),
+}]));
 
 // ---- 3. rail inbound to the four prefectures: 国土交通省 幹線鉄道旅客流動実態調査 H27 (2015), the latest full survey ----
 // Shinkansen + main-line limited express, ALL trip purposes (business, commuting, tourism), not tourists only. One-way trips per year
@@ -155,6 +166,7 @@ const out = {
   visitorDefinition: "Kanto (1都3県) residents: >= 40 km one way or >= 4 h stay; other residents: >= 80 km or >= 8 h; regular commuting excluded. Foreign: NTT docomo roaming data.",
   municipalities: munis,
   railInbound,
+  purposes,
   surveyAreas: AREA.map(([name, wardCodes]) => ({ name, wardCodes })),
   gateways,
 };

@@ -1223,26 +1223,36 @@ map.on("load", async () => {
       const noOut = { type: "FeatureCollection", features: [] };
       map.addSource("lodge-out", { type: "geojson", data: noOut });
       map.addLayer({ id: "lodge-out-lines", source: "lodge-out", type: "line", filter: ["==", ["geometry-type"], "LineString"], layout: { "line-cap": "round" },
-        paint: { "line-color": "#0ca678", "line-width": ["get", "wpx"], "line-opacity": 0.85 } });
+        paint: { "line-color": ["match", ["get", "kind"], "business", "#f76707", "#0ca678"], "line-width": ["get", "wpx"], "line-opacity": 0.85 } });
       map.addLayer({ id: "lodge-out-dots", source: "lodge-out", type: "circle", filter: ["==", ["geometry-type"], "Point"],
-        paint: { "circle-radius": ["get", "rpx"], "circle-color": "#0ca678", "circle-stroke-color": "#ffffff", "circle-stroke-width": 1 } });
+        paint: { "circle-radius": ["get", "rpx"], "circle-color": ["match", ["get", "kind"], "business", "#f76707", "#0ca678"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1 } });
       const clearOut = () => map.getSource("lodge-out").setData(noOut);
+      let leisureShareOf = () => null; // 가동률 블록이 채운다: 그 달 그 현의 관광 목적 비율(공식 통계, 관광 중심 시설의 객실 사용 비율)
       const outings = (p, at) => { // -> popup html; also draws the outgoing lines from the hotel
-        const P = flows && flows.origins[p.muni], g = Number(p.guests);
-        if (!P || !(Number(p.occ) >= 0) || !(g > 0)) { clearOut(); return ""; }
-        const total = g * flows.params.tripsPerGuestNight;
-        const rows = flows.destinations.map((c, k) => ({ c, n: total * P[k] })).filter((r) => locOf[r.c]).sort((a, b) => b.n - a.n);
-        const max = rows[0].n, features = [];
+        const g = Number(p.guests), tau = leisureShareOf(p.muni);
+        const FL = flows && flows.origins.leisure[p.muni], FB = flows && flows.origins.business[p.muni];
+        if (!FL || !FB || tau == null || !(Number(p.occ) >= 0) || !(g > 0)) { clearOut(); return ""; }
+        // 투숙객을 관광(tau) / 출장·기타(1 - tau)로 나눠 각자의 외출 횟수·목적지 모델로 계산
+        const part = [
+          { k: "leisure", ko: "관광", P: FL, total: g * tau * flows.params.leisure.outingsPerGuestNight },
+          { k: "business", ko: "출장·기타", P: FB, total: g * (1 - tau) * flows.params.business.outingsPerGuestNight },
+        ];
+        const byDest = new Map();
+        for (const q of part) flows.destinations.forEach((c, i) => { const r = byDest.get(c) ?? { c, l: 0, b: 0 }; r[q.k === "leisure" ? "l" : "b"] = q.total * q.P[i]; byDest.set(c, r); });
+        const rows = [...byDest.values()].filter((r) => locOf[r.c]).map((r) => ({ ...r, n: r.l + r.b })).sort((a, b) => b.n - a.n);
+        const grand = part[0].total + part[1].total, max = rows[0].n, features = [];
         for (const r of rows) {
-          if (r.n < total * 0.02) continue;
-          const props = { name: koOf[r.c], n: r.n, wpx: 1 + 7 * Math.sqrt(r.n / max), rpx: 2 + 5 * Math.sqrt(r.n / max) };
+          if (r.n < grand * 0.02) continue;
+          const props = { name: koOf[r.c], n: r.n, kind: r.b > r.l ? "business" : "leisure", wpx: 1 + 7 * Math.sqrt(r.n / max), rpx: 2 + 5 * Math.sqrt(r.n / max) };
           features.push({ type: "Feature", properties: props, geometry: { type: "LineString", coordinates: [at, locOf[r.c]] } },
             { type: "Feature", properties: props, geometry: { type: "Point", coordinates: locOf[r.c] } });
         }
         map.getSource("lodge-out").setData({ type: "FeatureCollection", features });
-        return `<br><b>하루 약 ${nf(total)}회 외출</b> (투숙 ${nf(g)}명 × ${flows.params.tripsPerGuestNight}회) → `
-          + rows.slice(0, 5).map((r) => `${esc(koOf[r.c])} ${nf(r.n)}`).join(" · ")
-          + `<br><span style="color:#666">방문객 수(NTT 실측)·거리 모델 — 외국인 설문 기준, 예측 정확도 낮음</span>`;
+        const top = (q) => [...flows.destinations].map((c, i) => [c, q.total * q.P[i]]).filter(([c]) => locOf[c]).sort((a, b) => b[1] - a[1]).slice(0, 3)
+          .map(([c, n]) => `${esc(koOf[c])} ${nf(n)}`).join(" · ");
+        return `<br><b>하루 약 ${nf(grand)}회 외출</b> — 투숙 ${nf(g)}명 중 관광 ${Math.round(tau * 100)}% · 출장·기타 ${Math.round((1 - tau) * 100)}%`
+          + part.map((q) => `<br><span style="color:${q.k === "leisure" ? "#0ca678" : "#f76707"}">■</span> ${q.ko} ${nf(q.total)}회 (${nf(q.total / (g * (q.k === "leisure" ? tau : 1 - tau)) * 100) / 100}회/명) → ${top(q)}`).join("")
+          + `<br><span style="color:#666">관광/출장 비율은 공식 통계, 외출 횟수는 외국인 설문 실측, 목적지는 보정한 모델(정확도 낮음)</span>`;
       };
       map.on("click", "hotels-circle", (e) => {
         const p = e.features[0].properties, out = outings(p, e.features[0].geometry.coordinates);
@@ -1287,6 +1297,7 @@ map.on("load", async () => {
           const occ = Math.min(1, (g === "hotel" ? P.occupancyHotel : P.occupancyInn)[day.mo] * lam * dowNorm(day.mo, day.dow));
           return { occ, guests: occ * h.rooms * (P.scale[g] || 1) * P.personsPerRoom[day.mo] };
         };
+        leisureShareOf = (muni) => { const P = ld.prefectures[String(muni).slice(0, 2)]; return P && P.tourismShare ? P.tourismShare[day.mo] : null; };
         const memo = new Map();
         guestsOf = (h) => { const l = memo.get(h.id) ?? memo.set(h.id, lodgeAt(h)).get(h.id); return l ? l.guests : 0; };
         const dow_KO = ["일", "월", "화", "수", "목", "금", "토"];
