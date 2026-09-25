@@ -58,6 +58,9 @@ transitline/data-raw/emp2020/*.csv
 transitline/data-raw/mlit/
 transitline/data-raw/plateau/
 
+# Claude Code local settings
+.claude/
+
 # mod build artifacts
 transitline/mods/*/node_modules/
 transitline/mods/*/dist/
