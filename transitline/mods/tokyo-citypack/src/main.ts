@@ -22,6 +22,13 @@ if (!api) {
 } else {
   let initialized = false;
 
+  // How game v1.7.1 reads a city's files (learned from its console, 2026-09-26): a path under "/data/" is fetched from
+  // the game's local data server, which serves %APPDATA%\metro-maker4\cities\data\<CODE>\ (that is where Railyard
+  // installs cities too). Relative paths get a broken URL ("...59330data/x"), other absolute paths need an IPC
+  // (loadDataFileAbsolute) the game does not expose, and the buildings index must be the binary format, not JSON.
+  // So the data files are NOT inside this mod: scripts/install-subway-builder-city.mjs puts them in that folder.
+  const DATA = `/data/${CITY_CODE}/`;
+
   api.hooks.onMapReady(() => {
     if (initialized) return;
     initialized = true;
@@ -41,9 +48,9 @@ if (!api) {
       });
 
       api.cities.setCityDataFiles(CITY_CODE, {
-        buildingsIndex: 'data/buildings_index.all.json',
-        demandData: 'data/demand_data.chome.json',
-        roads: 'data/roads.all.geojson', // real, 23 wards - see file header
+        buildingsIndex: DATA + 'buildings_index.bin',
+        demandData: DATA + 'demand_data.json',
+        roads: DATA + 'roads.geojson', // real, 23 wards - see file header
       });
 
       api.ui.showNotification(`${TAG} Tokyo CityPack registered (code ${CITY_CODE}).`, 'success');
