@@ -103,7 +103,14 @@
   <div class="cap" id="commute-cap" style="display:none"></div>
   <div class="ovl-title">관광 수요 · 신칸센 도착객</div>
   <label><input type="checkbox" id="toggle-tokyo-stn" checked> 도쿄역 도착객 분산 경로 (인구+종사자 비례 · 구를 클릭하면 정목 단위)</label>
+  <div class="cap" style="margin:0 0 0 20px">목적지를 나누는 기준:</div>
+  <label style="margin-left:20px"><input type="radio" name="tstn-mode" value="pop" checked> 인구 + 종사자 수</label>
+  <label style="margin-left:20px"><input type="radio" name="tstn-mode" value="hotel"> 호텔 크기 (객실 수)</label>
   <div class="cap" id="tstn-cap" style="margin:0 0 6px 20px"></div>
+  <label><input type="checkbox" id="toggle-hotels"> 호텔·숙박시설 위치 (OSM, 줌 10+ · 크기 = 객실 수, 대부분 모델 추정)</label>
+  <div class="cap" id="hotels-cap" style="margin:0 0 4px 20px"></div>
+  <label style="margin-left:20px">호텔 가동률 날짜 <input type="date" id="lodging-date" min="2025-01-01" max="2025-12-31" value="2025-10-17"></label>
+  <div class="cap" id="lodging-cap" style="margin:0 0 6px 20px"></div>
   <div class="ovl-title">특수 수요 · 시범 데이터</div>
   <label><input type="checkbox" id="toggle-special"> 대학·병원 (MLIT, 4개 도현 · 위치 실측 · 정원은 모델 추정)</label>
   <label><input type="checkbox" id="toggle-plateau-jobs"> 건물별 직장 — PLATEAU 도시 <span id="plateau-jobs-count"></span> (모델, 줌 13+)</label>
@@ -522,7 +529,7 @@ map.on("load", async () => {
   let currentWardJis = null;
   // 건물/정목 레이어를 누른 클릭이 아래 깔린 구/광역권 클릭 핸들러까지 전달되어 줌아웃되는 것을 막음
   const hitsDetailLayer = (e) => {
-    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d", "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "special-demand-circle", "tstn-dest", "tstn-station", "peaks-major", "peaks-mid", "peaks-minor", ...plateauJobLayerIds()].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
+    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d", "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "special-demand-circle", "hotels-circle", "tstn-dest", "tstn-station", "peaks-major", "peaks-mid", "peaks-minor", ...plateauJobLayerIds()].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
     return ls.length > 0 && map.queryRenderedFeatures(e.point, { layers: ls }).length > 0;
   };
   // wards-fill(23구)이 region-fill(간토 전역 시정촌) 위에 겹쳐 있어, 구를 클릭하면 두 레이어의
@@ -535,6 +542,8 @@ map.on("load", async () => {
   let syncOverlay = () => {};
   let currentDetail = null;
   let applyMetric = () => {};
+  // 호텔 가동률 모델(lodging-demand.json)이 켜지면 아래 호텔 블록이 채운다: lodgeAt(h) -> { occ, guests } 그날 밤 가동률·투숙 인원, guestsOf(h) = 도쿄역 분산에 쓰는 가중치
+  let lodgeAt = null, guestsOf = (h) => h.rooms, rerenderFlows = () => {};
   let updateFlows = () => {}; // 도쿄역 도착객 분산 경로 — 구를 열면 정목 단위로, 닫으면 시·구·정·촌 단위로 다시 그림 (아래 "관광 수요" 블록에서 교체됨)
   let capUpdate = () => {}; // re-renders the explanatory panel text when the residents/jobs toggle changes
   // 건물 표시(toggle-obstacles)와 3D(toggle-3d) 토글이 각자 레이어를 따로 건드리면 둘이 어긋난다 —
@@ -661,7 +670,7 @@ map.on("load", async () => {
     subwardActive = true;
 
     currentDetail = subwardIndex;
-    updateFlows(subwardIndex, nameKo);
+    updateFlows(subwardIndex, nameKo, jis);
     applyMetric();
     renderList();
   }
@@ -1072,11 +1081,23 @@ map.on("load", async () => {
     const TOKYO_STN = [139.7671, 35.6812]; // 東京駅 (丸の内)
     const PER_DAY = tourism.railInbound.perDay;
     const STN_COLOR = "#7048e8";
+    const hotelsData = await loadJSON("./hotels.json");
+    const hotels = hotelsData && hotelsData.hotels ? hotelsData.hotels : [];
     const regionDests = demand.points.map((p) => {
       const f = p.jisCode ? wardFeaturesByCode.get(String(p.jisCode)) : regionFeatureByCode.get(String(p.code));
-      return { name: (f && f.properties.name_ko) || p.name, location: p.location, res: p.residents, job: p.jobs ?? 0 };
+      const res = p.residents, job = p.jobs ?? 0;
+      return { name: (f && f.properties.name_ko) || p.name, location: p.location, w: res + job,
+        info: `거주 ${nf(res)} + 종사 ${nf(job)} 에 비례`, code: p.jisCode ? String(p.jisCode).slice(0, 5) : String(p.code) };
     });
-    const TOTAL = regionDests.reduce((s, d) => s + d.res + d.job, 0);
+    const TOTAL_POP = regionDests.reduce((s, d) => s + d.w, 0);
+    // 호텔 기준: 시·구·정·촌 단위는 그곳 호텔의 객실 수 합(선 끝은 demand.json 지점), 구를 열면 그 구의 호텔 하나하나로 나눈다.
+    const hotelsByMuni = new Map();
+    for (const h of hotels) { if (!hotelsByMuni.has(h.muni)) hotelsByMuni.set(h.muni, []); hotelsByMuni.get(h.muni).push(h); }
+    // 가중치 = 그날 밤 투숙 인원(가동률 모델이 있으면), 없으면 객실 수. 날짜를 바꿀 때마다 다시 계산한다.
+    const hotelRegionDestsNow = () => regionDests.map((d) => {
+      const hs = hotelsByMuni.get(d.code) || [], w = hs.reduce((s, h) => s + guestsOf(h), 0), rooms = hs.reduce((s, h) => s + h.rooms, 0);
+      return { ...d, w, info: `호텔·숙박 ${nf(hs.length)}곳 · 객실 약 ${nf(rooms)}실` + (lodgeAt ? ` · 그날 밤 투숙 약 ${nf(w)}명에 비례` : "에 비례") };
+    });
     const empty = { type: "FeatureCollection", features: [] };
     for (const id of ["tstn-lines", "tstn-dest", "tstn-station"]) map.addSource(id, { type: "geojson", data: empty });
     map.getSource("tstn-station").setData({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: TOKYO_STN } });
@@ -1092,14 +1113,14 @@ map.on("load", async () => {
       layout: { "text-field": "도쿄역 東京駅", "text-font": ["Noto Sans Regular"], "text-size": 13, "text-offset": [0, 1.3], "text-anchor": "top" },
       paint: { "text-color": THEME.name === "dark" ? "#b197fc" : "#5f3dc4", "text-halo-color": THEME.label.halo, "text-halo-width": 1.6 } });
 
-    // dests: [{name, location, res, job}] -> lines + endpoint dots; width/radius scale with the largest share in this set
-    const flowData = (dests) => {
-      const max = Math.max(1, ...dests.map((d) => d.res + d.job));
+    // dests: [{name, location, w, info}] -> lines + endpoint dots; width/radius scale with the largest weight in this set, share = w / total
+    const flowData = (dests, total) => {
+      const max = Math.max(1, ...dests.map((d) => d.w));
       const lines = [], dots = [];
       for (const d of dests) {
-        const w = d.res + d.job;
+        const w = d.w;
         if (!(w > 0) || !d.location) continue;
-        const props = { name: d.name, res: d.res, job: d.job, share: w / TOTAL, perDay: (w / TOTAL) * PER_DAY,
+        const props = { name: d.name, info: d.info, share: w / total, perDay: (w / total) * PER_DAY,
           wpx: 0.8 + 6.2 * Math.sqrt(w / max), rpx: 2 + 6 * Math.sqrt(w / max) };
         lines.push({ type: "Feature", properties: props, geometry: { type: "LineString", coordinates: [TOKYO_STN, d.location] } });
         dots.push({ type: "Feature", properties: props, geometry: { type: "Point", coordinates: d.location } });
@@ -1107,28 +1128,48 @@ map.on("load", async () => {
       return { lines: { type: "FeatureCollection", features: lines }, dots: { type: "FeatureCollection", features: dots } };
     };
     const capEl = document.getElementById("tstn-cap");
-    updateFlows = (detail, nameKo) => {
-      let dests = regionDests, scope;
-      if (detail && detail.areas) {
+    const KIND_KO = { hotel: "호텔", motel: "모텔", guest_house: "게스트하우스·료칸", hostel: "호스텔", apartment: "숙박용 아파트", chalet: "샬레·별장" };
+    const BASIS_KO = { rooms: "OSM 태그(실측)", footprint: "건물 면적×층수로 추정", "footprint-assumed-levels": "건물 면적으로 추정(층수 가정)", default: "크기 불명, 기본값" };
+    let cur = { detail: null, nameKo: "", jis: "" };
+    const byHotelMode = () => hotels.length > 0 && document.querySelector('input[name="tstn-mode"]:checked').value === "hotel";
+    const render = () => {
+      const { detail, nameKo, jis } = cur, byHotel = byHotelMode();
+      const hotelDests = byHotel ? hotelRegionDestsNow() : null;
+      const total = byHotel ? hotelDests.reduce((s, d) => s + d.w, 0) : TOTAL_POP;
+      let dests = byHotel ? hotelDests : regionDests, scope;
+      const shareText = (sum) => `이 지역 몫 ${((sum / total) * 100).toFixed(1)}%, 하루 약 ${nf((sum / total) * PER_DAY)}명.`;
+      if (detail && detail.areas && !byHotel) {
         dests = detail.areas.map((a) => {
-          const ko = kanaToKo(a.reading_kana);
-          return { name: ko ? `${ko} (${a.name_ja})` : a.name_ja, location: a.location, res: a.residents, job: jobs && jobs.areas[a.code] ? jobs.areas[a.code].w : 0 };
+          const ko = kanaToKo(a.reading_kana), res = a.residents, job = jobs && jobs.areas[a.code] ? jobs.areas[a.code].w : 0;
+          return { name: ko ? `${ko} (${a.name_ja})` : a.name_ja, location: a.location, w: res + job, info: `거주 ${nf(res)} + 종사 ${nf(job)} 에 비례` };
         });
-        const sum = dests.reduce((s, d) => s + d.res + d.job, 0);
-        scope = `${nameKo} 정목 ${dests.length}개로 나눠 표시 중 — 이 지역 몫 ${((sum / TOTAL) * 100).toFixed(1)}%, 하루 약 ${nf((sum / TOTAL) * PER_DAY)}명.`;
-      } else scope = `${dests.length}개 시·구·정·촌으로 나눠 표시 중. 구를 클릭하면 정목 단위로 다시 나뉩니다.`;
-      const { lines, dots } = flowData(dests);
+        scope = `${nameKo} 정목 ${dests.length}개로 나눠 표시 중 — ${shareText(dests.reduce((s, d) => s + d.w, 0))}`;
+      } else if (detail && byHotel) {
+        dests = (hotelsByMuni.get(String(jis).slice(0, 5)) || []).map((h) => {
+          const l = lodgeAt && lodgeAt(h);
+          return { name: `${h.name || "(이름 없음)"} · ${KIND_KO[h.kind] || h.kind}`, location: h.location, w: guestsOf(h),
+            info: `객실 ${nf(h.rooms)}실 — ${BASIS_KO[h.sizeBasis] || h.sizeBasis}` + (l ? ` · 가동률 ${Math.round(l.occ * 100)}% · 그날 밤 투숙 약 ${nf(l.guests)}명` : "") };
+        });
+        scope = `${nameKo}의 호텔·숙박시설 ${nf(dests.length)}곳으로 나눠 표시 중 — ${shareText(dests.reduce((s, d) => s + d.w, 0))}`;
+      } else scope = `${dests.length}개 시·구·정·촌으로 나눠 표시 중. 구를 클릭하면 ${byHotel ? "그 구의 호텔 하나하나" : "정목 단위"}로 다시 나뉩니다.`;
+      const { lines, dots } = flowData(dests, total);
       map.getSource("tstn-lines").setData(lines);
       map.getSource("tstn-dest").setData(dots);
-      capEl.textContent = `신칸센(+특급) 도착객 하루 약 ${nf(PER_DAY)}명(연 ${nf(tourism.railInbound.total * 1000)}명 · ${tourism.railInbound.year} 국토교통성 조사 · 전 목적)이 `
-        + `전부 도쿄역에서 내려 거주 인구 + 종사자 수에 비례해 흩어진다고 가정한 경로입니다. ${scope} 선은 방향 표시일 뿐 실제 노선이 아닙니다(모델 가정, 실측 아님).`;
+      const head = `신칸센(+특급) 도착객 하루 약 ${nf(PER_DAY)}명(연 ${nf(tourism.railInbound.total * 1000)}명 · ${tourism.railInbound.year} 국토교통성 조사 · 전 목적)이 전부 도쿄역에서 내려 `;
+      capEl.textContent = head + (byHotel
+        ? `이 지도의 호텔·숙박시설(OSM ${nf(hotels.length)}곳)에 ${lodgeAt ? `${document.getElementById("lodging-date").value} 밤 실제 투숙 인원(가동률 반영)` : "객실 수"}만큼 나뉘어 든다고 가정한 경로입니다. 도착객 전원이 숙박한다고 보며 당일치기는 반영하지 않았습니다. `
+        : `거주 인구 + 종사자 수에 비례해 흩어진다고 가정한 경로입니다. `) + `${scope} 선은 방향 표시일 뿐 실제 노선이 아닙니다(모델 가정, 실측 아님).`;
     };
+    updateFlows = (detail, nameKo, jis) => { cur = { detail, nameKo, jis }; render(); };
+    rerenderFlows = render;
+    for (const r of document.querySelectorAll('input[name="tstn-mode"]')) r.addEventListener("change", render);
+    if (!hotels.length) document.querySelector('input[name="tstn-mode"][value="hotel"]').disabled = true;
     map.on("click", "tstn-dest", (e) => {
       const p = e.features[0].properties;
       const n = Number(p.perDay);
       new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
         .setHTML(`<div style="font:12.5px sans-serif;color:#000"><b>${esc(p.name)}</b><br>도쿄역 도착객 하루 약 <b>${n >= 10 ? nf(n) : n.toFixed(1)}</b>명`
-          + ` (전체의 ${(Number(p.share) * 100).toFixed(2)}%)<br>거주 ${nf(p.res)} + 종사 ${nf(p.job)} 에 비례`
+          + ` (전체의 ${(Number(p.share) * 100).toFixed(2)}%)<br>${esc(p.info)}`
           + `<br><span style="color:#666">모델 가정 — 실측 아님</span></div>`)
         .addTo(map);
     });
@@ -1150,6 +1191,95 @@ map.on("load", async () => {
     updateFlows(null);
   } else {
     document.getElementById("toggle-tokyo-stn").disabled = true;
+  }
+
+  // ---- 호텔·숙박시설 위치 (hotels.json — OSM). 위치는 OSM에 있는 것만(전수 아님). 크기 = 객실 수: OSM 태그가 있으면 실측,
+  // 없으면 건물 면적×층수로 추정(sizeBasis). 기본은 꺼짐. 위 "도쿄역 도착객" 블록의 '호텔 크기' 기준이 같은 파일을 쓴다. ----
+  {
+    const hd = await loadJSON("./hotels.json");
+    const tg = document.getElementById("toggle-hotels");
+    const dateEl = document.getElementById("lodging-date"), lcap = document.getElementById("lodging-cap");
+    if (hd && hd.hotels && hd.hotels.length) {
+      const KIND = { hotel: "호텔", motel: "모텔", guest_house: "게스트하우스·료칸", hostel: "호스텔", apartment: "숙박용 아파트", chalet: "샬레·별장" };
+      const BASIS = { rooms: "OSM 태그(실측)", footprint: "건물 면적×층수로 추정", "footprint-assumed-levels": "건물 면적으로 추정(층수 가정)", default: "크기 불명, 기본값" };
+      const hotelFc = { type: "FeatureCollection", features: hd.hotels.map((h) => ({ type: "Feature",
+        properties: { id: h.id, name: h.name || "", kind: h.kind, rooms: h.rooms, basis: h.sizeBasis, area: h.areaM2 ?? null, levels: h.levels ?? null, occ: -1, guests: 0 },
+        geometry: { type: "Point", coordinates: h.location } })) };
+      map.addSource("hotels", { type: "geojson", data: hotelFc });
+      map.addLayer({ id: "hotels-circle", source: "hotels", type: "circle", minzoom: 10, layout: { visibility: "none" },
+        paint: {
+          "circle-color": ["match", ["get", "basis"], "rooms", "#d6336c", "footprint", "#f08c00", "footprint-assumed-levels", "#fab005", "#868e96"],
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, ["+", 1, ["*", 0.12, ["sqrt", ["get", "rooms"]]]], 16, ["+", 3, ["*", 0.45, ["sqrt", ["get", "rooms"]]]]],
+          "circle-opacity": 0.8, "circle-stroke-color": "#ffffff", "circle-stroke-width": 0.8 } });
+      map.on("click", "hotels-circle", (e) => {
+        const p = e.features[0].properties;
+        new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
+          .setHTML(`<div style="font:12.5px sans-serif;color:#000"><b>${esc(p.name || "(이름 없음)")}</b><br>${esc(KIND[p.kind] || p.kind)}`
+            + (Number(p.occ) >= 0 ? `<br>${esc(dateEl.value)} 밤 가동률 <b>${Math.round(Number(p.occ) * 100)}%</b> · 투숙 약 <b>${nf(p.guests)}</b>명` : "")
+            + `<br>객실 약 <b>${nf(p.rooms)}</b>실 — ${esc(BASIS[p.basis] || p.basis)}`
+            + (p.area ? `<br>건물 ${nf(p.area)}m²${p.levels ? ` · ${esc(p.levels)}층` : ""}` : "")
+            + `<br><span style="color:#666">OSM 기준 — 등록된 전체 숙박업소가 아님</span></div>`)
+          .addTo(map);
+      });
+      map.on("mouseenter", "hotels-circle", () => (map.getCanvas().style.cursor = "pointer"));
+      map.on("mouseleave", "hotels-circle", () => (map.getCanvas().style.cursor = ""));
+      const st = hd.stats || {};
+      document.getElementById("hotels-cap").textContent = `OSM ${nf(hd.hotels.length)}곳 · 객실 합계 약 ${nf(st.totalRooms || 0)}실 (${hd.fetched}). `
+        + `점 크기 = 객실 수(대부분 건물 면적×층수로 추정하거나 크기 불명은 20실 기본값 — 점을 누르면 근거가 나옵니다), 색 = 아래 날짜의 가동률. OSM에 없는 시설은 빠져 있습니다.`;
+      tg.addEventListener("change", (e) => map.setLayoutProperty("hotels-circle", "visibility", e.target.checked ? "visible" : "none"));
+
+      // 날짜별 가동률 (lodging-demand.json): 그날 밤 이 호텔에 몇 명이 묵는지 = 여기서 출발하는 사람 수의 근거.
+      // 가동률 = 공식 客室稼働率(県·月·시설군) x 지역 보정 lambda(도쿄) x 요일 배율(가정, 월 평균 1로 정규화), 100% 상한.
+      // 투숙 인원 = 가동률 x 객실 수 x 보정계수(공식 객실 수 / OSM 객실 수) x 객실당 인원(공식). 자세한 식은 lodging-demand.json note.
+      const ld = await loadJSON("./lodging-demand.json");
+      if (ld && ld.prefectures) {
+        const GROUP = { hotel: "hotel", motel: "hotel", guest_house: "inn", hostel: "inn", apartment: "inn", chalet: "inn" };
+        const sun = ld.dayOfWeek.sunToSat, dowMemo = new Map();
+        const dowNorm = (mo, dow) => { // 그 달의 요일 배율 평균이 1이 되게 정규화
+          const k = mo * 7 + dow;
+          if (!dowMemo.has(k)) {
+            const n = ld.daysInMonth[mo]; let s = 0;
+            for (let d = 1; d <= n; d++) s += sun[new Date(ld.year, mo, d).getDay()];
+            dowMemo.set(k, sun[dow] / (s / n));
+          }
+          return dowMemo.get(k);
+        };
+        let day = { mo: 0, dow: 0 };
+        lodgeAt = (h) => {
+          const g = GROUP[h.kind], P = ld.prefectures[String(h.muni).slice(0, 2)];
+          if (!g || !P) return null;
+          const lam = ld.municipalities[h.muni] ? ld.municipalities[h.muni].lambda[day.mo] : 1;
+          const occ = Math.min(1, (g === "hotel" ? P.occupancyHotel : P.occupancyInn)[day.mo] * lam * dowNorm(day.mo, day.dow));
+          return { occ, guests: occ * h.rooms * (P.scale[g] || 1) * P.personsPerRoom[day.mo] };
+        };
+        const memo = new Map();
+        guestsOf = (h) => { const l = memo.get(h.id) ?? memo.set(h.id, lodgeAt(h)).get(h.id); return l ? l.guests : 0; };
+        const dow_KO = ["일", "월", "화", "수", "목", "금", "토"];
+        const applyDate = () => {
+          const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(dateEl.value);
+          if (!m || +m[1] !== ld.year) { lcap.textContent = `${ld.year}년 날짜를 고르세요 (관광청 통계가 ${ld.year}년).`; return; }
+          const dt = new Date(+m[1], +m[2] - 1, +m[3]);
+          day = { mo: dt.getMonth(), dow: dt.getDay() };
+          memo.clear();
+          const sums = {};
+          hd.hotels.forEach((h, i) => {
+            const l = lodgeAt(h), pr = hotelFc.features[i].properties;
+            pr.occ = l ? l.occ : -1; pr.guests = l ? Math.round(l.guests) : 0;
+            memo.set(h.id, l);
+            if (l) { const s = (sums[String(h.muni).slice(0, 2)] ??= { g: 0, o: 0, r: 0 }); s.g += l.guests; s.o += l.occ * h.rooms; s.r += h.rooms; }
+          });
+          map.getSource("hotels").setData(hotelFc);
+          const PN = { "13": "도쿄", "14": "가나가와", "12": "지바", "11": "사이타마" };
+          lcap.textContent = `${dateEl.value} (${dow_KO[day.dow]}) 밤 · ` + ["13", "14", "12", "11"].filter((k) => sums[k])
+            .map((k) => `${PN[k]} 가동률 ${Math.round((sums[k].o / sums[k].r) * 100)}%(투숙 약 ${nf(sums[k].g)}명)`).join(" · ")
+            + ` — 월·시설군 가동률은 관광청 ${ld.year} 공식 통계, 지역·요일 차이는 모델(요일 배율은 근거 없는 가정). 색: 파랑 30% → 노랑 60% → 주황 80% → 빨강 100%.`;
+          rerenderFlows();
+        };
+        map.setPaintProperty("hotels-circle", "circle-color", ["interpolate", ["linear"], ["max", ["get", "occ"], 0], 0.3, "#4dabf7", 0.6, "#ffd43b", 0.8, "#ff922b", 1, "#e03131"]);
+        dateEl.addEventListener("change", applyDate);
+        applyDate();
+      } else dateEl.disabled = true;
+    } else { tg.disabled = true; dateEl.disabled = true; }
   }
 
   // ---- 사이타마시 건물별 직장 (jobs-buildings-saitama.json — 町丁 실제 종사자를 PLATEAU 건물에
@@ -1652,6 +1782,6 @@ map.on("load", async () => {
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
-  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor", "region-label", "wards-label", "commute-lines-school-case", "commute-lines-school", "commute-lines-case", "commute-lines", "commute-origin", "tstn-lines-case", "tstn-lines", "tstn-dest", "tstn-station", "tstn-label"]) if (map.getLayer(id)) map.moveLayer(id);
+  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor", "region-label", "wards-label", "commute-lines-school-case", "commute-lines-school", "commute-lines-case", "commute-lines", "commute-origin", "hotels-circle", "tstn-lines-case", "tstn-lines", "tstn-dest", "tstn-station", "tstn-label"]) if (map.getLayer(id)) map.moveLayer(id);
 });
 </script>

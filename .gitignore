@@ -59,6 +59,7 @@ transitline/data-raw/tama/
 transitline/data-raw/mlit/
 transitline/data-raw/plateau/
 transitline/data-raw/tourism/
+transitline/data-raw/hotels/
 
 # Claude Code local settings
 .claude/

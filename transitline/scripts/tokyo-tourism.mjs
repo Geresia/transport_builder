@@ -10,51 +10,15 @@
 // The "visitor to Tokyo" definition is the source's: Kanto residents >= 40 km one way or >= 4 h, others >= 80 km or >= 8 h; commuting excluded.
 // Usage: node scripts/tokyo-tourism.mjs   (downloads into data-raw/tourism/ on first run; that dir is not committed)
 import fs from "node:fs";
-import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { writeChecked } from "./safe-write.mjs";
+import { unzip, readXlsx } from "./xlsx-min.mjs";
 const T = fileURLToPath(new URL("../packs/tokyo/", import.meta.url));
 const RAW = fileURLToPath(new URL("../data-raw/tourism/", import.meta.url));
 const BASE = "https://data.tourism.metro.tokyo.lg.jp/data/";
 const YEAR = 2025;
 fs.mkdirSync(RAW, { recursive: true });
 
-// ---- minimal zip + xlsx reader, no dependency (same approach as tama-jobs.mjs, but entries are Buffers so zips can nest) ----
-function unzip(buf) {
-  let e = buf.length - 22;
-  while (e >= 0 && buf.readUInt32LE(e) !== 0x06054b50) e--;
-  if (e < 0) throw new Error("not a zip file");
-  const n = buf.readUInt16LE(e + 10);
-  let p = buf.readUInt32LE(e + 16);
-  const files = {};
-  for (let i = 0; i < n; i++) {
-    const method = buf.readUInt16LE(p + 10), csize = buf.readUInt32LE(p + 20), nl = buf.readUInt16LE(p + 28), xl = buf.readUInt16LE(p + 30), cl = buf.readUInt16LE(p + 32), off = buf.readUInt32LE(p + 42);
-    const name = buf.toString("utf8", p + 46, p + 46 + nl);
-    const lho = off + 30 + buf.readUInt16LE(off + 26) + buf.readUInt16LE(off + 28);
-    const data = buf.subarray(lho, lho + csize);
-    files[name] = () => (method === 0 ? data : zlib.inflateRawSync(data));
-    p += 46 + nl + xl + cl;
-  }
-  return files;
-}
-function readXlsx(buf, only) { // -> { sheetName: [ {colLetter: value} ] }; `only` limits which sheets are parsed
-  const z = unzip(buf), text = (f) => z[f]().toString("utf8");
-  const names = [...text("xl/workbook.xml").matchAll(/<sheet [^>]*name="([^"]*)"/g)].map((m) => m[1]);
-  const strs = z["xl/sharedStrings.xml"] ? [...text("xl/sharedStrings.xml").matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) => [...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map((x) => x[1]).join("")) : [];
-  const out = {};
-  names.forEach((nm, i) => {
-    if (only && !only.includes(nm)) return;
-    out[nm] = [...text(`xl/worksheets/sheet${i + 1}.xml`).matchAll(/<row [^>]*r="(\d+)"[^>]*>([\s\S]*?)<\/row>/g)].map((r) => {
-      const o = {};
-      for (const c of r[2].matchAll(/<c r="([A-Z]+)\d+"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
-        const v = (c[3] || "").match(/<v>([\s\S]*?)<\/v>/);
-        if (v) o[c[1]] = /t="s"/.test(c[2]) ? strs[+v[1]] : v[1];
-      }
-      return o;
-    });
-  });
-  return out;
-}
 async function xlsxIn(dataset, prefix) { // an .xlsx from the dataset's zip whose name starts with `prefix`
   const zip = RAW + dataset + ".zip";
   if (!fs.existsSync(zip)) {
