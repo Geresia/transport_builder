@@ -17,18 +17,18 @@ function waitSeconds(state, hop) {
   return perHour > 0 ? 1800 / perHour : Infinity;
 }
 
-export function chooseMode(state, origin, destination, route) {
+export function chooseMode(state, origin, destination, route, random = Math.random) {
   const metres = haversineMetres(origin.location, destination.location);
   const options = [
     ["walking", metres / WALK_MPS],
     ["driving", (metres * ROAD_FACTOR) / DRIVE_MPS + PARKING_SECONDS],
   ];
-  if (route) options.push(["transit", route.seconds + waitSeconds(state, route.hops[0])]);
+  if (route?.hops?.length) options.push(["transit", route.seconds + waitSeconds(state, route.hops[0])]);
 
   let best = "driving";
   let bestCost = Infinity;
   for (const [mode, cost] of options) {
-    const noisy = cost * (0.8 + 0.4 * Math.random()); // ±20% so mode share isn't all-or-nothing
+    const noisy = cost * (0.8 + 0.4 * random()); // ±20% so mode share isn't all-or-nothing
     if (noisy < bestCost) {
       bestCost = noisy;
       best = mode;

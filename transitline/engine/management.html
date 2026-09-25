@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Transitline 경영 시뮬레이션</title>
+<link rel="stylesheet" href="management.css" />
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">TRANSITLINE</a>
+  <nav aria-label="주요 화면">
+    <a href="index.html">노선 지도</a>
+    <a class="active" href="management.html" aria-current="page">회사 경영</a>
+  </nav>
+  <div class="clock"><span id="country">일본</span><b id="date">1일</b></div>
+</header>
+
+<main>
+  <section class="command-rail" aria-label="시나리오 진행">
+    <div>
+      <p class="kicker">철도회사 경영</p>
+      <h1>공고부터 개통까지<br />한 회사의 장부로 연결한다</h1>
+    </div>
+    <div class="actions">
+      <button id="new-game" type="button">새 일본 시나리오</button>
+      <button id="save-game" type="button">저장</button>
+      <button id="load-game" type="button">불러오기</button>
+      <a class="secondary" href="management.html?country=KR">한국 규칙으로 시작</a>
+    </div>
+  </section>
+
+  <section class="metrics" aria-label="회사 요약">
+    <dl><dt>가용 현금</dt><dd id="cash">0</dd></dl>
+    <dl><dt>확정 의무</dt><dd id="committed">0</dd></dl>
+    <dl><dt>공사 진척</dt><dd id="progress">미착수</dd></dl>
+    <dl><dt>보유 편성</dt><dd id="fleet">0</dd></dl>
+    <dl><dt>누적 영업손익</dt><dd id="profit">0</dd></dl>
+  </section>
+
+  <section class="workspace">
+    <div class="process">
+      <div class="section-head"><h2>사업 실행</h2><span id="phase">공고 전</span></div>
+      <ol id="steps">
+        <li data-step="opportunity"><b>01</b><div><strong>운영권 공고</strong><span>공공소유 5개 역, 20년 O&amp;M</span></div><button id="announce" type="button">공고 확인</button></li>
+        <li data-step="research"><b>02</b><div><strong>유료 정밀조사</strong><span>P50/P90 비용과 수요 범위를 좁힌다</span></div><button id="research" type="button" disabled>조사 실행</button></li>
+        <li data-step="bid"><b>03</b><div><strong>입찰 제안</strong><span>가격 40억 엔, 기술점수 100점</span></div><button id="bid" type="button" disabled>제출</button></li>
+        <li data-step="award"><b>04</b><div><strong>평가와 협상</strong><span>경쟁사 참가 판단 후 종합평가</span></div><button id="award" type="button" disabled>마감 및 협상</button></li>
+        <li data-step="construction"><b>05</b><div><strong>노선 건설</strong><span>중형 철제차륜 4.7km, 3개 역</span></div><button id="construct" type="button" disabled>견적 및 계약</button></li>
+        <li data-step="readiness"><b>06</b><div><strong>차량과 차량기지</strong><span>4편성 발주, 종점형 D1 기지 확보</span></div><button id="readiness" type="button" disabled>동시 발주</button></li>
+        <li data-step="advance"><b>07</b><div><strong>공정 진행</strong><span>공사와 차량 제작을 배속 진행</span></div><div class="step-actions"><button id="month" type="button" disabled>1개월</button><button id="year" type="button" disabled>12개월</button></div></li>
+        <li data-step="open"><b>08</b><div><strong>통합시험과 개통</strong><span>시설, 편성, 기지, 인허가 조건 확인</span></div><button id="open" type="button" disabled>개통 판정</button></li>
+        <li data-step="operate"><b>09</b><div><strong>영업운행</strong><span>수입, 비용, 혼잡, KPI를 매일 정산</span></div><button id="operate" type="button" disabled>30일 운행</button></li>
+      </ol>
+    </div>
+
+    <aside>
+      <section class="status-panel">
+        <div class="section-head"><h2>판정</h2><span id="status-kind">대기</span></div>
+        <p id="status" role="status">공고를 확인하면 시나리오가 시작됩니다.</p>
+      </section>
+      <section class="ledger-panel">
+        <div class="section-head"><h2>최근 원장</h2><span>JPY</span></div>
+        <div id="ledger-empty" class="empty">아직 거래가 없습니다.</div>
+        <table id="ledger-table" hidden>
+          <thead><tr><th>일자</th><th>항목</th><th>금액</th></tr></thead>
+          <tbody id="ledger"></tbody>
+        </table>
+      </section>
+      <section class="event-panel">
+        <div class="section-head"><h2>사건 기록</h2><span id="event-count">0건</span></div>
+        <ul id="events"><li class="empty">기록된 사건이 없습니다.</li></ul>
+      </section>
+    </aside>
+  </section>
+</main>
+
+<script type="module" src="src/management-ui.mjs"></script>
+</body>
+</html>

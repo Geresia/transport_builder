@@ -1,15 +1,13 @@
-import { stepTrains, dispatchTrains } from "./trains.mjs";
-import { spawnPassengers, retryPendingRoutes, expirePassengers } from "./passengers.mjs";
 import { currentDayLabel } from "./demand-engine.mjs";
-import { buildRouteGraph } from "./network.mjs";
 import { draw } from "./render.mjs";
+import { advanceSimulation, createSimulationRuntime } from "./simulation.mjs";
 
 // At 1x: 2 sim-minutes per real second — a train hop takes roughly 1-2 real
 // seconds and a service day cycles in about 12 real minutes.
 const SIM_SECONDS_PER_REAL_SECOND = 120;
 
 export function startLoop(state, demandModel, projection, ctx, canvas, hud, input, onFrame) {
-  let graph = buildRouteGraph(state);
+  const runtime = createSimulationRuntime(state);
   let lastTime = performance.now();
 
   function frame(now) {
@@ -19,20 +17,8 @@ export function startLoop(state, demandModel, projection, ctx, canvas, hud, inpu
     const simSeconds = realDt * SIM_SECONDS_PER_REAL_SECOND * state.speed;
     const simMinutes = simSeconds / 60;
 
-    // Lines can be drawn while paused, so routing refreshes regardless of speed.
-    if (state.networkDirty) {
-      graph = buildRouteGraph(state);
-      retryPendingRoutes(state, graph);
-      state.networkDirty = false;
-    }
-
-    if (state.speed > 0) {
-      state.simMinutes += simMinutes;
-      spawnPassengers(state, demandModel, graph, simMinutes);
-      expirePassengers(state);
-      dispatchTrains(state);
-      stepTrains(state, simSeconds);
-    }
+    if (state.speed > 0) advanceSimulation(state, demandModel, runtime, simSeconds);
+    else advanceSimulation(state, demandModel, runtime, 0);
 
     draw(ctx, state, projection, canvas.width, canvas.height, input);
     updateHud(hud, state);

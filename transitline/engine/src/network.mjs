@@ -17,6 +17,7 @@ export function buildRouteGraph(state) {
   };
 
   for (const line of state.lines) {
+    if (line.suspended) continue;
     const ids = line.stationIds;
     for (const sid of ids) {
       if (!stationLines.has(sid)) stationLines.set(sid, new Set());

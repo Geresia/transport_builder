@@ -3,19 +3,21 @@
 import { findRoute } from "./routing.mjs";
 import { chooseMode } from "./mode-choice.mjs";
 import { hourOfDay, trainCapacity } from "./state.mjs";
+import { randomFrom } from "./rng.mjs";
 
 const ABANDON_AFTER_MINUTES = 25;
 
 export function spawnPassengers(state, model, graph, dtMinutes) {
+  const random = randomFrom(state);
   for (const stationId of model.origins) {
     const expected = model.rate(state, stationId) * dtMinutes;
-    const count = Math.floor(expected) + (Math.random() < expected % 1 ? 1 : 0);
+    const count = Math.floor(expected) + (random() < expected % 1 ? 1 : 0);
     for (let i = 0; i < count; i++) {
-      const destinationId = model.pick(state, stationId);
+      const destinationId = model.pick(state, stationId, random);
       if (!destinationId) continue;
 
       const route = findRoute(graph, stationId, destinationId);
-      const mode = chooseMode(state, state.stations.get(stationId), state.stations.get(destinationId), route);
+      const mode = chooseMode(state, state.stations.get(stationId), state.stations.get(destinationId), route, random);
       state.stats.spawned++;
       state.stats.spawnedByHour[hourOfDay(state)]++;
       state.stats.modeShare[mode]++;
@@ -31,6 +33,7 @@ export function spawnPassengers(state, model, graph, dtMinutes) {
         state: "waiting",
         trainId: null,
         spawnedAt: state.simMinutes,
+        waitingSince: state.simMinutes,
       });
     }
   }
@@ -43,13 +46,15 @@ export function retryPendingRoutes(state, graph) {
     if (p.state === "waiting" && !p.route) {
       p.route = findRoute(graph, p.currentStationId, p.destinationId)?.hops ?? null;
       p.hopIndex = 0;
+      p.waitingSince = state.simMinutes;
     }
   }
 }
 
 export function expirePassengers(state) {
   state.passengers = state.passengers.filter((p) => {
-    if (p.state === "waiting" && state.simMinutes - p.spawnedAt > ABANDON_AFTER_MINUTES) {
+    const waitingSince = p.waitingSince ?? p.spawnedAt;
+    if (p.state === "waiting" && state.simMinutes - waitingSince > ABANDON_AFTER_MINUTES) {
       state.stats.abandoned++;
       return false;
     }
@@ -78,6 +83,7 @@ export function handleStop(state, train, stationId, allowBoarding = true) {
         p.hopIndex++;
         p.currentStationId = stationId;
         p.state = "waiting";
+        p.waitingSince = state.simMinutes;
       } else {
         load++;
       }
@@ -90,14 +96,17 @@ export function handleStop(state, train, stationId, allowBoarding = true) {
   // A train on its way back can only carry riders to stations still ahead of
   // it; otherwise they would ride to the terminus and be stranded.
   const ids = line.stationIds;
-  const stopIndex = train.segIndex;
+  const stopIndex = ids.indexOf(stationId);
   const capacity = trainCapacity(line);
   for (const p of state.passengers) {
     if (load >= capacity) break; // full: the rest keep waiting
     if (p.state !== "waiting" || !p.route || !p.route[p.hopIndex]) continue;
     const hop = p.route[p.hopIndex];
     if (hop.lineId !== line.id || hop.boardStationId !== stationId) continue;
-    if (train.dir === -1 && ids.indexOf(hop.alightStationId) >= stopIndex) continue;
+    const alightIndex = ids.indexOf(hop.alightStationId);
+    if (alightIndex < 0) continue;
+    if (train.dir === 1 && alightIndex <= stopIndex) continue;
+    if (train.dir === -1 && alightIndex >= stopIndex) continue;
     p.state = "onboard";
     p.trainId = train.id;
     load++;

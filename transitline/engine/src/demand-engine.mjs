@@ -192,19 +192,19 @@ function buildMatrixModel(state, demand) {
   };
 }
 
-function serviceDayLength(calendar) {
-  return Math.max(1440, ...calendar.periods.map((p) => p.endMinute));
-}
-
-function currentDayTypeAndPeriod(state) {
+export function currentDayTypeAndPeriod(state) {
   const { calendar, simMinutes } = state;
-  const dayLength = serviceDayLength(calendar);
-  const serviceMinute = simMinutes % dayLength;
-  const dayIndex = Math.floor(simMinutes / dayLength);
+  const clockMinute = ((simMinutes % 1440) + 1440) % 1440;
+  const dayIndex = Math.floor(simMinutes / 1440);
   const sequence = calendar.dayTypes.flatMap((dt) => Array(Math.max(1, Math.round(dt.weight))).fill(dt));
   const dayType = sequence[dayIndex % sequence.length];
-  const period = calendar.periods.find((p) => serviceMinute >= p.startMinute && serviceMinute < p.endMinute);
-  return { dayType, period };
+  let serviceMinute = clockMinute;
+  let period = calendar.periods.find((p) => clockMinute >= p.startMinute && clockMinute < Math.min(p.endMinute, 1440));
+  if (!period) {
+    serviceMinute = clockMinute + 1440;
+    period = calendar.periods.find((p) => p.endMinute > 1440 && serviceMinute >= p.startMinute && serviceMinute < p.endMinute);
+  }
+  return { dayType, period, dayIndex, serviceMinute };
 }
 
 export function currentDemandFactor(state) {

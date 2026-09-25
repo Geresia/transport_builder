@@ -33,6 +33,18 @@ Then open `http://localhost:8000/engine/index.html`. It loads
 `../packs/example-radial` by default; pick another pack with
 `?pack=../packs/<id>` (e.g. `../packs/example-corridor` for the matrix model).
 
+Open `http://localhost:8000/engine/management.html` for the company-management
+scenario. It connects the public O&M tender, construction, rolling-stock,
+depot, opening-readiness and 30-day operating flow. Add `?country=KR` to use
+the Korean procedure and cost profile. The screen saves locally in the
+browser; the underlying save format has a versioned programmatic API.
+
+Run all engine regressions and the one-year save/resume scenario with:
+
+```powershell
+npm test
+```
+
 ## Two start modes
 
 A pack that carries `files.existingNetwork` (currently only `tokyo`, see

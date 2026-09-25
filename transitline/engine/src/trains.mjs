@@ -26,6 +26,7 @@ export function targetTrains(state, line, bandId) {
 export function dispatchTrains(state) {
   const band = bandAt(state);
   for (const line of state.lines) {
+    if (line.suspended || line.stationIds.length < 2) continue;
     const perHour = line.frequency[band.id];
     if (perHour <= 0) continue;
     if (state.simMinutes - line.lastDispatch < 60 / perHour) continue;
@@ -44,33 +45,44 @@ export function stepTrains(state, dtSeconds) {
       continue;
     }
 
-    let remaining = dtSeconds;
-    if (train.dwell > 0) {
-      const used = Math.min(train.dwell, remaining);
-      train.dwell -= used;
-      remaining -= used;
-    }
-    if (remaining <= 0) continue;
-
+    let remaining = Math.max(0, dtSeconds);
     const ids = line.stationIds;
-    const from = state.stations.get(ids[train.segIndex]);
-    const to = state.stations.get(ids[train.segIndex + train.dir]);
-    const segLength = Math.max(haversineMetres(from.location, to.location), 1);
+    let guard = 0;
+    while (remaining > 1e-9 && !train.done && guard++ < 10000) {
+      if (train.dwell > 0) {
+        const used = Math.min(train.dwell, remaining);
+        train.dwell -= used;
+        remaining -= used;
+        if (remaining <= 1e-9) break;
+      }
 
-    train.t += (TRAIN_SPEED_MPS * remaining) / segLength;
-    if (train.t < 1) continue;
+      const nextIndex = train.segIndex + train.dir;
+      if (nextIndex < 0 || nextIndex >= ids.length) {
+        train.done = true;
+        break;
+      }
+      const from = state.stations.get(ids[train.segIndex]);
+      const to = state.stations.get(ids[nextIndex]);
+      const segLength = Math.max(haversineMetres(from.location, to.location), 1);
+      const secondsToArrival = ((1 - train.t) * segLength) / TRAIN_SPEED_MPS;
+      if (remaining + 1e-9 < secondsToArrival) {
+        train.t += (TRAIN_SPEED_MPS * remaining) / segLength;
+        remaining = 0;
+        break;
+      }
 
-    // One arrival per tick: the dwell that follows uses the rest of the time.
-    train.t -= 1;
-    train.segIndex += train.dir;
-    const finished = train.segIndex === 0 && train.dir === -1;
-    handleStop(state, train, ids[train.segIndex], !finished);
-    if (finished) {
-      train.done = true; // back at the origin: round trip complete
-      continue;
+      remaining -= secondsToArrival;
+      train.t = 0;
+      train.segIndex = nextIndex;
+      const finished = train.segIndex === 0 && train.dir === -1;
+      handleStop(state, train, ids[train.segIndex], !finished);
+      if (finished) {
+        train.done = true;
+        break;
+      }
+      if (train.segIndex === ids.length - 1) train.dir = -1;
+      train.dwell = DWELL_SECONDS;
     }
-    train.dwell = DWELL_SECONDS;
-    if (train.segIndex + train.dir >= ids.length) train.dir = -1; // reverse at the far terminus
   }
   state.trains = state.trains.filter((t) => !t.done);
 }

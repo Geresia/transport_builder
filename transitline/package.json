@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test engine/test/*.test.mjs",
+    "test:engine": "node --test engine/test/*.test.mjs",
     "validate": "node scripts/validate-all.mjs",
     "regen": "node packs/example-radial/generate.mjs && node packs/example-corridor/generate.mjs"
   }

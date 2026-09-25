@@ -1,3 +1,5 @@
+import { DeterministicRng } from "./rng.mjs";
+
 // The mutable game state. Stations come straight from the pack; everything
 // else (lines, trains, passengers) is built up by play.
 
@@ -41,7 +43,7 @@ export function badgeTextColor(hex) {
   return lum > 150 ? "#0c1114" : "#ffffff";
 }
 
-export function createState(pack) {
+export function createState(pack, options = {}) {
   const stations = new Map();
   for (const p of pack.demand.points) {
     stations.set(p.id, {
@@ -78,6 +80,7 @@ export function createState(pack) {
     nextLineId: 1,
     nextTrainId: 1,
     nextPassengerId: 1,
+    rng: new DeterministicRng(options.seed ?? 0x6d2b79f5),
     simMinutes: 6 * 60, // service day starts 06:00, matching calendar periods
     speed: 1, // 0 = paused
     networkDirty: true, // routing graph must be rebuilt
@@ -106,10 +109,20 @@ export function addLine(state, stationIds, opts = {}) {
     carsPerTrain: DEFAULT_CARS,
     frequency: { high: 6, medium: 4, low: 2, veryLow: 1 },
     lastDispatch: -Infinity,
+    suspended: false,
   };
   state.lines.push(line);
   state.networkDirty = true;
   return line;
+}
+
+export function setLineSuspended(state, lineId, suspended) {
+  const line = state.lines.find((l) => l.id === lineId);
+  if (!line || line.suspended === Boolean(suspended)) return false;
+  line.suspended = Boolean(suspended);
+  if (line.suspended) state.trains = state.trains.filter((t) => t.lineId !== lineId);
+  state.networkDirty = true;
+  return true;
 }
 
 export function setBandFrequency(state, lineId, bandId, perHour) {
@@ -130,14 +143,22 @@ export function renameLine(state, lineId, name) {
 // Passengers riding or planning to ride a removed line drop back to waiting
 // with no route; the next network rebuild re-routes them from where they are.
 export function deleteLine(state, lineId) {
+  const removed = state.lines.find((l) => l.id === lineId);
+  const removedTrains = new Map(state.trains.filter((t) => t.lineId === lineId).map((t) => [t.id, t]));
   state.lines = state.lines.filter((l) => l.id !== lineId);
   state.trains = state.trains.filter((t) => t.lineId !== lineId);
   for (const p of state.passengers) {
     if (p.route?.some((h) => h.lineId === lineId)) {
+      const train = removedTrains.get(p.trainId);
+      if (removed && train) {
+        const next = Math.max(0, Math.min(removed.stationIds.length - 1, train.segIndex + train.dir));
+        p.currentStationId = removed.stationIds[train.t >= 0.5 ? next : train.segIndex];
+      }
       p.state = "waiting";
       p.trainId = null;
       p.hopIndex = 0;
       p.route = null;
+      p.waitingSince = state.simMinutes;
     }
   }
   state.networkDirty = true;
@@ -152,5 +173,7 @@ export function clearLines(state) {
     p.trainId = null;
     p.hopIndex = 0;
     p.route = null;
+    p.currentStationId = p.originId;
+    p.waitingSince = state.simMinutes;
   }
 }

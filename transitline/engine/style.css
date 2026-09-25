@@ -173,6 +173,13 @@ button:hover { background: #2c303e; }
   color: var(--muted);
   font-size: 10px;
 }
+#bar-ui #btn-management {
+  padding: 3px 9px;
+  color: #f4a261;
+  text-decoration: none;
+  font-size: 10px;
+}
+#bar-ui #btn-management:hover { color: var(--text); background: var(--chip); border-radius: 5px; }
 #bar-ui button:hover { color: var(--text); background: var(--chip); }
 #bar-ui button.active { background: #f1f2f5; color: #111; }
 #bar-ui #hud-day { color: var(--muted); }

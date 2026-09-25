@@ -7,6 +7,7 @@
 - 사용자 확인 사항: 우리 작업은 지도 관련 구현이 아니라 시스템 구현이다. 지도 없이 명령과 테스트 데이터만으로 실행·검증할 수 있어야 한다.
 - 출발점: [코드 검토 목록](code-review-2026-09-22.md), [현재 엔진 설명](../engine/README.md)
 - 상위 설계 기준: [한·일 철도 건설·차량·차량기지 종합 설계보고서](railway-construction-master-report-kr-jp-2026.md), [교통사업 수주·사업성·경쟁회사 설계보고서](transport-business-award-economics-competition-kr-jp-2026.md)
+- 현재 실행순서: [2026-09-25 건설·경제·사업수주 시스템 실행 로드맵](system-implementation-roadmap-2026-09-25.md)
 
 ### 후속 설계 반영 사항
 
