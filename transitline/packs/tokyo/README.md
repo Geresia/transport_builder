@@ -741,6 +741,14 @@ Why: to be able to start trips *from* the lodging areas — "on this night N peo
 - **Not measured:** the **day-of-week shape is a placeholder assumption** (`dayOfWeek.assumed`; Sun 0.88 … Wed–Thu 1.05, months re-normalised to mean 1) — there is no daily source; public holidays are not modeled. Guests are spread evenly over the hotels of a municipality by room count, so occupancy differs by municipality, kind and date but not between two hotels of the same kind in one municipality.
 - **Check:** summing the modeled guests over all hotels of a prefecture gives 90–98% of the official persons per night (Jan, Oct); what is missing are 会社・団体の宿泊所 (in no group) and days clipped at 100%. Kanagawa in October is 75% because that month's facility-type columns cover only 77% of used rooms.
 
+### Where hotel guests go (`lodging-flows.json`) — outings from the lodging areas
+
+`scripts/tokyo-lodging-flows.mjs`. For every Tokyo municipality with hotels: the share of its guests' daily outings that go to each Tokyo municipality, `P(j | i) ∝ A_j × distance^-β`, A_j = NTT **foreign** visitors to j (measured). In the viewer, clicking a hotel (Tokyo only) draws its outgoing lines and lists the top destinations: outings per day = that night's guests × **0.835** (measured: 15,296 foreign respondents stay 6.66 nights in Tokyo and visit 5.56 of the 24 named areas).
+
+- **Fitted, not picked:** `β` and the weight of domestic visitors were chosen so that the predicted share of visits to the 24 named tourist areas matches the foreign-visitor survey → β = 0.75, domestic weight 0, **r = 0.65** (the full grid is in `params.fit`). β is barely identified (r stays 0.62–0.65 for β 0–2), so treat the distance decay as loose.
+- **Known misses:** predictions are flatter than the survey. Shibuya is 12.0% observed vs 6.4% predicted, Shinjuku 10.0 vs 5.0, Asakusa 8.9 vs 5.1, while Harajuku/Omotesando is over-predicted (11.6 vs 6.3): the survey areas are neighbourhoods and the model works with whole wards, so ward hubs are split unevenly. 14.6% of outings stay in the hotel's own ward.
+- **Limits:** foreign tourists' behaviour is applied to every guest (business travellers and Japanese guests move differently); only outings to the 24 named areas are counted; the destination is a municipality (its demand point), not a place inside it; hotels outside Tokyo have no flows because the measured visitor counts cover Tokyo only; it is a per-day average with no time of day.
+
 Not in the source (so not here): domestic visitors' arrival station/route, per-spot visitor counts with locations (the 観光地点等入込客数調査 download withholds spot names and municipality codes, only category totals), and any visitor counts for years other than 2025 (mobile data also exists for 2021–2024, survey codes are renumbered each year).
 
 ## Special demand (`special-demand.json`) — locations measured, capacity modeled

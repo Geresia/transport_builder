@@ -1203,7 +1203,7 @@ map.on("load", async () => {
       const KIND = { hotel: "호텔", motel: "모텔", guest_house: "게스트하우스·료칸", hostel: "호스텔", apartment: "숙박용 아파트", chalet: "샬레·별장" };
       const BASIS = { rooms: "OSM 태그(실측)", footprint: "건물 면적×층수로 추정", "footprint-assumed-levels": "건물 면적으로 추정(층수 가정)", default: "크기 불명, 기본값" };
       const hotelFc = { type: "FeatureCollection", features: hd.hotels.map((h) => ({ type: "Feature",
-        properties: { id: h.id, name: h.name || "", kind: h.kind, rooms: h.rooms, basis: h.sizeBasis, area: h.areaM2 ?? null, levels: h.levels ?? null, occ: -1, guests: 0 },
+        properties: { id: h.id, muni: h.muni, name: h.name || "", kind: h.kind, rooms: h.rooms, basis: h.sizeBasis, area: h.areaM2 ?? null, levels: h.levels ?? null, occ: -1, guests: 0 },
         geometry: { type: "Point", coordinates: h.location } })) };
       map.addSource("hotels", { type: "geojson", data: hotelFc });
       map.addLayer({ id: "hotels-circle", source: "hotels", type: "circle", minzoom: 10, layout: { visibility: "none" },
@@ -1211,15 +1211,50 @@ map.on("load", async () => {
           "circle-color": ["match", ["get", "basis"], "rooms", "#d6336c", "footprint", "#f08c00", "footprint-assumed-levels", "#fab005", "#868e96"],
           "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, ["+", 1, ["*", 0.12, ["sqrt", ["get", "rooms"]]]], 16, ["+", 3, ["*", 0.45, ["sqrt", ["get", "rooms"]]]]],
           "circle-opacity": 0.8, "circle-stroke-color": "#ffffff", "circle-stroke-width": 0.8 } });
+      // 호텔에서 나가는 외출 (lodging-flows.json): 이 호텔 투숙객이 하루에 나서는 횟수 = 투숙 인원 x 하룻밤당 방문 횟수(외국인 설문 실측 0.835),
+      // 목적지 몫 = 도쿄 구·시별 방문객 수(NTT, 실측)와 거리로 만든 중력 모델(설문의 방문지 비율에 맞춰 보정, r≈0.65 — 정확한 예측이 아님). 도쿄 호텔만.
+      const flows = await loadJSON("./lodging-flows.json");
+      const locOf = {}, koOf = {};
+      for (const q of demand.points) {
+        const c5 = q.jisCode ? String(q.jisCode).slice(0, 5) : String(q.code);
+        const f = q.jisCode ? wardFeaturesByCode.get(String(q.jisCode)) : regionFeatureByCode.get(String(q.code));
+        locOf[c5] = q.location; koOf[c5] = (f && f.properties.name_ko) || q.name;
+      }
+      const noOut = { type: "FeatureCollection", features: [] };
+      map.addSource("lodge-out", { type: "geojson", data: noOut });
+      map.addLayer({ id: "lodge-out-lines", source: "lodge-out", type: "line", filter: ["==", ["geometry-type"], "LineString"], layout: { "line-cap": "round" },
+        paint: { "line-color": "#0ca678", "line-width": ["get", "wpx"], "line-opacity": 0.85 } });
+      map.addLayer({ id: "lodge-out-dots", source: "lodge-out", type: "circle", filter: ["==", ["geometry-type"], "Point"],
+        paint: { "circle-radius": ["get", "rpx"], "circle-color": "#0ca678", "circle-stroke-color": "#ffffff", "circle-stroke-width": 1 } });
+      const clearOut = () => map.getSource("lodge-out").setData(noOut);
+      const outings = (p, at) => { // -> popup html; also draws the outgoing lines from the hotel
+        const P = flows && flows.origins[p.muni], g = Number(p.guests);
+        if (!P || !(Number(p.occ) >= 0) || !(g > 0)) { clearOut(); return ""; }
+        const total = g * flows.params.tripsPerGuestNight;
+        const rows = flows.destinations.map((c, k) => ({ c, n: total * P[k] })).filter((r) => locOf[r.c]).sort((a, b) => b.n - a.n);
+        const max = rows[0].n, features = [];
+        for (const r of rows) {
+          if (r.n < total * 0.02) continue;
+          const props = { name: koOf[r.c], n: r.n, wpx: 1 + 7 * Math.sqrt(r.n / max), rpx: 2 + 5 * Math.sqrt(r.n / max) };
+          features.push({ type: "Feature", properties: props, geometry: { type: "LineString", coordinates: [at, locOf[r.c]] } },
+            { type: "Feature", properties: props, geometry: { type: "Point", coordinates: locOf[r.c] } });
+        }
+        map.getSource("lodge-out").setData({ type: "FeatureCollection", features });
+        return `<br><b>하루 약 ${nf(total)}회 외출</b> (투숙 ${nf(g)}명 × ${flows.params.tripsPerGuestNight}회) → `
+          + rows.slice(0, 5).map((r) => `${esc(koOf[r.c])} ${nf(r.n)}`).join(" · ")
+          + `<br><span style="color:#666">방문객 수(NTT 실측)·거리 모델 — 외국인 설문 기준, 예측 정확도 낮음</span>`;
+      };
       map.on("click", "hotels-circle", (e) => {
-        const p = e.features[0].properties;
-        new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
+        const p = e.features[0].properties, out = outings(p, e.features[0].geometry.coordinates);
+        const pop = new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
           .setHTML(`<div style="font:12.5px sans-serif;color:#000"><b>${esc(p.name || "(이름 없음)")}</b><br>${esc(KIND[p.kind] || p.kind)}`
             + (Number(p.occ) >= 0 ? `<br>${esc(dateEl.value)} 밤 가동률 <b>${Math.round(Number(p.occ) * 100)}%</b> · 투숙 약 <b>${nf(p.guests)}</b>명` : "")
+            + out
             + `<br>객실 약 <b>${nf(p.rooms)}</b>실 — ${esc(BASIS[p.basis] || p.basis)}`
             + (p.area ? `<br>건물 ${nf(p.area)}m²${p.levels ? ` · ${esc(p.levels)}층` : ""}` : "")
             + `<br><span style="color:#666">OSM 기준 — 등록된 전체 숙박업소가 아님</span></div>`)
           .addTo(map);
+        pop.on("close", clearOut);
       });
       map.on("mouseenter", "hotels-circle", () => (map.getCanvas().style.cursor = "pointer"));
       map.on("mouseleave", "hotels-circle", () => (map.getCanvas().style.cursor = ""));
@@ -1782,6 +1817,6 @@ map.on("load", async () => {
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
-  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor", "region-label", "wards-label", "commute-lines-school-case", "commute-lines-school", "commute-lines-case", "commute-lines", "commute-origin", "hotels-circle", "tstn-lines-case", "tstn-lines", "tstn-dest", "tstn-station", "tstn-label"]) if (map.getLayer(id)) map.moveLayer(id);
+  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor", "region-label", "wards-label", "commute-lines-school-case", "commute-lines-school", "commute-lines-case", "commute-lines", "commute-origin", "hotels-circle", "tstn-lines-case", "tstn-lines", "tstn-dest", "tstn-station", "tstn-label", "lodge-out-lines", "lodge-out-dots"]) if (map.getLayer(id)) map.moveLayer(id);
 });
 </script>
