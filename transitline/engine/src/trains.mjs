@@ -66,12 +66,16 @@ export function stepTrains(state, dtSeconds) {
       const segLength = Math.max(haversineMetres(from.location, to.location), 1);
       const secondsToArrival = ((1 - train.t) * segLength) / TRAIN_SPEED_MPS;
       if (remaining + 1e-9 < secondsToArrival) {
-        train.t += (TRAIN_SPEED_MPS * remaining) / segLength;
+        const movedMetres = TRAIN_SPEED_MPS * remaining;
+        train.t += movedMetres / segLength;
+        state.stats.trainKmByLine[String(line.id)] = (state.stats.trainKmByLine[String(line.id)] ?? 0) + movedMetres / 1000;
         remaining = 0;
         break;
       }
 
       remaining -= secondsToArrival;
+      const movedMetres = (1 - train.t) * segLength;
+      state.stats.trainKmByLine[String(line.id)] = (state.stats.trainKmByLine[String(line.id)] ?? 0) + movedMetres / 1000;
       train.t = 0;
       train.segIndex = nextIndex;
       const finished = train.segIndex === 0 && train.dir === -1;

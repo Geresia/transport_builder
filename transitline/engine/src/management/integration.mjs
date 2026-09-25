@@ -1,0 +1,194 @@
+import {
+  addLine,
+  addPhysicalStation,
+  addPlatform,
+  addStationAccessLink,
+  addTrackSegment,
+  deleteLine,
+  setLineSuspended,
+} from "../state.mjs";
+import { VEHICLE_MODELS } from "./rolling-stock.mjs";
+
+function orderedStationSourceIds(plan) {
+  const adjacency = new Map(plan.stationCandidates.map((station) => [station.id, []]));
+  for (const segment of plan.segments) {
+    adjacency.get(segment.from)?.push(segment.to);
+    adjacency.get(segment.to)?.push(segment.from);
+  }
+  const visited = new Set();
+  const stack = [plan.stationCandidates[0]?.id];
+  while (stack.length) {
+    const id = stack.pop();
+    if (!id || visited.has(id)) continue;
+    visited.add(id);
+    stack.push(...(adjacency.get(id) ?? []));
+  }
+  if (visited.size !== plan.stationCandidates.length) throw new Error("Plan stations and segments must form one connected route");
+  if ([...adjacency.values()].some((neighbors) => neighbors.length > 2)) throw new Error("Basic service commissioning does not support branched track plans");
+  const endpoints = [...adjacency].filter(([, neighbors]) => neighbors.length === 1).map(([id]) => id);
+  if (endpoints.length !== 2) throw new Error("Basic service commissioning requires a route with two termini");
+  const ordered = [];
+  let previous = null;
+  let current = endpoints[0];
+  while (current) {
+    ordered.push(current);
+    const next = (adjacency.get(current) ?? []).find((id) => id !== previous);
+    previous = current;
+    current = next;
+  }
+  return ordered;
+}
+
+function operationalCheckpoint(state) {
+  return {
+    stations: new Map(state.stations),
+    platforms: structuredClone(state.platforms ?? []),
+    trackSegments: structuredClone(state.trackSegments ?? []),
+    accessLinks: structuredClone(state.accessLinks ?? []),
+    accessVersion: state.accessVersion ?? 0,
+    lines: structuredClone(state.lines),
+    nextLineId: state.nextLineId,
+    networkDirty: state.networkDirty,
+  };
+}
+
+function restoreOperational(state, checkpoint) {
+  state.stations = checkpoint.stations;
+  state.platforms = checkpoint.platforms;
+  state.trackSegments = checkpoint.trackSegments;
+  state.accessLinks = checkpoint.accessLinks;
+  state.accessVersion = checkpoint.accessVersion;
+  state.lines = checkpoint.lines;
+  state.nextLineId = checkpoint.nextLineId;
+  state.networkDirty = checkpoint.networkDirty;
+}
+
+export function commissionProject(game, operationalState, input) {
+  const managementBefore = game.snapshot();
+  const operationalBefore = operationalCheckpoint(operationalState);
+  try {
+    const project = game.requireProject(input.projectId);
+    if (project.status !== "available") throw new Error(`Project ${project.id} infrastructure is not available`);
+    if (project.commissionedLineId !== undefined) throw new Error(`Project ${project.id} is already commissioned`);
+    const service = input.serviceId ? game.services.find((item) => item.id === input.serviceId) : null;
+    if (input.serviceId && (!service || service.status !== "open" || service.projectId !== project.id)) throw new Error("An open service belonging to the project is required");
+    const stationAssets = project.assets.filter((asset) => asset.kind === "station");
+    const platformAssets = project.assets.filter((asset) => asset.kind === "platform");
+    const trackAssets = project.assets.filter((asset) => asset.kind === "track-segment");
+    if (!stationAssets.length || !trackAssets.length) throw new Error("Project has no physical station or track assets");
+    for (const asset of stationAssets) addPhysicalStation(operationalState, {
+      id: asset.id,
+      name: asset.name,
+      location: asset.location,
+      structure: asset.structure,
+      depthMeters: asset.depthMeters,
+      projectId: project.id,
+      sourceStationId: asset.sourceId,
+    });
+    for (const asset of platformAssets) addPlatform(operationalState, {
+      id: asset.id,
+      stationId: asset.stationAssetId,
+      platformType: asset.platformType,
+      lengthMeters: asset.lengthMeters,
+      projectId: project.id,
+    });
+    for (const asset of trackAssets) addTrackSegment(operationalState, {
+      id: asset.id,
+      fromStationId: asset.fromStationAssetId,
+      toStationId: asset.toStationAssetId,
+      lengthMeters: asset.lengthMeters,
+      structure: asset.structure,
+      projectId: project.id,
+    });
+    const stationAssetBySource = new Map(stationAssets.map((asset) => [asset.sourceId, asset.id]));
+    for (const link of project.planGeometry.accessLinks ?? []) {
+      const sourceStationId = link.stationCandidateId ?? link.stationId;
+      const stationId = stationAssetBySource.get(sourceStationId);
+      if (!stationId) throw new Error(`Access link references unknown station candidate ${sourceStationId}`);
+      addStationAccessLink(operationalState, { id: link.id, demandNodeId: link.demandNodeId, stationId, walkMinutes: link.walkMinutes });
+    }
+    const orderedStations = orderedStationSourceIds(project.planGeometry).map((id) => stationAssetBySource.get(id));
+    const model = service ? VEHICLE_MODELS[service.modelId] : null;
+    const line = addLine(operationalState, orderedStations, {
+      name: input.lineName ?? service?.name ?? project.planGeometry.name ?? project.planId,
+      color: input.color,
+      carsPerTrain: model?.cars,
+      frequency: input.frequency,
+    });
+    line.projectId = project.id;
+    line.managementServiceId = service?.id ?? null;
+    line.trackSegmentIds = trackAssets.map((asset) => asset.id);
+    line.owned = true;
+    project.commissionedLineId = line.id;
+    project.commissionedAt = game.clock.minute;
+    if (service) service.operationalLineId = line.id;
+    const planRecord = game.plans.find((record) => record.id === project.planRecordId);
+    if (planRecord) planRecord.status = "commissioned";
+    game.events.record(game.clock.minute, "project-commissioned", { projectId: project.id, serviceId: service?.id ?? null, lineId: line.id });
+    return { line, stationIds: orderedStations, trackSegmentIds: line.trackSegmentIds };
+  } catch (error) {
+    game.restore(managementBefore);
+    restoreOperational(operationalState, operationalBefore);
+    throw error;
+  }
+}
+
+export function suspendCommissionedService(game, operationalState, serviceId, suspended = true) {
+  const service = game.services.find((item) => item.id === serviceId);
+  if (!service || service.operationalLineId === undefined) throw new Error(`Service ${serviceId} is not commissioned`);
+  if (!setLineSuspended(operationalState, service.operationalLineId, suspended)) return false;
+  service.status = suspended ? "suspended" : "open";
+  game.events.record(game.clock.minute, suspended ? "service-suspended" : "service-resumed", { serviceId, lineId: service.operationalLineId });
+  return true;
+}
+
+export function decommissionService(game, operationalState, serviceId) {
+  const service = game.services.find((item) => item.id === serviceId);
+  if (!service || service.operationalLineId === undefined) throw new Error(`Service ${serviceId} is not commissioned`);
+  const lineId = service.operationalLineId;
+  deleteLine(operationalState, lineId);
+  service.status = "decommissioned";
+  service.decommissionedAt = game.clock.minute;
+  delete service.operationalLineId;
+  game.events.record(game.clock.minute, "service-decommissioned", { serviceId, lineId });
+  return true;
+}
+
+export function settleIntegratedServiceDay(game, operationalState, serviceId) {
+  return game.transact("integrated-service-day-settled", () => {
+    const service = game.services.find((item) => item.id === serviceId);
+    if (!service || service.status !== "open" || service.operationalLineId === undefined) throw new Error(`Service ${serviceId} is not operating on the network`);
+    const lineId = String(service.operationalLineId);
+    const day = Math.floor(operationalState.simMinutes / 1440);
+    const cursor = service.engineCursor ?? { day: day - 1, delivered: 0, trainKm: 0 };
+    if (day <= cursor.day) throw new Error(`Service ${serviceId} day ${day} is already settled`);
+    const deliveredNow = operationalState.stats.deliveredByLine?.[lineId] ?? 0;
+    const trainKmNow = operationalState.stats.trainKmByLine?.[lineId] ?? 0;
+    const deliveredAgents = Math.max(0, deliveredNow - cursor.delivered);
+    const trainKm = Math.max(0, trainKmNow - cursor.trainKm);
+    const days = day - cursor.day;
+    const passengerWeight = service.passengerWeight ?? 100;
+    const passengers = deliveredAgents * passengerWeight;
+    const model = VEHICLE_MODELS[service.modelId];
+    const fareRevenue = passengers * service.averageFare;
+    const carKm = trainKm * model.cars;
+    const energyCost = carKm * model.energyKwhPerCarKm * service.electricityYenPerKwh;
+    const maintenanceCost = carKm * service.maintenanceYenPerCarKm;
+    const staffCost = trainKm * (service.staffCostPerTrainKm ?? 1_800);
+    const fixedCost = days * service.dailyInfrastructureCost;
+    const contract = game.contracts.find((item) => item.id === service.contractId);
+    const publicPayment = contract ? contract.annualPayment / 365 * days : service.dailyPublicPayment * days;
+    const advertising = service.dailyAdvertisingRevenue * days;
+    const income = fareRevenue + publicPayment + advertising;
+    const cost = energyCost + maintenanceCost + staffCost + fixedCost;
+    if (income > 0) game.ledger.post({ atMinute: game.clock.minute, amount: income, category: "integrated-operating-income", reference: service.id });
+    if (cost > 0) game.ledger.post({ atMinute: game.clock.minute, amount: -cost, category: "integrated-operating-cost", reference: service.id });
+    service.engineCursor = { day, delivered: deliveredNow, trainKm: trainKmNow };
+    service.integratedTotals = service.integratedTotals ?? { passengers: 0, trainKm: 0, income: 0, cost: 0 };
+    service.integratedTotals.passengers += passengers;
+    service.integratedTotals.trainKm += trainKm;
+    service.integratedTotals.income += income;
+    service.integratedTotals.cost += cost;
+    return { day, days, passengers, trainKm, income, cost, profit: income - cost };
+  });
+}

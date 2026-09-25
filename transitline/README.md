@@ -34,6 +34,7 @@ engine/     게임, 판매                     →   독점, 팩에서 아무것
 | 경로 | 내용 |
 |---|---|
 | [`docs/citypack-format.md`](./docs/citypack-format.md) | 팩 포맷 스펙. 데이터와 게임의 경계 |
+| [`docs/plan-geometry-contract-v1.md`](./docs/plan-geometry-contract-v1.md) | 지도 편집기와 건설·경제 엔진의 계획 입력 계약 |
 | [`packs/tokyo/`](./packs/tokyo/) | 도쿄권 실데이터 팩 ([README](./packs/tokyo/README.md)) |
 | [`packs/example-radial/`](./packs/example-radial/) | 가상 방사형 도시, `gravity` 모델 |
 | [`packs/example-corridor/`](./packs/example-corridor/) | 가상 회랑형 도시, `matrix` 모델 + 캘린더 |

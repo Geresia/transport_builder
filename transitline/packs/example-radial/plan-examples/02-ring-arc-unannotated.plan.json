@@ -1,0 +1,367 @@
+{
+  "schema": "transitline.plan-geometry/1",
+  "planId": "plan:0ba95ad4e2dead9a",
+  "name": "Ring arc (nothing annotated)",
+  "coordinateReference": "EPSG:4326",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "mode": "scratch",
+  "stationCandidates": [
+    {
+      "id": "stn:1c7dc899c704388b",
+      "location": [
+        0.04347,
+        0.01165
+      ],
+      "name": "mid-1",
+      "nameSource": "demand-node",
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": null,
+      "groundElevationMeters": null,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "platformType",
+        "platformLengthM",
+        "groundElevationMeters"
+      ],
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ]
+    },
+    {
+      "id": "stn:366c6db4372e1252",
+      "location": [
+        0.03182,
+        0.03182
+      ],
+      "name": "mid-2",
+      "nameSource": "demand-node",
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": null,
+      "groundElevationMeters": null,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "platformType",
+        "platformLengthM",
+        "groundElevationMeters"
+      ],
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ]
+    },
+    {
+      "id": "stn:3c19e32f848edd19",
+      "location": [
+        0.01165,
+        0.04347
+      ],
+      "name": "mid-3",
+      "nameSource": "demand-node",
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": null,
+      "groundElevationMeters": null,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "platformType",
+        "platformLengthM",
+        "groundElevationMeters"
+      ],
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ]
+    },
+    {
+      "id": "stn:b5569be6e66d0adc",
+      "location": [
+        -0.01165,
+        0.04347
+      ],
+      "name": "mid-4",
+      "nameSource": "demand-node",
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": null,
+      "groundElevationMeters": null,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "platformType",
+        "platformLengthM",
+        "groundElevationMeters"
+      ],
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "id": "seg:271878de934de55c",
+      "from": "stn:1c7dc899c704388b",
+      "to": "stn:366c6db4372e1252",
+      "lengthMeters": 2590,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": null,
+      "elevationEndMeters": null,
+      "gradientPermille": null,
+      "maxSlopeDegrees": null,
+      "steepShare": null,
+      "minCurveRadiusMeters": 4842,
+      "structureHint": "elevated",
+      "structureHintBasis": "default:no-building-data",
+      "constraintFlags": [],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": null,
+        "road": null,
+        "railway": 0,
+        "building": null,
+        "utility": null
+      },
+      "alignment": [
+        [
+          0.04347,
+          0.01165
+        ],
+        [
+          0.03182,
+          0.03182
+        ]
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "elevationStartMeters",
+        "elevationEndMeters",
+        "maxSlopeDegrees",
+        "steepShare",
+        "crossings.river",
+        "crossings.road",
+        "crossings.building"
+      ],
+      "inferred": [
+        "structureHint"
+      ]
+    },
+    {
+      "id": "seg:644f9e1e5fa5774c",
+      "from": "stn:366c6db4372e1252",
+      "to": "stn:3c19e32f848edd19",
+      "lengthMeters": 2590,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": null,
+      "elevationEndMeters": null,
+      "gradientPermille": null,
+      "maxSlopeDegrees": null,
+      "steepShare": null,
+      "minCurveRadiusMeters": 4837,
+      "structureHint": "elevated",
+      "structureHintBasis": "default:no-building-data",
+      "constraintFlags": [],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": null,
+        "road": null,
+        "railway": 0,
+        "building": null,
+        "utility": null
+      },
+      "alignment": [
+        [
+          0.03182,
+          0.03182
+        ],
+        [
+          0.01165,
+          0.04347
+        ]
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "elevationStartMeters",
+        "elevationEndMeters",
+        "maxSlopeDegrees",
+        "steepShare",
+        "crossings.river",
+        "crossings.road",
+        "crossings.building"
+      ],
+      "inferred": [
+        "structureHint"
+      ]
+    },
+    {
+      "id": "seg:a444f2361976f6bc",
+      "from": "stn:3c19e32f848edd19",
+      "to": "stn:b5569be6e66d0adc",
+      "lengthMeters": 2590.8,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": null,
+      "elevationEndMeters": null,
+      "gradientPermille": null,
+      "maxSlopeDegrees": null,
+      "steepShare": null,
+      "minCurveRadiusMeters": 4837,
+      "structureHint": "elevated",
+      "structureHintBasis": "default:no-building-data",
+      "constraintFlags": [],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": null,
+        "road": null,
+        "railway": 0,
+        "building": null,
+        "utility": null
+      },
+      "alignment": [
+        [
+          0.01165,
+          0.04347
+        ],
+        [
+          -0.01165,
+          0.04347
+        ]
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "elevationStartMeters",
+        "elevationEndMeters",
+        "maxSlopeDegrees",
+        "steepShare",
+        "crossings.river",
+        "crossings.road",
+        "crossings.building"
+      ],
+      "inferred": [
+        "structureHint"
+      ]
+    }
+  ],
+  "accessLinks": [
+    {
+      "id": "acc:5078853e95d744b8",
+      "demandNodeId": "mid-1",
+      "stationId": "stn:1c7dc899c704388b",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    },
+    {
+      "id": "acc:522483efe4d22299",
+      "demandNodeId": "mid-4",
+      "stationId": "stn:b5569be6e66d0adc",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    },
+    {
+      "id": "acc:7f8056a1de205a57",
+      "demandNodeId": "mid-2",
+      "stationId": "stn:366c6db4372e1252",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    },
+    {
+      "id": "acc:ff02783cdc29ac8a",
+      "demandNodeId": "mid-3",
+      "stationId": "stn:3c19e32f848edd19",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    }
+  ],
+  "accessModel": {
+    "radiusMeters": 800,
+    "maxLinks": 3,
+    "detourFactor": 1.3,
+    "walkMetersPerMinute": 80,
+    "minMinutes": 1,
+    "basis": "straight-line distance x detour factor / walking speed, at least minMinutes"
+  },
+  "dataQuality": "low",
+  "unknownSummary": [
+    "crossings.building",
+    "crossings.river",
+    "crossings.road",
+    "elevationEndMeters",
+    "elevationStartMeters",
+    "groundElevationMeters",
+    "maxSlopeDegrees",
+    "platformLengthM",
+    "platformType",
+    "steepShare"
+  ],
+  "warnings": [],
+  "sources": {
+    "pack": {
+      "license": "CC0-1.0",
+      "attribution": []
+    },
+    "layers": [
+      {
+        "layer": "rail",
+        "quality": "low",
+        "name": "ExternalNetwork (station-level, coarse)",
+        "license": "same as the pack it was derived from"
+      }
+    ]
+  },
+  "source": {
+    "drawnLine": {
+      "key": "example:radial:ring-arc",
+      "name": "Ring arc (nothing annotated)",
+      "vertices": [
+        {
+          "location": [
+            0.04347,
+            0.01165
+          ],
+          "demandNodeId": "mid-1"
+        },
+        {
+          "location": [
+            0.03182,
+            0.03182
+          ],
+          "demandNodeId": "mid-2"
+        },
+        {
+          "location": [
+            0.01165,
+            0.04347
+          ],
+          "demandNodeId": "mid-3"
+        },
+        {
+          "location": [
+            -0.01165,
+            0.04347
+          ],
+          "demandNodeId": "mid-4"
+        }
+      ]
+    },
+    "requestedMode": "scratch",
+    "generatedBy": "scripts/build-plan-examples.mjs"
+  }
+}

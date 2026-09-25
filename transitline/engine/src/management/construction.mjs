@@ -29,7 +29,10 @@ export function assessPlan(plan, technicalProfileId, countryProfile) {
   if (!profile) violations.push(`Unknown technical profile ${technicalProfileId}`);
   for (const station of plan?.stationCandidates ?? []) {
     const requiredLength = profile ? profile.platformLengthPerCarM * (station.plannedCars ?? profile.minCars) : 0;
-    if (station.platformLengthM !== undefined && station.platformLengthM < requiredLength) violations.push(`Station ${station.id} platform is too short`);
+    // Unknown measurements may arrive as either an omitted field (v1) or
+    // explicit null (map producer convention). Never let JS coerce null to
+    // zero and turn missing data into a false engineering violation.
+    if (Number.isFinite(station.platformLengthM) && station.platformLengthM < requiredLength) violations.push(`Station ${station.id} platform is too short`);
   }
   const base = estimatePlan(plan, technicalProfileId, countryProfile, false);
   return {
@@ -84,6 +87,8 @@ export function createConstructionProject(plan, technicalProfileId, countryProfi
   return {
     id: `project:${plan.planId}`,
     planId: plan.planId,
+    planVersion: plan.version ?? 1,
+    planGeometry: structuredClone(plan),
     countryId: countryProfile.id,
     technicalProfileId,
     status: "estimated",
@@ -131,7 +136,8 @@ export function advanceConstructionMonth(project, ledger, clock, rng, countryPro
 
   const buildMonths = Math.max(1, project.estimate.durationMonths - countryProfile.approvalMonths - 3);
   const increment = Math.min(1 - project.progress, 1 / buildMonths);
-  const payment = Math.min(project.estimate.totalP50 - project.paid, project.estimate.totalP50 * increment);
+  const commitment = ledger.commitments.get(`construction:${project.id}`);
+  const payment = Math.min(commitment?.remaining ?? 0, project.estimate.totalP50 - project.paid, project.estimate.totalP50 * increment);
   if (payment > 0) ledger.settle(`construction:${project.id}`, payment, clock.minute, "Monthly progress payment");
   project.paid += payment;
   project.progress += increment;
@@ -147,14 +153,58 @@ export function advanceConstructionMonth(project, ledger, clock, rng, countryPro
   }
   if (project.status === "inspection" && project.elapsedMonths >= buildMonths + 3) {
     project.status = "available";
-    project.assets = [
-      { id: `track:${project.id}`, kind: "track", status: "available" },
-      { id: `stations:${project.id}`, kind: "stations", status: "available" },
-      { id: `systems:${project.id}`, kind: "power-signal", status: "available" },
-    ];
+    const stationAssets = project.planGeometry.stationCandidates.map((station) => ({
+      id: `station:${project.id}:${station.id}`,
+      sourceId: station.id,
+      kind: "station",
+      name: station.name ?? station.id,
+      location: [...station.location],
+      structure: station.structure ?? "surface",
+      depthMeters: station.depthMeters ?? 0,
+      status: "available",
+    }));
+    const platformAssets = project.planGeometry.stationCandidates.map((station) => ({
+      id: `platform:${project.id}:${station.id}`,
+      stationAssetId: `station:${project.id}:${station.id}`,
+      kind: "platform",
+      platformType: station.platformType,
+      lengthMeters: station.platformLengthM,
+      status: "available",
+    }));
+    const trackAssets = project.planGeometry.segments.map((segment, index) => ({
+      id: `track:${project.id}:${index + 1}`,
+      kind: "track-segment",
+      fromStationAssetId: `station:${project.id}:${segment.from}`,
+      toStationAssetId: `station:${project.id}:${segment.to}`,
+      lengthMeters: segment.lengthMeters,
+      structure: segment.structureHint,
+      status: "available",
+    }));
+    project.assets = [...stationAssets, ...platformAssets, ...trackAssets,
+      { id: `systems:${project.id}`, kind: "power-signal", status: "available" }];
     ledger.release(`construction:${project.id}`);
   }
   return { delayed: false, payment, progress: project.progress };
+}
+
+export function suspendConstruction(project, reason, clock) {
+  if (!["contracted", "underConstruction", "inspection"].includes(project.status)) throw new Error("Only an active construction project can be suspended");
+  project.resumeStatus = project.status;
+  project.status = "suspended";
+  project.suspendedAt = clock.minute;
+  project.suspensionReason = String(reason || "Player decision");
+  project.riskEvents.push({ atMinute: clock.minute, type: "construction-suspended", reason: project.suspensionReason });
+  return project;
+}
+
+export function resumeConstruction(project, clock) {
+  if (project.status !== "suspended") throw new Error("Project is not suspended");
+  project.status = project.resumeStatus ?? "underConstruction";
+  delete project.resumeStatus;
+  delete project.suspendedAt;
+  delete project.suspensionReason;
+  project.riskEvents.push({ atMinute: clock.minute, type: "construction-resumed" });
+  return project;
 }
 
 export function cancelConstruction(project, ledger) {

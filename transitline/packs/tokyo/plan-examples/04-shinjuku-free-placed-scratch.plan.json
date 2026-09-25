@@ -1,0 +1,296 @@
+{
+  "schema": "transitline.plan-geometry/1",
+  "planId": "plan:fecf90025bb0baa8",
+  "name": "Shinjuku free-placed stations",
+  "coordinateReference": "EPSG:4326",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "mode": "scratch",
+  "stationCandidates": [
+    {
+      "id": "stn:e64d5ed374ba5971",
+      "location": [
+        139.692896,
+        35.687146
+      ],
+      "name": null,
+      "nameSource": null,
+      "structure": "shield",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": null,
+      "platformType": null,
+      "groundElevationMeters": 39,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "name",
+        "depthMeters",
+        "platformType",
+        "platformLengthM"
+      ],
+      "inferred": [
+        "structure"
+      ]
+    },
+    {
+      "id": "stn:f2c1d30755698c75",
+      "location": [
+        139.697945,
+        35.695943
+      ],
+      "name": null,
+      "nameSource": null,
+      "structure": "shield",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": null,
+      "platformType": "island",
+      "groundElevationMeters": 35,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "name",
+        "depthMeters",
+        "platformLengthM"
+      ],
+      "inferred": [
+        "structure"
+      ]
+    },
+    {
+      "id": "stn:2dc10901f79065b3",
+      "location": [
+        139.703835,
+        35.693303
+      ],
+      "name": null,
+      "nameSource": null,
+      "structure": "shield",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": null,
+      "platformType": null,
+      "groundElevationMeters": 33,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "name",
+        "depthMeters",
+        "platformType",
+        "platformLengthM"
+      ],
+      "inferred": [
+        "structure"
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "id": "seg:10cf24ba517e0854",
+      "from": "stn:e64d5ed374ba5971",
+      "to": "stn:f2c1d30755698c75",
+      "lengthMeters": 1424.6,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": 39,
+      "elevationEndMeters": 35,
+      "gradientPermille": 2.8,
+      "maxSlopeDegrees": 3,
+      "steepShare": 0.13,
+      "minCurveRadiusMeters": 162,
+      "structureHint": "shield",
+      "structureHintBasis": "inferred:buildings-on-alignment",
+      "constraintFlags": [],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": 0,
+        "road": {
+          "highway": 0,
+          "major": 5,
+          "minor": 23
+        },
+        "railway": 0,
+        "building": 36,
+        "utility": null
+      },
+      "alignment": [
+        [
+          139.692896,
+          35.687146
+        ],
+        [
+          139.698786,
+          35.688025
+        ],
+        [
+          139.697945,
+          35.695943
+        ]
+      ],
+      "dataQuality": "medium",
+      "unknown": [],
+      "inferred": [
+        "structureHint"
+      ]
+    },
+    {
+      "id": "seg:fb160b74ec3c163e",
+      "from": "stn:f2c1d30755698c75",
+      "to": "stn:2dc10901f79065b3",
+      "lengthMeters": 607.5,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": 35,
+      "elevationEndMeters": 33,
+      "gradientPermille": 3.3,
+      "maxSlopeDegrees": 1,
+      "steepShare": 0,
+      "minCurveRadiusMeters": 162,
+      "structureHint": "shield",
+      "structureHintBasis": "inferred:buildings-on-alignment",
+      "constraintFlags": [],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": 0,
+        "road": {
+          "highway": 0,
+          "major": 0,
+          "minor": 6
+        },
+        "railway": 0,
+        "building": 23,
+        "utility": null
+      },
+      "alignment": [
+        [
+          139.697945,
+          35.695943
+        ],
+        [
+          139.703835,
+          35.693303
+        ]
+      ],
+      "dataQuality": "medium",
+      "unknown": [],
+      "inferred": [
+        "structureHint"
+      ]
+    }
+  ],
+  "accessLinks": [],
+  "accessModel": {
+    "radiusMeters": 800,
+    "maxLinks": 3,
+    "detourFactor": 1.3,
+    "walkMetersPerMinute": 80,
+    "minMinutes": 1,
+    "basis": "straight-line distance x detour factor / walking speed, at least minMinutes"
+  },
+  "dataQuality": "medium",
+  "unknownSummary": [
+    "depthMeters",
+    "name",
+    "platformLengthM",
+    "platformType"
+  ],
+  "warnings": [],
+  "sources": {
+    "pack": {
+      "license": "ODbL-1.0",
+      "attribution": [
+        "© OpenStreetMap contributors",
+        "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+        "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+        "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+        "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+        "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+        "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+        "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+        "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+        "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+        "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+        "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+        "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+        "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+        "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+        "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+        "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+      ]
+    },
+    "layers": [
+      {
+        "layer": "dem",
+        "quality": "medium",
+        "name": "国土地理院 数値標高モデル DEM10B (dem_png z14), 31 m mean grid",
+        "license": "GSI terms of use (credit: 国土地理院)"
+      },
+      {
+        "layer": "water",
+        "quality": "medium",
+        "name": "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json",
+        "license": "MLIT-KSJ-terms"
+      },
+      {
+        "layer": "buildings",
+        "quality": "high",
+        "name": "OpenStreetMap building footprints, packs/tokyo/obstacles.json",
+        "license": "ODbL-1.0"
+      },
+      {
+        "layer": "roads",
+        "quality": "high",
+        "name": "OpenStreetMap roads (23 wards), subway-builder-export/roads.all.geojson",
+        "license": "ODbL-1.0"
+      },
+      {
+        "layer": "rail",
+        "quality": "low",
+        "name": "ExternalNetwork (station-level, coarse)",
+        "license": "same as the pack it was derived from"
+      }
+    ]
+  },
+  "source": {
+    "drawnLine": {
+      "key": "example:tokyo:shinjuku-free-placed",
+      "name": "Shinjuku free-placed stations",
+      "legs": [
+        {
+          "via": [
+            [
+              139.69878595,
+              35.6880252
+            ]
+          ]
+        },
+        {}
+      ],
+      "vertices": [
+        {
+          "location": [
+            139.6928958,
+            35.6871455
+          ]
+        },
+        {
+          "location": [
+            139.6979445,
+            35.6959425
+          ],
+          "platformType": "island"
+        },
+        {
+          "location": [
+            139.70383465,
+            35.6933034
+          ]
+        }
+      ]
+    },
+    "requestedMode": "scratch",
+    "generatedBy": "scripts/build-plan-examples.mjs"
+  }
+}

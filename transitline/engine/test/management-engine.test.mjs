@@ -29,6 +29,8 @@ import {
 
 function plan(id = "line-a") {
   return {
+    contractVersion: 1,
+    schema: "transitline.plan-geometry/1",
     planId: id,
     coordinateReference: "EPSG:4326",
     sourcePackId: "synthetic",

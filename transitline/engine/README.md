@@ -45,6 +45,12 @@ Run all engine regressions and the one-year save/resume scenario with:
 npm test
 ```
 
+Map editors integrate through `src/map-engine-bridge.mjs`. The versioned input
+and status contract is documented in
+[`../docs/plan-geometry-contract-v1.md`](../docs/plan-geometry-contract-v1.md).
+Completed projects materialise physical stations, platforms and track only at
+commissioning; demand nodes reach them through explicit walking access links.
+
 ## Two start modes
 
 A pack that carries `files.existingNetwork` (currently only `tokyo`, see

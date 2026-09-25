@@ -7,6 +7,7 @@
     "test": "node --test engine/test/*.test.mjs",
     "test:engine": "node --test engine/test/*.test.mjs",
     "validate": "node scripts/validate-all.mjs",
+    "plan-examples": "node --max-old-space-size=4096 scripts/build-plan-examples.mjs",
     "regen": "node packs/example-radial/generate.mjs && node packs/example-corridor/generate.mjs"
   }
 }

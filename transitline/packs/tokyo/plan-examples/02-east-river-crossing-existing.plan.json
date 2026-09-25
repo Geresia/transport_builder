@@ -1,0 +1,382 @@
+{
+  "schema": "transitline.plan-geometry/1",
+  "planId": "plan:b9b153e3df14331d",
+  "name": "East river crossing (Koto-Sumida-Edogawa)",
+  "coordinateReference": "EPSG:4326",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "mode": "existing",
+  "stationCandidates": [
+    {
+      "id": "stn:b00d2c67f5415425",
+      "location": [
+        139.81276,
+        35.67399
+      ],
+      "name": "江東区",
+      "nameSource": "demand-node",
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": "island",
+      "groundElevationMeters": 0,
+      "transferTargets": [
+        {
+          "networkId": "external:tokyo",
+          "stationId": "ward-koto",
+          "lineIds": [
+            "ext-line:10355300",
+            "ext-line:10840434",
+            "ext-line:12184302",
+            "ext-line:12185878",
+            "ext-line:3300716",
+            "ext-line:3304256",
+            "ext-line:3351488",
+            "ext-line:3355612",
+            "ext-line:443259",
+            "ext-line:443269",
+            "ext-line:443279",
+            "ext-line:5219680",
+            "ext-line:5326726",
+            "ext-line:5371620",
+            "ext-line:9393678",
+            "ext-line:9812331",
+            "ext-line:9973139"
+          ],
+          "distanceMeters": 0
+        }
+      ],
+      "dataQuality": "high",
+      "unknown": [
+        "platformLengthM"
+      ],
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ]
+    },
+    {
+      "id": "stn:b811921b26eaebbd",
+      "location": [
+        139.81254,
+        35.70474
+      ],
+      "name": "墨田区",
+      "nameSource": "demand-node",
+      "structure": "shield",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": null,
+      "platformType": "island",
+      "groundElevationMeters": 0,
+      "transferTargets": [
+        {
+          "networkId": "external:tokyo",
+          "stationId": "ward-sumida",
+          "lineIds": [
+            "ext-line:10025573",
+            "ext-line:11561062",
+            "ext-line:11664583",
+            "ext-line:12184302",
+            "ext-line:12185878",
+            "ext-line:18819167",
+            "ext-line:1904851",
+            "ext-line:3302734",
+            "ext-line:3338455",
+            "ext-line:3351488",
+            "ext-line:3355612",
+            "ext-line:443259",
+            "ext-line:443279",
+            "ext-line:5219680",
+            "ext-line:5392090"
+          ],
+          "distanceMeters": 0
+        }
+      ],
+      "dataQuality": "medium",
+      "unknown": [
+        "depthMeters",
+        "platformLengthM"
+      ],
+      "inferred": [
+        "structure"
+      ]
+    },
+    {
+      "id": "stn:c247c3f5a3f53c4b",
+      "location": [
+        139.87118,
+        35.7136
+      ],
+      "name": "江戸川区",
+      "nameSource": "demand-node",
+      "structure": "shield",
+      "structureBasis": "player",
+      "depthMeters": 24,
+      "platformType": "side",
+      "groundElevationMeters": 0,
+      "transferTargets": [
+        {
+          "networkId": "external:tokyo",
+          "stationId": "ward-edogawa",
+          "lineIds": [
+            "ext-line:10840434",
+            "ext-line:19928461",
+            "ext-line:19931515",
+            "ext-line:19931516",
+            "ext-line:3336657",
+            "ext-line:3336658",
+            "ext-line:3351488",
+            "ext-line:443259",
+            "ext-line:5326726",
+            "ext-line:5371620",
+            "ext-line:9973139"
+          ],
+          "distanceMeters": 0
+        }
+      ],
+      "dataQuality": "high",
+      "unknown": [
+        "platformLengthM"
+      ],
+      "inferred": []
+    }
+  ],
+  "segments": [
+    {
+      "id": "seg:29a889cbeeb9b321",
+      "from": "stn:b00d2c67f5415425",
+      "to": "stn:b811921b26eaebbd",
+      "lengthMeters": 3419.3,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": 0,
+      "elevationEndMeters": 0,
+      "gradientPermille": 0,
+      "maxSlopeDegrees": 0,
+      "steepShare": 0,
+      "minCurveRadiusMeters": 2047,
+      "structureHint": "elevated",
+      "structureHintBasis": "player",
+      "constraintFlags": [
+        "water-crossing",
+        "railway-crossing"
+      ],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": 2,
+        "road": {
+          "highway": 4,
+          "major": 6,
+          "minor": 46
+        },
+        "railway": 6,
+        "building": null,
+        "utility": null
+      },
+      "alignment": [
+        [
+          139.81276,
+          35.67399
+        ],
+        [
+          139.81254,
+          35.70474
+        ]
+      ],
+      "dataQuality": "medium",
+      "unknown": [
+        "crossings.building"
+      ],
+      "inferred": []
+    },
+    {
+      "id": "seg:4c77da73dfd17c89",
+      "from": "stn:b811921b26eaebbd",
+      "to": "stn:c247c3f5a3f53c4b",
+      "lengthMeters": 5385.4,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": 0,
+      "elevationEndMeters": 0,
+      "gradientPermille": 0,
+      "maxSlopeDegrees": 1,
+      "steepShare": 0,
+      "minCurveRadiusMeters": 2047,
+      "structureHint": "shield",
+      "structureHintBasis": "player",
+      "constraintFlags": [
+        "water-crossing",
+        "railway-crossing"
+      ],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": 1,
+        "road": {
+          "highway": 2,
+          "major": 5,
+          "minor": 69
+        },
+        "railway": 1,
+        "building": null,
+        "utility": null
+      },
+      "alignment": [
+        [
+          139.81254,
+          35.70474
+        ],
+        [
+          139.87118,
+          35.7136
+        ]
+      ],
+      "dataQuality": "medium",
+      "unknown": [
+        "crossings.building"
+      ],
+      "inferred": []
+    }
+  ],
+  "accessLinks": [
+    {
+      "id": "acc:52c1e1895c95dd27",
+      "demandNodeId": "ward-koto",
+      "stationId": "stn:b00d2c67f5415425",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    },
+    {
+      "id": "acc:c1709008ccd9e6d6",
+      "demandNodeId": "ward-sumida",
+      "stationId": "stn:b811921b26eaebbd",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    },
+    {
+      "id": "acc:f5304098ebf3eed2",
+      "demandNodeId": "ward-edogawa",
+      "stationId": "stn:c247c3f5a3f53c4b",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    }
+  ],
+  "accessModel": {
+    "radiusMeters": 800,
+    "maxLinks": 3,
+    "detourFactor": 1.3,
+    "walkMetersPerMinute": 80,
+    "minMinutes": 1,
+    "basis": "straight-line distance x detour factor / walking speed, at least minMinutes"
+  },
+  "dataQuality": "medium",
+  "unknownSummary": [
+    "crossings.building",
+    "depthMeters",
+    "platformLengthM"
+  ],
+  "warnings": [],
+  "sources": {
+    "pack": {
+      "license": "ODbL-1.0",
+      "attribution": [
+        "© OpenStreetMap contributors",
+        "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+        "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+        "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+        "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+        "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+        "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+        "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+        "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+        "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+        "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+        "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+        "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+        "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+        "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+        "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+        "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+      ]
+    },
+    "layers": [
+      {
+        "layer": "dem",
+        "quality": "medium",
+        "name": "国土地理院 数値標高モデル DEM10B (dem_png z14), 31 m mean grid",
+        "license": "GSI terms of use (credit: 国土地理院)"
+      },
+      {
+        "layer": "water",
+        "quality": "medium",
+        "name": "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json",
+        "license": "MLIT-KSJ-terms"
+      },
+      {
+        "layer": "buildings",
+        "quality": "high",
+        "name": "OpenStreetMap building footprints, packs/tokyo/obstacles.json",
+        "license": "ODbL-1.0"
+      },
+      {
+        "layer": "roads",
+        "quality": "high",
+        "name": "OpenStreetMap roads (23 wards), subway-builder-export/roads.all.geojson",
+        "license": "ODbL-1.0"
+      },
+      {
+        "layer": "rail",
+        "quality": "low",
+        "name": "ExternalNetwork (station-level, coarse)",
+        "license": "same as the pack it was derived from"
+      }
+    ]
+  },
+  "source": {
+    "drawnLine": {
+      "key": "example:tokyo:east-river-crossing",
+      "name": "East river crossing (Koto-Sumida-Edogawa)",
+      "legs": [
+        {
+          "structureHint": "elevated"
+        },
+        {
+          "structureHint": "shield"
+        }
+      ],
+      "vertices": [
+        {
+          "location": [
+            139.81276,
+            35.67399
+          ],
+          "demandNodeId": "ward-koto",
+          "platformType": "island"
+        },
+        {
+          "location": [
+            139.81254,
+            35.70474
+          ],
+          "demandNodeId": "ward-sumida",
+          "platformType": "island"
+        },
+        {
+          "location": [
+            139.87118,
+            35.7136
+          ],
+          "demandNodeId": "ward-edogawa",
+          "platformType": "side",
+          "structure": "shield",
+          "depthMeters": 24
+        }
+      ]
+    },
+    "requestedMode": "existing",
+    "generatedBy": "scripts/build-plan-examples.mjs"
+  }
+}

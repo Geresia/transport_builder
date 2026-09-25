@@ -6,6 +6,8 @@ const STORAGE_KEY = `transitline-management-${countryId}`;
 let game = new ManagementGame({ countryId, seed: 20260925, openingCash: 1_000_000_000_000 });
 
 const samplePlan = {
+  contractVersion: 1,
+  schema: "transitline.plan-geometry/1",
   planId: "metro-east",
   coordinateReference: "EPSG:4326",
   sourcePackId: "management-demo",
@@ -37,6 +39,10 @@ const labels = {
   "month-advanced": "공사 및 제작 1개월 진행",
   "service-created": "개통 판정",
   "service-day-operated": "영업운행 정산",
+  "plan-submitted": "지도 계획 접수",
+  "plan-approved": "지도 계획 승인",
+  "project-created-from-plan": "승인 계획의 사업화",
+  "project-commissioned": "완공 자산 개통",
 };
 
 function currentPhase() {
@@ -160,9 +166,10 @@ $("award").addEventListener("click", () => action(() => {
   status(`경쟁 ${result.ranking.length}개 제안 중 1위로 운영권을 수주했습니다.`);
 }));
 $("construct").addEventListener("click", () => action(() => {
-  const assessment = game.assess(samplePlan, "medium_steel");
-  if (assessment.buildable !== true) throw new Error(assessment.violations.join("; "));
-  const project = game.createProject(samplePlan, "medium_steel");
+  const record = game.submitPlan(samplePlan, "medium_steel");
+  if (record.status !== "assessed") throw new Error(record.assessment.violations.join("; ") || record.assessment.missingInputs.join("; "));
+  game.approvePlan(record.id);
+  const project = game.createProjectFromPlan(record.id);
   game.contractProject(project.id);
   status(`총사업비 P50 ${shortYen(project.estimate.totalP50)}, 예정기간 ${project.estimate.durationMonths}개월로 계약했습니다.`);
 }));

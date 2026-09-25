@@ -712,6 +712,19 @@ The 7 JSON files ≥ 1 MB (`subward*.json`, `jobs-buildings.json`, `building-pop
 
 Land cover from `basemap.pmtiles`' `landuse` layer is now colored by class (forest/wood, farmland/allotments, grass/scrub, parks/golf, wetland, sand), and a hillshade from AWS Terrain Tiles (fetched live over the network, nothing added to the pack) shows mountains and valleys, so building-free areas read as mountains, fields or water rather than missing data. The ward/region choropleth fades out above zoom 12 so the terrain shows through. The basemap only goes to zoom 12 and is overzoomed beyond that, so land-cover edges are coarse when zoomed in.
 
+## Tourism demand (`tourism.json`) — measured visitors per municipality, survey shares for entry routes
+
+Built by `scripts/tokyo-tourism.mjs` from 東京都産業労働局's 観光データカタログ (2025, R7). Two sources:
+
+- **`municipalities`, 62 Tokyo wards/cities/towns** — NTT docomo モバイル空間統計. Per municipality: `domestic` / `foreign` (`stay` = present 2–4am, `dayTrip` = the rest, `all`), `domesticByOrigin` (residence prefecture 01–47 → stay/dayTrip: the domestic inbound route), `foreignByRegion` (7 world regions), and `monthly` (12 months). **Unit is 延べ**: a person counts once per area per month, months are summed, so a visitor to two wards is in both — never add wards up to a Tokyo total. Values are rounded to 100 and anything under 100 is suppressed (`null`/absent; 8 island/mountain municipalities have no foreign total). "Visitor" is the source's definition: Kanto residents ≥40 km one way or ≥4 h, others ≥80 km or ≥8 h, commuting excluded.
+- **`gateways` + `surveyAreas`** — 国・地域別外国人旅行者行動特性調査, 16,008 respondents. Per entry airport (成田 8,808, 羽田 5,047, 関西 1,322, others small): share who visited each of 26 named areas and share who used each transport mode. **Unweighted survey shares, not volumes**, and the sample is interviewed in Tokyo, so airports other than Narita/Haneda are thin. `surveyAreas[].wardCodes` map areas onto municipalities by hand and are approximate for areas spanning two wards (e.g. お台場).
+
+- **`railInbound`** — 国土交通省 幹線鉄道旅客流動実態調査 平成27年 (2015), the latest full survey. Shinkansen + main-line limited-express riders per year into 埼玉/千葉/東京/神奈川 from outside those four, one way, in thousands: 93,713 (東京 55,612 · 神奈川 18,029 · 千葉 10,319 · 埼玉 9,753), `perDay` 256,749, `byOrigin` per prefecture (overseas 2,211). **All trip purposes, not tourists only, and 2015.** No train-type split, and no arrival station.
+
+**Viewer overlay 「도쿄역 도착객 분산 경로」** (`viewer.html`, on by default): a modelled assumption, not data. All `railInbound.perDay` riders get off at 東京駅 (139.7671, 35.6812) and are spread over the 242 municipalities in proportion to residents + jobs (`demand.json`), no distance decay. Clicking a ward that has chome data re-splits that ward's share over its chomes by the same rule. Lines are straight direction marks, not rail routes. Not connected to the engine.
+
+Not in the source (so not here): domestic visitors' arrival station/route, per-spot visitor counts with locations (the 観光地点等入込客数調査 download withholds spot names and municipality codes, only category totals), and any visitor counts for years other than 2025 (mobile data also exists for 2021–2024, survey codes are renumbered each year).
+
 ## Special demand (`special-demand.json`) — locations measured, capacity modeled
 
 Attractors in the CityPack `attractors` format ([`docs/citypack-format.md`](../../docs/citypack-format.md)) for all four prefectures (Tokyo, Saitama, Chiba, Kanagawa), built by `scripts/tokyo-special-demand.mjs` from MLIT 国土数値情報:

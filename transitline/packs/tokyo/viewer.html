@@ -101,6 +101,9 @@
   <div class="cap" style="margin:2px 0 6px">도로 색: <b style="color:#f5a04a">주황</b> 고속도로·자동차전용도로 · <b style="color:#e0b820">노랑</b> 간선도로 · 흰색 골목 · <b style="color:#9b5fc0">보라</b> 철도</div>
   <label><input type="checkbox" id="toggle-labels"> 큰 건물 이름 (OSM, 줌 15+)</label>
   <div class="cap" id="commute-cap" style="display:none"></div>
+  <div class="ovl-title">관광 수요 · 신칸센 도착객</div>
+  <label><input type="checkbox" id="toggle-tokyo-stn" checked> 도쿄역 도착객 분산 경로 (인구+종사자 비례 · 구를 클릭하면 정목 단위)</label>
+  <div class="cap" id="tstn-cap" style="margin:0 0 6px 20px"></div>
   <div class="ovl-title">특수 수요 · 시범 데이터</div>
   <label><input type="checkbox" id="toggle-special"> 대학·병원 (MLIT, 4개 도현 · 위치 실측 · 정원은 모델 추정)</label>
   <label><input type="checkbox" id="toggle-plateau-jobs"> 건물별 직장 — PLATEAU 도시 <span id="plateau-jobs-count"></span> (모델, 줌 13+)</label>
@@ -519,7 +522,7 @@ map.on("load", async () => {
   let currentWardJis = null;
   // 건물/정목 레이어를 누른 클릭이 아래 깔린 구/광역권 클릭 핸들러까지 전달되어 줌아웃되는 것을 막음
   const hitsDetailLayer = (e) => {
-    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d", "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "special-demand-circle", "peaks-major", "peaks-mid", "peaks-minor", ...plateauJobLayerIds()].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
+    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d", "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "special-demand-circle", "tstn-dest", "tstn-station", "peaks-major", "peaks-mid", "peaks-minor", ...plateauJobLayerIds()].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
     return ls.length > 0 && map.queryRenderedFeatures(e.point, { layers: ls }).length > 0;
   };
   // wards-fill(23구)이 region-fill(간토 전역 시정촌) 위에 겹쳐 있어, 구를 클릭하면 두 레이어의
@@ -532,6 +535,7 @@ map.on("load", async () => {
   let syncOverlay = () => {};
   let currentDetail = null;
   let applyMetric = () => {};
+  let updateFlows = () => {}; // 도쿄역 도착객 분산 경로 — 구를 열면 정목 단위로, 닫으면 시·구·정·촌 단위로 다시 그림 (아래 "관광 수요" 블록에서 교체됨)
   let capUpdate = () => {}; // re-renders the explanatory panel text when the residents/jobs toggle changes
   // 건물 표시(toggle-obstacles)와 3D(toggle-3d) 토글이 각자 레이어를 따로 건드리면 둘이 어긋난다 —
   // 건물 숨김+3D 켬 상태에서 3D를 끄면 (꺼져 있던) 평면 레이어가 다시 보이거나, 3D가 켜진 채로 건물을
@@ -599,6 +603,7 @@ map.on("load", async () => {
     if (map.getLayer("bldgpop-fill")) map.setFilter("bldgpop-fill", ["==", ["get", "wardJis"], "__none__"]);
     if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], "__none__"]);
     for (const id of ["jobsgrid-fill", "jobsgrid-line"]) if (map.getLayer(id)) map.setFilter(id, ["==", ["get", "wardJis"], "__none__"]);
+    updateFlows(null);
     if (subwardActive) { map.flyTo(initialView); subwardActive = false; }
   }
 
@@ -620,6 +625,7 @@ map.on("load", async () => {
     currentWardJis = jis;
     subwardActive = true;
     currentDetail = null;
+    updateFlows(null);
   }
 
   function showMissingDetail(nameKo) {
@@ -633,6 +639,7 @@ map.on("load", async () => {
     if (map.getLayer("bldgpop-fill")) map.setFilter("bldgpop-fill", ["==", ["get", "wardJis"], "__none__"]);
     if (map.getLayer("bldgpop-line")) map.setFilter("bldgpop-line", ["==", ["get", "wardJis"], "__none__"]);
     for (const id of ["jobsgrid-fill", "jobsgrid-line"]) if (map.getLayer(id)) map.setFilter(id, ["==", ["get", "wardJis"], "__none__"]);
+    updateFlows(null);
     if (subwardActive) { map.flyTo(initialView); subwardActive = false; }
   }
 
@@ -654,6 +661,7 @@ map.on("load", async () => {
     subwardActive = true;
 
     currentDetail = subwardIndex;
+    updateFlows(subwardIndex, nameKo);
     applyMetric();
     renderList();
   }
@@ -1053,6 +1061,95 @@ map.on("load", async () => {
     });
   } else {
     document.getElementById("toggle-special").disabled = true;
+  }
+
+  // ---- 관광 수요: 신칸센 도착객이 도쿄역에서 내려 흩어지는 경로 (tourism.json railInbound + demand.json).
+  // 가정(사용자 지정): 도착객은 전부 도쿄역에서 내리고, 목적지 몫은 그곳의 거주 인구 + 종사자 수에 비례. 거리 감쇠 없음.
+  // 규모는 국토교통성 2015 조사(신칸센+특급, 전 목적)라 관광객만의 수치가 아님. 선은 이동 방향 표시일 뿐 실제 노선이 아님.
+  // 구를 열면 그 구의 정목으로 다시 나뉜다(정목 몫 = (거주+종사자) / 전체 합 — 지자체 몫의 합과 소수점 차이가 있을 수 있음). ----
+  const tourism = await loadJSON("./tourism.json");
+  if (tourism && tourism.railInbound && demand) {
+    const TOKYO_STN = [139.7671, 35.6812]; // 東京駅 (丸の内)
+    const PER_DAY = tourism.railInbound.perDay;
+    const STN_COLOR = "#7048e8";
+    const regionDests = demand.points.map((p) => {
+      const f = p.jisCode ? wardFeaturesByCode.get(String(p.jisCode)) : regionFeatureByCode.get(String(p.code));
+      return { name: (f && f.properties.name_ko) || p.name, location: p.location, res: p.residents, job: p.jobs ?? 0 };
+    });
+    const TOTAL = regionDests.reduce((s, d) => s + d.res + d.job, 0);
+    const empty = { type: "FeatureCollection", features: [] };
+    for (const id of ["tstn-lines", "tstn-dest", "tstn-station"]) map.addSource(id, { type: "geojson", data: empty });
+    map.getSource("tstn-station").setData({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: TOKYO_STN } });
+    map.addLayer({ id: "tstn-lines-case", source: "tstn-lines", type: "line", layout: { "line-cap": "round" },
+      paint: { "line-color": "#ffffff", "line-width": ["+", ["get", "wpx"], 2], "line-opacity": 0.45 } });
+    map.addLayer({ id: "tstn-lines", source: "tstn-lines", type: "line", layout: { "line-cap": "round" },
+      paint: { "line-color": STN_COLOR, "line-width": ["get", "wpx"], "line-opacity": 0.75 } });
+    map.addLayer({ id: "tstn-dest", source: "tstn-dest", type: "circle",
+      paint: { "circle-radius": ["get", "rpx"], "circle-color": STN_COLOR, "circle-opacity": 0.85, "circle-stroke-color": "#ffffff", "circle-stroke-width": 1 } });
+    map.addLayer({ id: "tstn-station", source: "tstn-station", type: "circle",
+      paint: { "circle-radius": 8, "circle-color": "#ffffff", "circle-stroke-color": STN_COLOR, "circle-stroke-width": 4 } });
+    map.addLayer({ id: "tstn-label", source: "tstn-station", type: "symbol",
+      layout: { "text-field": "도쿄역 東京駅", "text-font": ["Noto Sans Regular"], "text-size": 13, "text-offset": [0, 1.3], "text-anchor": "top" },
+      paint: { "text-color": THEME.name === "dark" ? "#b197fc" : "#5f3dc4", "text-halo-color": THEME.label.halo, "text-halo-width": 1.6 } });
+
+    // dests: [{name, location, res, job}] -> lines + endpoint dots; width/radius scale with the largest share in this set
+    const flowData = (dests) => {
+      const max = Math.max(1, ...dests.map((d) => d.res + d.job));
+      const lines = [], dots = [];
+      for (const d of dests) {
+        const w = d.res + d.job;
+        if (!(w > 0) || !d.location) continue;
+        const props = { name: d.name, res: d.res, job: d.job, share: w / TOTAL, perDay: (w / TOTAL) * PER_DAY,
+          wpx: 0.8 + 6.2 * Math.sqrt(w / max), rpx: 2 + 6 * Math.sqrt(w / max) };
+        lines.push({ type: "Feature", properties: props, geometry: { type: "LineString", coordinates: [TOKYO_STN, d.location] } });
+        dots.push({ type: "Feature", properties: props, geometry: { type: "Point", coordinates: d.location } });
+      }
+      return { lines: { type: "FeatureCollection", features: lines }, dots: { type: "FeatureCollection", features: dots } };
+    };
+    const capEl = document.getElementById("tstn-cap");
+    updateFlows = (detail, nameKo) => {
+      let dests = regionDests, scope;
+      if (detail && detail.areas) {
+        dests = detail.areas.map((a) => {
+          const ko = kanaToKo(a.reading_kana);
+          return { name: ko ? `${ko} (${a.name_ja})` : a.name_ja, location: a.location, res: a.residents, job: jobs && jobs.areas[a.code] ? jobs.areas[a.code].w : 0 };
+        });
+        const sum = dests.reduce((s, d) => s + d.res + d.job, 0);
+        scope = `${nameKo} 정목 ${dests.length}개로 나눠 표시 중 — 이 지역 몫 ${((sum / TOTAL) * 100).toFixed(1)}%, 하루 약 ${nf((sum / TOTAL) * PER_DAY)}명.`;
+      } else scope = `${dests.length}개 시·구·정·촌으로 나눠 표시 중. 구를 클릭하면 정목 단위로 다시 나뉩니다.`;
+      const { lines, dots } = flowData(dests);
+      map.getSource("tstn-lines").setData(lines);
+      map.getSource("tstn-dest").setData(dots);
+      capEl.textContent = `신칸센(+특급) 도착객 하루 약 ${nf(PER_DAY)}명(연 ${nf(tourism.railInbound.total * 1000)}명 · ${tourism.railInbound.year} 국토교통성 조사 · 전 목적)이 `
+        + `전부 도쿄역에서 내려 거주 인구 + 종사자 수에 비례해 흩어진다고 가정한 경로입니다. ${scope} 선은 방향 표시일 뿐 실제 노선이 아닙니다(모델 가정, 실측 아님).`;
+    };
+    map.on("click", "tstn-dest", (e) => {
+      const p = e.features[0].properties;
+      const n = Number(p.perDay);
+      new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
+        .setHTML(`<div style="font:12.5px sans-serif;color:#000"><b>${esc(p.name)}</b><br>도쿄역 도착객 하루 약 <b>${n >= 10 ? nf(n) : n.toFixed(1)}</b>명`
+          + ` (전체의 ${(Number(p.share) * 100).toFixed(2)}%)<br>거주 ${nf(p.res)} + 종사 ${nf(p.job)} 에 비례`
+          + `<br><span style="color:#666">모델 가정 — 실측 아님</span></div>`)
+        .addTo(map);
+    });
+    map.on("click", "tstn-station", (e) => {
+      new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
+        .setHTML(`<div style="font:12.5px sans-serif;color:#000"><b>도쿄역</b><br>신칸센(+특급) 도착객 하루 약 <b>${nf(PER_DAY)}</b>명이 전부 여기서 내린다고 가정`
+          + `<br><span style="color:#666">국토교통성 幹線鉄道旅客流動実態調査 ${esc(tourism.railInbound.year)} — 埼玉·千葉·東京·神奈川 도착, 전 목적</span></div>`)
+        .addTo(map);
+    });
+    for (const id of ["tstn-dest", "tstn-station"]) {
+      map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
+      map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));
+    }
+    document.getElementById("toggle-tokyo-stn").addEventListener("change", (e) => {
+      for (const id of ["tstn-lines-case", "tstn-lines", "tstn-dest", "tstn-station", "tstn-label"])
+        map.setLayoutProperty(id, "visibility", e.target.checked ? "visible" : "none");
+      capEl.style.display = e.target.checked ? "block" : "none";
+    });
+    updateFlows(null);
+  } else {
+    document.getElementById("toggle-tokyo-stn").disabled = true;
   }
 
   // ---- 사이타마시 건물별 직장 (jobs-buildings-saitama.json — 町丁 실제 종사자를 PLATEAU 건물에
@@ -1555,6 +1652,6 @@ map.on("load", async () => {
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
-  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor", "region-label", "wards-label", "commute-lines-school-case", "commute-lines-school", "commute-lines-case", "commute-lines", "commute-origin"]) if (map.getLayer(id)) map.moveLayer(id);
+  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor", "region-label", "wards-label", "commute-lines-school-case", "commute-lines-school", "commute-lines-case", "commute-lines", "commute-origin", "tstn-lines-case", "tstn-lines", "tstn-dest", "tstn-station", "tstn-label"]) if (map.getLayer(id)) map.moveLayer(id);
 });
 </script>

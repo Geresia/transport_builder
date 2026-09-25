@@ -1,9 +1,10 @@
 import { EventLog, Ledger, SimulationClock, decodeSave, encodeSave, makeRng } from "./core.mjs";
 import { getCountryProfile } from "./country-profiles.mjs";
-import { assessPlan, createConstructionProject, contractConstruction, advanceConstructionMonth } from "./construction.mjs";
+import { assessPlan, createConstructionProject, contractConstruction, advanceConstructionMonth, resumeConstruction, suspendConstruction } from "./construction.mjs";
 import { createCompetitors, createOpportunity, evaluateTender, generateCompetitorBids, negotiateAward, researchOpportunity, submitPlayerBid } from "./procurement.mjs";
 import { createDepot, createManufacturers, placeVehicleOrder, advanceVehicleOrderMonth } from "./rolling-stock.mjs";
 import { calculateFleetRequirement, checkOpenReady, operateServiceDay } from "./operations.mjs";
+import { createPlanRecord } from "./domain.mjs";
 
 export class ManagementGame {
   constructor({ countryId = "JP", seed = 1, openingCash = 500_000_000_000, playerName = "Player Transit" } = {}) {
@@ -21,6 +22,7 @@ export class ManagementGame {
     this.vehicleOrders = [];
     this.depots = [];
     this.services = [];
+    this.plans = [];
   }
 
   snapshot() {
@@ -39,6 +41,8 @@ export class ManagementGame {
       vehicleOrders: structuredClone(this.vehicleOrders),
       depots: structuredClone(this.depots),
       services: structuredClone(this.services),
+      plans: structuredClone(this.plans),
+      scenario: structuredClone(this.scenario ?? null),
     };
   }
 
@@ -50,9 +54,10 @@ export class ManagementGame {
     this.rng = makeRng(snapshot.rngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "opportunities", "contracts", "projects", "vehicleOrders", "depots", "services"]) {
-      this[key] = structuredClone(snapshot[key]);
+    for (const key of ["player", "competitors", "manufacturers", "opportunities", "contracts", "projects", "vehicleOrders", "depots", "services", "plans"]) {
+      this[key] = structuredClone(snapshot[key] ?? []);
     }
+    this.scenario = structuredClone(snapshot.scenario ?? null);
     return this;
   }
 
@@ -121,6 +126,41 @@ export class ManagementGame {
     return assessPlan(plan, technicalProfileId, this.country);
   }
 
+  submitPlan(plan, technicalProfileId) {
+    return this.transact("plan-submitted", () => {
+      const assessment = this.assess(plan, technicalProfileId);
+      const record = createPlanRecord(this.plans, plan, technicalProfileId, assessment, this.clock.minute);
+      this.plans.push(record);
+      return record;
+    });
+  }
+
+  approvePlan(planRecordId) {
+    return this.transact("plan-approved", () => {
+      const record = this.requirePlan(planRecordId);
+      if (record.status !== "assessed") throw new Error(`Plan ${planRecordId} is ${record.status}, not ready for approval`);
+      const newer = this.plans.some((item) => item.planId === record.planId && item.version > record.version);
+      if (newer) throw new Error(`Plan ${planRecordId} has a newer version`);
+      record.status = "approved";
+      record.approvedAt = this.clock.minute;
+      return record;
+    });
+  }
+
+  createProjectFromPlan(planRecordId) {
+    return this.transact("project-created-from-plan", () => {
+      const record = this.requirePlan(planRecordId);
+      if (record.status !== "approved") throw new Error(`Plan ${planRecordId} must be approved before project creation`);
+      if (this.projects.some((project) => project.planId === record.planId)) throw new Error(`Duplicate plan ${record.planId}`);
+      const project = createConstructionProject({ ...record.geometry, version: record.version }, record.technicalProfileId, this.country);
+      project.planRecordId = record.id;
+      this.projects.push(project);
+      record.status = "in-project";
+      record.projectId = project.id;
+      return project;
+    });
+  }
+
   createProject(plan, technicalProfileId) {
     return this.transact("project-created", () => {
       if (this.projects.some((project) => project.planId === plan.planId)) throw new Error(`Duplicate plan ${plan.planId}`);
@@ -136,6 +176,14 @@ export class ManagementGame {
       const deposit = contractConstruction(project, this.ledger, this.clock);
       return { projectId, deposit };
     });
+  }
+
+  suspendProject(projectId, reason) {
+    return this.transact("construction-suspended", () => suspendConstruction(this.requireProject(projectId), reason, this.clock));
+  }
+
+  resumeProject(projectId) {
+    return this.transact("construction-resumed", () => resumeConstruction(this.requireProject(projectId), this.clock));
   }
 
   addDepot(input) {
@@ -162,6 +210,10 @@ export class ManagementGame {
       this.clock.advance(30 * 1440);
       const construction = this.projects.filter((project) => ["contracted", "underConstruction", "inspection"].includes(project.status))
         .map((project) => ({ projectId: project.id, ...advanceConstructionMonth(project, this.ledger, this.clock, this.rng, this.country) }));
+      for (const project of this.projects.filter((item) => item.status === "available" && item.planRecordId)) {
+        const record = this.plans.find((item) => item.id === project.planRecordId);
+        if (record && record.status === "in-project") record.status = "assets-available";
+      }
       const vehicles = this.vehicleOrders.filter((order) => !["accepted", "cancelled"].includes(order.stage)).map((order) => {
         const manufacturer = this.manufacturers.find((item) => item.id === order.manufacturerId);
         return { orderId: order.id, ...advanceVehicleOrderMonth(order, manufacturer, this.ledger, this.clock, this.rng) };
@@ -222,6 +274,12 @@ export class ManagementGame {
   requireProject(id) {
     const item = this.projects.find((project) => project.id === id);
     if (!item) throw new Error(`Unknown project ${id}`);
+    return item;
+  }
+
+  requirePlan(id) {
+    const item = this.plans.find((plan) => plan.id === id);
+    if (!item) throw new Error(`Unknown plan ${id}`);
     return item;
   }
 }

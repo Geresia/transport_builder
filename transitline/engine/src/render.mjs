@@ -3,6 +3,7 @@
 // line being dragged. Counters and the clock are plain HTML, updated by loop.mjs.
 import { buildGeometry, octilinear, pointAlong, SPREAD_PX } from "./geometry.mjs";
 import { lineLetter, badgeTextColor } from "./state.mjs";
+import { drawPlanOverlay } from "./map/overlay.mjs";
 
 const BG = "#1b2131";
 const STATION_STROKE = "#f1f2f5";
@@ -135,7 +136,8 @@ export function draw(ctx, state, projection, width, height, input) {
   ctx.drawImage(backgroundFor(width, height), 0, 0);
 
   const screen = (loc) => projection.toScreen(loc, width, height);
-  const geo = buildGeometry(state, screen);
+  const renderedLines = state.lines.filter((line) => !line.planOnly);
+  const geo = buildGeometry({ ...state, lines: renderedLines }, screen);
 
   // Directions in which lines (and terminus badges) leave each station.
   const dirs = new Map();
@@ -143,7 +145,7 @@ export function draw(ctx, state, projection, width, height, input) {
     if (!dirs.has(id)) dirs.set(id, []);
     dirs.get(id).push({ angle: Math.atan2(dy, dx), lineId });
   };
-  for (const line of state.lines) {
+  for (const line of renderedLines) {
     const legs = geo.edges.get(line.id);
     legs.forEach((leg, i) => {
       const n = leg.length;
@@ -176,9 +178,12 @@ export function draw(ctx, state, projection, width, height, input) {
     }
   }
 
+  // Construction phase + engine diagnostics underlay (display only; set by main.mjs from the management engine's report)
+  if (state.mapOverlay) drawPlanOverlay(ctx, state.mapOverlay, screen);
+
   // Tracks: dark casing, coloured band, and a hairline down the middle so each
   // reads as a double-track railway rather than a single stroke.
-  for (const line of state.lines) {
+  for (const line of renderedLines) {
     const legs = geo.edges.get(line.id);
     const trace = () => {
       ctx.beginPath();

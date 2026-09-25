@@ -58,6 +58,7 @@ transitline/data-raw/emp2020/*.csv
 transitline/data-raw/tama/
 transitline/data-raw/mlit/
 transitline/data-raw/plateau/
+transitline/data-raw/tourism/
 
 # Claude Code local settings
 .claude/

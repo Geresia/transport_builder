@@ -150,7 +150,8 @@ export function detailedEngineeringAssessment(plan, profile) {
     const rise = Math.abs((segment.elevationEndMeters ?? 0) - (segment.elevationStartMeters ?? 0));
     const gradientPermille = segment.lengthMeters > 0 ? rise / segment.lengthMeters * 1000 : Infinity;
     if (gradientPermille > (profile.maxGradientPermille ?? 35)) findings.push({ segment: index, severity: "violation", type: "gradient", value: gradientPermille });
-    if (segment.curveRadiusMeters !== undefined && segment.curveRadiusMeters < (profile.minimumCurveRadiusMeters ?? 160)) findings.push({ segment: index, severity: "violation", type: "curve-radius", value: segment.curveRadiusMeters });
+    const curveRadius = segment.minCurveRadiusMeters ?? segment.curveRadiusMeters;
+    if (curveRadius !== undefined && curveRadius !== null && curveRadius < (profile.minimumCurveRadiusMeters ?? 160)) findings.push({ segment: index, severity: "violation", type: "curve-radius", value: curveRadius });
     if (segment.groundwater === "high" && ["cut-cover", "shield", "deep"].includes(segment.structureHint)) {
       findings.push({ segment: index, severity: "risk", type: "groundwater" });
       costMultiplier += 0.12;

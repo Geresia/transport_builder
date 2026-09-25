@@ -44,16 +44,23 @@ export function badgeTextColor(hex) {
 }
 
 export function createState(pack, options = {}) {
+  const demandNodes = new Map();
   const stations = new Map();
   for (const p of pack.demand.points) {
-    stations.set(p.id, {
+    const demandNode = {
       id: p.id,
       name: p.name ?? p.id,
-      named: p.name !== undefined, // only real names are worth drawing as labels
       location: p.location,
       residents: p.residents ?? 0,
       jobs: p.jobs ?? 0,
       kind: p.kind ?? "mixed",
+    };
+    demandNodes.set(p.id, demandNode);
+    if (options.materializeDemandStations !== false) stations.set(p.id, {
+      ...demandNode,
+      named: p.name !== undefined,
+      source: "legacy-demand-adapter",
+      status: "available",
     });
   }
 
@@ -71,7 +78,12 @@ export function createState(pack, options = {}) {
   }
 
   return {
+    demandNodes,
+    accessLinks: [],
+    accessVersion: 0,
     stations,
+    platforms: [],
+    trackSegments: [],
     attractors: pack.demand.attractors ?? [],
     calendar: pack.demand.calendar ?? null,
     lines: [], // { id, name, color, stationIds, frequency: {bandId: trainsPerHour}, lastDispatch }
@@ -91,6 +103,8 @@ export function createState(pack, options = {}) {
       modeShare: { transit: 0, driving: 0, walking: 0 },
       spawnedByHour: Array(24).fill(0),
       deliveredByHour: Array(24).fill(0),
+      deliveredByLine: {},
+      trainKmByLine: {},
     },
   };
 }
@@ -100,20 +114,64 @@ export function nextLineColor(state) {
 }
 
 export function addLine(state, stationIds, opts = {}) {
+  if (!Array.isArray(stationIds) || stationIds.length < 2) throw new Error("A service line requires at least two stations");
+  for (const stationId of stationIds) if (!state.stations.has(stationId)) throw new Error(`Unknown station ${stationId}`);
+  for (let i = 1; i < stationIds.length; i++) if (stationIds[i] === stationIds[i - 1]) throw new Error("A service line cannot repeat consecutive stations");
   const id = state.nextLineId++;
   const line = {
     id,
     name: opts.name ?? `Line ${id}`,
     color: opts.color ?? nextLineColor(state),
     stationIds,
-    carsPerTrain: DEFAULT_CARS,
-    frequency: { high: 6, medium: 4, low: 2, veryLow: 1 },
+    carsPerTrain: opts.carsPerTrain ?? DEFAULT_CARS,
+    frequency: { high: 6, medium: 4, low: 2, veryLow: 1, ...opts.frequency },
     lastDispatch: -Infinity,
-    suspended: false,
+    suspended: opts.suspended ?? false,
+    key: opts.key ?? null, // stable identity of a plan drawn on the map; null -> derived from its geometry
+    external: opts.external ?? false, // seeded from the real network: not a player plan
+    planOnly: opts.planOnly ?? false, // scenario drawing: visible through the plan overlay, never dispatched
+    planningOptions: opts.planningOptions ? structuredClone(opts.planningOptions) : null,
   };
   state.lines.push(line);
   state.networkDirty = true;
   return line;
+}
+
+export function addPhysicalStation(state, station) {
+  if (!station?.id || !Array.isArray(station.location) || station.location.length !== 2) throw new Error("A physical station requires an id and location");
+  if (state.stations.has(station.id)) throw new Error(`Station ${station.id} already exists`);
+  const value = { residents: 0, jobs: 0, kind: "station", named: true, status: "available", ...structuredClone(station) };
+  state.stations.set(value.id, value);
+  return value;
+}
+
+export function addPlatform(state, platform) {
+  if (!state.stations.has(platform.stationId)) throw new Error(`Unknown platform station ${platform.stationId}`);
+  if (state.platforms.some((item) => item.id === platform.id)) throw new Error(`Platform ${platform.id} already exists`);
+  const value = { status: "available", ...structuredClone(platform) };
+  state.platforms.push(value);
+  return value;
+}
+
+export function addTrackSegment(state, segment) {
+  if (!state.stations.has(segment.fromStationId) || !state.stations.has(segment.toStationId)) throw new Error("Track endpoints must be physical stations");
+  if (state.trackSegments.some((item) => item.id === segment.id)) throw new Error(`Track segment ${segment.id} already exists`);
+  const value = { status: "available", ...structuredClone(segment) };
+  state.trackSegments.push(value);
+  return value;
+}
+
+export function addStationAccessLink(state, link) {
+  if (!state.demandNodes.has(link.demandNodeId)) throw new Error(`Unknown demand node ${link.demandNodeId}`);
+  if (!state.stations.has(link.stationId)) throw new Error(`Unknown access station ${link.stationId}`);
+  if (!(link.walkMinutes > 0)) throw new Error("Walk time must be positive");
+  const key = `${link.demandNodeId}|${link.stationId}`;
+  const index = state.accessLinks.findIndex((item) => `${item.demandNodeId}|${item.stationId}` === key);
+  const value = structuredClone(link);
+  if (index >= 0) state.accessLinks[index] = value;
+  else state.accessLinks.push(value);
+  state.accessVersion = (state.accessVersion ?? 0) + 1;
+  return value;
 }
 
 export function setLineSuspended(state, lineId, suspended) {

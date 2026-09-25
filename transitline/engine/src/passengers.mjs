@@ -9,15 +9,22 @@ const ABANDON_AFTER_MINUTES = 25;
 
 export function spawnPassengers(state, model, graph, dtMinutes) {
   const random = randomFrom(state);
-  for (const stationId of model.origins) {
-    const expected = model.rate(state, stationId) * dtMinutes;
+  for (const demandOriginId of model.origins) {
+    const expected = model.rate(state, demandOriginId) * dtMinutes;
     const count = Math.floor(expected) + (random() < expected % 1 ? 1 : 0);
     for (let i = 0; i < count; i++) {
-      const destinationId = model.pick(state, stationId, random);
-      if (!destinationId) continue;
+      const demandDestinationId = model.pick(state, demandOriginId, random);
+      if (!demandDestinationId) continue;
 
-      const route = findRoute(graph, stationId, destinationId);
-      const mode = chooseMode(state, state.stations.get(stationId), state.stations.get(destinationId), route, random);
+      const resolved = model.resolveTrip?.(state, graph, demandOriginId, demandDestinationId) ?? null;
+      const originStationId = resolved?.originStationId ?? demandOriginId;
+      const destinationStationId = resolved?.destinationStationId ?? demandDestinationId;
+      const route = resolved?.route ?? findRoute(graph, originStationId, destinationStationId);
+      const perceivedRoute = route && resolved ? { ...route, seconds: route.seconds + resolved.accessSeconds } : route;
+      const origin = model.locationFor?.(demandOriginId) ? { location: model.locationFor(demandOriginId) } : state.stations.get(demandOriginId);
+      const destination = model.locationFor?.(demandDestinationId) ? { location: model.locationFor(demandDestinationId) } : state.stations.get(demandDestinationId);
+      if (!origin || !destination) continue;
+      const mode = chooseMode(state, origin, destination, perceivedRoute, random);
       state.stats.spawned++;
       state.stats.spawnedByHour[hourOfDay(state)]++;
       state.stats.modeShare[mode]++;
@@ -25,9 +32,11 @@ export function spawnPassengers(state, model, graph, dtMinutes) {
 
       state.passengers.push({
         id: state.nextPassengerId++,
-        originId: stationId,
-        destinationId,
-        currentStationId: stationId,
+        originId: originStationId,
+        destinationId: destinationStationId,
+        demandOriginId,
+        demandDestinationId,
+        currentStationId: originStationId,
         route: route.hops,
         hopIndex: 0,
         state: "waiting",
@@ -78,6 +87,7 @@ export function handleStop(state, train, stationId, allowBoarding = true) {
         if (p.hopIndex === p.route.length - 1) {
           state.stats.delivered++;
           state.stats.deliveredByHour[hourOfDay(state)]++;
+          state.stats.deliveredByLine[String(train.lineId)] = (state.stats.deliveredByLine[String(train.lineId)] ?? 0) + 1;
           continue; // drop: delivered
         }
         p.hopIndex++;

@@ -10,6 +10,50 @@
 <canvas id="game"></canvas>
 
 <div id="left-col">
+  <div class="panel" id="scenario-panel" hidden>
+    <div class="scenario-head"><strong>건설 시나리오</strong><span id="scenario-country">일본</span></div>
+    <div class="scenario-kpis">
+      <span>현금 <b id="scenario-cash">-</b></span>
+      <span>선택 계획 <b id="scenario-plan">없음</b></span>
+      <span>상태 <b id="scenario-phase">계획 필요</b></span>
+    </div>
+    <label>주행 시스템<select id="scenario-profile">
+      <option value="medium_steel">중형 철제차륜</option>
+      <option value="small_steel">소형 철제차륜</option>
+      <option value="large_steel">대형 철제차륜</option>
+      <option value="linear_metro">리니어 지하철</option>
+      <option value="agt">AGT</option>
+      <option value="monorail">모노레일</option>
+    </select></label>
+    <label>구조 형식<select id="scenario-structure">
+      <option value="elevated">고가</option>
+      <option value="surface">지상</option>
+      <option value="cut-cover">개착 지하</option>
+      <option value="shield">실드 지하</option>
+      <option value="deep">대심도</option>
+      <option value="bridge">교량</option>
+    </select></label>
+    <label>승강장<select id="scenario-platform">
+      <option value="island">섬식</option>
+      <option value="side">상대식</option>
+    </select></label>
+    <div class="scenario-actions">
+      <button id="scenario-submit" type="button">1. 기술심사</button>
+      <button id="scenario-approve" type="button">2. 승인·사업화</button>
+      <button id="scenario-contract" type="button">3. 건설계약</button>
+      <button id="scenario-prepare" type="button">4. 기지·차량</button>
+      <button id="scenario-month" type="button">+1개월</button>
+      <button id="scenario-year" type="button">+12개월</button>
+      <button id="scenario-suspend" type="button">공사 중단</button>
+      <button id="scenario-open" type="button">5. 검사·개통</button>
+    </div>
+    <div class="scenario-save">
+      <button id="scenario-save" type="button">저장</button>
+      <button id="scenario-load" type="button">불러오기</button>
+    </div>
+    <div id="scenario-message">역을 이어 계획선을 그리세요. 시나리오에서는 즉시 운행되지 않습니다.</div>
+  </div>
+
   <div class="panel" id="route-panel" hidden></div>
 
   <div class="panel" id="analysis" hidden>
@@ -33,6 +77,8 @@
     <div class="hist arr" id="hist-arr"></div>
     <div class="hist-axis"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
   </div>
+
+  <div class="panel" id="map-diagnostics" hidden></div>
 </div>
 
 <div class="panel" id="legend">
@@ -54,6 +100,7 @@
 
 <div id="bar-ui">
   <a id="btn-management" href="management.html">Company</a>
+  <a id="btn-play-mode" href="#">Sandbox</a>
   <button id="btn-analysis" type="button">Analysis</button>
   <button id="btn-play" type="button" title="Space">❚❚</button>
   <span id="hud-day">Day 1</span>

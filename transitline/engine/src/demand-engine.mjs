@@ -64,8 +64,9 @@ export function buildDemandModel(state, demand, od = null, odSchool = null) {
   for (const source of [od, odSchool]) {
     if (!source) continue;
     for (const [id, r] of odRowsByStation(demand, source)) {
-      if (!state.stations.has(id)) continue;
-      const row = r.row.filter((x) => state.stations.has(x.id));
+      const demandNodes = state.demandNodes ?? state.stations;
+      if (!demandNodes.has(id)) continue;
+      const row = r.row.filter((x) => demandNodes.has(x.id));
       const total = row.reduce((t, x) => t + x.weight, 0);
       if (total <= 0) continue;
       const prev = rows.get(id);
@@ -94,12 +95,13 @@ function buildGravityModel(state) {
   // would generate trips nobody could ever board. Folding it into its
   // nearest station's residents/jobs is an engine-side simplification, not
   // part of the CityPack format itself.
+  const demandNodes = state.demandNodes ?? state.stations;
   const effective = new Map();
-  for (const s of state.stations.values()) {
+  for (const s of demandNodes.values()) {
     effective.set(s.id, { residents: s.residents, jobs: s.jobs, exponentMass: s.jobs * BASE_DECAY_EXPONENT });
   }
-  const stationIndex = new GridIndex([...state.stations.values()][0]?.location[1] ?? 0);
-  for (const s of state.stations.values()) stationIndex.insert(s.id, s.location);
+  const stationIndex = new GridIndex([...demandNodes.values()][0]?.location[1] ?? 0);
+  for (const s of demandNodes.values()) stationIndex.insert(s.id, s.location);
   for (const a of state.attractors) {
     const nearestId = stationIndex.nearest(a.location)?.id ?? null;
     if (nearestId === null) continue;
@@ -114,7 +116,7 @@ function buildGravityModel(state) {
   // A station's exponent is the job-weighted mean of its base jobs and attractors.
   for (const e of effective.values()) e.exponent = e.jobs > 0 ? e.exponentMass / e.jobs : BASE_DECAY_EXPONENT;
 
-  const ids = [...state.stations.keys()];
+  const ids = [...demandNodes.keys()];
   const weights = new Map();
   for (const originId of ids) {
     const origin = effective.get(originId);
@@ -124,7 +126,7 @@ function buildGravityModel(state) {
       if (destId === originId) continue;
       const dest = effective.get(destId);
       const d = Math.max(
-        haversineMetres(state.stations.get(originId).location, state.stations.get(destId).location),
+        haversineMetres(demandNodes.get(originId).location, demandNodes.get(destId).location),
         MIN_DISTANCE_M
       );
       // Baseline is jobs/d^2; a lower exponent boosts the pull at long range.
@@ -172,7 +174,8 @@ function buildMatrixModel(state, demand) {
         s.calendar && f.period !== undefined
           ? f.trips / (period.endMinute - period.startMinute)
           : (f.trips / 1440) * factor;
-      if (perMinute <= 0 || !s.stations.has(f.from) || !s.stations.has(f.to)) continue;
+      const demandNodes = s.demandNodes ?? s.stations;
+      if (perMinute <= 0 || !demandNodes.has(f.from) || !demandNodes.has(f.to)) continue;
       const entry = table.get(f.from) ?? { row: [], total: 0 };
       entry.row.push({ id: f.to, weight: perMinute });
       entry.total += perMinute;
@@ -183,7 +186,7 @@ function buildMatrixModel(state, demand) {
   }
 
   return {
-    origins: [...state.stations.keys()],
+    origins: [...(state.demandNodes ?? state.stations).keys()],
     rate: (s, originId) => (activeTable(s).get(originId)?.total ?? 0) * MATRIX_TRIP_SCALE,
     pick: (s, originId, rand = Math.random) => {
       const entry = activeTable(s).get(originId);

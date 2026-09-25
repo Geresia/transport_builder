@@ -7,4 +7,6 @@ export * from "./rolling-stock.mjs";
 export * from "./operations.mjs";
 export * from "./finance.mjs";
 export * from "./advanced.mjs";
+export * from "./integration.mjs";
+export * from "./scenarios.mjs";
 export * from "./game.mjs";

@@ -69,6 +69,23 @@ button:hover { background: #2c303e; }
 }
 #left-col .panel[hidden] { display: none; }
 
+/* --- integrated construction scenario --- */
+#scenario-panel { width: 280px; }
+#scenario-panel .scenario-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+#scenario-panel .scenario-head strong { font-size: 13px; }
+#scenario-panel .scenario-head span { color: #f4a261; font-family: var(--mono); }
+#scenario-panel .scenario-kpis { display: grid; gap: 2px; padding: 7px 8px; border: 1px solid var(--chip-line); border-radius: 6px; color: var(--muted); }
+#scenario-panel .scenario-kpis span { display: flex; justify-content: space-between; }
+#scenario-panel .scenario-kpis b { color: var(--text); font-family: var(--mono); font-weight: 500; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#scenario-panel label { display: grid; grid-template-columns: 82px 1fr; align-items: center; gap: 8px; margin-top: 6px; color: var(--muted); }
+#scenario-panel select { width: 100%; padding: 4px 6px; color: var(--text); background: var(--chip); border: 1px solid var(--chip-line); border-radius: 5px; font: inherit; }
+#scenario-panel .scenario-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 9px; }
+#scenario-panel .scenario-actions button { padding: 5px 4px; }
+#scenario-panel .scenario-actions button:disabled { opacity: .38; cursor: default; }
+#scenario-panel .scenario-save { display: flex; gap: 5px; margin-top: 5px; }
+#scenario-panel .scenario-save button { flex: 1; padding: 4px; }
+#scenario-message { margin-top: 8px; padding-top: 7px; border-top: 1px solid var(--panel-line); color: var(--muted); overflow-wrap: anywhere; }
+
 .tabs { display: flex; gap: 4px; margin-bottom: 4px; }
 .tab { padding: 3px 8px; border-radius: 5px; color: var(--muted); }
 .tab.on { background: #f1f2f5; color: #111; font-weight: 600; }
@@ -173,12 +190,14 @@ button:hover { background: #2c303e; }
   color: var(--muted);
   font-size: 10px;
 }
+#bar-ui #btn-play-mode,
 #bar-ui #btn-management {
   padding: 3px 9px;
   color: #f4a261;
   text-decoration: none;
   font-size: 10px;
 }
+#bar-ui #btn-play-mode:hover,
 #bar-ui #btn-management:hover { color: var(--text); background: var(--chip); border-radius: 5px; }
 #bar-ui button:hover { color: var(--text); background: var(--chip); }
 #bar-ui button.active { background: #f1f2f5; color: #111; }
@@ -186,3 +205,9 @@ button:hover { background: #2c303e; }
 #bar-ui #hud-clock { font-weight: 600; }
 
 #error { position: absolute; z-index: 3; top: 12px; left: 50%; transform: translateX(-50%); max-width: 420px; color: #e08a4c; }
+
+/* --- map plan diagnostics: errors / conditional verdicts / missing data from the map and the management engine --- */
+#map-diagnostics .diag { margin: 4px 0; padding: 3px 6px; border-left: 3px solid var(--muted); border-radius: 3px; font-size: 11px; overflow-wrap: anywhere; }
+#map-diagnostics .diag.error { border-left-color: #e5484d; }
+#map-diagnostics .diag.warning { border-left-color: #ffb703; }
+#map-diagnostics .diag.info { border-left-color: #4895ef; color: var(--muted); }

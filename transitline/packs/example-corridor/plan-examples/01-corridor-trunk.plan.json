@@ -1,0 +1,366 @@
+{
+  "schema": "transitline.plan-geometry/1",
+  "planId": "plan:6c4c613145a2a1b3",
+  "name": "Corridor trunk (matrix pack: residents/jobs unknown)",
+  "coordinateReference": "EPSG:4326",
+  "sourcePackId": "example-corridor",
+  "sourcePackVersion": "0.1.0",
+  "mode": "scratch",
+  "stationCandidates": [
+    {
+      "id": "stn:8442bc4fe5e68e95",
+      "location": [
+        -0.05,
+        0
+      ],
+      "name": "Westgate",
+      "nameSource": "demand-node",
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": "side",
+      "groundElevationMeters": null,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "platformLengthM",
+        "groundElevationMeters"
+      ],
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ]
+    },
+    {
+      "id": "stn:76a46fe9f1760313",
+      "location": [
+        -0.03,
+        0
+      ],
+      "name": "Foundry",
+      "nameSource": "demand-node",
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": "side",
+      "groundElevationMeters": null,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "platformLengthM",
+        "groundElevationMeters"
+      ],
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ]
+    },
+    {
+      "id": "stn:681d3c2bc9c10e71",
+      "location": [
+        -0.01,
+        0
+      ],
+      "name": "Old Town",
+      "nameSource": "demand-node",
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": "side",
+      "groundElevationMeters": null,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "platformLengthM",
+        "groundElevationMeters"
+      ],
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ]
+    },
+    {
+      "id": "stn:da06a0704e508dea",
+      "location": [
+        0.01,
+        0
+      ],
+      "name": "Central",
+      "nameSource": "demand-node",
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": "side",
+      "groundElevationMeters": null,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "platformLengthM",
+        "groundElevationMeters"
+      ],
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "id": "seg:ec9f04866349d294",
+      "from": "stn:8442bc4fe5e68e95",
+      "to": "stn:76a46fe9f1760313",
+      "lengthMeters": 2223.9,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": null,
+      "elevationEndMeters": null,
+      "gradientPermille": null,
+      "maxSlopeDegrees": null,
+      "steepShare": null,
+      "minCurveRadiusMeters": 100000,
+      "structureHint": "elevated",
+      "structureHintBasis": "default:no-building-data",
+      "constraintFlags": [],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": null,
+        "road": null,
+        "railway": 0,
+        "building": null,
+        "utility": null
+      },
+      "alignment": [
+        [
+          -0.05,
+          0
+        ],
+        [
+          -0.03,
+          0
+        ]
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "elevationStartMeters",
+        "elevationEndMeters",
+        "maxSlopeDegrees",
+        "steepShare",
+        "crossings.river",
+        "crossings.road",
+        "crossings.building"
+      ],
+      "inferred": [
+        "structureHint"
+      ]
+    },
+    {
+      "id": "seg:eb4da0e7656e2861",
+      "from": "stn:76a46fe9f1760313",
+      "to": "stn:681d3c2bc9c10e71",
+      "lengthMeters": 2223.9,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": null,
+      "elevationEndMeters": null,
+      "gradientPermille": null,
+      "maxSlopeDegrees": null,
+      "steepShare": null,
+      "minCurveRadiusMeters": 100000,
+      "structureHint": "elevated",
+      "structureHintBasis": "default:no-building-data",
+      "constraintFlags": [],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": null,
+        "road": null,
+        "railway": 0,
+        "building": null,
+        "utility": null
+      },
+      "alignment": [
+        [
+          -0.03,
+          0
+        ],
+        [
+          -0.01,
+          0
+        ]
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "elevationStartMeters",
+        "elevationEndMeters",
+        "maxSlopeDegrees",
+        "steepShare",
+        "crossings.river",
+        "crossings.road",
+        "crossings.building"
+      ],
+      "inferred": [
+        "structureHint"
+      ]
+    },
+    {
+      "id": "seg:a3ad0d61ab3ad4d7",
+      "from": "stn:681d3c2bc9c10e71",
+      "to": "stn:da06a0704e508dea",
+      "lengthMeters": 2223.9,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": null,
+      "elevationEndMeters": null,
+      "gradientPermille": null,
+      "maxSlopeDegrees": null,
+      "steepShare": null,
+      "minCurveRadiusMeters": 100000,
+      "structureHint": "elevated",
+      "structureHintBasis": "default:no-building-data",
+      "constraintFlags": [],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": null,
+        "road": null,
+        "railway": 0,
+        "building": null,
+        "utility": null
+      },
+      "alignment": [
+        [
+          -0.01,
+          0
+        ],
+        [
+          0.01,
+          0
+        ]
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "elevationStartMeters",
+        "elevationEndMeters",
+        "maxSlopeDegrees",
+        "steepShare",
+        "crossings.river",
+        "crossings.road",
+        "crossings.building"
+      ],
+      "inferred": [
+        "structureHint"
+      ]
+    }
+  ],
+  "accessLinks": [
+    {
+      "id": "acc:2cbe9e1acf364b5c",
+      "demandNodeId": "s1",
+      "stationId": "stn:8442bc4fe5e68e95",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    },
+    {
+      "id": "acc:3163291d9474efdf",
+      "demandNodeId": "s3",
+      "stationId": "stn:681d3c2bc9c10e71",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    },
+    {
+      "id": "acc:707ef0db668a9811",
+      "demandNodeId": "s4",
+      "stationId": "stn:da06a0704e508dea",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    },
+    {
+      "id": "acc:c1542bd9a0e4605f",
+      "demandNodeId": "s2",
+      "stationId": "stn:76a46fe9f1760313",
+      "walkMinutes": 1,
+      "distanceMeters": 0
+    }
+  ],
+  "accessModel": {
+    "radiusMeters": 800,
+    "maxLinks": 3,
+    "detourFactor": 1.3,
+    "walkMetersPerMinute": 80,
+    "minMinutes": 1,
+    "basis": "straight-line distance x detour factor / walking speed, at least minMinutes"
+  },
+  "dataQuality": "low",
+  "unknownSummary": [
+    "crossings.building",
+    "crossings.river",
+    "crossings.road",
+    "elevationEndMeters",
+    "elevationStartMeters",
+    "groundElevationMeters",
+    "maxSlopeDegrees",
+    "platformLengthM",
+    "steepShare"
+  ],
+  "warnings": [],
+  "sources": {
+    "pack": {
+      "license": "CC0-1.0",
+      "attribution": []
+    },
+    "layers": [
+      {
+        "layer": "rail",
+        "quality": "low",
+        "name": "ExternalNetwork (station-level, coarse)",
+        "license": "same as the pack it was derived from"
+      }
+    ]
+  },
+  "source": {
+    "drawnLine": {
+      "key": "example:corridor:trunk",
+      "name": "Corridor trunk (matrix pack: residents/jobs unknown)",
+      "vertices": [
+        {
+          "location": [
+            -0.05,
+            0
+          ],
+          "demandNodeId": "s1",
+          "platformType": "side"
+        },
+        {
+          "location": [
+            -0.03,
+            0
+          ],
+          "demandNodeId": "s2",
+          "platformType": "side"
+        },
+        {
+          "location": [
+            -0.01,
+            0
+          ],
+          "demandNodeId": "s3",
+          "platformType": "side"
+        },
+        {
+          "location": [
+            0.01,
+            0
+          ],
+          "demandNodeId": "s4",
+          "platformType": "side"
+        }
+      ]
+    },
+    "requestedMode": "scratch",
+    "generatedBy": "scripts/build-plan-examples.mjs"
+  }
+}
