@@ -21,6 +21,24 @@ editing by hand. **This folder was wiped once by an `rm -rf` reproducibility tes
 | `roads.<ward>.geojson` | One per ward, with the OSM way id kept as the Feature `id` (used to de-duplicate boundary-crossing ways). | Intermediate. |
 | `roads.geojson` | Empty placeholder from the first pass. | Superseded, not loaded. |
 
+## How game v1.7.1 actually loads a city (verified in the game's console, 2026-09-26)
+
+The files above are our *intermediate* outputs; the game does not read them from the mod folder. What it does:
+
+- A city's files are served by the game's local data server from `%APPDATA%\metro-maker4\cities\data\<CODE>\` as
+  `/data/<CODE>/...`. The mod only registers the city and points `setCityDataFiles` at those `/data/TYOTL/...` paths.
+  Relative paths get a broken URL (`...59330data/x`) and other absolute paths need an IPC the game does not expose.
+- Expected names there: `demand_data.json`, `roads.geojson`, `buildings_index.bin` (**binary**, not JSON - see below),
+  optional `runways_taxiways.geojson` / `ocean_depth_index.json`, and the basemap `tiles.pmtiles` (+ optional
+  `foundations.pmtiles`), which the map serves as `map://TYOTL/tiles/{z}/{x}/{y}.mvt`.
+- `buildings_index.bin` = the game's own binary layout (magic `SBBI`, 88-byte header + typed arrays), reimplemented in
+  `scripts/export-subway-builder-buildings-bin.mjs` from reading the game's encoder. 1,790,011 buildings = 295 MB.
+- `tiles.pmtiles` must have the layers the game's Tokyo file has: `water`, `parks(area)`, `commercial(type)`, `airports`,
+  `buildings(height,id)`, `city_labels`/`suburb_labels`/`neighborhood_labels(name)`. Without it the background is empty.
+  `scripts/export-subway-builder-tiles.mjs` builds it (needs Java 21 + `data-raw/planetiler.jar`).
+- Result of the first successful run: the demand panel shows 15,552,400 commuters (= our 77,762 pops x 200); the built-in
+  Tokyo shows 16,532,400, which is how to tell them apart.
+
 Regenerate everything:
 
 ```
@@ -29,6 +47,10 @@ ALLOW_SHRINK=1 node --max-old-space-size=4096 scripts/export-subway-builder-dema
 node --max-old-space-size=6144 scripts/export-subway-builder-buildings.mjs <tokyo23-survey.ndjson> all
 node scripts/export-subway-builder-roads.mjs all                 # resumable; needs network (Overpass), ~20+ min
 node --max-old-space-size=4096 scripts/check-subway-builder-export.mjs   # validates all of the above
+# game v1.7.1 needs these three on top (see "How game v1.7.1 actually loads a city"):
+node --max-old-space-size=8192 scripts/export-subway-builder-buildings-bin.mjs all   # -> city-TYOTL/buildings_index.bin (295 MB)
+node --max-old-space-size=8192 scripts/export-subway-builder-tiles.mjs               # -> city-TYOTL/tiles.pmtiles (basemap)
+node scripts/install-subway-builder-city.mjs --install     # copies city-TYOTL/ into %APPDATA%\metro-maker4\cities\data\TYOTL
 ```
 
 `tokyo23-survey.ndjson` is `tokyo-survey-buildings.mjs`'s intermediate output (regenerate it first if you no longer
