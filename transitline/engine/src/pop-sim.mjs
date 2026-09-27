@@ -3,18 +3,19 @@
 //   pops (commuter groups) -> 15-minute release -> mode split -> timetable routing -> board/alight -> fare on arrival,
 // plus train operating cost and bonds. Commuters never abandon waiting; only 12 h of no progress drops a movement.
 // The old spawnPassengers/expirePassengers are NOT called, so state.passengers stays empty.
-// ponytail: operating cost accrues every step (the game bills every 15 min); no construction/maintenance charge because
-// the old engine builds nothing; road congestion is a fixed hourly multiplier, not fed back from the pops.
+// ponytail: operating cost accrues every step (the game bills every 15 min); no ONE-TIME construction charge, since the
+// old engine draws a line's track/stations instantly with no cost inputs (elevation, water%, lanes) to price it from;
+// road congestion is a fixed hourly multiplier, not fed back from the pops.
 import { RULES, DEFAULT_TRAIN_TYPE } from "./rules.mjs";
 import { haversineMetres } from "./projection.mjs";
 import { randomFrom } from "./rng.mjs";
 import { dispatchTrains, stepTrains } from "./trains.mjs";
 import { buildTimetable, routeJourney, WALK_MPS } from "./router-raptor.mjs";
-import { patternsFromState, popTrains, terminalGhost } from "./pop-adapter.mjs";
+import { patternsFromState, popTrains, terminalGhost, networkFootprint } from "./pop-adapter.mjs";
 import { stepMovements, movementFor, popsToStart, dropRemovedTrains, sweepStuck, waitingByStation, waitingWarningLevel, riders } from "./pop-journey.mjs";
 import { modeSplit, perceivedTransitTime, drivingTimeMultiplier } from "./mode-choice-pop.mjs";
 import { computeJourneyFare } from "./fares.mjs";
-import { journeyRevenue, trainOperatingCost, issueBond, bondHour } from "./economy.mjs";
+import { journeyRevenue, trainOperatingCost, maintenanceCost, issueBond, bondHour } from "./economy.mjs";
 
 const DAY_S = 86400;
 const URBAN_DRIVE_MPS = 9; // ~32 km/h door to door
@@ -54,10 +55,11 @@ export function createPopSim(state, demandModel, opts = {}) {
     trainType: opts.trainType ?? DEFAULT_TRAIN_TYPE, fare: opts.fare ?? RULES.economy.defaultFare,
     nextReleaseS: Math.ceil(nowS / RULES.time.commuteIntervalS) * RULES.time.commuteIntervalS,
     nextHourS: Math.floor(nowS / 3600) * 3600 + 3600,
+    nextInfraS: Math.ceil(nowS / RULES.economy.infrastructureChargeIntervalS) * RULES.economy.infrastructureChargeIntervalS,
     money: opts.startingMoney ?? RULES.economy.startingMoney, bonds: [],
     revenueToday: 0, costToday: 0, yesterdayRevenue: 0, dayIndex: Math.floor(nowS / DAY_S),
     nearCapacity: [],
-    stats: { released: { transit: 0, driving: 0, walking: 0, noRoute: 0 }, completed: 0, ridersDelivered: 0, revenue: 0, operatingCost: 0, interest: 0, dropped: 0 },
+    stats: { released: { transit: 0, driving: 0, walking: 0, noRoute: 0 }, completed: 0, ridersDelivered: 0, revenue: 0, operatingCost: 0, maintenanceCost: 0, interest: 0, dropped: 0 },
   };
 }
 
@@ -141,6 +143,14 @@ export function popSimStep(sim, state, seconds = 1) {
     const cars = linesById.get(t.lineId)?.carsPerTrain ?? 0;
     const cost = trainOperatingCost({ trainType: sim.trainType, cars, seconds });
     sim.money -= cost; sim.costToday += cost; sim.stats.operatingCost += cost;
+  }
+
+  if (nowS >= sim.nextInfraS) {
+    const interval = RULES.economy.infrastructureChargeIntervalS;
+    sim.nextInfraS += interval;
+    const { trackLengthM, stationCount } = networkFootprint(state);
+    const cost = maintenanceCost({ trackLengthM, stationCount, trainType: sim.trainType, seconds: interval });
+    sim.money -= cost; sim.costToday += cost; sim.stats.maintenanceCost += cost;
   }
 
   if (nowS >= sim.nextHourS) {

@@ -17,6 +17,15 @@ export function trainOperatingCost({ trainType = DEFAULT_TRAIN_TYPE, cars, secon
 // Cars are bought one by one: a route can raise cars-per-train only while enough unassigned cars are owned.
 export const carsNeeded = (trains, carsPerTrain) => trains * carsPerTrain;
 
+// Infrastructure upkeep of BUILT track/stations (doc "유지비": trackMaintPerM and stationMaintPerYear are annual rates;
+// billed every 5 game minutes for the elapsed time, x maintenanceCostMultiplier). Grade-crossing maintenance is not
+// modelled (no grade-crossing data in the old engine's lines).
+export function maintenanceCost({ trackLengthM, stationCount, trainType = DEFAULT_TRAIN_TYPE, seconds }) {
+  const t = TRAIN_TYPES[trainType];
+  const daily = (t.trackMaintPerM * trackLengthM + t.stationMaintPerYear * stationCount) / 365;
+  return daily * (seconds / 86400) * E.maintenanceCostMultiplier;
+}
+
 export function issueBond(kind, yesterdayRevenue) {
   const b = E.bonds[kind];
   if (!b) throw new Error(`unknown bond ${kind}`);

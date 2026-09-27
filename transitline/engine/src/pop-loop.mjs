@@ -34,6 +34,7 @@ function renderPanel(body, state, s) {
     ["Balance", money(s.money)],
     ["Revenue today / yesterday", `${money(s.revenueToday)} / ${money(s.yesterdayRevenue)}`],
     ["Operating cost today", money(s.costToday)],
+    ["Maintenance so far", money(s.stats.maintenanceCost)],
     ["Waiting · aboard · walking", `${s.waiting} · ${s.onboard} · ${s.walking}`],
     ["Trains near capacity", String(s.nearCapacity)],
     ["Bonds", String(s.bonds)],

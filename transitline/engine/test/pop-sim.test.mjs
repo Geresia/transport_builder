@@ -31,7 +31,8 @@ test("a morning of commuting: pops board, ride, pay on arrival, and the books ba
   assert.ok(sim.stats.released.transit > 1000, `${sim.stats.released.transit} transit riders released`);
   assert.ok(sim.stats.completed > 100 && sim.stats.revenue > 0, `${sim.stats.completed} journeys completed`);
   assert.equal(sim.stats.dropped, 0);
-  assert.ok(Math.abs(sim.money - (RULES.economy.startingMoney + sim.stats.revenue - sim.stats.operatingCost)) < 1, "money = start + revenue - operating cost");
+  assert.ok(sim.stats.maintenanceCost > 0, "built track and stations are billed maintenance");
+  assert.ok(Math.abs(sim.money - (RULES.economy.startingMoney + sim.stats.revenue - sim.stats.operatingCost - sim.stats.maintenanceCost)) < 1, "money = start + revenue - operating cost - maintenance");
   assert.ok(s.waiting + s.onboard + s.walking > 0, "people are still travelling");
 });
 

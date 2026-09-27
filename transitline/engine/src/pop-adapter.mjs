@@ -54,6 +54,21 @@ export function popTrains(state, trainType = DEFAULT_TRAIN_TYPE) {
   return out;
 }
 
+// Built infrastructure (every line with 2+ stations, regardless of suspension or frequency: maintenance is a fixed
+// asset cost, not a service cost) for the maintenance charge in economy.mjs's maintenanceCost.
+export function networkFootprint(state) {
+  let trackLengthM = 0;
+  const stationIds = new Set();
+  for (const line of state.lines) {
+    if (line.stationIds.length < 2) continue;
+    for (const id of line.stationIds) stationIds.add(id);
+    for (let i = 0; i < line.stationIds.length - 1; i++) {
+      trackLengthM += haversineMetres(state.stations.get(line.stationIds[i]).location, state.stations.get(line.stationIds[i + 1]).location);
+    }
+  }
+  return { trackLengthM, stationCount: stationIds.size };
+}
+
 // A train removed by stepTrains at its terminal: riders bound for the line's first station still get off there.
 export function terminalGhost(train, line, trainType = DEFAULT_TRAIN_TYPE) {
   const first = line.stationIds[0];

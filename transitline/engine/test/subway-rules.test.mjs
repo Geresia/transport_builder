@@ -6,7 +6,7 @@ import { RULES, TRAIN_TYPES } from "../src/rules.mjs";
 import { elevationClass, finalMultiplier, stationCost, stationMaxCars, stationLengthRangeM, trackCost, deepBoreSegment, buildingOverpassCost } from "../src/construction-cost.mjs";
 import { motionStep, distanceToReachSpeed, speedLimit, demandLevel, idealTrainCount, operatingLevels } from "../src/train-physics.mjs";
 import { stepMovements, movementFor, firstLegStations, waitingWarningLevel, sweepStuck, popsToStart } from "../src/pop-journey.mjs";
-import { journeyRevenue, trainOperatingCost, issueBond, bondHour } from "../src/economy.mjs";
+import { journeyRevenue, trainOperatingCost, maintenanceCost, issueBond, bondHour } from "../src/economy.mjs";
 
 test("elevation classes follow the documented thresholds", () => {
   const cls = [-150, -100, -50, -24, -10, -4, -3, -1, 0, 3, 4.9, 5, 20].map(elevationClass);
@@ -135,6 +135,13 @@ test("removed trains delete their passengers; stuck movements are swept after 12
 test("train cost uses the 365 scale; parked trains are free", () => {
   assert.equal(trainOperatingCost({ trainType: "heavy-metro", cars: 5, seconds: 3600 }), (250 + 5 * 25) * 365);
   assert.equal(trainOperatingCost({ cars: 5, seconds: 3600, parked: true }), 0);
+});
+
+test("maintenance: annual track+station rates billed for the elapsed time, x the maintenance multiplier", () => {
+  // Heavy Metro: trackMaintPerM 180/yr, stationMaintPerYear 1.6e5; 5 km of track, 4 stations, one 5-minute tick.
+  const daily = (180 * 5000 + 1.6e5 * 4) / 365;
+  assert.equal(maintenanceCost({ trackLengthM: 5000, stationCount: 4, seconds: 300 }), daily * (300 / 86400) * 2);
+  assert.equal(maintenanceCost({ trackLengthM: 0, stationCount: 0, seconds: 300 }), 0);
 });
 
 test("bonds: eligibility by yesterday's revenue, hourly interest on remaining, repayment on original", () => {

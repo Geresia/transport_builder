@@ -351,15 +351,15 @@ rRAPTOR(Dijkstra 대체). 검증: 노선 하나 놓았을 때 수단 분담과 �
 | P3 수요·수단 | `pop-journey.mjs`, `mode-choice-pop.mjs` | 승하차·환승·수익 트리거·경고·청소·출발 시각, **소득 기반 수단 선택**(소득 분포·체감 운전/대중교통 시간·단거리 패널티·10명 미만 규칙) 완료 | 합성 시나리오·분위수·손계산 테스트 |
 | P3 경로탐색 | `router-raptor.mjs` | **완료(단순형)**: 라운드별 최단도착(환승 횟수 제한 정확), 헤드웨이 기반 시각표(닫힌 식), 걸어서 환승·접근·이탈, 왕복 노선의 되돌림 구간 승차 금지, 출발을 늦춰 대기 줄이기. 게임의 범위 탐색(rRAPTOR range)은 근사, 자동차 접근(P&R)·공간 색인은 미구현 | `router-raptor.test.mjs` 6개 + 기존 Dijkstra와 연결성 비교 |
 | P3 연결 | `pop-adapter.mjs`, `pop-sim.mjs`, `pop-loop.mjs` | **완료·연결됨**: 기존 `trains.mjs`는 수정 없이 읽기만 하고, 팝(집단) 생성 → 15분 출발 → 수단 선택 → 경로 → 승하차 → 도착 시 운임 → 운영비·채권을 돌린다. **`engine/index.html?model=pop`** 에서 켜지고(기본 화면은 그대로), 잔액·오늘/어제 수입·운영비·대기/승차/도보 인원·대기 경고·만석 임박·채권 버튼이 뜬다. 노선 종점에서 사라지는 열차의 승객은 "유령 열차"로 내려준다 | `pop-sim.test.mjs` 6개(하루 정산 일치·결정성·포기 없음·채권), 헤드리스 Chrome 실화면 확인 |
-| P4 경제 | `economy.mjs`, `fares.mjs` | 도착 시 수익, 열차 운영비, 채권, **운임 그룹(정액/노선별/구역제/거리제, 환승 정책, 0.05 반올림, 상한)** 완료. 유지비 청구·도쿄식 거리 구간표·사업자 간 환승 할인은 미구현 | 채권·운임 손계산 테스트 |
+| P4 경제 | `economy.mjs`, `fares.mjs` | 도착 시 수익, 열차 운영비, 채권, **운임 그룹(정액/노선별/구역제/거리제, 환승 정책, 0.05 반올림, 상한)**, **유지비(선로·역, 5분마다, 연간 요율×2배 계수)** 완료. 건설 시점의 1회성 건설비 청구는 지금 엔진이 노선을 즉시 긋고 고도·수면비율·차선 같은 입력이 없어서 미구현(§ 다음 단계). 도쿄식 거리 구간표·사업자 간 환승 할인은 미구현 | 채권·운임·유지비 손계산 테스트 |
 | P5 UI, P6 정답지 | — | 미착수 | — |
 
-테스트: `node --test engine/test/subway-rules.test.mjs engine/test/subway-choice-fares.test.mjs engine/test/router-raptor.test.mjs engine/test/pop-sim.test.mjs engine/test/placement-validation.test.mjs` (43개 통과). 전체 173개 중 171개 통과(2026-09-26) — 나머지 2개(건설 단계 `cancelled`/`halted`, 플랜 예제 `unknownReasons` 불일치)는 다른 세션이 작업 중인 management/plan-geometry 쪽 실패로 이 모듈들과 무관하다.
+테스트: `node --test engine/test/subway-rules.test.mjs engine/test/subway-choice-fares.test.mjs engine/test/router-raptor.test.mjs engine/test/pop-sim.test.mjs engine/test/placement-validation.test.mjs` (45개 통과, 유지비 테스트 포함). 전체 286개 중 284개 통과(2026-09-27, 2개는 도쿄 역 단위 데이터가 없어 건너뜀) — 나머지 2개(건설 단계 `cancelled`/`halted`, 플랜 예제 `unknownReasons` 불일치)는 다른 세션이 작업 중인 management/plan-geometry 쪽 실패로 이 모듈들과 무관하다.
 **예시 실행(example-radial, 2개 노선, 5량 중형 지하철)**: 하루 약 7.5만 명 승차·거의 전원 도착(74.5k/75k), 하루 수입 약 $78M(승객×운임×365), 운영비 약 $17M, 출근 피크에 CBD 역 대기 경고(200~500명 단계) 발생. 수치는 이 팩·이 노선에서의 값이며 게임 정답지가 아니다.
 **결정 반영(2026-09-26, 사용자)**: ① 새 모듈은 기존 엔진 **옆에 나란히** 둔다(교체 아님). ② **승객은 대기 때문에 포기하지 않는다** — 기존 엔진의
 25분 포기(`passengers.mjs`)도 12시간(길 잃음 청소)으로 바꿨고 회귀 테스트를 그에 맞게 수정. HUD의 "Abandoned" 표기는 이제 "12시간 이상 갇힌 승객" 수이며, 라벨을 "Stranded 12h+"로 바꿨다(`engine/index.html`, 사용자 동의).
 운임 정책 이름(`count-all-groups`, 구역 `span`/`count`)은 번들 문자열 표에서 추정한 것이라 확정 아님.
-**다음 단계(우선순위)**: ① 선로 배치 검증(자유 배치 UI가 생길 때) ② pop 모델을 `scenario-runtime.mjs`(시나리오 정산)와 연결 — 지금은 `?model=pop`이 자체 잔액을 쓰고 시나리오 런타임과는 독립 ③ 건설비·유지비 청구(지금 엔진은 기존 수요점 사이에 노선만 긋고 건설하지 않음) ④ 도쿄: 실제 역 단위 기존망(§6)이 먼저 있어야 도쿄 팩에서 이 모델의 운임·환승·급행이 의미가 있다. 도쿄 팩은 아직 구·시 단위 수요점이라 예시 팩(example-radial)에서만 검증했다.
+**다음 단계(우선순위)**: ① 선로 배치 검증은 규칙 함수까지 완료(자유 배치 UI 연결은 그 UI가 생길 때) ② pop 모델을 `scenario-runtime.mjs`(시나리오 정산)와 연결 — 지금은 `?model=pop`이 자체 잔액을 쓰고 시나리오 런타임과는 독립 ③ 유지비는 완료, 1회성 건설비 청구는 미구현(지금 엔진은 노선을 즉시 긋고 건설 단계가 없음) ④ 도쿄: 실제 역 단위 기존망(§6)이 먼저 있어야 도쿄 팩에서 이 모델의 운임·환승·급행이 의미가 있다 — **2026-09-26/27 Overpass로 역 단위 자료를 두 차례(조회 분할·범위 축소·재시도 백오프까지) 시도했으나 두 공개 미러 모두 지속적인 429로 실패**(`scripts/tokyo-station-network.mjs`, `engine/test/tokyo-station-network.test.mjs`는 작성 완료·미커밋, 데이터 없이는 무의미해 보류). 도쿄 팩은 아직 구·시 단위 수요점이라 예시 팩(example-radial)에서만 검증했다.
 
 ### 위험
 - 상용 게임 코드는 복사 금지: 각 단계는 이 문서의 수치·동작 서술만 보고 새로 작성한다.
