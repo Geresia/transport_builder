@@ -8,8 +8,10 @@ import { buildRouteGraph } from "../src/network.mjs";
 import { findRoute } from "../src/routing.mjs";
 import { patternsFromState, popTrains } from "../src/pop-adapter.mjs";
 import { buildTimetable, routeJourney } from "../src/router-raptor.mjs";
-import { createPopSim, advancePopSim, popSummary, takeBond } from "../src/pop-sim.mjs";
+import { createPopSim, advancePopSim, popSimStep, popSummary, takeBond } from "../src/pop-sim.mjs";
 import { RULES } from "../src/rules.mjs";
+import { trackCost, stationCost } from "../src/construction-cost.mjs";
+import { haversineMetres } from "../src/projection.mjs";
 
 const demand = JSON.parse(readFileSync(new URL("../../packs/example-radial/demand.json", import.meta.url), "utf8"));
 const LINE = ["outer-1", "mid-1", "inner-1", "cbd", "inner-4", "mid-7", "outer-7"];
@@ -32,7 +34,9 @@ test("a morning of commuting: pops board, ride, pay on arrival, and the books ba
   assert.ok(sim.stats.completed > 100 && sim.stats.revenue > 0, `${sim.stats.completed} journeys completed`);
   assert.equal(sim.stats.dropped, 0);
   assert.ok(sim.stats.maintenanceCost > 0, "built track and stations are billed maintenance");
-  assert.ok(Math.abs(sim.money - (RULES.economy.startingMoney + sim.stats.revenue - sim.stats.operatingCost - sim.stats.maintenanceCost)) < 1, "money = start + revenue - operating cost - maintenance");
+  assert.ok(sim.stats.constructionCost > 0, "the two drawn lines are billed once for track and stations");
+  const spent = sim.stats.operatingCost + sim.stats.maintenanceCost + sim.stats.constructionCost;
+  assert.ok(Math.abs(sim.money - (RULES.economy.startingMoney + sim.stats.revenue - spent)) < 1, "money = start + revenue - operating - maintenance - construction");
   assert.ok(s.waiting + s.onboard + s.walking > 0, "people are still travelling");
 });
 
@@ -68,6 +72,24 @@ test("router agrees with the old Dijkstra on which stations connect, and on tran
     if (old) { assert.ok(Math.abs(now.rides - old.hops.length) <= 1, `${a} -> ${b}: ${now.rides} rides vs ${old.hops.length} hops`); compared++; }
   }
   assert.ok(compared > 30);
+});
+
+test("construction is billed once per line and once per station shared between lines; external lines are free", () => {
+  const { state, sim } = makeSim([LINE, LINE_B]);
+  popSimStep(sim, state, 1);
+  const lengthOf = (ids) => { let m = 0; for (let i = 0; i < ids.length - 1; i++) m += haversineMetres(state.stations.get(ids[i]).location, state.stations.get(ids[i + 1]).location); return m; };
+  const track = trackCost({ lengthM: lengthOf(LINE), trainType: sim.trainType, elevation: -1, waterPct: 0 }) + trackCost({ lengthM: lengthOf(LINE_B), trainType: sim.trainType, elevation: -1, waterPct: 0 });
+  const stations = [...new Set([...LINE, ...LINE_B])].length; // "cbd" is shared: billed once, not twice
+  const want = track + stations * stationCost({ trainType: sim.trainType, elevation: -1, waterPct: 0 });
+  assert.ok(Math.abs(sim.stats.constructionCost - want) < 1);
+  const before = sim.stats.constructionCost;
+  advancePopSim(sim, state, 3600); // no new lines: the bill does not grow
+  assert.equal(sim.stats.constructionCost, before);
+
+  const { state: s2, sim: sim2 } = makeSim([]);
+  addLine(s2, LINE, { external: true });
+  popSimStep(sim2, s2, 1);
+  assert.equal(sim2.stats.constructionCost, 0, "a pre-existing real line was not built by the player");
 });
 
 test("adapter: a dispatched train is stopped at its first station and only boards toward its first leg", () => {

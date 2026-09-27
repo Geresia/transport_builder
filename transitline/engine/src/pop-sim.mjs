@@ -3,9 +3,10 @@
 //   pops (commuter groups) -> 15-minute release -> mode split -> timetable routing -> board/alight -> fare on arrival,
 // plus train operating cost and bonds. Commuters never abandon waiting; only 12 h of no progress drops a movement.
 // The old spawnPassengers/expirePassengers are NOT called, so state.passengers stays empty.
-// ponytail: operating cost accrues every step (the game bills every 15 min); no ONE-TIME construction charge, since the
-// old engine draws a line's track/stations instantly with no cost inputs (elevation, water%, lanes) to price it from;
-// road congestion is a fixed hourly multiplier, not fed back from the pops.
+// ponytail: the old engine has no elevation/water-crossing/lane data for a drawn line, so a one-time construction
+// charge (below) prices every line as a flat, dry, standard double-track surface alignment (elevation -1 = the
+// game's "atGrade" class, waterPct 0) - real geometry would need the map/plan-geometry layer's own cost estimator.
+// Road congestion is a fixed hourly multiplier, not fed back from the pops.
 import { RULES, DEFAULT_TRAIN_TYPE } from "./rules.mjs";
 import { haversineMetres } from "./projection.mjs";
 import { randomFrom } from "./rng.mjs";
@@ -16,10 +17,12 @@ import { stepMovements, movementFor, popsToStart, dropRemovedTrains, sweepStuck,
 import { modeSplit, perceivedTransitTime, drivingTimeMultiplier } from "./mode-choice-pop.mjs";
 import { computeJourneyFare } from "./fares.mjs";
 import { journeyRevenue, trainOperatingCost, maintenanceCost, issueBond, bondHour } from "./economy.mjs";
+import { trackCost, stationCost } from "./construction-cost.mjs";
 
 const DAY_S = 86400;
 const URBAN_DRIVE_MPS = 9; // ~32 km/h door to door
 const DETOUR = 1.3; // road distance over straight line
+const SURFACE_ELEVATION_M = -1; // elevationClass(-1) === "atGrade": a flat, no-tunnel, no-viaduct default
 
 // Inverse-CDF sampler over the day, weighted by RULES.timeOfDay (column 2 = leaving home, 3 = leaving work).
 function departureSampler(column) {
@@ -59,8 +62,30 @@ export function createPopSim(state, demandModel, opts = {}) {
     money: opts.startingMoney ?? RULES.economy.startingMoney, bonds: [],
     revenueToday: 0, costToday: 0, yesterdayRevenue: 0, dayIndex: Math.floor(nowS / DAY_S),
     nearCapacity: [],
-    stats: { released: { transit: 0, driving: 0, walking: 0, noRoute: 0 }, completed: 0, ridersDelivered: 0, revenue: 0, operatingCost: 0, maintenanceCost: 0, interest: 0, dropped: 0 },
+    billedLineIds: new Set(), billedStationIds: new Set(),
+    stats: { released: { transit: 0, driving: 0, walking: 0, noRoute: 0 }, completed: 0, ridersDelivered: 0, revenue: 0, operatingCost: 0, maintenanceCost: 0, constructionCost: 0, interest: 0, dropped: 0 },
   };
+}
+
+// One-time cost of every line not yet billed (a player-drawn line only: `external` lines were seeded from the real
+// network at pack load and were never "built" by the player). Track is priced once per line; a station shared by
+// several lines is priced once, the first time any line calls at it.
+function billNewConstruction(sim, state) {
+  for (const line of state.lines) {
+    if (line.external || line.planOnly || line.stationIds.length < 2 || sim.billedLineIds.has(line.id)) continue;
+    sim.billedLineIds.add(line.id);
+    let lengthM = 0;
+    for (let i = 0; i < line.stationIds.length - 1; i++) {
+      lengthM += haversineMetres(state.stations.get(line.stationIds[i]).location, state.stations.get(line.stationIds[i + 1]).location);
+    }
+    let cost = trackCost({ lengthM, trainType: sim.trainType, elevation: SURFACE_ELEVATION_M, waterPct: 0 });
+    for (const id of line.stationIds) {
+      if (sim.billedStationIds.has(id)) continue;
+      sim.billedStationIds.add(id);
+      cost += stationCost({ trainType: sim.trainType, elevation: SURFACE_ELEVATION_M, waterPct: 0 });
+    }
+    sim.money -= cost; sim.costToday += cost; sim.stats.constructionCost += cost;
+  }
 }
 
 // Stations plus service change once an hour (headways per band) and whenever the network is edited.
@@ -106,6 +131,7 @@ function releaseJourneys(sim, state, nowS) {
 export function popSimStep(sim, state, seconds = 1) {
   state.simMinutes += seconds / 60;
   const nowS = Math.round(state.simMinutes * 60 * 1000) / 1000; // simMinutes accumulates 1/60 per step: drop the float dust
+  billNewConstruction(sim, state);
   refreshTimetable(sim, state, nowS);
   dispatchTrains(state);
 
