@@ -101,6 +101,9 @@
   <div class="cap" style="margin:2px 0 6px">도로 색: <b style="color:#f5a04a">주황</b> 고속도로·자동차전용도로 · <b style="color:#e0b820">노랑</b> 간선도로 · 흰색 골목 · <b style="color:#9b5fc0">보라</b> 철도</div>
   <label><input type="checkbox" id="toggle-labels"> 큰 건물 이름 (OSM, 줌 15+)</label>
   <div class="cap" id="commute-cap" style="display:none"></div>
+  <div class="ovl-title">관광 수요 · 항구 입국</div>
+  <label><input type="checkbox" id="toggle-ports"> 항구별 외국인 입국자 (법무성 실측, 크루즈선 포함 · 줌 8+)</label>
+  <div class="cap" id="ports-cap" style="margin:0 0 6px 20px"></div>
   <div class="ovl-title">관광 수요 · 신칸센 도착객</div>
   <label><input type="checkbox" id="toggle-tokyo-stn" checked> 도쿄역 도착객 분산 경로 (인구+종사자 비례 · 구를 클릭하면 정목 단위)</label>
   <div class="cap" style="margin:0 0 0 20px">목적지를 나누는 기준:</div>
@@ -529,7 +532,7 @@ map.on("load", async () => {
   let currentWardJis = null;
   // 건물/정목 레이어를 누른 클릭이 아래 깔린 구/광역권 클릭 핸들러까지 전달되어 줌아웃되는 것을 막음
   const hitsDetailLayer = (e) => {
-    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d", "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "special-demand-circle", "hotels-circle", "tstn-dest", "tstn-station", "peaks-major", "peaks-mid", "peaks-minor", ...plateauJobLayerIds()].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
+    const ls = ["bldgpop-fill", "jobsgrid-fill", "bldg23-fill", "bldg23-fill-3d", "bldg-saitama-fill", "bldg-saitama-fill-3d", "bldg-chiba-fill", "bldg-chiba-fill-3d", "bldg-kanagawa-fill", "bldg-kanagawa-fill-3d", "special-demand-circle", "hotels-circle", "ports-circle", "tstn-dest", "tstn-station", "peaks-major", "peaks-mid", "peaks-minor", ...plateauJobLayerIds()].filter((id) => map.getLayer(id) && map.getLayoutProperty(id, "visibility") !== "none");
     return ls.length > 0 && map.queryRenderedFeatures(e.point, { layers: ls }).length > 0;
   };
   // wards-fill(23구)이 region-fill(간토 전역 시정촌) 위에 겹쳐 있어, 구를 클릭하면 두 레이어의
@@ -1077,6 +1080,47 @@ map.on("load", async () => {
   // 규모는 국토교통성 2015 조사(신칸센+특급, 전 목적)라 관광객만의 수치가 아님. 선은 이동 방향 표시일 뿐 실제 노선이 아님.
   // 구를 열면 그 구의 정목으로 다시 나뉜다(정목 몫 = (거주+종사자) / 전체 합 — 지자체 몫의 합과 소수점 차이가 있을 수 있음). ----
   const tourism = await loadJSON("./tourism.json");
+
+  // ---- 항구별 외국인 입국자 (tourism.json portGateways — 법무성 출입국관리통계 2025, 월별 실측, 크루즈선은 항구로 잡힘).
+  // 위치: 도쿄·요코하마는 실제 크루즈 터미널 좌표(검색 확인), 나머지 4곳은 입국 규모가 작아(연 200명 미만) 시·구 중심점으로 근사. ----
+  if (tourism && tourism.portGateways) {
+    const PORT_LOC = {
+      "東京": { loc: [139.770763, 35.617963], approx: false }, // 東京国際クルーズターミナル
+      "横浜": { loc: [139.647122, 35.45093], approx: false }, // 大さん橋国際客船ターミナル
+      "横須賀": { loc: [139.64707, 35.25962], approx: true },
+      "千葉": { loc: [140.1331, 35.58432], approx: true },
+      "木更津": { loc: [139.99608, 35.37774], approx: true },
+      "川崎": { loc: [139.72695, 35.52825], approx: true },
+    };
+    const PORT_KO = { "東京": "도쿄항", "横浜": "요코하마항", "横須賀": "요코스카항", "千葉": "지바항", "木更津": "기사라즈항", "川崎": "가와사키항" };
+    const MON_KO = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+    const pf = tourism.portGateways.filter((p) => PORT_LOC[p.name]);
+    const maxTotal = Math.max(...pf.map((p) => p.total));
+    map.addSource("ports", { type: "geojson", data: { type: "FeatureCollection", features: pf.map((p) => ({ type: "Feature",
+      properties: { name: p.name, total: p.total, monthly: JSON.stringify(p.monthly), approx: PORT_LOC[p.name].approx },
+      geometry: { type: "Point", coordinates: PORT_LOC[p.name].loc } })) } });
+    map.addLayer({ id: "ports-circle", source: "ports", type: "circle", minzoom: 8, layout: { visibility: "none" },
+      paint: {
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, ["+", 3, ["*", 6, ["sqrt", ["/", ["get", "total"], maxTotal]]]], 13, ["+", 6, ["*", 16, ["sqrt", ["/", ["get", "total"], maxTotal]]]]],
+        "circle-color": "#12b886", "circle-opacity": 0.85, "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.2 } });
+    map.on("click", "ports-circle", (e) => {
+      const p = e.features[0].properties, mon = JSON.parse(p.monthly), peak = mon.indexOf(Math.max(...mon));
+      new maplibregl.Popup({ closeButton: false }).setLngLat(e.lngLat)
+        .setHTML(`<div style="font:12.5px sans-serif;color:#000"><b>${esc(PORT_KO[p.name] || p.name)}</b> · 2025년 외국인 입국 <b>${nf(p.total)}</b>명`
+          + `<br>가장 많은 달: ${MON_KO[peak]} (${nf(mon[peak])}명) — 크루즈선 계절 집중`
+          + `<br>월별: ${mon.map((v, i) => `${MON_KO[i]} ${nf(v)}`).join(", ")}`
+          + (p.approx ? `<br><span style="color:#666">위치는 시·구 중심점(근사) — 정확한 터미널 위치 아님</span>` : "")
+          + `<br><span style="color:#666">법무성 출입국관리통계 실측 — 나리타·하네다 공항 대비 전체 항구 합계는 0.05% 미만</span></div>`)
+        .addTo(map);
+    });
+    map.on("mouseenter", "ports-circle", () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", "ports-circle", () => (map.getCanvas().style.cursor = ""));
+    const air = tourism.airportsForScale || {}, airTotal = Object.values(air).reduce((a, b) => a + b, 0);
+    document.getElementById("ports-cap").textContent = `2025년 외국인 입국: 도쿄항 ${nf(pf.find((p) => p.name === "東京")?.total || 0)}명 · 요코하마항 ${nf(pf.find((p) => p.name === "横浜")?.total || 0)}명 등 6개 항구 합계 ${nf(pf.reduce((s, p) => s + p.total, 0))}명. `
+      + `나리타+하네다(${nf(airTotal)}명)의 0.05% 미만 — 크루즈선이 대부분이라 4월·9~10월에 몰립니다. 법무성 실측(전수), 방문지·교통수단 정보는 없습니다.`;
+    document.getElementById("toggle-ports").addEventListener("change", (e) => map.setLayoutProperty("ports-circle", "visibility", e.target.checked ? "visible" : "none"));
+  } else document.getElementById("toggle-ports").disabled = true;
+
   if (tourism && tourism.railInbound && demand) {
     const TOKYO_STN = [139.7671, 35.6812]; // 東京駅 (丸の内)
     const PER_DAY = tourism.railInbound.perDay;
@@ -1828,6 +1872,6 @@ map.on("load", async () => {
   }
 
   // 흰색 건물 footprint(obstacles)가 건물별 추정 인구 색을 덮지 않도록 맨 위로 올림
-  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor", "region-label", "wards-label", "commute-lines-school-case", "commute-lines-school", "commute-lines-case", "commute-lines", "commute-origin", "hotels-circle", "tstn-lines-case", "tstn-lines", "tstn-dest", "tstn-station", "tstn-label", "lodge-out-lines", "lodge-out-dots"]) if (map.getLayer(id)) map.moveLayer(id);
+  for (const id of ["bldgpop-fill", "bldgpop-line", "jobsgrid-fill", "jobsgrid-line", "bldg-label", "area-label", "area-label-mid", "area-label-small", "road-name-major", "road-name-mid", "road-name-minor", "region-label", "wards-label", "commute-lines-school-case", "commute-lines-school", "commute-lines-case", "commute-lines", "commute-origin", "hotels-circle", "ports-circle", "tstn-lines-case", "tstn-lines", "tstn-dest", "tstn-station", "tstn-label", "lodge-out-lines", "lodge-out-dots"]) if (map.getLayer(id)) map.moveLayer(id);
 });
 </script>

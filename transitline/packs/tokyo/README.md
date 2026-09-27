@@ -751,6 +751,12 @@ Why: to be able to start trips *from* the lodging areas — "on this night N peo
 - **Known misses:** predictions are flatter than the survey (Shibuya 12% observed vs 6% predicted, Shinjuku 10 vs 5, Asakusa 9 vs 5; Ginza 13 vs 6 for business) because the survey areas are neighbourhoods and the model uses whole wards; β is barely identified (r moves only 0.62–0.65 across β 0–2).
 - **Limits:** foreign travellers' behaviour stands in for every guest of that purpose; only the 24 named areas count; the destination is a municipality (its demand point); hotels outside Tokyo have no flows (the measured visitor counts cover Tokyo only); a per-day average with no time of day.
 
+### Sea-port arrivals (`tourism.json` `portGateways`) — measured, but tiny next to the airports
+
+`scripts/tokyo-port-entries.mjs`, from 法務省「出入国管理統計」2025 monthly 「総括 港別出入国者」 tables (e-Stat). Foreign entrants at Tokyo's sea/land ports (this is where a cruise ship lands, unlike the airport-only visitor survey behind `gateways`): 東京港 11,687, 横浜港 5,202, 横須賀 177, 千葉 31, 木更津 13, 川崎 8 — six ports, 17,118 total for the year, **under 0.05% of Narita+Haneda's 19,067,221** (`airportsForScale`). Monthly counts show the cruise-season spikes clearly (Tokyo: 3,778 in April, 3,982 in September, 3,490 in October, near-zero most other months).
+
+Viewer 「항구별 외국인 입국자」 toggle: a dot per port sized by annual total. Tokyo and Yokohama sit at their real cruise-terminal coordinates (searched and checked); the other four (all under 200/year) sit at their city/ward's `demand.json` point as a stand-in, not their actual terminal. No destination or transport-mode breakdown exists for port arrivals — the tourism-catalog survey behind `gateways`/`surveyAreas` only interviews people at Narita/Haneda/Kansai etc.
+
 Not in the source (so not here): domestic visitors' arrival station/route, per-spot visitor counts with locations (the 観光地点等入込客数調査 download withholds spot names and municipality codes, only category totals), and any visitor counts for years other than 2025 (mobile data also exists for 2021–2024, survey codes are renumbered each year).
 
 ## Special demand (`special-demand.json`) — locations measured, capacity modeled
