@@ -1,0 +1,162 @@
+{
+  "schema": "transitline.construction-workfront-geometry/1",
+  "contractVersion": 1,
+  "workfrontId": "example:corridor:wf-assembly-shortage",
+  "constructionSiteId": "cons:cd652fe195d1f093",
+  "connectedPlanId": "plan:6c4c613145a2a1b3",
+  "candidateRef": {
+    "kind": "workArea",
+    "id": "work:1f254f86c31d7558"
+  },
+  "polygon": [
+    [
+      -0.050359,
+      -0.000135
+    ],
+    [
+      -0.05,
+      -0.000135
+    ],
+    [
+      -0.05,
+      0.000135
+    ],
+    [
+      -0.050359,
+      0.000135
+    ]
+  ],
+  "location": [
+    -0.050179,
+    0
+  ],
+  "usableAreaSquareMeters": 1201.2,
+  "minimumWidthMeters": 30.1,
+  "minimumLengthMeters": 40,
+  "averageSlopePercent": 1.45,
+  "maximumSlopePercent": 1.45,
+  "nearestMajorRoad": {
+    "roadClass": "major",
+    "distanceMeters": 33.4
+  },
+  "majorRoadAccessible": true,
+  "intersectedBuildingCount": 0,
+  "waterOverlapCount": 0,
+  "existingRailwayOverlapCount": null,
+  "distanceToResidentialMeters": 130.3,
+  "residentialBasis": "building-tag",
+  "linkedShaftId": null,
+  "linkedWorkAreaId": "work:1f254f86c31d7558",
+  "linkedMaterialYardId": "yard:a2fd4c02c9b7148c",
+  "linkedAccessCandidateRef": null,
+  "equipmentAccessFacts": {
+    "entryWidthMeters": null,
+    "turningSpaceSquareMeters": 711.6,
+    "overheadClearanceMeters": null,
+    "roadWidthMeters": null
+  },
+  "stagingFacts": {
+    "assemblyAreaSquareMeters": 79.3,
+    "storageAreaSquareMeters": null,
+    "spoilRemovalAccess": true,
+    "deliveryAccess": true
+  },
+  "spatialFlags": [],
+  "dataQuality": "low",
+  "unknown": [
+    "existingRailwayOverlapCount",
+    "entryWidthMeters",
+    "roadWidthMeters",
+    "overheadClearanceMeters",
+    "storageAreaSquareMeters"
+  ],
+  "unknownReasons": {
+    "existingRailwayOverlapCount": "no-layer",
+    "entryWidthMeters": "no-connection",
+    "roadWidthMeters": "no-attribute",
+    "overheadClearanceMeters": "no-layer",
+    "storageAreaSquareMeters": "not-provided"
+  },
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "model": {
+    "linkRadiusMeters": 60,
+    "accessSearchRadiusMeters": 200,
+    "majorRoadSearchRadiusMeters": 1500,
+    "deliveryRoadSearchRadiusMeters": 300,
+    "defaultShaftFootprintMeters": 14,
+    "steepWorkfrontPercent": 3,
+    "nearResidentialMeters": 100
+  },
+  "source": {
+    "drawnWorkfront": {
+      "workfrontId": "example:corridor:wf-assembly-shortage",
+      "constructionSiteId": "cons:cd652fe195d1f093",
+      "candidateRef": {
+        "kind": "workArea",
+        "id": "work:1f254f86c31d7558"
+      },
+      "assemblyPolygon": [
+        [
+          -0.0502195,
+          -0.00004
+        ],
+        [
+          -0.050139500000000004,
+          -0.00004
+        ],
+        [
+          -0.050139500000000004,
+          0.00004
+        ],
+        [
+          -0.0502195,
+          0.00004
+        ]
+      ]
+    },
+    "layers": {
+      "kind": "synthetic-layers",
+      "centre": [
+        -0.0501795,
+        0
+      ],
+      "options": {}
+    },
+    "generatedBy": "scripts/build-construction-workfront-examples.mjs"
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "schema": "transitline.construction-workfront-geometry/1",
+  "contractVersion": 1,
+  "workfrontId": "example:corridor:wf-missing-layers",
+  "constructionSiteId": "cons:301d21bfade7d5d1",
+  "connectedPlanId": "plan:6c4c613145a2a1b3",
+  "candidateRef": {
+    "kind": "workArea",
+    "id": "work:6884ac4fa5c3d685"
+  },
+  "polygon": [
+    [
+      -0.010359,
+      -0.000135
+    ],
+    [
+      -0.01,
+      -0.000135
+    ],
+    [
+      -0.01,
+      0.000135
+    ],
+    [
+      -0.010359,
+      0.000135
+    ]
+  ],
+  "location": [
+    -0.010179,
+    0
+  ],
+  "usableAreaSquareMeters": 1201.2,
+  "minimumWidthMeters": 30.1,
+  "minimumLengthMeters": 40,
+  "averageSlopePercent": null,
+  "maximumSlopePercent": null,
+  "nearestMajorRoad": null,
+  "majorRoadAccessible": null,
+  "intersectedBuildingCount": null,
+  "waterOverlapCount": null,
+  "existingRailwayOverlapCount": null,
+  "distanceToResidentialMeters": null,
+  "residentialBasis": null,
+  "linkedShaftId": null,
+  "linkedWorkAreaId": "work:6884ac4fa5c3d685",
+  "linkedMaterialYardId": "yard:f738e93f9addaf8d",
+  "linkedAccessCandidateRef": null,
+  "equipmentAccessFacts": {
+    "entryWidthMeters": null,
+    "turningSpaceSquareMeters": 711.6,
+    "overheadClearanceMeters": null,
+    "roadWidthMeters": null
+  },
+  "stagingFacts": {
+    "assemblyAreaSquareMeters": null,
+    "storageAreaSquareMeters": null,
+    "spoilRemovalAccess": null,
+    "deliveryAccess": null
+  },
+  "spatialFlags": [],
+  "dataQuality": "low",
+  "unknown": [
+    "averageSlopePercent",
+    "maximumSlopePercent",
+    "groundElevationMeters",
+    "elevationRangeMeters",
+    "intersectedBuildingCount",
+    "waterOverlapCount",
+    "existingRailwayOverlapCount",
+    "distanceToResidentialMeters",
+    "nearestMajorRoad",
+    "majorRoadAccessible",
+    "entryWidthMeters",
+    "roadWidthMeters",
+    "overheadClearanceMeters",
+    "assemblyAreaSquareMeters",
+    "storageAreaSquareMeters",
+    "spoilRemovalAccess",
+    "deliveryAccess"
+  ],
+  "unknownReasons": {
+    "averageSlopePercent": "no-layer",
+    "maximumSlopePercent": "no-layer",
+    "groundElevationMeters": "no-layer",
+    "elevationRangeMeters": "no-layer",
+    "intersectedBuildingCount": "no-layer",
+    "waterOverlapCount": "no-layer",
+    "existingRailwayOverlapCount": "no-layer",
+    "distanceToResidentialMeters": "no-layer",
+    "nearestMajorRoad": "no-layer",
+    "majorRoadAccessible": "no-layer",
+    "entryWidthMeters": "no-connection",
+    "roadWidthMeters": "no-layer",
+    "overheadClearanceMeters": "no-layer",
+    "assemblyAreaSquareMeters": "not-provided",
+    "storageAreaSquareMeters": "not-provided",
+    "spoilRemovalAccess": "no-layer",
+    "deliveryAccess": "no-layer"
+  },
+  "sourceLayers": [],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "model": {
+    "linkRadiusMeters": 60,
+    "accessSearchRadiusMeters": 200,
+    "majorRoadSearchRadiusMeters": 1500,
+    "deliveryRoadSearchRadiusMeters": 300,
+    "defaultShaftFootprintMeters": 14,
+    "steepWorkfrontPercent": 3,
+    "nearResidentialMeters": 100
+  },
+  "source": {
+    "drawnWorkfront": {
+      "workfrontId": "example:corridor:wf-missing-layers",
+      "constructionSiteId": "cons:301d21bfade7d5d1",
+      "candidateRef": {
+        "kind": "workArea",
+        "id": "work:6884ac4fa5c3d685"
+      }
+    },
+    "layers": {
+      "kind": "none"
+    },
+    "generatedBy": "scripts/build-construction-workfront-examples.mjs"
+  }
+}

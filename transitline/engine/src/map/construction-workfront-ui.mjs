@@ -206,10 +206,22 @@ export function mountConstructionWorkfront({ canvas, projection, pack, getConstr
     setAssemblyPolygon(polygon) { if (selectedWorkfrontId) { setAssemblyPolygon(workfrontDoc, selectedWorkfrontId, polygon); save(); } refresh(); },
     setStoragePolygon(polygon) { if (selectedWorkfrontId) { setStoragePolygon(workfrontDoc, selectedWorkfrontId, polygon); save(); } refresh(); },
     output: () => (selectedWorkfrontId ? builtWorkfronts.find((w) => w.workfrontId === selectedWorkfrontId) ?? null : null),
+    // Replaces the whole document (e.g. from a host game's own integrated save) — same validation as opening a
+    // saved document normally (wrong pack / pack-version mismatch / unreadable all surface as warnings, never a throw).
+    loadDoc(doc) {
+      const restored = restoreWorkfrontDoc(doc ? JSON.stringify(doc) : null, pack);
+      notes.push(...restored.warnings);
+      for (const key of Object.keys(workfrontDoc)) delete workfrontDoc[key];
+      Object.assign(workfrontDoc, restored.doc);
+      selectedWorkfrontId = null;
+      save();
+      refresh();
+    },
     refresh,
     setEnabled(value) { enabledNow = Boolean(value); },
     get selectedWorkfrontId() { return selectedWorkfrontId; },
     get workfrontDoc() { return structuredClone(workfrontDoc); },
+    get builtWorkfronts() { return builtWorkfronts; },
     destroy() {
       canvas.removeEventListener("pointerdown", onPointerDown, true);
       canvas.removeEventListener("dblclick", onDblClick);

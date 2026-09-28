@@ -12,6 +12,7 @@
     "station-examples": "node --max-old-space-size=6144 scripts/build-station-examples.mjs",
     "construction-examples": "node --max-old-space-size=6144 scripts/build-construction-examples.mjs",
     "construction-impact-examples": "node --max-old-space-size=6144 scripts/build-construction-impact-examples.mjs",
+    "construction-workfront-examples": "node --max-old-space-size=6144 scripts/build-construction-workfront-examples.mjs",
     "regen": "node packs/example-radial/generate.mjs && node packs/example-corridor/generate.mjs"
   }
 }

@@ -18,6 +18,7 @@ import { mountStationSelection } from "./map/station-selection-ui.mjs";
 import { attachConstructionEditor } from "./map/construction-ui.mjs";
 import { mountConstructionSelection } from "./map/construction-selection-ui.mjs";
 import { mountConstructionImpact } from "./map/construction-impact-ui.mjs";
+import { mountConstructionWorkfront } from "./map/construction-workfront-ui.mjs";
 import { planIdForKey, planningDefaults, ScenarioRuntime, stablePlanKey } from "./scenario-runtime.mjs";
 import { mountStationManagementPanel } from "./station-management-ui.mjs";
 import { mountConstructionContractorPanel } from "./construction-contractor-ui.mjs";
@@ -321,6 +322,7 @@ async function main() {
   let constructionSelectionOutput = null;
   let constructionImpact = null;
   let constructionImpactOutput = null;
+  let constructionWorkfront = null;
   refreshMapOverlay = () => {
     currentMapExport = buildMapExport({ pack, mode: networkMode, drawnLines: drawnLinesFromState(state) });
     const report = runtime?.report() ?? engineReport ?? {};
@@ -332,6 +334,7 @@ async function main() {
     constructionUi?.refresh();
     constructionSelection?.refresh();
     constructionImpact?.refresh();
+    constructionWorkfront?.refresh();
   };
   window.transitlineMap = { setEngineReport(report) { engineReport = report; refreshMapOverlay(); } };
   if (scenarioPlay) renderPhaseLegend($("map-legend"));
@@ -434,6 +437,36 @@ async function main() {
     });
     for (const editorButton of [$("btn-depot"), $("btn-station"), $("btn-construction"), $("btn-station-design"), $("btn-construction-select")]) editorButton.addEventListener("click", () => {
       if (editorButton.classList.contains("active") && impactButton.classList.contains("active")) impactButton.click();
+    });
+    // Work fronts: a shaft/work-area candidate the player places on a construction site, plus its equipment
+    // access point and hand-drawn assembly/storage areas. Every change is pushed to the engine's own placement
+    // assessment (feasible/conditional/infeasible) — cost, duration and contractor selection stay the engine's.
+    constructionWorkfront = mountConstructionWorkfront({
+      canvas,
+      projection,
+      pack,
+      getConstructionExport: () => constructionUi?.constructionExport,
+      getReport: () => runtime.report(),
+      enabled: false,
+      onChange: (output) => {
+        if (output?.connectedPlanId) {
+          try { runtime.applyConstructionWorkfront(output.connectedPlanId, output); }
+          catch { /* this plan's construction packages are not linked to a schedule yet */ }
+        }
+        queueMicrotask(() => refreshScenarioPanel());
+      },
+    });
+    const workfrontButton = $("btn-construction-workfront");
+    workfrontButton.hidden = false;
+    workfrontButton.addEventListener("click", () => {
+      const enabled = !workfrontButton.classList.contains("active");
+      if (enabled) for (const id of ["btn-depot", "btn-station", "btn-construction", "btn-station-design", "btn-construction-select", "btn-construction-impact"]) if ($(id).classList.contains("active")) $(id).click();
+      workfrontButton.classList.toggle("active", enabled);
+      constructionWorkfront.setEnabled(enabled);
+      workfrontButton.blur();
+    });
+    for (const editorButton of [$("btn-depot"), $("btn-station"), $("btn-construction"), $("btn-station-design"), $("btn-construction-select"), impactButton]) editorButton.addEventListener("click", () => {
+      if (editorButton.classList.contains("active") && workfrontButton.classList.contains("active")) workfrontButton.click();
     });
   }
   // Map editors own the pointer while active: keep exactly one drawing editor on.
@@ -868,6 +901,11 @@ async function main() {
       if (!plan) throw new Error("공구를 연결할 계획선을 선택하세요.");
       const selection = constructionSelectionOutput?.candidateId ? [constructionSelectionOutput] : [];
       const reports = runtime.configureConstructionPackages(plan.planId, constructionUi.constructionExport, selection);
+      // Work fronts placed before the schedule existed have nothing to assess against yet; push them now.
+      for (const workfront of constructionWorkfront?.builtWorkfronts ?? []) {
+        if (workfront.connectedPlanId !== plan.planId) continue;
+        try { runtime.applyConstructionWorkfront(plan.planId, workfront); } catch { /* still not linkable */ }
+      }
       message(`공사 공구 ${Object.keys(reports).length}곳을 통합 공정표에 연결했습니다${selection.length ? ` · 선택 후보 ${selection[0].kind}` : ""}.`);
       return reports;
     }));
@@ -905,11 +943,19 @@ async function main() {
       selectedLineId = result.commissioned.lineId;
       message("통합시험과 인허가를 통과해 실제 영업 노선으로 개통했습니다.");
     }));
-    $("scenario-save").addEventListener("click", () => run(() => { localStorage.setItem(storageKey, runtime.save()); message("지도·공사·차량·회사 상태를 함께 저장했습니다."); }));
+    $("scenario-save").addEventListener("click", () => run(() => {
+      const payload = JSON.stringify({ schemaVersion: 1, runtime: runtime.save(), workfrontDoc: constructionWorkfront?.workfrontDoc ?? null });
+      localStorage.setItem(storageKey, payload);
+      message("지도·공사·차량·회사 상태와 작업면을 함께 저장했습니다.");
+    }));
     $("scenario-load").addEventListener("click", () => run(() => {
-      const save = localStorage.getItem(storageKey);
-      if (!save) throw new Error("불러올 통합 저장본이 없습니다.");
-      runtime.load(save);
+      const saved = localStorage.getItem(storageKey);
+      if (!saved) throw new Error("불러올 통합 저장본이 없습니다.");
+      let payload = null;
+      try { payload = JSON.parse(saved); } catch { /* not JSON at all: definitely the old plain runtime.save() string */ }
+      const wrapped = payload && typeof payload === "object" && typeof payload.runtime === "string";
+      runtime.load(wrapped ? payload.runtime : saved); // older saves stored runtime.save()'s own JSON string directly
+      if (wrapped && payload.workfrontDoc) constructionWorkfront?.loadDoc(payload.workfrontDoc);
       selectedLineId = null;
       message("통합 저장본을 불러왔습니다.");
     }));

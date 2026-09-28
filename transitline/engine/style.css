@@ -369,6 +369,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #btn-station.active { background: #4895ef; color: #0c1114; }
 #btn-construction.active { background: #ffd60a; color: #0c1114; }
 #btn-construction-impact.active { background: #e5484d; color: white; }
+#btn-construction-workfront.active { background: #ffe66d; color: #0c1114; }
 #station-panel .depot-bar { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
 #station-panel .depot-bar button { padding: 2px 8px; }
 #station-panel .depot-row { margin: 6px 0; padding: 6px; border: 1px solid var(--panel-line); border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }

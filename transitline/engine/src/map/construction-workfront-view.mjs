@@ -59,20 +59,26 @@ export function buildWorkfrontDetailView(workfront, entry, constructionExport) {
 }
 
 // report: ScenarioRuntime.report() or an equivalent plain object. Looks for this work front among
-// report.equipmentAssignments[] (by workfrontId, falling back to constructionSiteId) and reads its contractorId /
-// packageContractId / placement verdict exactly as the engine wrote them — never computed, never guessed.
+// report.equipmentAssignments[] (by workfrontId, falling back to constructionSiteId — the confirmed connection
+// key per docs/construction-workfront-management-integration-2026-09-28.md) and reads its contractorId /
+// packageContractId / equipmentType / placement verdict and failure·condition lists exactly as the engine wrote
+// them — never computed, never guessed. Note: an assignment's `status` field is its lifecycle (assigned/released),
+// a different thing from `placementStatus` (feasible/conditional/infeasible) — this never conflates the two.
 export function buildEquipmentReportView(report, workfront) {
   if (!workfront) return { found: false };
   const list = report?.equipmentAssignments ?? [];
   const a = list.find((x) => x.workfrontId === workfront.workfrontId) ?? list.find((x) => x.constructionSiteId === workfront.constructionSiteId) ?? null;
   if (!a) return { found: false, contractorId: report?.contractorId ?? null, packageContractId: report?.packageContractId ?? null };
-  const status = a.placementStatus ?? a.status ?? null;
+  const status = a.placementStatus ?? null;
   return {
     found: true,
     contractorId: a.contractorId ?? report?.contractorId ?? null,
     packageContractId: a.packageContractId ?? report?.packageContractId ?? null,
+    equipmentType: a.equipmentType ?? null,
     placementStatus: status,
     placementLabel: status ? (PLACEMENT_LABEL[status] ?? status) : "상태 불명",
+    placementFailures: a.placementFailures ?? [],
+    placementConditions: a.placementConditions ?? [],
   };
 }
 
@@ -151,10 +157,22 @@ export function renderWorkfrontPanel(container, markerViews, detailView, equipme
     if (detailView.spatialFlags.length) container.append(el("div", "diag info", `표시: ${detailView.spatialFlags.join(", ")}`));
     if (detailView.missing.length) container.append(el("div", "diag warning", `⚠ 미상: ${detailView.missing.map((m) => `${m.field}(${m.reason})`).join(", ")}`));
     if (equipmentView) {
-      const line = equipmentView.found
-        ? `시공사 ${equipmentView.contractorId ?? "미상"} · 계약 ${equipmentView.packageContractId ?? "미상"} · 배치 판정: ${equipmentView.placementLabel}`
-        : "엔진 시공사·배치 판정 없음";
-      container.append(el("div", "diag info", line));
+      if (!equipmentView.found) container.append(el("div", "diag info", "엔진 시공사·배치 판정 없음"));
+      else {
+        container.append(el("div", "diag info", `장비 ${equipmentView.equipmentType ?? "미상"} · 시공사 ${equipmentView.contractorId ?? "미상"} · 계약 ${equipmentView.packageContractId ?? "미상"} · 배치 판정: ${equipmentView.placementLabel}`));
+        const describe = (entry) => {
+          const bound = entry.required ?? entry.maximum;
+          return `${entry.field}: ${entry.reason}${entry.actual !== undefined ? ` (실측 ${entry.actual}${bound !== undefined ? ` / 기준 ${bound}` : ""})` : ""}`;
+        };
+        if (equipmentView.placementFailures.length) {
+          container.append(el("div", "section-label", `배치 불가 사유 ${equipmentView.placementFailures.length}건`));
+          for (const entry of equipmentView.placementFailures) container.append(el("div", "diag warning", describe(entry)));
+        }
+        if (equipmentView.placementConditions.length) {
+          container.append(el("div", "section-label", `조건부 확인 필요 ${equipmentView.placementConditions.length}건`));
+          for (const entry of equipmentView.placementConditions) container.append(el("div", "diag info", describe(entry)));
+        }
+      }
     }
   }
 }

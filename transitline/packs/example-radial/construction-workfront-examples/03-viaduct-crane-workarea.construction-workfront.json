@@ -1,0 +1,151 @@
+{
+  "schema": "transitline.construction-workfront-geometry/1",
+  "contractVersion": 1,
+  "workfrontId": "example:radial:wf-viaduct-crane-workarea",
+  "constructionSiteId": "cons:0432852cf937d9ea",
+  "connectedPlanId": "plan:a7b82bfea8635d94",
+  "candidateRef": {
+    "kind": "workArea",
+    "id": "work:cdd3c7b7a2065281"
+  },
+  "polygon": [
+    [
+      0,
+      -0.000135
+    ],
+    [
+      0.000359,
+      -0.000135
+    ],
+    [
+      0.000359,
+      0.000135
+    ],
+    [
+      0,
+      0.000135
+    ]
+  ],
+  "location": [
+    0.00018,
+    0
+  ],
+  "usableAreaSquareMeters": 1201.2,
+  "minimumWidthMeters": 30.1,
+  "minimumLengthMeters": 40,
+  "averageSlopePercent": 1.45,
+  "maximumSlopePercent": 1.45,
+  "nearestMajorRoad": {
+    "roadClass": "major",
+    "distanceMeters": 33.4
+  },
+  "majorRoadAccessible": true,
+  "intersectedBuildingCount": 0,
+  "waterOverlapCount": 0,
+  "existingRailwayOverlapCount": null,
+  "distanceToResidentialMeters": 1.7,
+  "residentialBasis": "building-tag",
+  "linkedShaftId": null,
+  "linkedWorkAreaId": "work:cdd3c7b7a2065281",
+  "linkedMaterialYardId": "yard:29a4b0a84c06765a",
+  "linkedAccessCandidateRef": {
+    "kind": "accessRoad",
+    "id": "roadAccess:e0c5deb0ba3c02a6"
+  },
+  "equipmentAccessFacts": {
+    "entryWidthMeters": 30.1,
+    "turningSpaceSquareMeters": 711.6,
+    "overheadClearanceMeters": null,
+    "roadWidthMeters": null
+  },
+  "stagingFacts": {
+    "assemblyAreaSquareMeters": null,
+    "storageAreaSquareMeters": null,
+    "spoilRemovalAccess": true,
+    "deliveryAccess": true
+  },
+  "spatialFlags": [
+    "near-residential"
+  ],
+  "dataQuality": "low",
+  "unknown": [
+    "existingRailwayOverlapCount",
+    "roadWidthMeters",
+    "overheadClearanceMeters",
+    "assemblyAreaSquareMeters",
+    "storageAreaSquareMeters"
+  ],
+  "unknownReasons": {
+    "existingRailwayOverlapCount": "no-layer",
+    "roadWidthMeters": "no-attribute",
+    "overheadClearanceMeters": "no-layer",
+    "assemblyAreaSquareMeters": "not-provided",
+    "storageAreaSquareMeters": "not-provided"
+  },
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "model": {
+    "linkRadiusMeters": 60,
+    "accessSearchRadiusMeters": 200,
+    "majorRoadSearchRadiusMeters": 1500,
+    "deliveryRoadSearchRadiusMeters": 300,
+    "defaultShaftFootprintMeters": 14,
+    "steepWorkfrontPercent": 3,
+    "nearResidentialMeters": 100
+  },
+  "source": {
+    "drawnWorkfront": {
+      "workfrontId": "example:radial:wf-viaduct-crane-workarea",
+      "constructionSiteId": "cons:0432852cf937d9ea",
+      "candidateRef": {
+        "kind": "workArea",
+        "id": "work:cdd3c7b7a2065281"
+      }
+    },
+    "layers": {
+      "kind": "synthetic-layers",
+      "centre": [
+        0.0001795,
+        0
+      ],
+      "options": {
+        "clearing": 0
+      }
+    },
+    "generatedBy": "scripts/build-construction-workfront-examples.mjs"
+  }
+}

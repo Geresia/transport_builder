@@ -1,0 +1,164 @@
+{
+  "schema": "transitline.construction-workfront-geometry/1",
+  "contractVersion": 1,
+  "workfrontId": "example:radial:wf-tunnel-tbm-shortage",
+  "constructionSiteId": "cons:7563eb642b60bdb6",
+  "connectedPlanId": "plan:a7b82bfea8635d94",
+  "candidateRef": {
+    "kind": "shaft",
+    "id": "shaft:beb5cc4f01ebde7d"
+  },
+  "polygon": [
+    [
+      0.043407,
+      0.011587
+    ],
+    [
+      0.043533,
+      0.011587
+    ],
+    [
+      0.043533,
+      0.011713
+    ],
+    [
+      0.043407,
+      0.011713
+    ]
+  ],
+  "location": [
+    0.04347,
+    0.01165
+  ],
+  "usableAreaSquareMeters": 196.7,
+  "minimumWidthMeters": 14,
+  "minimumLengthMeters": 14,
+  "averageSlopePercent": 1.45,
+  "maximumSlopePercent": 1.45,
+  "nearestMajorRoad": {
+    "roadClass": "major",
+    "distanceMeters": 33.4
+  },
+  "majorRoadAccessible": true,
+  "intersectedBuildingCount": 0,
+  "waterOverlapCount": 0,
+  "existingRailwayOverlapCount": null,
+  "distanceToResidentialMeters": 143.6,
+  "residentialBasis": "building-tag",
+  "linkedShaftId": "shaft:beb5cc4f01ebde7d",
+  "linkedWorkAreaId": "work:beb5cc4f01ebde7d",
+  "linkedMaterialYardId": "yard:ee98093fdbf7cac5",
+  "linkedAccessCandidateRef": null,
+  "equipmentAccessFacts": {
+    "entryWidthMeters": null,
+    "turningSpaceSquareMeters": 153.9,
+    "overheadClearanceMeters": null,
+    "roadWidthMeters": null
+  },
+  "stagingFacts": {
+    "assemblyAreaSquareMeters": 79.3,
+    "storageAreaSquareMeters": null,
+    "spoilRemovalAccess": true,
+    "deliveryAccess": true
+  },
+  "spatialFlags": [],
+  "dataQuality": "low",
+  "unknown": [
+    "existingRailwayOverlapCount",
+    "entryWidthMeters",
+    "roadWidthMeters",
+    "overheadClearanceMeters",
+    "storageAreaSquareMeters"
+  ],
+  "unknownReasons": {
+    "existingRailwayOverlapCount": "no-layer",
+    "entryWidthMeters": "no-connection",
+    "roadWidthMeters": "no-attribute",
+    "overheadClearanceMeters": "no-layer",
+    "storageAreaSquareMeters": "not-provided"
+  },
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "model": {
+    "linkRadiusMeters": 60,
+    "accessSearchRadiusMeters": 200,
+    "majorRoadSearchRadiusMeters": 1500,
+    "deliveryRoadSearchRadiusMeters": 300,
+    "defaultShaftFootprintMeters": 14,
+    "steepWorkfrontPercent": 3,
+    "nearResidentialMeters": 100
+  },
+  "source": {
+    "drawnWorkfront": {
+      "workfrontId": "example:radial:wf-tunnel-tbm-shortage",
+      "constructionSiteId": "cons:7563eb642b60bdb6",
+      "candidateRef": {
+        "kind": "shaft",
+        "id": "shaft:beb5cc4f01ebde7d"
+      },
+      "assemblyPolygon": [
+        [
+          0.04343,
+          0.01161
+        ],
+        [
+          0.04351,
+          0.01161
+        ],
+        [
+          0.04351,
+          0.01169
+        ],
+        [
+          0.04343,
+          0.01169
+        ]
+      ]
+    },
+    "layers": {
+      "kind": "synthetic-layers",
+      "centre": [
+        0.04347,
+        0.01165
+      ],
+      "options": {
+        "clearing": 0.0015
+      }
+    },
+    "generatedBy": "scripts/build-construction-workfront-examples.mjs"
+  }
+}
