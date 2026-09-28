@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>도쿄 워크 MVP</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #c9e0f5; }
+  #map { position: absolute; inset: 0; }
+  #hud {
+    position: absolute; left: 12px; top: 12px; z-index: 2;
+    font: 13px/1.5 sans-serif; color: #2b2f33; background: rgba(255,255,255,.85);
+    padding: 10px 14px; border-radius: 8px; max-width: 320px; box-shadow: 0 1px 6px rgba(0,0,0,.25);
+  }
+  #hud b { color: #1a5fb4; }
+  #hud .warn { color: #b45f1a; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="hud">
+  <div><b>도쿄 워크 MVP</b> — WASD 이동, 드래그로 시점 회전</div>
+  <div id="hud-status" class="warn">불러오는 중…</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@3/dist/pmtiles.js"></script>
+<script>
+// ponytail MVP: MapLibre의 pitch 카메라 + 실측 건물 fill-extrusion만으로 "걸어다니는 느낌"을 낸다.
+// 새 3D 엔진·캐릭터 컨트롤러·충돌판정은 만들지 않는다 — 필요해지면 그때 추가.
+// 색상 팔레트는 viewer.html의 THEME(light, 네이버 지도풍)을 그대로 옮겼다 — 두 파일이 같은 색을 쓰게.
+maplibregl.addProtocol("pmtiles", new pmtiles.Protocol().tile);
+
+const THEME = {
+  bg: "#c9e0f5", earth: "#f6f5f1", water: "#c3dcf3", river: "#a9cdee",
+  landuse: { forest: "#d3e9c4", farm: "#eef0d6", grass: "#deeeca", park: "#d5eac6", wetland: "#d1e7e0", sand: "#f2ead0", school: "#e8ecdc", hospital: "#f5e6e6", industrial: "#ebe9ef", other: "#efeee9" },
+  road: { minor: "#ffffff", medium: "#fff6cf", major: "#fbd75e", highway: "#f5a04a", rail: "#9b5fc0", case: "#dedad0" },
+  bldg: "#ffffff", bldgLine: "#cdc8bd", bldgOp: 0.98,
+};
+
+// 미나토구 도쿄타워 부근 — 건물 밀도가 높아 워크 MVP 데모에 적합
+const START = { lng: 139.7454, lat: 35.6586, bearing: 30 };
+const EYE_HEIGHT_ZOOM = 18.3; // street-level 체감 줌
+const MOVE_M_PER_SEC = 26;    // 도보보다 빠르게 — 데모용
+
+const road = (kind) => ["all", ["==", ["get", "kind"], kind], ["!=", ["get", "is_tunnel"], true]];
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: {
+    version: 8,
+    glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    sources: {
+      basemap: { type: "vector", url: "pmtiles://" + new URL("./basemap.pmtiles", location.href).href,
+        attribution: "&copy; OpenStreetMap contributors, ODbL &middot; Protomaps" },
+      bldg23: { type: "vector", url: "pmtiles://" + new URL("./tokyo-survey-buildings.pmtiles", location.href).href,
+        attribution: "東京都 令和3年度 区部土地利用現況調査 (CC BY 4.0)" },
+    },
+    layers: [
+      { id: "bg", type: "background", paint: { "background-color": THEME.bg } },
+      { id: "bm-earth", source: "basemap", "source-layer": "earth", type: "fill", paint: { "fill-color": THEME.earth } },
+      { id: "bm-landuse", source: "basemap", "source-layer": "landuse", type: "fill",
+        filter: ["in", ["get", "kind"], ["literal", ["forest", "wood", "nature_reserve", "farmland", "allotments", "grass", "grassland", "scrub", "meadow", "park", "garden", "recreation_ground", "golf_course", "wetland", "sand", "cemetery", "school", "college", "university", "hospital", "industrial", "military"]]],
+        paint: { "fill-color": ["match", ["get", "kind"],
+          ["forest", "wood", "nature_reserve"], THEME.landuse.forest,
+          ["farmland", "allotments"], THEME.landuse.farm,
+          ["grass", "grassland", "scrub", "meadow"], THEME.landuse.grass,
+          ["park", "garden", "recreation_ground", "golf_course"], THEME.landuse.park,
+          "wetland", THEME.landuse.wetland,
+          "sand", THEME.landuse.sand,
+          ["school", "college", "university", "military"], THEME.landuse.school,
+          "hospital", THEME.landuse.hospital,
+          "industrial", THEME.landuse.industrial,
+          THEME.landuse.other] } },
+      { id: "bm-water", source: "basemap", "source-layer": "water", type: "fill", paint: { "fill-color": THEME.water } },
+      { id: "bm-river", source: "basemap", "source-layer": "water", type: "line",
+        filter: ["==", ["geometry-type"], "LineString"], paint: { "line-color": THEME.river, "line-width": 1.2 } },
+      { id: "bm-road-case", source: "basemap", "source-layer": "roads", type: "line",
+        filter: ["in", ["get", "kind"], ["literal", ["minor_road", "medium_road"]]],
+        paint: { "line-color": THEME.road.case, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1, 18, 7] } },
+      { id: "bm-road-minor", source: "basemap", "source-layer": "roads", type: "line",
+        filter: road("minor_road"), paint: { "line-color": THEME.road.minor, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.6, 18, 5] } },
+      { id: "bm-road-medium", source: "basemap", "source-layer": "roads", type: "line",
+        filter: road("medium_road"), paint: { "line-color": THEME.road.medium, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.8, 18, 6] } },
+      { id: "bm-road-major", source: "basemap", "source-layer": "roads", type: "line",
+        filter: road("major_road"), paint: { "line-color": THEME.road.major, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1.2, 18, 8] } },
+      { id: "bm-road-highway", source: "basemap", "source-layer": "roads", type: "line",
+        filter: road("highway"), paint: { "line-color": THEME.road.highway, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1.6, 18, 10] } },
+      { id: "bm-rail", source: "basemap", "source-layer": "roads", type: "line",
+        filter: ["all", ["==", ["get", "kind"], "rail"], ["!=", ["get", "kind_detail"], "light_rail"]],
+        paint: { "line-color": THEME.road.rail, "line-width": 2, "line-opacity": 0.85 } },
+      { id: "bldg-flat", source: "bldg23", "source-layer": "building", type: "fill", maxzoom: 15,
+        paint: { "fill-color": THEME.bldg, "fill-opacity": THEME.bldgOp } },
+      { id: "bldg-line", source: "bldg23", "source-layer": "building", type: "line",
+        paint: { "line-color": THEME.bldgLine, "line-width": 0.6 } },
+      { id: "bldg-3d", source: "bldg23", "source-layer": "building", type: "fill-extrusion", minzoom: 14,
+        paint: {
+          "fill-extrusion-color": THEME.bldg,
+          "fill-extrusion-opacity": THEME.bldgOp,
+          // 실측 층수 x 3.2m, 층수 미상이면 2층으로 가정 (viewer.html의 TOKYO_HEIGHT와 동일 규칙)
+          "fill-extrusion-height": ["case", [">", ["to-number", ["coalesce", ["get", "levels"], 0]], 0],
+            ["*", ["to-number", ["get", "levels"]], 3.2], 6.4],
+          "fill-extrusion-base": 0,
+        } },
+    ],
+  },
+  center: [START.lng, START.lat],
+  zoom: EYE_HEIGHT_ZOOM,
+  pitch: 82,
+  bearing: START.bearing,
+  maxPitch: 85,
+  antialias: true,
+});
+
+const hud = document.getElementById("hud-status");
+map.on("load", () => (hud.textContent = "건물: 도쿄도 23구 실측 footprint (도쿄도 토지이용현황조사)"));
+map.on("error", (e) => (hud.textContent = "로드 오류: " + (e?.error?.message ?? e)));
+
+// ---- WASD 이동: bearing 기준으로 center를 미터 단위로 옮긴다 (별도 지리 라이브러리 없이 구면 근사) ----
+const keys = new Set();
+addEventListener("keydown", (e) => keys.add(e.key.toLowerCase()));
+addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
+
+function moveBy(forwardM, strafeM) {
+  const b = (map.getBearing() * Math.PI) / 180;
+  const c = map.getCenter();
+  const dNorth = forwardM * Math.cos(b) + strafeM * Math.cos(b + Math.PI / 2);
+  const dEast = forwardM * Math.sin(b) + strafeM * Math.sin(b + Math.PI / 2);
+  const dLat = dNorth / 111320;
+  const dLng = dEast / (111320 * Math.cos((c.lat * Math.PI) / 180));
+  map.jumpTo({ center: [c.lng + dLng, c.lat + dLat] });
+}
+
+let last = performance.now();
+function tick(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  const step = MOVE_M_PER_SEC * dt;
+  let f = 0, s = 0;
+  if (keys.has("w") || keys.has("arrowup")) f += step;
+  if (keys.has("s") || keys.has("arrowdown")) f -= step;
+  if (keys.has("d") || keys.has("arrowright")) s += step;
+  if (keys.has("a") || keys.has("arrowleft")) s -= step;
+  if (f || s) moveBy(f, s);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
