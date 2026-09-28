@@ -1,5 +1,6 @@
 import { VEHICLE_MODELS, depotWarnings } from "./rolling-stock.mjs";
 import { TECHNICAL_PROFILES } from "./construction.mjs";
+import { stationDeliveryReadiness } from "./station-delivery.mjs";
 
 export function calculateFleetRequirement({ routeKm, stations, commercialSpeedKph, trainsPerHour, reserveRatio = 0.15 }) {
   const oneWayMinutes = (routeKm / commercialSpeedKph) * 60 + Math.max(0, stations - 1) * 0.5;
@@ -12,6 +13,7 @@ export function calculateFleetRequirement({ routeKm, stations, commercialSpeedKp
 export function checkOpenReady({ project, units, depot, fleetRequirement, staffReady, timetableReady, trialOperationPassed, approvalsValid, platformLengthM }) {
   const reasons = [];
   if (project.status !== "available") reasons.push("Track and stations are not available");
+  reasons.push(...stationDeliveryReadiness(project).reasons);
   const accepted = units.filter((unit) => unit.status === "available");
   if (accepted.length < fleetRequirement.minimumFleet) reasons.push("Minimum accepted fleet is not secured");
   if (!depot || depot.status !== "secured" || depot.capacitySets < accepted.length) reasons.push("Depot capacity is not secured");
@@ -48,7 +50,9 @@ export function operateServiceDay(input, ledger, clock, rng) {
   const energyCost = carKm * VEHICLE_MODELS[service.modelId].energyKwhPerCarKm * service.electricityYenPerKwh;
   const staffCost = scheduledSets * service.staffPerSet * service.dailyStaffCost;
   const maintenanceCost = carKm * service.maintenanceYenPerCarKm;
-  const deadheadCost = scheduledSets * depot.deadheadKm * 2 * service.deadheadYenPerSetKm;
+  const deadheadCost = depot.assessment?.economics?.deadhead
+    ? depot.assessment.economics.deadhead.totalAnnualCost / 365
+    : scheduledSets * depot.deadheadKm * 2 * service.deadheadYenPerSetKm;
   const infrastructureCost = service.dailyInfrastructureCost;
   const publicPayment = contract ? contract.annualPayment / 365 : service.dailyPublicPayment;
   const target = contract?.kpi?.punctualityTarget ?? 0.97;
@@ -56,7 +60,8 @@ export function operateServiceDay(input, ledger, clock, rng) {
   const kpiAdjustment = punctuality >= target
     ? publicPayment * (contract?.kpi?.bonusRate ?? 0.01)
     : -publicPayment * Math.min(maxDeductionRate, (target - punctuality) * 2);
-  const income = fareRevenue + publicPayment + kpiAdjustment + service.dailyAdvertisingRevenue;
+  const depotAncillaryRevenue = (depot.annualAncillaryRevenue ?? 0) / 365;
+  const income = fareRevenue + publicPayment + kpiAdjustment + service.dailyAdvertisingRevenue + depotAncillaryRevenue;
   const cost = energyCost + staffCost + maintenanceCost + deadheadCost + infrastructureCost + depot.annualLeaseCost / 365;
   if (income > 0) ledger.post({ atMinute: clock.minute, amount: income, category: "operating-income", reference: service.id });
   if (cost > 0) ledger.post({ atMinute: clock.minute, amount: -cost, category: "operating-cost", reference: service.id });

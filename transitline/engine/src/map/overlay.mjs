@@ -10,18 +10,19 @@ export const PHASES = Object.freeze({
   planned: { label: "계획", color: "#8c93a4", dash: [4, 6] },
   underReview: { label: "심사 중", color: "#4cc9f0", dash: [10, 6] },
   underConstruction: { label: "공사 중", color: "#ffd60a", dash: [14, 5] },
-  halted: { label: "공사 중단", color: "#e5484d", dash: [3, 3] },
+  halted: { label: "공사 중단", color: "#e5484d", dash: [3, 3] }, // suspended: can resume
+  cancelled: { label: "✕ 사업 취소", color: "#b0798a", dash: [1, 9] }, // over: never resumes, so it must not look like a pause
   inspection: { label: "검사 중", color: "#9b5de5", dash: [] },
   available: { label: "사용 가능", color: "#2fbf71", dash: [] },
 });
 const UNKNOWN_STYLE = { label: "상태 불명", color: "#6b7d85", dash: [2, 4] };
 
 // Engine status -> map phase. `estimated` sits before any contract, so it reads as review, not construction.
-// The engine has no separate "halted" status today: cancellation (and a future suspended/halted) map to it,
-// while a delay inside underConstruction stays "공사 중" and is flagged `delayed`.
+// `suspended` (and `halted`) are pauses that can resume; `cancelled` is final and has its own colour and legend entry.
+// A delay inside underConstruction stays "공사 중" and is flagged `delayed`.
 const PROJECT_PHASE = {
   estimated: "underReview", approved: "underReview", contracted: "underConstruction", underConstruction: "underConstruction",
-  inspection: "inspection", available: "available", cancelled: "halted", suspended: "halted", halted: "halted",
+  inspection: "inspection", available: "available", cancelled: "cancelled", suspended: "halted", halted: "halted",
 };
 // Plan-record status (before a project exists, or when the report carries no project). needs-information and
 // rejected are still just a drawing — the reason is shown as engine diagnostics, not as a phase.
@@ -57,6 +58,9 @@ export function buildOverlayModel(mapExport, report = {}) {
     const phase = status === null ? "planned" : (project ? PROJECT_PHASE : PLAN_RECORD_PHASE)[status] ?? null;
     if (phase === null) add(plan, "engine", "warning", "unknown-status", { type: "plan", id: plan.planId }, `엔진이 알 수 없는 상태 '${status}'를 반환했습니다. 임의로 해석하지 않고 상태 불명으로 표시합니다.`);
 
+    if (project?.status === "suspended") add(plan, "engine", "info", "engine-suspended", { type: "plan", id: plan.planId }, `공사 중단 — ${project.suspensionReason ?? "사유 미기재"}. 재개하면 공정과 기성금 지급이 다시 진행됩니다.`);
+    if (project?.status === "cancelled") add(plan, "engine", "info", "engine-cancelled", { type: "plan", id: plan.planId }, "사업 취소 — 다시 시작할 수 없습니다.");
+
     const verdict = assessments[plan.planId];
     if (verdict) {
       for (const text of verdict.violations ?? []) add(plan, "engine", "error", "engine-violation", targetOf(text, plan), `위반 — ${text}`);
@@ -69,7 +73,8 @@ export function buildOverlayModel(mapExport, report = {}) {
     for (const [items, type] of [[plan.stationCandidates, "station"], [plan.segments, "segment"]]) {
       for (const item of items) {
         if (!item.unknown.length && !item.inferred.length) continue;
-        const parts = [item.unknown.length ? `누락: ${item.unknown.join(", ")}` : null, item.inferred.length ? `추정: ${item.inferred.join(", ")}` : null].filter(Boolean);
+        const why = (k) => (item.unknownReasons?.[k] ? `${k}(${item.unknownReasons[k]})` : k);
+        const parts = [item.unknown.length ? `누락: ${item.unknown.map(why).join(", ")}` : null, item.inferred.length ? `추정: ${item.inferred.join(", ")}` : null].filter(Boolean);
         add(plan, "map", "info", "map-unknown-data", { type, id: item.id }, parts.join(" · "));
       }
     }
@@ -201,4 +206,33 @@ export function renderDiagnosticsPanel(container, diagnostics, limit = 40) {
     more.textContent = `…외 ${diagnostics.length - limit}건`;
     container.append(more);
   }
+}
+
+// Legend for the phase underlay: colour chip + label, same styles the map draws (textContent only).
+export function renderPhaseLegend(container, phases = PHASES) {
+  container.replaceChildren();
+  const doc = container.ownerDocument;
+  const head = doc.createElement("div");
+  head.className = "section-label";
+  head.textContent = "공사 상태 (엔진 반환값)";
+  container.append(head);
+  for (const style of Object.values(phases)) {
+    const row = doc.createElement("div");
+    row.className = "phase-legend-row";
+    const chip = doc.createElement("i");
+    chip.className = "phase-chip";
+    chip.style.borderTopColor = style.color;
+    chip.style.borderTopStyle = style.dash.length ? "dashed" : "solid";
+    const label = doc.createElement("span");
+    label.textContent = style.label;
+    row.append(chip, label);
+    container.append(row);
+  }
+}
+
+// The overlay models live on `state` because render.mjs reads them there, but they are display data: keep them
+// non-enumerable so the integrated save (snapshotOperationalState walks Object.entries) and a load never carry them.
+export function defineViewSlots(state, names = ["mapOverlay", "depotView", "stationView", "constructionView"]) {
+  for (const name of names) Object.defineProperty(state, name, { value: null, writable: true, enumerable: false, configurable: true });
+  return state;
 }

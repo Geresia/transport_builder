@@ -50,6 +50,9 @@
       "unknown": [
         "platformLengthM"
       ],
+      "unknownReasons": {
+        "platformLengthM": "not-provided"
+      },
       "inferred": [
         "depthMeters",
         "structure"
@@ -97,6 +100,10 @@
         "depthMeters",
         "platformLengthM"
       ],
+      "unknownReasons": {
+        "depthMeters": "not-provided",
+        "platformLengthM": "not-provided"
+      },
       "inferred": [
         "structure"
       ]
@@ -138,6 +145,9 @@
       "unknown": [
         "platformLengthM"
       ],
+      "unknownReasons": {
+        "platformLengthM": "not-provided"
+      },
       "inferred": []
     }
   ],
@@ -189,6 +199,9 @@
       "unknown": [
         "crossings.building"
       ],
+      "unknownReasons": {
+        "crossings.building": "outside-coverage"
+      },
       "inferred": []
     },
     {
@@ -238,6 +251,9 @@
       "unknown": [
         "crossings.building"
       ],
+      "unknownReasons": {
+        "crossings.building": "outside-coverage"
+      },
       "inferred": []
     }
   ],

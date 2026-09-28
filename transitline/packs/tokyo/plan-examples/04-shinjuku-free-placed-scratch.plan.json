@@ -28,6 +28,12 @@
         "platformType",
         "platformLengthM"
       ],
+      "unknownReasons": {
+        "name": "not-provided",
+        "depthMeters": "not-provided",
+        "platformType": "not-provided",
+        "platformLengthM": "not-provided"
+      },
       "inferred": [
         "structure"
       ]
@@ -52,6 +58,11 @@
         "depthMeters",
         "platformLengthM"
       ],
+      "unknownReasons": {
+        "name": "not-provided",
+        "depthMeters": "not-provided",
+        "platformLengthM": "not-provided"
+      },
       "inferred": [
         "structure"
       ]
@@ -77,6 +88,12 @@
         "platformType",
         "platformLengthM"
       ],
+      "unknownReasons": {
+        "name": "not-provided",
+        "depthMeters": "not-provided",
+        "platformType": "not-provided",
+        "platformLengthM": "not-provided"
+      },
       "inferred": [
         "structure"
       ]
@@ -129,6 +146,7 @@
       ],
       "dataQuality": "medium",
       "unknown": [],
+      "unknownReasons": {},
       "inferred": [
         "structureHint"
       ]
@@ -175,6 +193,7 @@
       ],
       "dataQuality": "medium",
       "unknown": [],
+      "unknownReasons": {},
       "inferred": [
         "structureHint"
       ]

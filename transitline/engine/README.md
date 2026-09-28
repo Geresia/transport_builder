@@ -32,9 +32,38 @@ powershell -File ../docs/serve.ps1 -Root .. -Index engine/index.html
 Then open `http://localhost:8000/engine/index.html`. It loads
 `../packs/example-radial` in the integrated construction scenario by default.
 Draw a plan, choose the running system/structure/platform, then pass technical
-review, approval, contracting, depot/fleet procurement, construction and
-commissioning. Use `?play=sandbox` for free instant lines, or choose another
+review and the public tender before approval, contracting, depot/fleet
+procurement, construction and commissioning. The tender sequence is announcement
+review, optional paid due diligence, Bid/No-Bid, priced proposal, competitor
+evaluation, single-bid review when needed, negotiation and award. Failed tenders
+can be reannounced on adjusted terms, and an unawarded plan cannot become a
+construction project. Use `?play=sandbox` for free instant lines, or choose another
 pack with `?pack=../packs/<id>`.
+
+Depot preparation is also time-based in scenario play. Fleet requirements determine
+the needed stabling and inspection area; the engine evaluates the selected site,
+negotiates mitigation/community benefits and funding shares, pays construction
+milestones, and blocks opening until the depot and access track are secured. See
+[`../docs/depot-management-implementation-2026-09-26.md`](../docs/depot-management-implementation-2026-09-26.md).
+
+Once depot construction and a fleet order are contracted, scenario play creates an
+integrated monthly schedule for design, each civil segment, station packages, depot,
+rolling stock, railway systems and testing. It preserves the original baseline,
+propagates recorded delays through dependencies, exposes the current critical chain,
+survives save/load and gates opening. See
+[`../docs/integrated-construction-schedule-implementation-2026-09-27.md`](../docs/integrated-construction-schedule-implementation-2026-09-27.md).
+
+Construction-site geometry can now be attached to that schedule without creating a
+second source of progress or cost. All six map package kinds resolve to existing
+segment, station, depot or railway-systems tasks; selected work sites and incident,
+complaint or material-shortage markers survive save/load. See
+[`../docs/construction-package-management-integration-2026-09-28.md`](../docs/construction-package-management-integration-2026-09-28.md).
+
+Active work packages now generate deterministic construction events with explicit
+cost, delay, safety, quality and reputation trade-offs. Players can respond in the
+scenario panel; unanswered events take an affordable default response after one
+month, and the full event/RNG history survives save/load. See
+[`../docs/construction-event-response-engine-2026-09-28.md`](../docs/construction-event-response-engine-2026-09-28.md).
 
 Scenario query parameters are `country=JP|KR`, `network=existing|scratch`,
 `difficulty=easy|normal|hard`, and `funding=limited|sandbox`. The integrated
@@ -53,6 +82,9 @@ Run all engine regressions, map contract checks and integrated save/resume scena
 ```powershell
 npm test
 ```
+
+The 40 km / 7 station KR-JP calibration and its fixed test ranges are recorded
+in [`../docs/engine-calibration-40km-7-stations-2026.md`](../docs/engine-calibration-40km-7-stations-2026.md).
 
 Map editors integrate through `src/map-engine-bridge.mjs`. The versioned input
 and status contract is documented in

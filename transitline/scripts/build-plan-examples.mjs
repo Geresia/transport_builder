@@ -7,82 +7,9 @@
 // so a regeneration on a machine without the DEM is noticed instead of silently degrading the examples.
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { buildMapExport } from "../engine/src/map/plan-geometry.mjs";
-import {
-  makeSpatialContext, waterLayerFromBarriers, buildingLayerFromObstacles, roadLayerFromGeojson, regionCovers,
-} from "../engine/src/map/spatial.mjs";
-
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const readJson = (p) => JSON.parse(fs.readFileSync(path.join(root, p), "utf8"));
-const exists = (p) => fs.existsSync(path.join(root, p));
-
-function loadPack(id) {
-  const dir = `packs/${id}`;
-  const manifest = readJson(`${dir}/manifest.json`);
-  return {
-    dir, manifest,
-    demand: readJson(`${dir}/${manifest.files.demand}`),
-    existingNetwork: manifest.files.existingNetwork ? readJson(`${dir}/${manifest.files.existingNetwork}`) : null,
-  };
-}
-
-// --- GSI DEM10B 31 m grid (data-raw/terrain/README.md documents the pixel formula) ---
-function loadDem() {
-  const base = "data-raw/terrain/derived";
-  if (!exists(`${base}/elev-31m.i16`) || !exists(`${base}/slope-31m.u8`)) return null;
-  const g = readJson(`${base}/grid.json`);
-  const raw = fs.readFileSync(path.join(root, `${base}/elev-31m.i16`));
-  const elev = new Int16Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.length));
-  const slope = fs.readFileSync(path.join(root, `${base}/slope-31m.u8`));
-  const world = 256 * 2 ** g.zoom;
-  const cell = ([lon, lat]) => {
-    const px = ((lon + 180) / 360) * world;
-    const latR = (lat * Math.PI) / 180;
-    const py = ((1 - Math.log(Math.tan(latR) + 1 / Math.cos(latR)) / Math.PI) / 2) * world;
-    const x = Math.floor((px - g.originTileX * 256) / g.cellPixels);
-    const y = Math.floor((py - g.originTileY * 256) / g.cellPixels);
-    return x >= 0 && y >= 0 && x < g.width && y < g.height ? y * g.width + x : -1;
-  };
-  return {
-    elevationAt: (pt) => { const i = cell(pt); return i < 0 || elev[i] === -32768 ? null : elev[i]; },
-    slopeAt: (pt) => { const i = cell(pt); return i < 0 || slope[i] === 255 ? null : slope[i]; },
-    quality: "medium", // 31 m mean cells: cliffs and cuttings narrower than that are averaged away
-    source: { name: "国土地理院 数値標高モデル DEM10B (dem_png z14), 31 m mean grid", license: "GSI terms of use (credit: 国土地理院)" },
-  };
-}
-
-function tokyoSpatial(pack) {
-  const layers = {};
-  const dem = loadDem();
-  if (dem) layers.dem = dem;
-
-  if (exists(`${pack.dir}/barriers.json`)) {
-    const [w, s, e, n] = pack.manifest.bbox;
-    layers.water = waterLayerFromBarriers(readJson(`${pack.dir}/barriers.json`), {
-      covers: ([x, y]) => x >= w && x <= e && y >= s && y <= n, quality: "medium",
-      source: { name: "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json", license: "MLIT-KSJ-terms" },
-    });
-  }
-
-  // OSM footprints exist only for four districts; coverage is those districts (see buildingLayerFromObstacles)
-  if (exists(`${pack.dir}/obstacles.json`)) {
-    layers.buildings = buildingLayerFromObstacles(readJson(`${pack.dir}/obstacles.json`), {
-      quality: "high", source: { name: "OpenStreetMap building footprints, packs/tokyo/obstacles.json", license: "ODbL-1.0" },
-    });
-  }
-
-  // OSM roads were fetched for the 23 wards only: coverage = the 23 ward polygons
-  if (exists("subway-builder-export/roads.all.geojson")) {
-    const wards = readJson(`${pack.dir}/wards-reference.json`).wards;
-    layers.roads = roadLayerFromGeojson(readJson("subway-builder-export/roads.all.geojson"), {
-      covers: regionCovers(wards.flatMap((w) => w.polygons)), quality: "high",
-      source: { name: "OpenStreetMap roads (23 wards), subway-builder-export/roads.all.geojson", license: "ODbL-1.0" },
-    });
-  }
-  const status = Object.fromEntries(["dem", "water", "buildings", "roads"].map((k) => [k, Boolean(layers[k])]));
-  return { spatial: makeSpatialContext(layers), status };
-}
+import { makeSpatialContext } from "../engine/src/map/spatial.mjs";
+import { root, readJson, loadPack, tokyoSpatial } from "./lib/pack-spatial.mjs";
 
 const at = (pack, id) => pack.demand.points.find((p) => p.id === id).location;
 const v = (pack, id, extra = {}) => ({ location: at(pack, id), demandNodeId: id, ...extra });
@@ -110,6 +37,18 @@ const EXAMPLES = {
         key: "example:tokyo:shinjuku-free-placed", name: "Shinjuku free-placed stations",
         legs: [{ via: [at01(0.55, 0.3)] }, {}],
         vertices: [{ location: at01(0.2, 0.25) }, { location: at01(0.5, 0.75), platformType: "island" }, { location: at01(0.85, 0.6) }] } },
+      // stations of every structure the station-site examples need: ground, elevated, cut-and-cover, deep, shield, terminal
+      { file: "05-station-variants-scratch", mode: "scratch", drawn: {
+        key: "example:tokyo:station-variants", name: "Station variants (ground / elevated / cut-and-cover / deep / shield / terminal)",
+        legs: [{ structureHint: "surface" }, { structureHint: "elevated" }, { structureHint: "cut-cover" }, { structureHint: "deep" }, { structureHint: "shield" }],
+        vertices: [
+          v(pack, "ward-setagaya", { structure: "surface", platformType: "side", platformLengthM: 88 }),
+          v(pack, "ward-meguro", { structure: "elevated", platformType: "island", platformLengthM: 88 }),
+          v(pack, "ward-shibuya", { structure: "cut-cover", depthMeters: 12, platformType: "side", platformLengthM: 88 }),
+          v(pack, "ward-shinjuku", { structure: "deep", depthMeters: 38, platformType: "island", platformLengthM: 88 }),
+          v(pack, "ward-bunkyo", { structure: "shield", depthMeters: 24, platformType: "side", platformLengthM: 88 }),
+          v(pack, "ward-taito", { structure: "surface", platformType: "side", platformLengthM: 88 }),
+        ] } },
     ];
   },
   "example-radial": (pack) => [
@@ -124,6 +63,21 @@ const EXAMPLES = {
       key: "example:radial:cross-city", name: "Cross-city through the CBD (with a waypoint)",
       legs: [{ structureHint: "shield" }, { structureHint: "shield", via: [[0.012, -0.012]] }],
       vertices: [v(pack, "outer-1", { platformType: "island", depthMeters: 22 }), v(pack, "cbd", { platformType: "island", depthMeters: 28 }), v(pack, "outer-7", { platformType: "island", depthMeters: 22 })] } },
+    // stations a few hundred metres from the CBD stations, placed freely: the transfer target of the station-site examples
+    { file: "05-transfer-stub", mode: "scratch", drawn: {
+      key: "example:radial:transfer-stub", name: "Short stub line beside the CBD (transfer target)",
+      vertices: [{ location: [0.003, 0.0012], platformType: "side", platformLengthM: 88 }, { location: [0.009, 0.004], platformType: "side", platformLengthM: 88 }] } },
+    { file: "04-station-variants", mode: "scratch", drawn: {
+      key: "example:radial:station-variants", name: "Station variants (ground / elevated / deep / cut-and-cover / shield / terminal)",
+      legs: [{ structureHint: "surface" }, { structureHint: "elevated" }, { structureHint: "deep" }, { structureHint: "cut-cover" }, { structureHint: "shield" }],
+      vertices: [
+        v(pack, "outer-4", { structure: "surface", platformType: "side", platformLengthM: 88 }),
+        v(pack, "inner-4", { structure: "elevated", platformType: "island", platformLengthM: 88 }),
+        v(pack, "cbd", { structure: "deep", depthMeters: 36, platformType: "island", platformLengthM: 88 }),
+        v(pack, "inner-1", { structure: "cut-cover", depthMeters: 11, platformType: "side", platformLengthM: 88 }),
+        v(pack, "mid-1", { structure: "shield", depthMeters: 24, platformType: "side", platformLengthM: 88 }),
+        v(pack, "outer-1", { structure: "surface", platformType: "side", platformLengthM: 88 }),
+      ] } },
   ],
   "example-corridor": (pack) => [
     { file: "01-corridor-trunk", mode: "scratch", drawn: {

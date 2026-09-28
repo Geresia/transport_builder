@@ -237,7 +237,7 @@ const exportOf = (plan) => ({ plans: [plan] });
 
 test("every construction phase maps from the engine's status, and unknown statuses are not guessed", () => {
   const plan = plan3();
-  const project = { estimated: "underReview", approved: "underReview", contracted: "underConstruction", underConstruction: "underConstruction", inspection: "inspection", available: "available", cancelled: "halted", suspended: "halted" };
+  const project = { estimated: "underReview", approved: "underReview", contracted: "underConstruction", underConstruction: "underConstruction", inspection: "inspection", available: "available", cancelled: "cancelled", suspended: "halted", halted: "halted" };
   for (const [status, phase] of Object.entries(project)) {
     assert.equal(buildOverlayModel(exportOf(plan), { projects: [{ planId: plan.planId, status }] }).plans[0].phase, phase, status);
   }
@@ -249,7 +249,7 @@ test("every construction phase maps from the engine's status, and unknown status
   const odd = buildOverlayModel(exportOf(plan), { projects: [{ planId: plan.planId, status: "teleported" }] });
   assert.equal(odd.plans[0].phase, null);
   assert.equal(odd.diagnostics.some((d) => d.code === "unknown-status"), true);
-  assert.deepEqual(Object.values(PHASES).map((p) => p.label), ["계획", "심사 중", "공사 중", "공사 중단", "검사 중", "사용 가능"]);
+  assert.deepEqual(Object.values(PHASES).map((p) => p.label), ["계획", "심사 중", "공사 중", "공사 중단", "✕ 사업 취소", "검사 중", "사용 가능"]);
   const delayed = buildOverlayModel(exportOf(plan), { projects: [{ planId: plan.planId, status: "underConstruction", delayMonths: 2, progress: 0.4 }] }).plans[0];
   assert.deepEqual([delayed.phase, delayed.delayed, delayed.progress], ["underConstruction", true, 0.4]);
 });
@@ -330,6 +330,7 @@ test("every example is accepted by the engine, keeps unknowns null, and carries 
     "tokyo/03-tama-hills-scratch.plan.json": "conditional", "tokyo/04-shinjuku-free-placed-scratch.plan.json": "conditional",
     "example-radial/01-radial-spoke-annotated.plan.json": true, "example-radial/02-ring-arc-unannotated.plan.json": "conditional",
     "example-radial/03-cross-city-with-bend.plan.json": true, "example-corridor/01-corridor-trunk.plan.json": true,
+    "tokyo/05-station-variants-scratch.plan.json": true, "example-radial/04-station-variants.plan.json": true, "example-radial/05-transfer-stub.plan.json": true,
   };
   for (const id of ["tokyo", "example-radial", "example-corridor"]) {
     const manifest = JSON.parse(fs.readFileSync(path.join(root, "packs", id, "manifest.json"), "utf8"));

@@ -18,14 +18,17 @@ const CURVE_CAP_M = 100_000; // a "straight" alignment reports this radius (JSON
 const STEEP_SLOPE_DEG = 3; // ~52 permille, above every metro technical profile's max gradient
 const STEEP_SHARE = 0.25; // "steep-slope" flag: at least this share of the alignment sits on >= STEEP_SLOPE_DEG terrain
 const GROUND_UNKNOWN = Object.freeze(["groundwater", "soft-ground"]); // no dataset in any pack yet
-const ACCESS = Object.freeze({ radiusMeters: 800, maxLinks: 3, detourFactor: 1.3, walkMetersPerMinute: 80, minMinutes: 1 });
-const TRANSFER_RADIUS_M = 500;
+export const ACCESS = Object.freeze({ radiusMeters: 800, maxLinks: 3, detourFactor: 1.3, walkMetersPerMinute: 80, minMinutes: 1 });
+export const TRANSFER_RADIUS_M = 500;
 const STATION_STRUCTURE = { bridge: "elevated", embankment: "surface", cutting: "surface" };
 const STRUCTURE_RANK = { surface: 0, embankment: 0, cutting: 0, elevated: 1, bridge: 1, "cut-cover": 2, shield: 3, deep: 4 };
 const QUALITY_ORDER = ["high", "medium", "low"];
 
 const uniqSorted = (list) => [...new Set(list)].sort();
 const byId = (a, b) => (a.id < b.id ? -1 : 1);
+// Why each unknown value is null (same vocabulary as DepotSiteGeometry.unknownReasons). An adapter that cannot say gives "unspecified".
+const LAYER_OF = { river: "water", road: "roads", railway: "rail", building: "buildings" };
+const whyNull = (spatial, layer, poly) => spatial.whyUnknown?.(layer, poly) ?? "unspecified";
 const worstQuality = (list) => list.reduce((w, q) => (QUALITY_ORDER.indexOf(q) > QUALITY_ORDER.indexOf(w) ? q : w), "high");
 const qualityFor = (unknown, coarse) => {
   const n = unknown.length + coarse.length;
@@ -174,10 +177,12 @@ export function buildPlanGeometry(drawn, ctx) {
 
     const between = radii.slice(span[i], span[i + 1] + 1).filter((r) => r !== null);
     const unknown = [];
-    if (z0 === null) unknown.push("elevationStartMeters");
-    if (z1 === null) unknown.push("elevationEndMeters");
-    if (maxSlope === null) unknown.push("maxSlopeDegrees", "steepShare");
-    for (const k of ["river", "road", "railway", "building"]) if (crossings[k] === null) unknown.push(`crossings.${k}`);
+    const unknownReasons = {};
+    const miss = (field, reason) => { unknown.push(field); unknownReasons[field] = reason; };
+    if (z0 === null) miss("elevationStartMeters", whyNull(spatial, "dem", [from]));
+    if (z1 === null) miss("elevationEndMeters", whyNull(spatial, "dem", [to]));
+    if (maxSlope === null) for (const f of ["maxSlopeDegrees", "steepShare"]) miss(f, spatial.layers?.dem && !spatial.layers.dem.slopeAt ? "no-slope-grid" : whyNull(spatial, "dem", alignment));
+    for (const k of ["river", "road", "railway", "building"]) if (crossings[k] === null) miss(`crossings.${k}`, whyNull(spatial, LAYER_OF[k], alignment));
     const inferred = structureHintBasis === "player" ? [] : ["structureHint"];
     const coarse = ["river", "road", "railway", "building"].filter((k) => crossings[k] !== null && spatial.quality[k] === "low");
     if (z0 !== null && spatial.quality.elevation === "low") coarse.push("elevation");
@@ -197,7 +202,7 @@ export function buildPlanGeometry(drawn, ctx) {
       alignment,
       // ground data (constraintUnknown) is absent everywhere today, so quality never reads "high"
       dataQuality: worstQuality([qualityFor([...unknown, ...inferred], coarse), "medium"]),
-      unknown, inferred,
+      unknown, unknownReasons, inferred,
     };
   });
 
@@ -217,12 +222,14 @@ export function buildPlanGeometry(drawn, ctx) {
 
     const unknown = [];
     const inferred = [];
-    if (name === null) unknown.push("name");
-    if (depth === null) unknown.push("depthMeters");
+    const unknownReasons = {};
+    const miss = (field, reason) => { unknown.push(field); unknownReasons[field] = reason; };
+    if (name === null) miss("name", "not-provided");
+    if (depth === null) miss("depthMeters", "not-provided");
     else if (givenDepth === null) inferred.push("depthMeters");
-    if (!platformOk) unknown.push("platformType");
-    if ((v.platformLengthM ?? null) === null) unknown.push("platformLengthM");
-    if (z === null) unknown.push("groundElevationMeters");
+    if (!platformOk) miss("platformType", "not-provided");
+    if ((v.platformLengthM ?? null) === null) miss("platformLengthM", "not-provided");
+    if (z === null) miss("groundElevationMeters", whyNull(spatial, "dem", [v.location]));
     if (!playerStructure) inferred.push("structure");
 
     const station = {
@@ -239,7 +246,7 @@ export function buildPlanGeometry(drawn, ctx) {
         .sort((a, b) => a.distanceMeters - b.distanceMeters || (a.stationId < b.stationId ? -1 : 1)),
       // name is cosmetic and platformLengthM is always derived by the engine from the train; neither lowers quality
       dataQuality: qualityFor(unknown.filter((k) => k !== "name" && k !== "platformLengthM"), []),
-      unknown, inferred,
+      unknown, unknownReasons, inferred,
     };
     // Omitted when unknown: the engine compares `platformLengthM < required`, and null would read as 0 (a false violation).
     if ((v.platformLengthM ?? null) !== null) station.platformLengthM = v.platformLengthM;
@@ -292,6 +299,12 @@ export function drawnLinesFromState(state) {
   }));
 }
 
+// Railway crossings come from this mode's external network. Scratch has none: a world without rail, so 0 is a fact there.
+export function withRailLayer(spatial, externalNetworks) {
+  const base = spatial ?? makeSpatialContext();
+  return base.layers.rail ? base : makeSpatialContext({ ...base.layers, rail: railLayerFromExternal(externalNetworks) });
+}
+
 // One entry point for both start modes: "existing" (real network kept) and "scratch" (blank map)
 // give the same output shape; scratch just has no external networks and no transfer targets.
 export function buildMapExport({ pack, mode = "auto", drawnLines = [], spatial }) {
@@ -302,9 +315,7 @@ export function buildMapExport({ pack, mode = "auto", drawnLines = [], spatial }
 
   const demandNodes = demandNodesFromPack(pack);
   const externalNetworks = effective === "existing" ? [existingNetworkToExternal(pack)] : [];
-  // Railway crossings come from this mode's external network. Scratch has none: a world without rail, so 0 is a fact there.
-  const base = spatial ?? makeSpatialContext();
-  const context = base.layers.rail ? base : makeSpatialContext({ ...base.layers, rail: railLayerFromExternal(externalNetworks) });
+  const context = withRailLayer(spatial, externalNetworks);
 
   const plans = new Map();
   for (const drawn of drawnLines) {

@@ -102,6 +102,59 @@ test("O&M tender supports research, technical threshold and deterministic award"
   assert.equal(game.ledger.commitments.has("bond:om-1"), false);
 });
 
+test("single-bid review can reject a proposal and reannounce changed terms", () => {
+  const game = new ManagementGame({ seed: 22, openingCash: 100_000_000_000 });
+  for (const company of game.competitors) company.activeBids = company.bidCapacity;
+  game.announceOpportunity({ id: "single", title: "Single bid", deadlineMinute: 100, contractYears: 20, baselineAnnualCost: 5_000_000_000, minimumTechnical: 70 });
+  game.bid("single", { requestedAnnualPayment: 5_100_000_000, technicalScore: 90, staffingScore: 85 });
+  const evaluated = game.closeTender("single");
+  assert.equal(evaluated.status, "single-bid-review");
+  assert.equal(evaluated.singleBidReview.status, "pending");
+  const reviewed = game.reviewSingleBid("single", false);
+  assert.equal(reviewed.status, "retender");
+  assert.equal(game.player.activeBids, 0);
+  assert.equal(game.ledger.commitments.has("bond:single"), false);
+  const oldPayment = game.requireOpportunity("single").fixedAnnualPayment;
+  const reannounced = game.reannounceTender("single", { deadlineDays: 30, paymentAdjustment: 1.1 });
+  assert.equal(reannounced.status, "announced");
+  assert.equal(reannounced.retenderCount, 1);
+  assert.equal(reannounced.bids.length, 0);
+  assert.equal(reannounced.fixedAnnualPayment, oldPayment * 1.1);
+  assert.equal(reannounced.deadlineMinute, game.clock.minute + 30 * 1440);
+});
+
+test("failed preferred-bidder negotiation advances to the next bidder", () => {
+  const game = new ManagementGame({ seed: 23, openingCash: 100_000_000_000 });
+  game.competitors.forEach((company, index) => {
+    if (index === 0) company.strategy.riskTolerance = 10;
+    else company.activeBids = company.bidCapacity;
+  });
+  game.announceOpportunity({ id: "next", title: "Next bidder", deadlineMinute: 100, contractYears: 20, baselineAnnualCost: 5_000_000_000, minimumTechnical: 60 });
+  game.bid("next", { requestedAnnualPayment: 3_000_000_000, technicalScore: 100, staffingScore: 95 });
+  const evaluated = game.closeTender("next");
+  assert.equal(evaluated.ranking.length, 2);
+  assert.equal(evaluated.ranking[0].bidderId, "player");
+  game.award("next", "player", false);
+  const opportunity = game.requireOpportunity("next");
+  assert.equal(opportunity.preferredBidderId, "competitor-1");
+  assert.equal(game.player.activeBids, 0);
+  assert.equal(game.ledger.commitments.has("bond:next"), false);
+  const contract = game.award("next", "competitor-1");
+  assert.equal(contract.operatorId, "competitor-1");
+  assert.equal(game.competitors[0].activeBids, 0);
+});
+
+test("technical failure closes participation and releases the bid bond", () => {
+  const game = new ManagementGame({ seed: 24, openingCash: 100_000_000_000 });
+  for (const company of game.competitors) company.activeBids = company.bidCapacity;
+  game.announceOpportunity({ id: "technical-fail", title: "Technical fail", deadlineMinute: 100, contractYears: 20, baselineAnnualCost: 5_000_000_000, minimumTechnical: 90 });
+  game.bid("technical-fail", { requestedAnnualPayment: 3_000_000_000, technicalScore: 60, staffingScore: 60 });
+  const evaluated = game.closeTender("technical-fail");
+  assert.equal(evaluated.status, "failed-technical");
+  assert.equal(game.player.activeBids, 0);
+  assert.equal(game.ledger.commitments.has("bond:technical-fail"), false);
+});
+
 test("failed management transactions roll back state and cash", () => {
   const game = new ManagementGame({ openingCash: 1_000_000 });
   const before = game.save();

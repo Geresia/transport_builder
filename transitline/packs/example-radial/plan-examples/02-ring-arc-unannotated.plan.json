@@ -27,6 +27,11 @@
         "platformLengthM",
         "groundElevationMeters"
       ],
+      "unknownReasons": {
+        "platformType": "not-provided",
+        "platformLengthM": "not-provided",
+        "groundElevationMeters": "no-layer"
+      },
       "inferred": [
         "depthMeters",
         "structure"
@@ -52,6 +57,11 @@
         "platformLengthM",
         "groundElevationMeters"
       ],
+      "unknownReasons": {
+        "platformType": "not-provided",
+        "platformLengthM": "not-provided",
+        "groundElevationMeters": "no-layer"
+      },
       "inferred": [
         "depthMeters",
         "structure"
@@ -77,6 +87,11 @@
         "platformLengthM",
         "groundElevationMeters"
       ],
+      "unknownReasons": {
+        "platformType": "not-provided",
+        "platformLengthM": "not-provided",
+        "groundElevationMeters": "no-layer"
+      },
       "inferred": [
         "depthMeters",
         "structure"
@@ -102,6 +117,11 @@
         "platformLengthM",
         "groundElevationMeters"
       ],
+      "unknownReasons": {
+        "platformType": "not-provided",
+        "platformLengthM": "not-provided",
+        "groundElevationMeters": "no-layer"
+      },
       "inferred": [
         "depthMeters",
         "structure"
@@ -155,6 +175,15 @@
         "crossings.road",
         "crossings.building"
       ],
+      "unknownReasons": {
+        "elevationStartMeters": "no-layer",
+        "elevationEndMeters": "no-layer",
+        "maxSlopeDegrees": "no-layer",
+        "steepShare": "no-layer",
+        "crossings.river": "no-layer",
+        "crossings.road": "no-layer",
+        "crossings.building": "no-layer"
+      },
       "inferred": [
         "structureHint"
       ]
@@ -205,6 +234,15 @@
         "crossings.road",
         "crossings.building"
       ],
+      "unknownReasons": {
+        "elevationStartMeters": "no-layer",
+        "elevationEndMeters": "no-layer",
+        "maxSlopeDegrees": "no-layer",
+        "steepShare": "no-layer",
+        "crossings.river": "no-layer",
+        "crossings.road": "no-layer",
+        "crossings.building": "no-layer"
+      },
       "inferred": [
         "structureHint"
       ]
@@ -255,6 +293,15 @@
         "crossings.road",
         "crossings.building"
       ],
+      "unknownReasons": {
+        "elevationStartMeters": "no-layer",
+        "elevationEndMeters": "no-layer",
+        "maxSlopeDegrees": "no-layer",
+        "steepShare": "no-layer",
+        "crossings.river": "no-layer",
+        "crossings.road": "no-layer",
+        "crossings.building": "no-layer"
+      },
       "inferred": [
         "structureHint"
       ]

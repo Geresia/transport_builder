@@ -17,7 +17,10 @@ const TYPES = {
   greenfield_growth: {
     name: "무철도 도시 성장",
     requiresExistingNetwork: false,
-    baseBudget: 650_000_000_000,
+    // Calibrated so the normal 40 km / 7 station objective can fund a
+    // compact underground AGT with a modest reserve, while heavy rail still
+    // requires a cheaper alignment, extra finance or scope trade-offs.
+    baseBudget: 1_050_000_000_000,
     deadlineYears: 10,
     targetDailyPassengers: 120_000,
     targetStations: 7,

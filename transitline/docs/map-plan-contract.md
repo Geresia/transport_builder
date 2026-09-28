@@ -34,6 +34,8 @@
 - `dataQuality`는 `high|medium|low`만 낸다(`unknown`은 내지 않음). 지반 자료(지하수·연약지반)가 어떤 팩에도 없어서 `constraintUnknown`이 항상 있고, 그래서 현재는 `high`가 나오지 않는다.
 - 레이어가 구간을 덮지 못하면(예: 건물 자료는 신주쿠 등 4개 구역뿐) 그 교차 값은 0이 아니라 `null`.
 - 예외 하나: `scratch` 모드의 `crossings.railway`는 0이다. 그 세계에는 외부 철도망이 없다는 것이 사실이기 때문.
+- **`unknownReasons{필드: 사유}`**: 구간·역의 `unknown[]`에 있는 모든 이름에 사유가 있다(차량기지·역 후보 계약과 같은 어휘). `no-layer`(레이어 미주입), `outside-coverage`(레이어가 그곳을 덮지 못함), `no-dem-value`(덮이지만 값 없음), `no-slope-grid`(DEM에 경사 격자 없음), `not-provided`(플레이어가 입력하지 않음: 이름·깊이·승강장), `unspecified`(어댑터가 사유를 못 밝힘). 지도 화면은 `필드(사유)`로 표시한다.
+- 레이어가 덮고 대상이 없으면 그것은 사실이다: 교차 0건은 미상이 아니다.
 
 ## 채우는 값
 
@@ -64,13 +66,16 @@
 | 기록 없음, `needs-information`, `rejected` | 계획 |
 | `assessed`, `approved`, `in-project`, 프로젝트 `estimated` | 심사 중 |
 | 프로젝트 `contracted`, `underConstruction` | 공사 중 (`delayMonths>0`이면 지연 표시) |
-| 프로젝트 `cancelled`, `suspended`, `halted` | 공사 중단 |
+| 프로젝트 `suspended`, `halted` | 공사 중단 (재개 가능한 일시 중단. 사유가 있으면 정보로 표시) |
+| 프로젝트 `cancelled` | **✕ 사업 취소** — 공사 중단과 다른 색·점선·범례. 다시 시작할 수 없음 |
 | 프로젝트 `inspection` | 검사 중 |
 | 프로젝트 `available`, 기록 `assets-available`, `commissioned` | 사용 가능 |
 | 그 외 | 상태 불명 (추정하지 않고 경고) |
 
 - 엔진은 `suspended`와 `resume`을 지원한다. 중단 중에는 공정·기성금 지급이 멈추며, `cancelled`는 복구되지 않는 취소로 별도 유지한다.
 - 위반은 오류, 누락 입력·조건부 판정은 경고, 지도 쪽 미상·추정은 정보로 표시하며, 엔진 메시지의 `Segment N`, `Station <id>`, `stationCandidates.<id>.…`로 대상 구간·역을 찾는다(못 찾으면 계획 전체).
+- 시나리오 모드에서는 화면이 `runtime.report()`를 그대로 읽는다(`setEngineReport`는 런타임 없이 보고서를 넘기는 경로). 범례(`#map-legend`)가 모든 상태의 색을 보여 준다.
+- 오버레이·차량기지·역 표시 모델은 `state`에 있지만 **열거되지 않는 슬롯**(`defineViewSlots`)이라 통합 저장에 들어가지 않고 불러오기로 지워지지 않는다. 지도에서 그린 노선의 `key`는 저장되어 다시 열어도 같은 `planId`를 만든다.
 - 편집 화면에서는 `window.transitlineMap.setEngineReport(report)`로 보고서를 넘긴다. 지도 코드는 원장·계약·공사 상태를 쓰지 않고 `management`를 import하지 않는다(테스트가 검사).
 
 ## 라이선스와 경계

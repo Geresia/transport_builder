@@ -12,6 +12,41 @@
 <div id="left-col">
   <div class="panel" id="scenario-panel" hidden>
     <div class="scenario-head"><strong>건설 시나리오</strong><span id="scenario-country">일본</span></div>
+    <section class="opportunity-card">
+      <div class="opportunity-title"><span>사업공고</span><b id="scenario-opportunity-status">미확인</b></div>
+      <strong id="scenario-opportunity-title">공고 불러오는 중</strong>
+      <dl>
+        <div><dt>발주기관</dt><dd id="scenario-opportunity-authority">-</dd></div>
+        <div><dt>방식</dt><dd id="scenario-opportunity-process">-</dd></div>
+        <div><dt>요구규모</dt><dd id="scenario-opportunity-scope">-</dd></div>
+        <div><dt>마감</dt><dd id="scenario-opportunity-deadline">-</dd></div>
+        <div><dt>참가자격</dt><dd id="scenario-opportunity-qualification">-</dd></div>
+      </dl>
+      <button id="scenario-opportunity-view" type="button">공고 확인</button>
+      <div class="research-actions">
+        <button id="scenario-research-basic" type="button">기초조사</button>
+        <button id="scenario-research-detailed" type="button">정밀조사</button>
+      </div>
+      <div id="scenario-research-result" hidden></div>
+      <div class="investment-box">
+        <label>요구 지급액<input id="scenario-bid-payment" type="number" min="1" step="1" aria-label="연간 요구 지급액, 억 엔" /></label>
+        <span>억 엔/년</span>
+        <div class="investment-actions">
+          <button id="scenario-bid-go" type="button">Bid 결정</button>
+          <button id="scenario-bid-no" type="button">No Bid</button>
+        </div>
+        <div id="scenario-bid-memo" hidden></div>
+      </div>
+      <div class="tender-actions">
+        <button id="scenario-tender-submit" type="button">제안서 제출</button>
+        <button id="scenario-tender-evaluate" type="button">입찰 평가</button>
+          <button id="scenario-tender-review" type="button">단독응찰 심사</button>
+        <button id="scenario-tender-award" type="button">협상·수주</button>
+          <button id="scenario-tender-fail" type="button">협상 결렬</button>
+          <button id="scenario-tender-retender" type="button">조건조정·재공고</button>
+      </div>
+      <div id="scenario-tender-result" hidden></div>
+    </section>
     <div class="scenario-kpis">
       <span>현금 <b id="scenario-cash">-</b></span>
       <span>선택 계획 <b id="scenario-plan">없음</b></span>
@@ -37,21 +72,65 @@
       <option value="island">섬식</option>
       <option value="side">상대식</option>
     </select></label>
+    <details class="depot-options">
+      <summary>차량기지 설계·협의</summary>
+      <label>기지 구조<select id="scenario-depot-structure">
+        <option value="surface">지상</option>
+        <option value="deck">상부 덮개</option>
+        <option value="semi-underground">반지하</option>
+        <option value="underground">완전 지하</option>
+        <option value="extension">기존기지 확장</option>
+        <option value="shared">기존기지 공유</option>
+      </select></label>
+      <label>환경 대책<select id="scenario-depot-mitigation">
+        <option value="minimum">법정 최소</option>
+        <option value="standard" selected>표준 저감</option>
+        <option value="enhanced">강화 저감</option>
+      </select></label>
+      <label>지역 환원<select id="scenario-depot-community">
+        <option value="none">없음</option>
+        <option value="green-buffer" selected>녹지 완충</option>
+        <option value="connections">도로·보행 연결</option>
+        <option value="civic-deck">상부 공공·상업</option>
+        <option value="passenger-access">회송선 여객화</option>
+      </select></label>
+      <div class="depot-funding">
+        <label>사업자 %<input id="scenario-depot-operator-share" type="number" min="0" max="100" value="25" /></label>
+        <label>국가 %<input id="scenario-depot-national-share" type="number" min="0" max="100" value="55" /></label>
+        <label>지자체 %<input id="scenario-depot-local-share" type="number" min="0" max="100" value="20" /></label>
+      </div>
+      <button id="scenario-depot-evaluate" type="button">선택 후보 평가</button>
+      <div id="scenario-depot-result" hidden></div>
+    </details>
+    <details class="station-management" open>
+      <summary>역 상세설계·시공사</summary>
+      <div id="scenario-station-management"></div>
+    </details>
+    <details class="construction-events" open>
+      <summary>공사 사건·대응 <span id="scenario-construction-event-count">0</span></summary>
+      <div id="scenario-construction-events"></div>
+    </details>
+    <details class="construction-contractors" open>
+      <summary>공구별 시공사·장비</summary>
+      <div id="scenario-construction-contractors"></div>
+    </details>
     <div class="scenario-actions">
       <button id="scenario-submit" type="button">1. 기술심사</button>
       <button id="scenario-approve" type="button">2. 승인·사업화</button>
       <button id="scenario-contract" type="button">3. 건설계약</button>
       <button id="scenario-prepare" type="button">4. 기지·차량</button>
+      <button id="scenario-construction-link" type="button">5. 공구 연동</button>
       <button id="scenario-month" type="button">+1개월</button>
       <button id="scenario-year" type="button">+12개월</button>
       <button id="scenario-suspend" type="button">공사 중단</button>
-      <button id="scenario-open" type="button">5. 검사·개통</button>
+      <button id="scenario-cancel" type="button">사업 취소</button>
+      <button id="scenario-open" type="button">6. 검사·개통</button>
     </div>
     <div class="scenario-save">
       <button id="scenario-save" type="button">저장</button>
       <button id="scenario-load" type="button">불러오기</button>
     </div>
-    <div id="scenario-message">역을 이어 계획선을 그리세요. 시나리오에서는 즉시 운행되지 않습니다.</div>
+    <div id="scenario-message">사업공고를 확인한 뒤 계획안을 준비하세요.</div>
   </div>
 
   <div class="panel" id="route-panel" hidden></div>
@@ -78,7 +157,13 @@
     <div class="hist-axis"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
   </div>
 
+  <div class="panel" id="map-legend" hidden></div>
   <div class="panel" id="map-diagnostics" hidden></div>
+  <div class="panel" id="depot-panel" hidden></div>
+  <div class="panel" id="station-panel" hidden></div>
+  <div class="panel" id="construction-panel" hidden></div>
+  <div class="panel" id="construction-phase-panel" hidden></div>
+  <div class="panel" id="construction-legend"></div>
 </div>
 
 <div class="panel" id="legend">
@@ -98,7 +183,15 @@
   <button id="clear-lines" type="button">Clear lines</button>
 </div>
 
+<div class="panel" id="depot-compare" hidden></div>
+
 <div id="bar-ui">
+  <button id="btn-depot" type="button">차량기지</button>
+  <button id="btn-station" type="button">역 후보</button>
+  <button id="btn-station-design" type="button" hidden>역 설계</button>
+  <button id="btn-construction" type="button">공사 공구</button>
+  <button id="btn-construction-select" type="button" hidden>공사 후보</button>
+  <button id="btn-construction-impact" type="button" hidden>사건 대응</button>
   <a id="btn-management" href="management.html">Company</a>
   <a id="btn-play-mode" href="#">Sandbox</a>
   <button id="btn-analysis" type="button">Analysis</button>

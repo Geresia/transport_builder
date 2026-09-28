@@ -6,7 +6,7 @@
 // alignment, yields `null` (unknown) — never 0.
 import { haversineMetres } from "../projection.mjs";
 
-const bboxOf = (pts) => {
+export const bboxOf = (pts) => {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const [x, y] of pts) {
     if (x < x0) x0 = x;
@@ -16,7 +16,7 @@ const bboxOf = (pts) => {
   }
   return [x0, y0, x1, y1];
 };
-const overlaps = (a, b) => a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
+export const overlaps = (a, b) => a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
 const inBox = ([x, y], b) => x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3];
 
 export const polylineLength = (pts) => pts.slice(1).reduce((sum, p, i) => sum + haversineMetres(pts[i], p), 0);
@@ -37,9 +37,9 @@ export function sampleAlong(pts, step = 100) {
 // --- planar tests in lon/lat (intersection is affine-invariant, so no projection needed) ---
 const orient = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
 // Interior crossings only: touching at an endpoint (two lines meeting at a shared station) is not a crossing.
-const properCross = (p, q, r, s) => orient(p, q, r) * orient(p, q, s) < 0 && orient(r, s, p) * orient(r, s, q) < 0;
+export const properCross = (p, q, r, s) => orient(p, q, r) * orient(p, q, s) < 0 && orient(r, s, p) * orient(r, s, q) < 0;
 
-function inRing([x, y], ring) {
+export function inRing([x, y], ring) {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const [xi, yi] = ring[i];
@@ -50,14 +50,21 @@ function inRing([x, y], ring) {
 }
 const inPolygon = (pt, rings) => rings.reduce((odd, ring) => odd !== inRing(pt, ring), false); // even-odd: rings[1..] are holes
 
-function polylineCrossesLine(poly, line) {
+export function polylineCrossesLine(poly, line) {
   for (let i = 1; i < poly.length; i++) for (let j = 1; j < line.length; j++) if (properCross(poly[i - 1], poly[i], line[j - 1], line[j])) return true;
   return false;
 }
 
-function polylineHitsPolygon(poly, rings) {
+export const closed = (ring) => (ring[0][0] === ring.at(-1)[0] && ring[0][1] === ring.at(-1)[1] ? ring : [...ring, ring[0]]);
+
+export function polylineHitsPolygon(poly, rings) {
   if (poly.some((pt) => inPolygon(pt, rings))) return true;
-  return rings.some((ring) => polylineCrossesLine(poly, ring));
+  return rings.some((ring) => polylineCrossesLine(poly, closed(ring))); // an open ring still has its closing edge
+}
+
+// Two simple rings share area: one has a vertex inside the other, or their edges cross. Touching only does not count.
+export function ringsOverlap(a, b) {
+  return a.some((p) => inRing(p, b)) || b.some((p) => inRing(p, a)) || polylineCrossesLine(closed(a), closed(b));
 }
 
 // Number of distinct items the polyline touches; `hit` decides per item.
@@ -76,11 +83,16 @@ export function waterLayerFromBarriers(json, extra = {}) {
 // coverage is the per-district bounding box of the footprints, not the whole pack.
 export function buildingLayerFromObstacles(json, extra = {}) {
   const buildings = json.obstacles.filter((o) => o.kind === "building");
-  const items = buildings.map((o) => ({ rings: [o.polygon], bbox: bboxOf(o.polygon) }));
+  const items = buildings.map((o) => ({ rings: [o.polygon], bbox: bboxOf(o.polygon), kind: o.sourceKind }));
   const byDistrict = new Map();
   for (const o of buildings) byDistrict.set(o.district, [...(byDistrict.get(o.district) ?? []), ...o.polygon]);
   const boxes = [...byDistrict.values()].map(bboxOf);
   return { items, covers: (pt) => boxes.some((b) => inBox(pt, b)), ...extra };
+}
+
+// Polygons the caller already decoded (e.g. from vector tiles): [{ rings: [[lon,lat]...], kind? }]
+export function polygonLayer(polygons, extra = {}) {
+  return { items: polygons.map((p) => ({ ...p, bbox: bboxOf(p.rings[0]) })), ...extra };
 }
 
 export function roadLayerFromGeojson(fc, extra = {}) {
@@ -127,12 +139,21 @@ export function makeSpatialContext(layers = {}) {
     sources: Object.entries(layers).filter(([, l]) => l?.source).map(([layer, l]) => ({ layer, quality: l.quality ?? null, ...l.source })),
 
     elevationAt: (pt) => (dem && (!dem.covers || dem.covers(pt)) ? dem.elevationAt(pt) ?? null : null),
+    slopeAt: (pt) => (dem?.slopeAt && (!dem.covers || dem.covers(pt)) ? dem.slopeAt(pt) ?? null : null),
 
     // Slope samples (degrees) every 100 m; null if any sample has no DEM value.
     // maxSlopeAlong is the steepest one. steepShareAlong is the fraction at or above `steepDeg`: that share,
     // not the max, marks steep terrain, because levees and cuttings make thin steep cells even on flat ground.
     maxSlopeAlong: (poly) => { const v = slopeSamples(dem, poly); return v && Math.max(...v); },
     steepShareAlong: (poly, steepDeg) => { const v = slopeSamples(dem, poly); return v && v.filter((s) => s >= steepDeg).length / v.length; },
+
+    // Why a value came back null: the layer was never injected, it does not cover the place, or (DEM only) a covered cell has no value.
+    // `poly` is a polyline, or a single point wrapped as [pt].
+    whyUnknown: (layerName, poly) => {
+      const layer = layers[layerName];
+      if (!layer) return "no-layer";
+      return !layer.covers || sampleAlong(poly, 200).every(layer.covers) ? "no-dem-value" : "outside-coverage";
+    },
 
     // river/railway/building: distinct items crossed. road: per class. utility: no dataset exists yet -> always unknown.
     crossings: (poly) => ({

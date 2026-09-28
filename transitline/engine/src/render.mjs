@@ -4,6 +4,9 @@
 import { buildGeometry, octilinear, pointAlong, SPREAD_PX } from "./geometry.mjs";
 import { lineLetter, badgeTextColor } from "./state.mjs";
 import { drawPlanOverlay } from "./map/overlay.mjs";
+import { drawDepotOverlay } from "./map/depot-view.mjs";
+import { drawStationOverlay } from "./map/station-view.mjs";
+import { drawConstructionOverlay } from "./map/construction-view.mjs";
 
 const BG = "#1b2131";
 const STATION_STROKE = "#f1f2f5";
@@ -323,6 +326,11 @@ export function draw(ctx, state, projection, width, height, input) {
     ctx.fillRect(-5, -1.5, 10, 3);
     ctx.restore();
   }
+
+  // Depot candidate sites: their own layer, separate from the construction-phase overlay above
+  if (state.depotView) drawDepotOverlay(ctx, state.depotView, screen);
+  if (state.stationView) drawStationOverlay(ctx, state.stationView, screen, state.stationView.layers);
+  if (state.constructionView) drawConstructionOverlay(ctx, state.constructionView, screen);
 
   ctx.restore();
 }
