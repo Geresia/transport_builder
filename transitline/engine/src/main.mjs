@@ -19,6 +19,7 @@ import { attachConstructionEditor } from "./map/construction-ui.mjs";
 import { mountConstructionSelection } from "./map/construction-selection-ui.mjs";
 import { mountConstructionImpact } from "./map/construction-impact-ui.mjs";
 import { mountConstructionWorkfront } from "./map/construction-workfront-ui.mjs";
+import { mountSiteDesignBridge } from "./map/site-design-bridge.mjs";
 import { planIdForKey, planningDefaults, ScenarioRuntime, stablePlanKey } from "./scenario-runtime.mjs";
 import { mountStationManagementPanel } from "./station-management-ui.mjs";
 import { mountConstructionContractorPanel } from "./construction-contractor-ui.mjs";
@@ -330,6 +331,7 @@ async function main() {
     renderDiagnosticsPanel($("map-diagnostics"), state.mapOverlay?.diagnostics ?? []);
     depotUi?.refresh(); // depot connections are checked against the plans just exported
     stationUi?.refresh(); // station sites are checked against the plans just exported, and show the engine verdict
+    $("btn-station-3d").disabled = !stationUi?.selectedSite;
     stationSelection?.refresh();
     constructionUi?.refresh();
     constructionSelection?.refresh();
@@ -467,6 +469,53 @@ async function main() {
     });
     for (const editorButton of [$("btn-depot"), $("btn-station"), $("btn-construction"), $("btn-station-design"), $("btn-construction-select"), impactButton]) editorButton.addEventListener("click", () => {
       if (editorButton.classList.contains("active") && workfrontButton.classList.contains("active")) workfrontButton.click();
+    });
+
+    // 3D station-site editor (packs/tokyo/site-design.html), opened for the currently selected station
+    // candidate. The bridge owns the iframe/postMessage plumbing and spatial collision recheck; this module
+    // only decides what "submitted" means for the management engine (request → approve, or reject with a
+    // reason) — never a cost, duration or bid eligibility judgement of its own.
+    const siteDesignBridge = mountSiteDesignBridge({
+      pack,
+      onSubmit: (edit, { collisionResult }) => {
+        const deliveryPackage = runtime.game.stationPackages.find((p) => p.stationSiteId === edit.stationSiteId);
+        if (!deliveryPackage) return { accepted: false, reason: "이 역은 아직 시공사 낙찰까지 진행되지 않아 설계변경을 접수할 수 없습니다." };
+        const planId = deliveryPackage.connectedPlanId;
+        try {
+          const proposal = runtime.requestStationDesignChange(planId, deliveryPackage.id, { designEdit: edit, collisionResult });
+          const blocking = proposal.collision?.blocking === true;
+          const unconfirmed = proposal.collision?.status === "unknown";
+          if (proposal.violations?.length || blocking || unconfirmed) {
+            const reasons = [
+              ...proposal.violations.map((v) => v.code ?? JSON.stringify(v)),
+              ...(blocking ? ["확인된 건물·수역 충돌"] : []),
+              ...(unconfirmed ? ["충돌 재확인 대기 중 (다시 제출해 주세요)"] : []),
+            ];
+            runtime.rejectStationDesignChange(planId, deliveryPackage.id, proposal.id, reasons.join("; "));
+            refreshMapOverlay();
+            refreshScenarioPanel();
+            return { accepted: false, reason: reasons.join("; ") };
+          }
+          runtime.approveStationDesignChange(planId, deliveryPackage.id, proposal.id);
+          refreshMapOverlay();
+          refreshScenarioPanel();
+          return { accepted: true };
+        } catch (error) {
+          return { accepted: false, reason: error.message };
+        }
+      },
+      // cancelled: nothing changes — the bridge itself never touches game state for a cancel either way.
+      onCancel: () => {},
+    });
+    const site3dButton = $("btn-station-3d");
+    site3dButton.hidden = false;
+    site3dButton.addEventListener("click", () => {
+      const site = stationUi?.selectedSite;
+      if (!site) return;
+      const deliveryPackage = runtime.game.stationPackages.find((p) => p.stationSiteId === site.stationSiteId);
+      const baseRevision = deliveryPackage ? runtime.stationDesignRevision(deliveryPackage.id) : "unawarded";
+      siteDesignBridge.open(site, { baseRevision });
+      site3dButton.blur();
     });
   }
   // Map editors own the pointer while active: keep exactly one drawing editor on.
