@@ -1,0 +1,160 @@
+{
+  "schema": "transitline.construction-impact-geometry/1",
+  "contractVersion": 1,
+  "eventId": "example:radial:impact-missing-layers",
+  "constructionSiteId": "cons:114d464de1c0ec07",
+  "eventKind": "incident",
+  "eventLocation": [
+    -0.0375,
+    0.06495
+  ],
+  "affectedPolygon": [
+    [
+      -0.036961,
+      0.06495
+    ],
+    [
+      -0.037002,
+      0.065156
+    ],
+    [
+      -0.037119,
+      0.065331
+    ],
+    [
+      -0.037294,
+      0.065448
+    ],
+    [
+      -0.0375,
+      0.065489
+    ],
+    [
+      -0.037706,
+      0.065448
+    ],
+    [
+      -0.037881,
+      0.065331
+    ],
+    [
+      -0.037998,
+      0.065156
+    ],
+    [
+      -0.038039,
+      0.06495
+    ],
+    [
+      -0.037998,
+      0.064744
+    ],
+    [
+      -0.037881,
+      0.064569
+    ],
+    [
+      -0.037706,
+      0.064452
+    ],
+    [
+      -0.0375,
+      0.064411
+    ],
+    [
+      -0.037294,
+      0.064452
+    ],
+    [
+      -0.037119,
+      0.064569
+    ],
+    [
+      -0.037002,
+      0.064744
+    ]
+  ],
+  "spatialFacts": {
+    "connected": {
+      "planId": "plan:a7b82bfea8635d94",
+      "segmentIds": [
+        "seg:bc71afd8a3df31f6"
+      ],
+      "stationId": null,
+      "depotSiteId": null
+    },
+    "intersectedBuildingCount": null,
+    "waterOverlapCount": null,
+    "roadsOccupied": null,
+    "existingRailwayOverlapCount": null,
+    "distanceToResidentialMeters": null,
+    "residentialBasis": null,
+    "nearestMajorRoad": null,
+    "majorRoadAccessible": null
+  },
+  "linkedCandidateIds": [
+    {
+      "kind": "shaft",
+      "id": "shaft:8d9ec3d17701e90b"
+    },
+    {
+      "kind": "workArea",
+      "id": "work:8d9ec3d17701e90b"
+    }
+  ],
+  "alternativeCandidates": [
+    {
+      "kind": "workArea",
+      "id": "work:a9af4d57ef437ee1",
+      "constructionSiteId": "cons:c4affdfa07ae1f18",
+      "distanceMeters": 20,
+      "location": [
+        -0.037547,
+        0.065124
+      ]
+    }
+  ],
+  "selectedResponseCandidateId": null,
+  "dataQuality": "low",
+  "unknown": [
+    "intersectedBuildingCount",
+    "waterOverlapCount",
+    "existingRailwayOverlapCount",
+    "roadsOccupied",
+    "distanceToResidentialMeters",
+    "nearestMajorRoad"
+  ],
+  "unknownReasons": {
+    "intersectedBuildingCount": "no-layer",
+    "waterOverlapCount": "no-layer",
+    "existingRailwayOverlapCount": "no-layer",
+    "roadsOccupied": "no-layer",
+    "distanceToResidentialMeters": "no-layer",
+    "nearestMajorRoad": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "sourceLayers": [],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnEvent": {
+      "eventId": "example:radial:impact-missing-layers",
+      "eventKind": "incident",
+      "constructionSiteId": "cons:114d464de1c0ec07",
+      "candidateRef": {
+        "kind": "shaft",
+        "id": "shaft:8d9ec3d17701e90b"
+      }
+    },
+    "layers": {
+      "kind": "none"
+    },
+    "generatedBy": "scripts/build-construction-impact-examples.mjs"
+  }
+}

@@ -1,0 +1,753 @@
+{
+  "schema": "transitline.construction-site-geometry/1",
+  "contractVersion": 1,
+  "constructionSiteId": "cons:78fe8bd3c4db3195",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "kind": "depot",
+  "name": "Ota depot-connection works",
+  "coordinateReference": "EPSG:4326",
+  "connectedPlanId": "plan:476450d54beaa4db",
+  "connectedSegmentIds": [
+    "seg:9b09ea5dbbe079fb"
+  ],
+  "connectedStationId": null,
+  "connectedDepotSiteId": "depot:79fa9b9cba942f52",
+  "polygon": [
+    [
+      139.737987,
+      35.623063
+    ],
+    [
+      139.738467,
+      35.623063
+    ],
+    [
+      139.738682,
+      35.623844
+    ],
+    [
+      139.738587,
+      35.623862
+    ],
+    [
+      139.738716,
+      35.62434
+    ],
+    [
+      139.738828,
+      35.624852
+    ],
+    [
+      139.738999,
+      35.625498
+    ],
+    [
+      139.739047,
+      35.625655
+    ],
+    [
+      139.739205,
+      35.625578
+    ],
+    [
+      139.739334,
+      35.62548
+    ],
+    [
+      139.739424,
+      35.625379
+    ],
+    [
+      139.73951,
+      35.625393
+    ],
+    [
+      139.739334,
+      35.625602
+    ],
+    [
+      139.739201,
+      35.625805
+    ],
+    [
+      139.739214,
+      35.625843
+    ],
+    [
+      139.739193,
+      35.625846
+    ],
+    [
+      139.739308,
+      35.626321
+    ],
+    [
+      139.739527,
+      35.62704
+    ],
+    [
+      139.739901,
+      35.628358
+    ],
+    [
+      139.740145,
+      35.62916
+    ],
+    [
+      139.74018,
+      35.629157
+    ],
+    [
+      139.740223,
+      35.629314
+    ],
+    [
+      139.740193,
+      35.629321
+    ],
+    [
+      139.740613,
+      35.63095
+    ],
+    [
+      139.740819,
+      35.631546
+    ],
+    [
+      139.741047,
+      35.632111
+    ],
+    [
+      139.741338,
+      35.632771
+    ],
+    [
+      139.741287,
+      35.632784
+    ],
+    [
+      139.741527,
+      35.633391
+    ],
+    [
+      139.741905,
+      35.634448
+    ],
+    [
+      139.742235,
+      35.635474
+    ],
+    [
+      139.742278,
+      35.635652
+    ],
+    [
+      139.742334,
+      35.635913
+    ],
+    [
+      139.742167,
+      35.635941
+    ],
+    [
+      139.742295,
+      35.636391
+    ],
+    [
+      139.742343,
+      35.63659
+    ],
+    [
+      139.74245,
+      35.637291
+    ],
+    [
+      139.742467,
+      35.637566
+    ],
+    [
+      139.742467,
+      35.637797
+    ],
+    [
+      139.741703,
+      35.637797
+    ],
+    [
+      139.741652,
+      35.637633
+    ],
+    [
+      139.740926,
+      35.635836
+    ],
+    [
+      139.740875,
+      35.635735
+    ],
+    [
+      139.740682,
+      35.635404
+    ],
+    [
+      139.74048,
+      35.635027
+    ],
+    [
+      139.740523,
+      35.635017
+    ],
+    [
+      139.740047,
+      35.633887
+    ],
+    [
+      139.739926,
+      35.633573
+    ],
+    [
+      139.739845,
+      35.633308
+    ],
+    [
+      139.739725,
+      35.632865
+    ],
+    [
+      139.739463,
+      35.632914
+    ],
+    [
+      139.739407,
+      35.632983
+    ],
+    [
+      139.739347,
+      35.632994
+    ],
+    [
+      139.739313,
+      35.632872
+    ],
+    [
+      139.738884,
+      35.632948
+    ],
+    [
+      139.738918,
+      35.633074
+    ],
+    [
+      139.738618,
+      35.633116
+    ],
+    [
+      139.738532,
+      35.632753
+    ],
+    [
+      139.738489,
+      35.632443
+    ],
+    [
+      139.738493,
+      35.632247
+    ],
+    [
+      139.738377,
+      35.632244
+    ],
+    [
+      139.738356,
+      35.632153
+    ],
+    [
+      139.73833,
+      35.631853
+    ],
+    [
+      139.738351,
+      35.631846
+    ],
+    [
+      139.738339,
+      35.631762
+    ],
+    [
+      139.738347,
+      35.631752
+    ],
+    [
+      139.738334,
+      35.631682
+    ],
+    [
+      139.738339,
+      35.631647
+    ],
+    [
+      139.73833,
+      35.631497
+    ],
+    [
+      139.738339,
+      35.631459
+    ],
+    [
+      139.738313,
+      35.630911
+    ],
+    [
+      139.738347,
+      35.630074
+    ],
+    [
+      139.738416,
+      35.629453
+    ],
+    [
+      139.738261,
+      35.62945
+    ],
+    [
+      139.738287,
+      35.628979
+    ],
+    [
+      139.738068,
+      35.628874
+    ],
+    [
+      139.738094,
+      35.62833
+    ],
+    [
+      139.73812,
+      35.628037
+    ],
+    [
+      139.738141,
+      35.627891
+    ],
+    [
+      139.738218,
+      35.627465
+    ],
+    [
+      139.738253,
+      35.62734
+    ],
+    [
+      139.738309,
+      35.627064
+    ],
+    [
+      139.73836,
+      35.626928
+    ],
+    [
+      139.738472,
+      35.626949
+    ],
+    [
+      139.738553,
+      35.626614
+    ],
+    [
+      139.738613,
+      35.626422
+    ],
+    [
+      139.738695,
+      35.62622
+    ],
+    [
+      139.738622,
+      35.626195
+    ],
+    [
+      139.738669,
+      35.626084
+    ],
+    [
+      139.738686,
+      35.625941
+    ],
+    [
+      139.738695,
+      35.62592
+    ],
+    [
+      139.738725,
+      35.625899
+    ],
+    [
+      139.738716,
+      35.625881
+    ],
+    [
+      139.738746,
+      35.62586
+    ],
+    [
+      139.738587,
+      35.62518
+    ],
+    [
+      139.738467,
+      35.624769
+    ],
+    [
+      139.738343,
+      35.624486
+    ]
+  ],
+  "areaSquareMeters": 212835.6,
+  "lengthMeters": null,
+  "groundElevationMeters": 4.3,
+  "elevationRangeMeters": 4,
+  "averageSlopePercent": 0.25,
+  "maximumSlopePercent": 5.24,
+  "intersectedBuildingCount": 40,
+  "waterOverlapCount": 0,
+  "roadsOccupied": {
+    "highway": 0,
+    "major": 8,
+    "minor": 5
+  },
+  "existingFacilityCrossingCount": 1,
+  "distanceToResidentialMeters": 24.5,
+  "residentialBasis": "building-tag",
+  "residentialSearchRadiusMeters": 300,
+  "waterCrossingCount": null,
+  "waterCrossings": null,
+  "roadCrossingCount": null,
+  "roadCrossings": null,
+  "existingRailwayCrossingCount": null,
+  "existingRailwayCrossings": null,
+  "shaftCandidates": [],
+  "workAreaCandidates": [
+    {
+      "workId": "work:4efbb4f14e69625b",
+      "slot": "N",
+      "polygon": [
+        [
+          139.739767,
+          35.631519
+        ],
+        [
+          139.740098,
+          35.631519
+        ],
+        [
+          139.740098,
+          35.631878
+        ],
+        [
+          139.739767,
+          35.631878
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workId": "work:43fba3a047695756",
+      "slot": "E",
+      "polygon": [
+        [
+          139.740154,
+          35.631205
+        ],
+        [
+          139.740596,
+          35.631205
+        ],
+        [
+          139.740596,
+          35.631474
+        ],
+        [
+          139.740154,
+          35.631474
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workId": "work:59fbc6423969414c",
+      "slot": "S",
+      "polygon": [
+        [
+          139.739767,
+          35.6308
+        ],
+        [
+          139.740098,
+          35.6308
+        ],
+        [
+          139.740098,
+          35.63116
+        ],
+        [
+          139.739767,
+          35.63116
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workId": "work:55fbbff635693b00",
+      "slot": "W",
+      "polygon": [
+        [
+          139.739269,
+          35.631205
+        ],
+        [
+          139.739711,
+          35.631205
+        ],
+        [
+          139.739711,
+          35.631474
+        ],
+        [
+          139.739269,
+          35.631474
+        ]
+      ],
+      "areaSquareMeters": 1200
+    }
+  ],
+  "materialYardCandidates": [
+    {
+      "yardId": "yard:4efbb4f14e69625b",
+      "slot": "N",
+      "polygon": [
+        [
+          139.739711,
+          35.631609
+        ],
+        [
+          139.740154,
+          35.631609
+        ],
+        [
+          139.740154,
+          35.632148
+        ],
+        [
+          139.739711,
+          35.632148
+        ]
+      ],
+      "areaSquareMeters": 2400
+    }
+  ],
+  "accessRoadCandidates": [
+    {
+      "roadAccessId": "roadAccess:9f4ea173cad8b245",
+      "location": [
+        139.738227,
+        35.623063
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 1.1
+      }
+    },
+    {
+      "roadAccessId": "roadAccess:6d40122d78a158cf",
+      "location": [
+        139.738405,
+        35.624628
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 1.7
+      }
+    },
+    {
+      "roadAccessId": "roadAccess:4790433241598bfc",
+      "location": [
+        139.73814,
+        35.623673
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 2
+      }
+    }
+  ],
+  "vehicleAccessCandidates": [
+    {
+      "vehicleAccessId": "vehicleAccess:9f4ea173cad8b245",
+      "location": [
+        139.738227,
+        35.623063
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 1.1
+      }
+    },
+    {
+      "vehicleAccessId": "vehicleAccess:6d40122d78a158cf",
+      "location": [
+        139.738405,
+        35.624628
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 1.7
+      }
+    },
+    {
+      "vehicleAccessId": "vehicleAccess:4790433241598bfc",
+      "location": [
+        139.73814,
+        35.623673
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 2
+      }
+    }
+  ],
+  "spatialFlags": [
+    "building-collision",
+    "existing-facility-overlap",
+    "near-residential"
+  ],
+  "model": {
+    "corridorHalfWidthMeters": {
+      "tunnel": 9,
+      "cutCover": 12,
+      "viaduct": 10,
+      "systems": 6
+    },
+    "stationPadMeters": 60,
+    "depotPadMeters": 40,
+    "workAreaMeters": {
+      "alongMeters": 40,
+      "acrossMeters": 30
+    },
+    "materialYardMeters": {
+      "alongMeters": 60,
+      "acrossMeters": 40
+    },
+    "materialYardSpacingMeters": 300,
+    "maxMaterialYards": 3,
+    "roadSearchRadiusMeters": 80,
+    "maxAccessCandidates": 3,
+    "candidateMinSpacingMeters": 30,
+    "residentialSearchRadiusMeters": 300,
+    "adjacentFacilityMeters": 100,
+    "steepCorridorPercent": 3,
+    "nearResidentialMeters": 100,
+    "maxCrossingLocations": 10
+  },
+  "dataQuality": "medium",
+  "unknown": [],
+  "unknownReasons": {},
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "国土地理院 数値標高モデル DEM10B (dem_png z14), 31 m mean grid",
+      "license": "GSI terms of use (credit: 国土地理院)"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json",
+      "license": "MLIT-KSJ-terms"
+    },
+    {
+      "layer": "roads",
+      "quality": "high",
+      "name": "OpenStreetMap roads (23 wards), subway-builder-export/roads.all.geojson",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "high",
+      "name": "OpenStreetMap building footprints (23 wards), packs/tokyo/tokyo-buildings.pmtiles z14",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "residential",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse=residential, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "landuse",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse / leisure / amenity areas, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "railFacilities",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse=railway, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "source": {
+    "drawnPackage": {
+      "key": "example:tokyo:cons-depot-ota",
+      "name": "Ota depot-connection works",
+      "kind": "depot",
+      "depotSiteId": "depot:79fa9b9cba942f52"
+    },
+    "layers": {
+      "kind": "tokyo-pack-layers",
+      "layers": [
+        "dem",
+        "water",
+        "roads",
+        "buildings",
+        "residential",
+        "railFacilities"
+      ]
+    },
+    "generatedBy": "scripts/build-construction-examples.mjs"
+  }
+}

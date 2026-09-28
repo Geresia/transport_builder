@@ -1,0 +1,215 @@
+{
+  "schema": "transitline.construction-impact-geometry/1",
+  "contractVersion": 1,
+  "eventId": "example:radial:impact-viaduct-complaint",
+  "constructionSiteId": "cons:0432852cf937d9ea",
+  "eventKind": "complaint",
+  "eventLocation": [
+    -0.020359,
+    -0.000135
+  ],
+  "affectedPolygon": [
+    [
+      -0.019281,
+      -0.000135
+    ],
+    [
+      -0.019363,
+      0.000278
+    ],
+    [
+      -0.019597,
+      0.000627
+    ],
+    [
+      -0.019946,
+      0.000861
+    ],
+    [
+      -0.020359,
+      0.000943
+    ],
+    [
+      -0.020772,
+      0.000861
+    ],
+    [
+      -0.021121,
+      0.000627
+    ],
+    [
+      -0.021355,
+      0.000278
+    ],
+    [
+      -0.021437,
+      -0.000135
+    ],
+    [
+      -0.021355,
+      -0.000548
+    ],
+    [
+      -0.021121,
+      -0.000897
+    ],
+    [
+      -0.020772,
+      -0.001131
+    ],
+    [
+      -0.020359,
+      -0.001213
+    ],
+    [
+      -0.019946,
+      -0.001131
+    ],
+    [
+      -0.019597,
+      -0.000897
+    ],
+    [
+      -0.019363,
+      -0.000548
+    ]
+  ],
+  "spatialFacts": {
+    "connected": {
+      "planId": "plan:a7b82bfea8635d94",
+      "segmentIds": [
+        "seg:18a02b8c09493762"
+      ],
+      "stationId": null,
+      "depotSiteId": null
+    },
+    "intersectedBuildingCount": 16,
+    "waterOverlapCount": 0,
+    "roadsOccupied": {
+      "highway": 0,
+      "major": 1,
+      "minor": 0
+    },
+    "existingRailwayOverlapCount": null,
+    "distanceToResidentialMeters": 0,
+    "residentialBasis": "building-tag",
+    "nearestMajorRoad": {
+      "roadClass": "major",
+      "distanceMeters": 33.4
+    },
+    "majorRoadAccessible": true
+  },
+  "linkedCandidateIds": [
+    {
+      "kind": "materialYard",
+      "id": "yard:2ba4b3ce4a067334"
+    },
+    {
+      "kind": "workArea",
+      "id": "work:5de0f432382364c0"
+    }
+  ],
+  "alternativeCandidates": [
+    {
+      "kind": "materialYard",
+      "id": "yard:3fa0fd03865f1ee1",
+      "constructionSiteId": "cons:114d464de1c0ec07",
+      "distanceMeters": 14,
+      "location": [
+        -0.020252,
+        -0.000068
+      ]
+    },
+    {
+      "kind": "workArea",
+      "id": "work:67361ed020a1c2ce",
+      "constructionSiteId": "cons:114d464de1c0ec07",
+      "distanceMeters": 45.4,
+      "location": [
+        -0.019953,
+        -0.000174
+      ]
+    },
+    {
+      "kind": "materialYard",
+      "id": "yard:2ca4b5614b0674c7",
+      "constructionSiteId": "cons:0432852cf937d9ea",
+      "distanceMeters": 1152,
+      "location": [
+        -0.01,
+        -0.000269
+      ]
+    }
+  ],
+  "selectedResponseCandidateId": null,
+  "dataQuality": "medium",
+  "unknown": [
+    "existingRailwayOverlapCount"
+  ],
+  "unknownReasons": {
+    "existingRailwayOverlapCount": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnEvent": {
+      "eventId": "example:radial:impact-viaduct-complaint",
+      "eventKind": "complaint",
+      "constructionSiteId": "cons:0432852cf937d9ea",
+      "location": [
+        -0.020359,
+        -0.000135
+      ]
+    },
+    "layers": {
+      "kind": "synthetic-layers",
+      "centre": [
+        -0.020359,
+        -0.000135
+      ],
+      "options": {
+        "clearing": 0
+      }
+    },
+    "generatedBy": "scripts/build-construction-impact-examples.mjs"
+  }
+}

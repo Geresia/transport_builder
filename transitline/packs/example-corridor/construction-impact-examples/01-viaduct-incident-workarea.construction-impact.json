@@ -1,0 +1,179 @@
+{
+  "schema": "transitline.construction-impact-geometry/1",
+  "contractVersion": 1,
+  "eventId": "example:corridor:impact-viaduct-incident",
+  "constructionSiteId": "cons:cd652fe195d1f093",
+  "eventKind": "incident",
+  "eventLocation": [
+    -0.050179,
+    0
+  ],
+  "affectedPolygon": [
+    [
+      -0.050359,
+      -0.000135
+    ],
+    [
+      -0.05,
+      -0.000135
+    ],
+    [
+      -0.05,
+      0.000135
+    ],
+    [
+      -0.050359,
+      0.000135
+    ]
+  ],
+  "spatialFacts": {
+    "connected": {
+      "planId": "plan:6c4c613145a2a1b3",
+      "segmentIds": [
+        "seg:ec9f04866349d294"
+      ],
+      "stationId": null,
+      "depotSiteId": null
+    },
+    "intersectedBuildingCount": 0,
+    "waterOverlapCount": 0,
+    "roadsOccupied": {
+      "highway": 0,
+      "major": 0,
+      "minor": 0
+    },
+    "existingRailwayOverlapCount": null,
+    "distanceToResidentialMeters": 130.3,
+    "residentialBasis": "building-tag",
+    "nearestMajorRoad": {
+      "roadClass": "major",
+      "distanceMeters": 33.4
+    },
+    "majorRoadAccessible": true
+  },
+  "linkedCandidateIds": [
+    {
+      "kind": "workArea",
+      "id": "work:1f254f86c31d7558"
+    }
+  ],
+  "alternativeCandidates": [
+    {
+      "kind": "accessRoad",
+      "id": "roadAccess:16b6f8bd30af0977",
+      "constructionSiteId": "cons:cf5c252b73bebbe9",
+      "distanceMeters": 485,
+      "location": [
+        -0.048,
+        -0.003778
+      ]
+    },
+    {
+      "kind": "vehicleAccess",
+      "id": "vehicleAccess:16b6f8bd30af0977",
+      "constructionSiteId": "cons:cf5c252b73bebbe9",
+      "distanceMeters": 485,
+      "location": [
+        -0.048,
+        -0.003778
+      ]
+    },
+    {
+      "kind": "workArea",
+      "constructionSiteId": "cons:cf5c252b73bebbe9",
+      "distanceMeters": 785.3,
+      "location": [
+        -0.044359,
+        -0.004
+      ]
+    },
+    {
+      "kind": "workArea",
+      "constructionSiteId": "cons:cf5c252b73bebbe9",
+      "distanceMeters": 797.4,
+      "location": [
+        -0.044,
+        -0.00364
+      ]
+    },
+    {
+      "kind": "accessRoad",
+      "id": "roadAccess:2d4abc8b1f4cbb51",
+      "constructionSiteId": "cons:cf5c252b73bebbe9",
+      "distanceMeters": 840.6,
+      "location": [
+        -0.042889,
+        -0.002
+      ]
+    }
+  ],
+  "selectedResponseCandidateId": null,
+  "dataQuality": "medium",
+  "unknown": [
+    "existingRailwayOverlapCount"
+  ],
+  "unknownReasons": {
+    "existingRailwayOverlapCount": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnEvent": {
+      "eventId": "example:corridor:impact-viaduct-incident",
+      "eventKind": "incident",
+      "constructionSiteId": "cons:cd652fe195d1f093",
+      "candidateRef": {
+        "kind": "workArea",
+        "id": "work:1f254f86c31d7558"
+      }
+    },
+    "layers": {
+      "kind": "synthetic-layers",
+      "centre": [
+        -0.0501795,
+        0
+      ],
+      "options": {}
+    },
+    "generatedBy": "scripts/build-construction-impact-examples.mjs"
+  }
+}

@@ -1,0 +1,247 @@
+{
+  "schema": "transitline.construction-impact-geometry/1",
+  "contractVersion": 1,
+  "eventId": "example:radial:impact-cutcover-access-blocked",
+  "constructionSiteId": "cons:242c4732553892ac",
+  "eventKind": "access-blocked",
+  "eventLocation": [
+    0.032188,
+    0.006171
+  ],
+  "affectedPolygon": [
+    [
+      0.032547,
+      0.006171
+    ],
+    [
+      0.03252,
+      0.006309
+    ],
+    [
+      0.032442,
+      0.006425
+    ],
+    [
+      0.032326,
+      0.006503
+    ],
+    [
+      0.032188,
+      0.00653
+    ],
+    [
+      0.03205,
+      0.006503
+    ],
+    [
+      0.031934,
+      0.006425
+    ],
+    [
+      0.031856,
+      0.006309
+    ],
+    [
+      0.031829,
+      0.006171
+    ],
+    [
+      0.031856,
+      0.006033
+    ],
+    [
+      0.031934,
+      0.005917
+    ],
+    [
+      0.03205,
+      0.005839
+    ],
+    [
+      0.032188,
+      0.005812
+    ],
+    [
+      0.032326,
+      0.005839
+    ],
+    [
+      0.032442,
+      0.005917
+    ],
+    [
+      0.03252,
+      0.006033
+    ]
+  ],
+  "spatialFacts": {
+    "connected": {
+      "planId": "plan:a7b82bfea8635d94",
+      "segmentIds": [
+        "seg:9756d646c00e7a0c"
+      ],
+      "stationId": null,
+      "depotSiteId": null
+    },
+    "intersectedBuildingCount": 0,
+    "waterOverlapCount": 0,
+    "roadsOccupied": {
+      "highway": 0,
+      "major": 1,
+      "minor": 0
+    },
+    "existingRailwayOverlapCount": null,
+    "distanceToResidentialMeters": 111.6,
+    "residentialBasis": "building-tag",
+    "nearestMajorRoad": {
+      "roadClass": "major",
+      "distanceMeters": 33.4
+    },
+    "majorRoadAccessible": true
+  },
+  "linkedCandidateIds": [
+    {
+      "kind": "accessRoad",
+      "id": "roadAccess:b7f54bcb5d621bb9"
+    },
+    {
+      "kind": "accessRoad",
+      "id": "roadAccess:bed08ce258a53104"
+    },
+    {
+      "kind": "vehicleAccess",
+      "id": "vehicleAccess:b7f54bcb5d621bb9"
+    },
+    {
+      "kind": "vehicleAccess",
+      "id": "vehicleAccess:bed08ce258a53104"
+    },
+    {
+      "kind": "vehicleAccess",
+      "id": "vehicleAccess:da7c00c17e5cf123"
+    }
+  ],
+  "alternativeCandidates": [
+    {
+      "kind": "accessRoad",
+      "id": "roadAccess:75dd704811df1232",
+      "constructionSiteId": "cons:242c4732553892ac",
+      "distanceMeters": 78.5,
+      "location": [
+        0.032886,
+        0.006276
+      ]
+    },
+    {
+      "kind": "accessRoad",
+      "id": "roadAccess:209eeed4966c51a2",
+      "constructionSiteId": "cons:be740044de7c6c72",
+      "distanceMeters": 199.2,
+      "location": [
+        0.030596,
+        0.005349
+      ]
+    },
+    {
+      "kind": "vehicleAccess",
+      "id": "vehicleAccess:48b84c8e55df65a4",
+      "constructionSiteId": "cons:be740044de7c6c72",
+      "distanceMeters": 647.5,
+      "location": [
+        0.037416,
+        0.008735
+      ]
+    },
+    {
+      "kind": "accessRoad",
+      "id": "roadAccess:6babc53ef03701e0",
+      "constructionSiteId": "cons:be740044de7c6c72",
+      "distanceMeters": 697.3,
+      "location": [
+        0.037817,
+        0.008934
+      ]
+    },
+    {
+      "kind": "vehicleAccess",
+      "id": "vehicleAccess:6babc53ef03701e0",
+      "constructionSiteId": "cons:be740044de7c6c72",
+      "distanceMeters": 697.3,
+      "location": [
+        0.037817,
+        0.008934
+      ]
+    }
+  ],
+  "selectedResponseCandidateId": null,
+  "dataQuality": "medium",
+  "unknown": [
+    "existingRailwayOverlapCount"
+  ],
+  "unknownReasons": {
+    "existingRailwayOverlapCount": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnEvent": {
+      "eventId": "example:radial:impact-cutcover-access-blocked",
+      "eventKind": "access-blocked",
+      "constructionSiteId": "cons:242c4732553892ac",
+      "candidateRef": {
+        "kind": "accessRoad",
+        "id": "roadAccess:b7f54bcb5d621bb9"
+      }
+    },
+    "layers": {
+      "kind": "synthetic-layers",
+      "centre": [
+        0.032188,
+        0.006171
+      ],
+      "options": {
+        "clearing": 0.0015
+      }
+    },
+    "generatedBy": "scripts/build-construction-impact-examples.mjs"
+  }
+}

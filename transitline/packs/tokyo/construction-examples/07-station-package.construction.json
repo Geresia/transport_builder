@@ -1,0 +1,331 @@
+{
+  "schema": "transitline.construction-site-geometry/1",
+  "contractVersion": 1,
+  "constructionSiteId": "cons:cb6b8c92d0cace88",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "kind": "station",
+  "name": "Shibuya station work package",
+  "coordinateReference": "EPSG:4326",
+  "connectedPlanId": "plan:d085337f3df72aa5",
+  "connectedSegmentIds": [],
+  "connectedStationId": "stn:3b61b41b43cf91e5",
+  "connectedDepotSiteId": null,
+  "polygon": [
+    [
+      139.693988,
+      35.668911
+    ],
+    [
+      139.694652,
+      35.668911
+    ],
+    [
+      139.694652,
+      35.669449
+    ],
+    [
+      139.693988,
+      35.669449
+    ]
+  ],
+  "areaSquareMeters": 3596.4,
+  "lengthMeters": null,
+  "groundElevationMeters": 32,
+  "elevationRangeMeters": 0,
+  "averageSlopePercent": 1.75,
+  "maximumSlopePercent": 1.75,
+  "intersectedBuildingCount": 0,
+  "waterOverlapCount": 0,
+  "roadsOccupied": {
+    "highway": 0,
+    "major": 0,
+    "minor": 0
+  },
+  "existingFacilityCrossingCount": 0,
+  "distanceToResidentialMeters": 291.3,
+  "residentialBasis": "building-tag",
+  "residentialSearchRadiusMeters": 300,
+  "waterCrossingCount": null,
+  "waterCrossings": null,
+  "roadCrossingCount": null,
+  "roadCrossings": null,
+  "existingRailwayCrossingCount": null,
+  "existingRailwayCrossings": null,
+  "shaftCandidates": [],
+  "workAreaCandidates": [
+    {
+      "workId": "work:bd2a7f98651c033e",
+      "slot": "N",
+      "polygon": [
+        [
+          139.694154,
+          35.66936
+        ],
+        [
+          139.694486,
+          35.66936
+        ],
+        [
+          139.694486,
+          35.669719
+        ],
+        [
+          139.694154,
+          35.669719
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workId": "work:b82a77b95c1bf513",
+      "slot": "E",
+      "polygon": [
+        [
+          139.694541,
+          35.669045
+        ],
+        [
+          139.694983,
+          35.669045
+        ],
+        [
+          139.694983,
+          35.669315
+        ],
+        [
+          139.694541,
+          35.669315
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workId": "work:ca2a940f721c17b5",
+      "slot": "S",
+      "polygon": [
+        [
+          139.694154,
+          35.668641
+        ],
+        [
+          139.694486,
+          35.668641
+        ],
+        [
+          139.694486,
+          35.669
+        ],
+        [
+          139.694154,
+          35.669
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workId": "work:c62a8dc36e1c1169",
+      "slot": "W",
+      "polygon": [
+        [
+          139.693657,
+          35.669045
+        ],
+        [
+          139.694099,
+          35.669045
+        ],
+        [
+          139.694099,
+          35.669315
+        ],
+        [
+          139.693657,
+          35.669315
+        ]
+      ],
+      "areaSquareMeters": 1200
+    }
+  ],
+  "materialYardCandidates": [
+    {
+      "yardId": "yard:bd2a7f98651c033e",
+      "slot": "N",
+      "polygon": [
+        [
+          139.694099,
+          35.669449
+        ],
+        [
+          139.694541,
+          35.669449
+        ],
+        [
+          139.694541,
+          35.669988
+        ],
+        [
+          139.694099,
+          35.669988
+        ]
+      ],
+      "areaSquareMeters": 2400
+    }
+  ],
+  "accessRoadCandidates": [
+    {
+      "roadAccessId": "roadAccess:5106cc0291d4e8bc",
+      "location": [
+        139.694652,
+        35.668911
+      ],
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 66.8
+      }
+    },
+    {
+      "roadAccessId": "roadAccess:73bcb446ffa9c6ac",
+      "location": [
+        139.694209,
+        35.668911
+      ],
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 68.4
+      }
+    }
+  ],
+  "vehicleAccessCandidates": [],
+  "spatialFlags": [],
+  "model": {
+    "corridorHalfWidthMeters": {
+      "tunnel": 9,
+      "cutCover": 12,
+      "viaduct": 10,
+      "systems": 6
+    },
+    "stationPadMeters": 60,
+    "depotPadMeters": 40,
+    "workAreaMeters": {
+      "alongMeters": 40,
+      "acrossMeters": 30
+    },
+    "materialYardMeters": {
+      "alongMeters": 60,
+      "acrossMeters": 40
+    },
+    "materialYardSpacingMeters": 300,
+    "maxMaterialYards": 3,
+    "roadSearchRadiusMeters": 80,
+    "maxAccessCandidates": 3,
+    "candidateMinSpacingMeters": 30,
+    "residentialSearchRadiusMeters": 300,
+    "adjacentFacilityMeters": 100,
+    "steepCorridorPercent": 3,
+    "nearResidentialMeters": 100,
+    "maxCrossingLocations": 10
+  },
+  "dataQuality": "medium",
+  "unknown": [],
+  "unknownReasons": {},
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "国土地理院 数値標高モデル DEM10B (dem_png z14), 31 m mean grid",
+      "license": "GSI terms of use (credit: 国土地理院)"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json",
+      "license": "MLIT-KSJ-terms"
+    },
+    {
+      "layer": "roads",
+      "quality": "high",
+      "name": "OpenStreetMap roads (23 wards), subway-builder-export/roads.all.geojson",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "high",
+      "name": "OpenStreetMap building footprints (23 wards), packs/tokyo/tokyo-buildings.pmtiles z14",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "residential",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse=residential, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "landuse",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse / leisure / amenity areas, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "railFacilities",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse=railway, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "source": {
+    "drawnPackage": {
+      "key": "example:tokyo:cons-station-shibuya",
+      "name": "Shibuya station work package",
+      "kind": "station",
+      "planId": "plan:d085337f3df72aa5",
+      "stationId": "stn:3b61b41b43cf91e5"
+    },
+    "layers": {
+      "kind": "tokyo-pack-layers",
+      "layers": [
+        "dem",
+        "water",
+        "roads",
+        "buildings",
+        "residential",
+        "railFacilities"
+      ]
+    },
+    "generatedBy": "scripts/build-construction-examples.mjs"
+  }
+}

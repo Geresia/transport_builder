@@ -1,0 +1,191 @@
+{
+  "schema": "transitline.construction-impact-geometry/1",
+  "contractVersion": 1,
+  "eventId": "example:radial:impact-material-yard-unavailable",
+  "constructionSiteId": "cons:ae78cfc623942d44",
+  "eventKind": "material-shortage",
+  "eventLocation": [
+    0,
+    -0.000261
+  ],
+  "affectedPolygon": [
+    [
+      -0.000269,
+      -0.00044
+    ],
+    [
+      0.000269,
+      -0.00044
+    ],
+    [
+      0.000269,
+      -0.000081
+    ],
+    [
+      -0.000269,
+      -0.000081
+    ]
+  ],
+  "spatialFacts": {
+    "connected": {
+      "planId": "plan:a7b82bfea8635d94",
+      "segmentIds": [
+        "seg:3dfc854cd7a7747a"
+      ],
+      "stationId": null,
+      "depotSiteId": null
+    },
+    "intersectedBuildingCount": 0,
+    "waterOverlapCount": 0,
+    "roadsOccupied": {
+      "highway": 0,
+      "major": 0,
+      "minor": 0
+    },
+    "existingRailwayOverlapCount": null,
+    "distanceToResidentialMeters": 120.3,
+    "residentialBasis": "building-tag",
+    "nearestMajorRoad": {
+      "roadClass": "major",
+      "distanceMeters": 33.5
+    },
+    "majorRoadAccessible": true
+  },
+  "linkedCandidateIds": [
+    {
+      "kind": "accessRoad",
+      "id": "roadAccess:d25400ef3d56c811"
+    },
+    {
+      "kind": "materialYard",
+      "id": "yard:10e20fb49fbe61fe"
+    },
+    {
+      "kind": "vehicleAccess",
+      "id": "vehicleAccess:d25400ef3d56c811"
+    }
+  ],
+  "alternativeCandidates": [
+    {
+      "kind": "materialYard",
+      "id": "yard:29a4b0a84c06765a",
+      "constructionSiteId": "cons:0432852cf937d9ea",
+      "distanceMeters": 0.9,
+      "location": [
+        0,
+        -0.000269
+      ]
+    },
+    {
+      "kind": "accessRoad",
+      "id": "roadAccess:257d8b69407a224f",
+      "constructionSiteId": "cons:34951ac5aabf2353",
+      "distanceMeters": 35.4,
+      "location": [
+        -0.000269,
+        -0.00009
+      ]
+    },
+    {
+      "kind": "vehicleAccess",
+      "id": "vehicleAccess:257d8b69407a224f",
+      "constructionSiteId": "cons:34951ac5aabf2353",
+      "distanceMeters": 35.4,
+      "location": [
+        -0.000269,
+        -0.00009
+      ]
+    },
+    {
+      "kind": "accessRoad",
+      "id": "roadAccess:e0c5deb0ba3c02a6",
+      "constructionSiteId": "cons:0432852cf937d9ea",
+      "distanceMeters": 46.2,
+      "location": [
+        -0.000222,
+        0.00009
+      ]
+    },
+    {
+      "kind": "vehicleAccess",
+      "id": "vehicleAccess:e0c5deb0ba3c02a6",
+      "constructionSiteId": "cons:0432852cf937d9ea",
+      "distanceMeters": 46.2,
+      "location": [
+        -0.000222,
+        0.00009
+      ]
+    }
+  ],
+  "selectedResponseCandidateId": null,
+  "dataQuality": "medium",
+  "unknown": [
+    "existingRailwayOverlapCount"
+  ],
+  "unknownReasons": {
+    "existingRailwayOverlapCount": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnEvent": {
+      "eventId": "example:radial:impact-material-yard-unavailable",
+      "eventKind": "material-shortage",
+      "constructionSiteId": "cons:ae78cfc623942d44",
+      "candidateRef": {
+        "kind": "materialYard",
+        "id": "yard:10e20fb49fbe61fe"
+      }
+    },
+    "layers": {
+      "kind": "synthetic-layers",
+      "centre": [
+        0,
+        -0.0002605
+      ],
+      "options": {
+        "clearing": 0.0015
+      }
+    },
+    "generatedBy": "scripts/build-construction-impact-examples.mjs"
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "schema": "transitline.construction-impact-geometry/1",
+  "contractVersion": 1,
+  "eventId": "example:corridor:impact-unexpected-ground",
+  "constructionSiteId": "cons:cd652fe195d1f093",
+  "eventKind": "unexpected-ground",
+  "eventLocation": [
+    -0.02982,
+    0
+  ],
+  "affectedPolygon": [
+    [
+      -0.03,
+      -0.000135
+    ],
+    [
+      -0.029641,
+      -0.000135
+    ],
+    [
+      -0.029641,
+      0.000135
+    ],
+    [
+      -0.03,
+      0.000135
+    ]
+  ],
+  "spatialFacts": {
+    "connected": {
+      "planId": "plan:6c4c613145a2a1b3",
+      "segmentIds": [
+        "seg:ec9f04866349d294"
+      ],
+      "stationId": null,
+      "depotSiteId": null
+    },
+    "intersectedBuildingCount": 0,
+    "waterOverlapCount": 0,
+    "roadsOccupied": {
+      "highway": 0,
+      "major": 0,
+      "minor": 0
+    },
+    "existingRailwayOverlapCount": null,
+    "distanceToResidentialMeters": 130.3,
+    "residentialBasis": "building-tag",
+    "nearestMajorRoad": {
+      "roadClass": "major",
+      "distanceMeters": 33.4
+    },
+    "majorRoadAccessible": true
+  },
+  "linkedCandidateIds": [
+    {
+      "kind": "workArea",
+      "id": "work:d25af3e3fccdafc9"
+    }
+  ],
+  "alternativeCandidates": [],
+  "selectedResponseCandidateId": null,
+  "dataQuality": "medium",
+  "unknown": [
+    "existingRailwayOverlapCount"
+  ],
+  "unknownReasons": {
+    "existingRailwayOverlapCount": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnEvent": {
+      "eventId": "example:corridor:impact-unexpected-ground",
+      "eventKind": "unexpected-ground",
+      "constructionSiteId": "cons:cd652fe195d1f093",
+      "candidateRef": {
+        "kind": "workArea",
+        "id": "work:d25af3e3fccdafc9"
+      }
+    },
+    "layers": {
+      "kind": "synthetic-layers",
+      "centre": [
+        -0.0298205,
+        0
+      ],
+      "options": {}
+    },
+    "generatedBy": "scripts/build-construction-impact-examples.mjs"
+  }
+}

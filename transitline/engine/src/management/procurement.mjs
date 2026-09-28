@@ -34,6 +34,8 @@ export function createOpportunity(input) {
     bidBond: 500_000_000,
     status: "announced",
     researchLevel: 0,
+    retenderCount: 0,
+    singleBidReview: null,
     bids: [],
     ...structuredClone(input),
   };
@@ -42,26 +44,43 @@ export function createOpportunity(input) {
 export function researchOpportunity(opportunity, ledger, clock, level = 1) {
   if (opportunity.status !== "announced") throw new Error("Research is only available before tender close");
   if (![1, 2].includes(level) || level <= opportunity.researchLevel) throw new Error("Research level must increase to 1 or 2");
-  const cost = level === 1 ? 35_000_000 : 90_000_000;
+  const cost = opportunity.researchCosts?.[level] ?? (level === 1 ? 35_000_000 : 90_000_000);
   ledger.post({ atMinute: clock.minute, amount: -cost, category: "bid-research", reference: opportunity.id });
   opportunity.researchLevel = level;
   const spread = level === 2 ? 0.05 : 0.12;
-  return {
-    annualCostRange: [opportunity.baselineAnnualCost * (1 - spread), opportunity.baselineAnnualCost * (1 + spread)],
+  const annualCost = opportunity.type === "design-build-operate" ? opportunity.baselineOperatingCost : opportunity.baselineAnnualCost;
+  const report = {
+    level,
+    cost,
+    annualCostRange: [annualCost * (1 - spread), annualCost * (1 + spread)],
     demandRange: [opportunity.demandP90, opportunity.demandP50 * (1 + spread)],
-    knownRiskCount: level === 2 ? 6 : 3,
+    knownRiskCount: level === 2 ? 8 : 4,
   };
+  if (opportunity.type === "design-build-operate") {
+    const capital = opportunity.estimatedCapitalCost ?? opportunity.scope?.maximumPublicCost ?? 0;
+    const capitalSpread = level === 2 ? 0.08 : 0.18;
+    report.capitalCostRange = [capital * (1 - capitalSpread), capital * (1 + capitalSpread)];
+    report.knownRisks = level === 2
+      ? ["ground", "groundwater", "utilities", "property-rights", "community", "inflation", "interfaces", "ridership"]
+      : ["alignment", "major-structures", "ridership", "procurement"];
+    report.confidence = level === 2 ? "detailed-due-diligence" : "desktop-and-preliminary";
+  }
+  opportunity.researchReport = structuredClone(report);
+  return report;
 }
 
 export function investmentMemo(opportunity, bid) {
   const revenue = bid.requestedAnnualPayment * opportunity.contractYears;
-  const p50Cost = opportunity.baselineAnnualCost * opportunity.contractYears;
-  const p90Cost = p50Cost * (opportunity.researchLevel ? 1.12 : 1.25);
+  const operatingCost = (opportunity.baselineOperatingCost ?? opportunity.baselineAnnualCost) * opportunity.contractYears;
+  const capitalCost = opportunity.type === "design-build-operate" ? opportunity.estimatedCapitalCost ?? 0 : 0;
+  const p50Cost = operatingCost + capitalCost;
+  const p90Factor = opportunity.researchLevel === 2 ? 1.08 : opportunity.researchLevel === 1 ? 1.16 : 1.25;
+  const p90Cost = operatingCost * (opportunity.researchLevel ? 1.12 : 1.25) + capitalCost * p90Factor;
   return {
     p50Profit: revenue - p50Cost,
     p90Profit: revenue - p90Cost,
     bidCost: opportunity.preparationCost,
-    priceToCost: bid.requestedAnnualPayment / opportunity.baselineAnnualCost,
+    priceToCost: revenue / p50Cost,
     recommendation: revenue >= p90Cost ? "bid" : revenue >= p50Cost ? "conditional" : "no-bid",
   };
 }
@@ -123,10 +142,50 @@ export function evaluateTender(opportunity) {
     priceScore: Math.min(100, (lowest / bid.requestedAnnualPayment) * 100),
     totalScore: bid.technicalScore * 0.55 + Math.min(100, (lowest / bid.requestedAnnualPayment) * 100) * 0.45,
   })).sort((a, b) => b.totalScore - a.totalScore || a.requestedAnnualPayment - b.requestedAnnualPayment);
-  opportunity.status = "preferred-bidder";
   opportunity.ranking = ranking;
   opportunity.preferredBidderId = ranking[0].bidderId;
+  if (eligible.length === 1) {
+    opportunity.status = "single-bid-review";
+    opportunity.singleBidReview = { required: true, status: "pending", bidderId: ranking[0].bidderId };
+    return { status: opportunity.status, ranking, singleBidReview: structuredClone(opportunity.singleBidReview) };
+  }
+  opportunity.status = "preferred-bidder";
+  opportunity.singleBidReview = null;
   return { status: opportunity.status, ranking };
+}
+
+export function reviewSingleBid(opportunity, accepted = true) {
+  if (opportunity.status !== "single-bid-review" || opportunity.singleBidReview?.status !== "pending") {
+    throw new Error("No single-bid review is pending");
+  }
+  opportunity.singleBidReview.status = accepted ? "approved" : "rejected";
+  if (!accepted) {
+    opportunity.status = "retender";
+    delete opportunity.preferredBidderId;
+    return { accepted: false, status: opportunity.status };
+  }
+  opportunity.status = "preferred-bidder";
+  return { accepted: true, status: opportunity.status, preferredBidderId: opportunity.preferredBidderId };
+}
+
+export function reannounceOpportunity(opportunity, clock, { deadlineDays = 90, paymentAdjustment = 1.05 } = {}) {
+  const allowed = ["failed-no-bids", "failed-technical", "retender"];
+  if (!allowed.includes(opportunity.status)) throw new Error(`Opportunity cannot be reannounced from ${opportunity.status}`);
+  if (!Number.isInteger(deadlineDays) || deadlineDays < 1) throw new Error("Retender deadline days must be a positive integer");
+  if (!(paymentAdjustment > 0)) throw new Error("Retender payment adjustment must be positive");
+  opportunity.retenderCount = (opportunity.retenderCount ?? 0) + 1;
+  opportunity.status = "announced";
+  opportunity.deadlineMinute = clock.minute + deadlineDays * 1440;
+  opportunity.baselineAnnualCost *= paymentAdjustment;
+  opportunity.fixedAnnualPayment *= paymentAdjustment;
+  opportunity.bids = [];
+  opportunity.ranking = [];
+  opportunity.singleBidReview = null;
+  opportunity.viewedAt = null;
+  delete opportunity.preferredBidderId;
+  delete opportunity.awardedBidderId;
+  delete opportunity.investmentDecision;
+  return opportunity;
 }
 
 export function negotiateAward(opportunity, bidderId, accepted = true) {

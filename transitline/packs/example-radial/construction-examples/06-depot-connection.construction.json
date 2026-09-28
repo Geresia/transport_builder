@@ -1,0 +1,353 @@
+{
+  "schema": "transitline.construction-site-geometry/1",
+  "contractVersion": 1,
+  "constructionSiteId": "cons:8f43ad2ac120f604",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "kind": "depot",
+  "name": "Outer depot-connection works",
+  "coordinateReference": "EPSG:4326",
+  "connectedPlanId": "plan:0ecd95b1d71018d3",
+  "connectedSegmentIds": [
+    "seg:093a835d10ac7a0b"
+  ],
+  "connectedStationId": null,
+  "connectedDepotSiteId": "depot:3b611238d00f58a6",
+  "polygon": [
+    [
+      0.06895,
+      0.0315
+    ],
+    [
+      0.07495,
+      0.0315
+    ],
+    [
+      0.07495,
+      0.0355
+    ],
+    [
+      0.06895,
+      0.0355
+    ]
+  ],
+  "areaSquareMeters": 297411.4,
+  "lengthMeters": null,
+  "groundElevationMeters": 9.9,
+  "elevationRangeMeters": 10.2,
+  "averageSlopePercent": 1.45,
+  "maximumSlopePercent": 1.45,
+  "intersectedBuildingCount": 64,
+  "waterOverlapCount": 0,
+  "roadsOccupied": {
+    "highway": 0,
+    "major": 1,
+    "minor": 1
+  },
+  "existingFacilityCrossingCount": null,
+  "distanceToResidentialMeters": 0,
+  "residentialBasis": "building-tag",
+  "residentialSearchRadiusMeters": 300,
+  "waterCrossingCount": null,
+  "waterCrossings": null,
+  "roadCrossingCount": null,
+  "roadCrossings": null,
+  "existingRailwayCrossingCount": null,
+  "existingRailwayCrossings": null,
+  "shaftCandidates": [],
+  "workAreaCandidates": [
+    {
+      "workId": "work:abff1b56a8c9b9e0",
+      "slot": "N",
+      "polygon": [
+        [
+          0.071815,
+          0.03368
+        ],
+        [
+          0.072085,
+          0.03368
+        ],
+        [
+          0.072085,
+          0.034039
+        ],
+        [
+          0.071815,
+          0.034039
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workId": "work:b2ff265bb3c9cb31",
+      "slot": "E",
+      "polygon": [
+        [
+          0.07213,
+          0.033365
+        ],
+        [
+          0.072489,
+          0.033365
+        ],
+        [
+          0.072489,
+          0.033635
+        ],
+        [
+          0.07213,
+          0.033635
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workId": "work:a8ff169dc5c9e787",
+      "slot": "S",
+      "polygon": [
+        [
+          0.071815,
+          0.032961
+        ],
+        [
+          0.072085,
+          0.032961
+        ],
+        [
+          0.072085,
+          0.03332
+        ],
+        [
+          0.071815,
+          0.03332
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workId": "work:a4ff1051c1c9e13b",
+      "slot": "W",
+      "polygon": [
+        [
+          0.071411,
+          0.033365
+        ],
+        [
+          0.07177,
+          0.033365
+        ],
+        [
+          0.07177,
+          0.033635
+        ],
+        [
+          0.071411,
+          0.033635
+        ]
+      ],
+      "areaSquareMeters": 1200
+    }
+  ],
+  "materialYardCandidates": [
+    {
+      "yardId": "yard:abff1b56a8c9b9e0",
+      "slot": "N",
+      "polygon": [
+        [
+          0.07177,
+          0.033769
+        ],
+        [
+          0.07213,
+          0.033769
+        ],
+        [
+          0.07213,
+          0.034308
+        ],
+        [
+          0.07177,
+          0.034308
+        ]
+      ],
+      "areaSquareMeters": 2400
+    }
+  ],
+  "accessRoadCandidates": [
+    {
+      "roadAccessId": "roadAccess:bd2f3873b54e3105",
+      "location": [
+        0.073172,
+        0.0315
+      ],
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 2.5
+      }
+    },
+    {
+      "roadAccessId": "roadAccess:540356077a8de809",
+      "location": [
+        0.073172,
+        0.0355
+      ],
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 2.5
+      }
+    },
+    {
+      "roadAccessId": "roadAccess:ac64261b23f89be1",
+      "location": [
+        0.06895,
+        0.033722
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 8.7
+      }
+    }
+  ],
+  "vehicleAccessCandidates": [
+    {
+      "vehicleAccessId": "vehicleAccess:ac64261b23f89be1",
+      "location": [
+        0.06895,
+        0.033722
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 8.7
+      }
+    },
+    {
+      "vehicleAccessId": "vehicleAccess:903a2f5a89e775c8",
+      "location": [
+        0.07495,
+        0.033722
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 8.7
+      }
+    },
+    {
+      "vehicleAccessId": "vehicleAccess:927bb57108beca07",
+      "location": [
+        0.06895,
+        0.034167
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 40.8
+      }
+    }
+  ],
+  "spatialFlags": [
+    "building-collision",
+    "near-residential"
+  ],
+  "model": {
+    "corridorHalfWidthMeters": {
+      "tunnel": 9,
+      "cutCover": 12,
+      "viaduct": 10,
+      "systems": 6
+    },
+    "stationPadMeters": 60,
+    "depotPadMeters": 40,
+    "workAreaMeters": {
+      "alongMeters": 40,
+      "acrossMeters": 30
+    },
+    "materialYardMeters": {
+      "alongMeters": 60,
+      "acrossMeters": 40
+    },
+    "materialYardSpacingMeters": 300,
+    "maxMaterialYards": 3,
+    "roadSearchRadiusMeters": 80,
+    "maxAccessCandidates": 3,
+    "candidateMinSpacingMeters": 30,
+    "residentialSearchRadiusMeters": 300,
+    "adjacentFacilityMeters": 100,
+    "steepCorridorPercent": 3,
+    "nearResidentialMeters": 100,
+    "maxCrossingLocations": 10
+  },
+  "dataQuality": "medium",
+  "unknown": [
+    "existingFacilityCrossingCount"
+  ],
+  "unknownReasons": {
+    "existingFacilityCrossingCount": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnPackage": {
+      "key": "example:radial:cons-depot-outer-spoke",
+      "name": "Outer depot-connection works",
+      "kind": "depot",
+      "depotSiteId": "depot:3b611238d00f58a6"
+    },
+    "layers": {
+      "kind": "synthetic-layers",
+      "centre": [
+        0.07195,
+        0.0335
+      ],
+      "options": {
+        "clearing": 0.0015
+      }
+    },
+    "generatedBy": "scripts/build-construction-examples.mjs"
+  }
+}

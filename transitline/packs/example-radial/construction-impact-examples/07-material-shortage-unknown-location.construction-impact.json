@@ -1,0 +1,76 @@
+{
+  "schema": "transitline.construction-impact-geometry/1",
+  "contractVersion": 1,
+  "eventId": "example:radial:impact-material-shortage-unknown-location",
+  "constructionSiteId": "cons:8f43ad2ac120f604",
+  "eventKind": "material-shortage",
+  "eventLocation": null,
+  "affectedPolygon": null,
+  "spatialFacts": {
+    "connected": {
+      "planId": "plan:0ecd95b1d71018d3",
+      "segmentIds": [
+        "seg:093a835d10ac7a0b"
+      ],
+      "stationId": null,
+      "depotSiteId": "depot:3b611238d00f58a6"
+    },
+    "intersectedBuildingCount": null,
+    "waterOverlapCount": null,
+    "roadsOccupied": null,
+    "existingRailwayOverlapCount": null,
+    "distanceToResidentialMeters": null,
+    "residentialBasis": null,
+    "nearestMajorRoad": null,
+    "majorRoadAccessible": null
+  },
+  "linkedCandidateIds": [],
+  "alternativeCandidates": [],
+  "selectedResponseCandidateId": null,
+  "dataQuality": "low",
+  "unknown": [
+    "eventLocation",
+    "affectedPolygon",
+    "intersectedBuildingCount",
+    "waterOverlapCount",
+    "existingRailwayOverlapCount",
+    "roadsOccupied",
+    "distanceToResidentialMeters",
+    "nearestMajorRoad",
+    "majorRoadAccessible",
+    "alternativeCandidates"
+  ],
+  "unknownReasons": {
+    "eventLocation": "no-event-location",
+    "affectedPolygon": "no-event-location",
+    "intersectedBuildingCount": "no-polygon",
+    "waterOverlapCount": "no-polygon",
+    "existingRailwayOverlapCount": "no-polygon",
+    "roadsOccupied": "no-polygon",
+    "distanceToResidentialMeters": "no-polygon",
+    "nearestMajorRoad": "no-event-location",
+    "majorRoadAccessible": "no-event-location",
+    "alternativeCandidates": "no-event-location"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "sourceLayers": [],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnEvent": {
+      "eventId": "example:radial:impact-material-shortage-unknown-location",
+      "eventKind": "material-shortage",
+      "constructionSiteId": "cons:8f43ad2ac120f604"
+    },
+    "layers": {
+      "kind": "none"
+    },
+    "generatedBy": "scripts/build-construction-impact-examples.mjs"
+  }
+}

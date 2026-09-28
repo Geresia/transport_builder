@@ -1,0 +1,314 @@
+{
+  "schema": "transitline.construction-site-geometry/1",
+  "contractVersion": 1,
+  "constructionSiteId": "cons:114d464de1c0ec07",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "kind": "tunnel",
+  "name": "Outer surface run with no spatial layers",
+  "coordinateReference": "EPSG:4326",
+  "connectedPlanId": "plan:a7b82bfea8635d94",
+  "connectedSegmentIds": [
+    "seg:bc71afd8a3df31f6"
+  ],
+  "connectedStationId": null,
+  "connectedDepotSiteId": null,
+  "polygon": [
+    [
+      -0.037578,
+      0.064929
+    ],
+    [
+      -0.020078,
+      -0.000021
+    ],
+    [
+      -0.019922,
+      0.000021
+    ],
+    [
+      -0.037422,
+      0.064971
+    ]
+  ],
+  "areaSquareMeters": 134667.8,
+  "lengthMeters": 7479.7,
+  "groundElevationMeters": null,
+  "elevationRangeMeters": null,
+  "averageSlopePercent": null,
+  "maximumSlopePercent": null,
+  "intersectedBuildingCount": null,
+  "waterOverlapCount": null,
+  "roadsOccupied": null,
+  "existingFacilityCrossingCount": null,
+  "distanceToResidentialMeters": null,
+  "residentialBasis": null,
+  "residentialSearchRadiusMeters": 300,
+  "waterCrossingCount": null,
+  "waterCrossings": null,
+  "roadCrossingCount": null,
+  "roadCrossings": null,
+  "existingRailwayCrossingCount": 0,
+  "existingRailwayCrossings": [],
+  "shaftCandidates": [
+    {
+      "shaftId": "shaft:8d9ec3d17701e90b",
+      "end": "start",
+      "location": [
+        -0.0375,
+        0.06495
+      ],
+      "groundElevationMeters": null,
+      "plannedTrackElevationMeters": null,
+      "shaftDepthMeters": null,
+      "footprintMeters": 14,
+      "unknown": [
+        "groundElevationMeters",
+        "plannedTrackElevationMeters",
+        "shaftDepthMeters"
+      ],
+      "unknownReasons": {
+        "groundElevationMeters": "no-layer",
+        "plannedTrackElevationMeters": "no-depth",
+        "shaftDepthMeters": "no-layer"
+      }
+    },
+    {
+      "shaftId": "shaft:67361ed020a1c2ce",
+      "end": "end",
+      "location": [
+        -0.02,
+        0
+      ],
+      "groundElevationMeters": null,
+      "plannedTrackElevationMeters": null,
+      "shaftDepthMeters": null,
+      "footprintMeters": 14,
+      "unknown": [
+        "groundElevationMeters",
+        "plannedTrackElevationMeters",
+        "shaftDepthMeters"
+      ],
+      "unknownReasons": {
+        "groundElevationMeters": "no-layer",
+        "plannedTrackElevationMeters": "no-depth",
+        "shaftDepthMeters": "no-layer"
+      }
+    }
+  ],
+  "workAreaCandidates": [
+    {
+      "workAreaId": "work:8d9ec3d17701e90b",
+      "slot": "start",
+      "polygon": [
+        [
+          -0.037724,
+          0.065262
+        ],
+        [
+          -0.03763,
+          0.064915
+        ],
+        [
+          -0.03737,
+          0.064985
+        ],
+        [
+          -0.037463,
+          0.065332
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workAreaId": "work:67361ed020a1c2ce",
+      "slot": "end",
+      "polygon": [
+        [
+          -0.02013,
+          -0.000035
+        ],
+        [
+          -0.020037,
+          -0.000382
+        ],
+        [
+          -0.019776,
+          -0.000312
+        ],
+        [
+          -0.01987,
+          0.000035
+        ]
+      ],
+      "areaSquareMeters": 1200
+    }
+  ],
+  "materialYardCandidates": [
+    {
+      "materialYardId": "yard:41a10029845f1bbb",
+      "polygon": [
+        [
+          -0.037995,
+          0.065096
+        ],
+        [
+          -0.037855,
+          0.064575
+        ],
+        [
+          -0.037508,
+          0.064669
+        ],
+        [
+          -0.037648,
+          0.065189
+        ]
+      ],
+      "areaSquareMeters": 2400
+    },
+    {
+      "materialYardId": "yard:40a0fe96835f1a28",
+      "polygon": [
+        [
+          -0.029245,
+          0.032621
+        ],
+        [
+          -0.029105,
+          0.0321
+        ],
+        [
+          -0.028758,
+          0.032194
+        ],
+        [
+          -0.028898,
+          0.032714
+        ]
+      ],
+      "areaSquareMeters": 2400
+    },
+    {
+      "materialYardId": "yard:3fa0fd03865f1ee1",
+      "polygon": [
+        [
+          -0.020495,
+          0.000146
+        ],
+        [
+          -0.020355,
+          -0.000375
+        ],
+        [
+          -0.020008,
+          -0.000281
+        ],
+        [
+          -0.020148,
+          0.000239
+        ]
+      ],
+      "areaSquareMeters": 2400
+    }
+  ],
+  "accessRoadCandidates": [],
+  "vehicleAccessCandidates": [],
+  "spatialFlags": [],
+  "model": {
+    "corridorHalfWidthMeters": {
+      "tunnel": 9,
+      "cutCover": 12,
+      "viaduct": 10,
+      "systems": 6
+    },
+    "stationPadMeters": 60,
+    "depotPadMeters": 40,
+    "workAreaMeters": {
+      "alongMeters": 40,
+      "acrossMeters": 30
+    },
+    "materialYardMeters": {
+      "alongMeters": 60,
+      "acrossMeters": 40
+    },
+    "materialYardSpacingMeters": 300,
+    "maxMaterialYards": 3,
+    "roadSearchRadiusMeters": 80,
+    "maxAccessCandidates": 3,
+    "candidateMinSpacingMeters": 30,
+    "residentialSearchRadiusMeters": 300,
+    "adjacentFacilityMeters": 100,
+    "steepCorridorPercent": 3,
+    "nearResidentialMeters": 100,
+    "maxCrossingLocations": 10
+  },
+  "dataQuality": "low",
+  "unknown": [
+    "intersectedBuildingCount",
+    "waterOverlapCount",
+    "existingFacilityCrossingCount",
+    "roadsOccupied",
+    "distanceToResidentialMeters",
+    "averageSlopePercent",
+    "maximumSlopePercent",
+    "groundElevationMeters",
+    "elevationRangeMeters",
+    "waterCrossingCount",
+    "waterCrossings",
+    "roadCrossingCount",
+    "roadCrossings",
+    "accessRoadCandidates",
+    "vehicleAccessCandidates"
+  ],
+  "unknownReasons": {
+    "intersectedBuildingCount": "no-layer",
+    "waterOverlapCount": "no-layer",
+    "existingFacilityCrossingCount": "no-layer",
+    "roadsOccupied": "no-layer",
+    "distanceToResidentialMeters": "no-layer",
+    "averageSlopePercent": "no-layer",
+    "maximumSlopePercent": "no-layer",
+    "groundElevationMeters": "no-layer",
+    "elevationRangeMeters": "no-layer",
+    "waterCrossingCount": "no-layer",
+    "waterCrossings": "no-layer",
+    "roadCrossingCount": "no-layer",
+    "roadCrossings": "no-layer",
+    "accessRoadCandidates": "no-layer",
+    "vehicleAccessCandidates": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnPackage": {
+      "key": "example:radial:cons-partial-data",
+      "name": "Outer surface run with no spatial layers",
+      "kind": "tunnel",
+      "planId": "plan:a7b82bfea8635d94",
+      "segmentIds": [
+        "seg:bc71afd8a3df31f6"
+      ]
+    },
+    "layers": {
+      "kind": "none"
+    },
+    "generatedBy": "scripts/build-construction-examples.mjs"
+  }
+}

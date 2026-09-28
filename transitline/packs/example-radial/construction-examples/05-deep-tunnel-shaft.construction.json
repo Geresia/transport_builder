@@ -1,0 +1,401 @@
+{
+  "schema": "transitline.construction-site-geometry/1",
+  "contractVersion": 1,
+  "constructionSiteId": "cons:ae78cfc623942d44",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "kind": "tunnel",
+  "name": "CBD deep tunnel (36 m shaft)",
+  "coordinateReference": "EPSG:4326",
+  "connectedPlanId": "plan:a7b82bfea8635d94",
+  "connectedSegmentIds": [
+    "seg:3dfc854cd7a7747a"
+  ],
+  "connectedStationId": null,
+  "connectedDepotSiteId": null,
+  "polygon": [
+    [
+      0,
+      -0.000081
+    ],
+    [
+      0.02,
+      -0.000081
+    ],
+    [
+      0.02,
+      0.000081
+    ],
+    [
+      0,
+      0.000081
+    ]
+  ],
+  "areaSquareMeters": 40150.5,
+  "lengthMeters": 2223.9,
+  "groundElevationMeters": 10,
+  "elevationRangeMeters": 30,
+  "averageSlopePercent": 1.45,
+  "maximumSlopePercent": 1.45,
+  "intersectedBuildingCount": 0,
+  "waterOverlapCount": 0,
+  "roadsOccupied": {
+    "highway": 0,
+    "major": 0,
+    "minor": 1
+  },
+  "existingFacilityCrossingCount": null,
+  "distanceToResidentialMeters": 7.7,
+  "residentialBasis": "building-tag",
+  "residentialSearchRadiusMeters": 300,
+  "waterCrossingCount": 0,
+  "waterCrossings": [],
+  "roadCrossingCount": 1,
+  "roadCrossings": [
+    {
+      "location": [
+        0.0112,
+        0
+      ],
+      "class": "minor"
+    }
+  ],
+  "existingRailwayCrossingCount": 0,
+  "existingRailwayCrossings": [],
+  "shaftCandidates": [
+    {
+      "shaftId": "shaft:5e3c49403ea49382",
+      "end": "start",
+      "location": [
+        0,
+        0
+      ],
+      "groundElevationMeters": -5,
+      "plannedTrackElevationMeters": null,
+      "shaftDepthMeters": null,
+      "footprintMeters": 14,
+      "unknown": [
+        "plannedTrackElevationMeters",
+        "shaftDepthMeters"
+      ],
+      "unknownReasons": {
+        "plannedTrackElevationMeters": "no-depth",
+        "shaftDepthMeters": "no-depth"
+      }
+    },
+    {
+      "shaftId": "shaft:13ae83014e9da7c7",
+      "end": "end",
+      "location": [
+        0.02,
+        0
+      ],
+      "groundElevationMeters": 25,
+      "plannedTrackElevationMeters": null,
+      "shaftDepthMeters": null,
+      "footprintMeters": 14,
+      "unknown": [
+        "plannedTrackElevationMeters",
+        "shaftDepthMeters"
+      ],
+      "unknownReasons": {
+        "plannedTrackElevationMeters": "no-depth",
+        "shaftDepthMeters": "no-depth"
+      }
+    }
+  ],
+  "workAreaCandidates": [
+    {
+      "workAreaId": "work:5e3c49403ea49382",
+      "slot": "start",
+      "polygon": [
+        [
+          -0.000359,
+          -0.000135
+        ],
+        [
+          0,
+          -0.000135
+        ],
+        [
+          0,
+          0.000135
+        ],
+        [
+          -0.000359,
+          0.000135
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workAreaId": "work:13ae83014e9da7c7",
+      "slot": "end",
+      "polygon": [
+        [
+          0.02,
+          -0.000135
+        ],
+        [
+          0.020359,
+          -0.000135
+        ],
+        [
+          0.020359,
+          0.000135
+        ],
+        [
+          0.02,
+          0.000135
+        ]
+      ],
+      "areaSquareMeters": 1200
+    }
+  ],
+  "materialYardCandidates": [
+    {
+      "materialYardId": "yard:10e20fb49fbe61fe",
+      "polygon": [
+        [
+          -0.000269,
+          -0.00044
+        ],
+        [
+          0.000269,
+          -0.00044
+        ],
+        [
+          0.000269,
+          -0.000081
+        ],
+        [
+          -0.000269,
+          -0.000081
+        ]
+      ],
+      "areaSquareMeters": 2400
+    },
+    {
+      "materialYardId": "yard:11e21147a0be6391",
+      "polygon": [
+        [
+          0.009731,
+          -0.00044
+        ],
+        [
+          0.010269,
+          -0.00044
+        ],
+        [
+          0.010269,
+          -0.000081
+        ],
+        [
+          0.009731,
+          -0.000081
+        ]
+      ],
+      "areaSquareMeters": 2400
+    },
+    {
+      "materialYardId": "yard:12e212da9dbe5ed8",
+      "polygon": [
+        [
+          0.019731,
+          -0.00044
+        ],
+        [
+          0.020269,
+          -0.00044
+        ],
+        [
+          0.020269,
+          -0.000081
+        ],
+        [
+          0.019731,
+          -0.000081
+        ]
+      ],
+      "areaSquareMeters": 2400
+    }
+  ],
+  "accessRoadCandidates": [
+    {
+      "roadAccessId": "roadAccess:e2d4e1a3b0077981",
+      "location": [
+        0.011111,
+        -0.000081
+      ],
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 9.9
+      }
+    },
+    {
+      "roadAccessId": "roadAccess:dceeb044057aa34a",
+      "location": [
+        0.011333,
+        0.000081
+      ],
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 14.8
+      }
+    },
+    {
+      "roadAccessId": "roadAccess:d25400ef3d56c811",
+      "location": [
+        0,
+        0.000081
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 24.4
+      }
+    }
+  ],
+  "vehicleAccessCandidates": [
+    {
+      "vehicleAccessId": "vehicleAccess:d25400ef3d56c811",
+      "location": [
+        0,
+        0.000081
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 24.4
+      }
+    },
+    {
+      "vehicleAccessId": "vehicleAccess:6000d953586c7e0d",
+      "location": [
+        0.000444,
+        0.000081
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 24.4
+      }
+    },
+    {
+      "vehicleAccessId": "vehicleAccess:6d8a31c6d3b96ad0",
+      "location": [
+        0.000889,
+        0.000081
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 24.4
+      }
+    }
+  ],
+  "spatialFlags": [
+    "near-residential"
+  ],
+  "model": {
+    "corridorHalfWidthMeters": {
+      "tunnel": 9,
+      "cutCover": 12,
+      "viaduct": 10,
+      "systems": 6
+    },
+    "stationPadMeters": 60,
+    "depotPadMeters": 40,
+    "workAreaMeters": {
+      "alongMeters": 40,
+      "acrossMeters": 30
+    },
+    "materialYardMeters": {
+      "alongMeters": 60,
+      "acrossMeters": 40
+    },
+    "materialYardSpacingMeters": 300,
+    "maxMaterialYards": 3,
+    "roadSearchRadiusMeters": 80,
+    "maxAccessCandidates": 3,
+    "candidateMinSpacingMeters": 30,
+    "residentialSearchRadiusMeters": 300,
+    "adjacentFacilityMeters": 100,
+    "steepCorridorPercent": 3,
+    "nearResidentialMeters": 100,
+    "maxCrossingLocations": 10
+  },
+  "dataQuality": "medium",
+  "unknown": [
+    "existingFacilityCrossingCount"
+  ],
+  "unknownReasons": {
+    "existingFacilityCrossingCount": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnPackage": {
+      "key": "example:radial:cons-deep-shaft",
+      "name": "CBD deep tunnel (36 m shaft)",
+      "kind": "tunnel",
+      "planId": "plan:a7b82bfea8635d94",
+      "segmentIds": [
+        "seg:3dfc854cd7a7747a"
+      ]
+    },
+    "layers": {
+      "kind": "synthetic-layers",
+      "centre": [
+        0.01,
+        0
+      ],
+      "options": {
+        "clearing": 0.0015
+      }
+    },
+    "generatedBy": "scripts/build-construction-examples.mjs"
+  }
+}

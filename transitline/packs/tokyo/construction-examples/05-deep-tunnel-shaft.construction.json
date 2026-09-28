@@ -1,0 +1,528 @@
+{
+  "schema": "transitline.construction-site-geometry/1",
+  "contractVersion": 1,
+  "constructionSiteId": "cons:3c6ac99575c55313",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "kind": "tunnel",
+  "name": "Shinjuku-Bunkyo deep tunnel (38 m shaft at Shinjuku)",
+  "coordinateReference": "EPSG:4326",
+  "connectedPlanId": "plan:d085337f3df72aa5",
+  "connectedSegmentIds": [
+    "seg:85440f7297a60288"
+  ],
+  "connectedStationId": null,
+  "connectedDepotSiteId": null,
+  "polygon": [
+    [
+      139.70418,
+      35.704484
+    ],
+    [
+      139.70426,
+      35.704336
+    ],
+    [
+      139.74512,
+      35.718756
+    ],
+    [
+      139.74504,
+      35.718904
+    ]
+  ],
+  "areaSquareMeters": 72461.7,
+  "lengthMeters": 4022.5,
+  "groundElevationMeters": 23.5,
+  "elevationRangeMeters": 9,
+  "averageSlopePercent": 6.13,
+  "maximumSlopePercent": 10.51,
+  "intersectedBuildingCount": 333,
+  "waterOverlapCount": 1,
+  "roadsOccupied": {
+    "highway": 2,
+    "major": 10,
+    "minor": 44
+  },
+  "existingFacilityCrossingCount": 0,
+  "distanceToResidentialMeters": 0,
+  "residentialBasis": "building-tag",
+  "residentialSearchRadiusMeters": 300,
+  "waterCrossingCount": 1,
+  "waterCrossings": [
+    {
+      "location": [
+        139.724527,
+        35.711577
+      ]
+    },
+    {
+      "location": [
+        139.724325,
+        35.711505
+      ]
+    }
+  ],
+  "roadCrossingCount": 48,
+  "roadCrossings": [
+    {
+      "location": [
+        139.729517,
+        35.713338
+      ],
+      "class": "highway"
+    },
+    {
+      "location": [
+        139.729432,
+        35.713308
+      ],
+      "class": "highway"
+    },
+    {
+      "location": [
+        139.704834,
+        35.704627
+      ],
+      "class": "minor"
+    },
+    {
+      "location": [
+        139.718155,
+        35.709328
+      ],
+      "class": "minor"
+    },
+    {
+      "location": [
+        139.707024,
+        35.7054
+      ],
+      "class": "minor"
+    },
+    {
+      "location": [
+        139.722891,
+        35.710999
+      ],
+      "class": "minor"
+    },
+    {
+      "location": [
+        139.720436,
+        35.710133
+      ],
+      "class": "minor"
+    },
+    {
+      "location": [
+        139.724292,
+        35.711494
+      ],
+      "class": "minor"
+    },
+    {
+      "location": [
+        139.722515,
+        35.710866
+      ],
+      "class": "major"
+    },
+    {
+      "location": [
+        139.719885,
+        35.709938
+      ],
+      "class": "minor"
+    }
+  ],
+  "existingRailwayCrossingCount": 5,
+  "existingRailwayCrossings": [
+    {
+      "location": [
+        139.706675,
+        35.705276
+      ]
+    },
+    {
+      "location": [
+        139.740206,
+        35.71711
+      ]
+    },
+    {
+      "location": [
+        139.740206,
+        35.71711
+      ]
+    },
+    {
+      "location": [
+        139.706675,
+        35.705276
+      ]
+    },
+    {
+      "location": [
+        139.736939,
+        35.715957
+      ]
+    }
+  ],
+  "shaftCandidates": [
+    {
+      "shaftId": "shaft:e8c6df5c9072b516",
+      "end": "start",
+      "location": [
+        139.70422,
+        35.70441
+      ],
+      "groundElevationMeters": 28,
+      "plannedTrackElevationMeters": 28,
+      "shaftDepthMeters": 0,
+      "footprintMeters": 14,
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "shaftId": "shaft:75172a4583f072b3",
+      "end": "end",
+      "location": [
+        139.74508,
+        35.71883
+      ],
+      "groundElevationMeters": 19,
+      "plannedTrackElevationMeters": 19,
+      "shaftDepthMeters": 0,
+      "footprintMeters": 14,
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "workAreaCandidates": [
+    {
+      "workAreaId": "work:e8c6df5c9072b516",
+      "slot": "start",
+      "polygon": [
+        [
+          139.703748,
+          35.70439
+        ],
+        [
+          139.70388,
+          35.704143
+        ],
+        [
+          139.704286,
+          35.704286
+        ],
+        [
+          139.704154,
+          35.704534
+        ]
+      ],
+      "areaSquareMeters": 1200
+    },
+    {
+      "workAreaId": "work:75172a4583f072b3",
+      "slot": "end",
+      "polygon": [
+        [
+          139.745014,
+          35.718954
+        ],
+        [
+          139.745146,
+          35.718706
+        ],
+        [
+          139.745552,
+          35.71885
+        ],
+        [
+          139.74542,
+          35.719097
+        ]
+      ],
+      "areaSquareMeters": 1200
+    }
+  ],
+  "materialYardCandidates": [
+    {
+      "materialYardId": "yard:2b7e6df0757f71b2",
+      "polygon": [
+        [
+          139.703955,
+          35.704228
+        ],
+        [
+          139.704132,
+          35.703899
+        ],
+        [
+          139.70474,
+          35.704114
+        ],
+        [
+          139.704564,
+          35.704443
+        ]
+      ],
+      "areaSquareMeters": 2400
+    },
+    {
+      "materialYardId": "yard:2c7e6f83767f7345",
+      "polygon": [
+        [
+          139.724385,
+          35.711438
+        ],
+        [
+          139.724562,
+          35.711109
+        ],
+        [
+          139.72517,
+          35.711324
+        ],
+        [
+          139.724994,
+          35.711653
+        ]
+      ],
+      "areaSquareMeters": 2400
+    },
+    {
+      "materialYardId": "yard:2d7e7116737f6e8c",
+      "polygon": [
+        [
+          139.744815,
+          35.718648
+        ],
+        [
+          139.744992,
+          35.718319
+        ],
+        [
+          139.7456,
+          35.718534
+        ],
+        [
+          139.745424,
+          35.718863
+        ]
+      ],
+      "areaSquareMeters": 2400
+    }
+  ],
+  "accessRoadCandidates": [
+    {
+      "roadAccessId": "roadAccess:8c7d48fee16af284",
+      "location": [
+        139.727414,
+        35.712507
+      ],
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 0.1
+      }
+    },
+    {
+      "roadAccessId": "roadAccess:1cb33ef84abecb7a",
+      "location": [
+        139.743486,
+        35.718179
+      ],
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 0.1
+      }
+    },
+    {
+      "roadAccessId": "roadAccess:4e4e3bffca5dd351",
+      "location": [
+        139.707256,
+        35.705393
+      ],
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 0.2
+      }
+    }
+  ],
+  "vehicleAccessCandidates": [
+    {
+      "vehicleAccessId": "vehicleAccess:d7a0416f781502bd",
+      "location": [
+        139.738502,
+        35.716597
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 0.5
+      }
+    },
+    {
+      "vehicleAccessId": "vehicleAccess:b32c84958643c607",
+      "location": [
+        139.722158,
+        35.710829
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 2.3
+      }
+    },
+    {
+      "vehicleAccessId": "vehicleAccess:f238d840c1101f0e",
+      "location": [
+        139.713794,
+        35.707701
+      ],
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 2.6
+      }
+    }
+  ],
+  "spatialFlags": [
+    "building-collision",
+    "water-overlap",
+    "near-residential",
+    "steep-corridor",
+    "crosses-water",
+    "crosses-existing-railway"
+  ],
+  "model": {
+    "corridorHalfWidthMeters": {
+      "tunnel": 9,
+      "cutCover": 12,
+      "viaduct": 10,
+      "systems": 6
+    },
+    "stationPadMeters": 60,
+    "depotPadMeters": 40,
+    "workAreaMeters": {
+      "alongMeters": 40,
+      "acrossMeters": 30
+    },
+    "materialYardMeters": {
+      "alongMeters": 60,
+      "acrossMeters": 40
+    },
+    "materialYardSpacingMeters": 300,
+    "maxMaterialYards": 3,
+    "roadSearchRadiusMeters": 80,
+    "maxAccessCandidates": 3,
+    "candidateMinSpacingMeters": 30,
+    "residentialSearchRadiusMeters": 300,
+    "adjacentFacilityMeters": 100,
+    "steepCorridorPercent": 3,
+    "nearResidentialMeters": 100,
+    "maxCrossingLocations": 10
+  },
+  "dataQuality": "medium",
+  "unknown": [],
+  "unknownReasons": {},
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "国土地理院 数値標高モデル DEM10B (dem_png z14), 31 m mean grid",
+      "license": "GSI terms of use (credit: 国土地理院)"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json",
+      "license": "MLIT-KSJ-terms"
+    },
+    {
+      "layer": "roads",
+      "quality": "high",
+      "name": "OpenStreetMap roads (23 wards), subway-builder-export/roads.all.geojson",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "high",
+      "name": "OpenStreetMap building footprints (23 wards), packs/tokyo/tokyo-buildings.pmtiles z14",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "residential",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse=residential, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "landuse",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse / leisure / amenity areas, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "railFacilities",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse=railway, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "source": {
+    "drawnPackage": {
+      "key": "example:tokyo:cons-deep-shaft",
+      "name": "Shinjuku-Bunkyo deep tunnel (38 m shaft at Shinjuku)",
+      "kind": "tunnel",
+      "planId": "plan:d085337f3df72aa5",
+      "segmentIds": [
+        "seg:85440f7297a60288"
+      ]
+    },
+    "layers": {
+      "kind": "tokyo-pack-layers",
+      "layers": [
+        "dem",
+        "water",
+        "roads",
+        "buildings",
+        "residential",
+        "railFacilities"
+      ]
+    },
+    "generatedBy": "scripts/build-construction-examples.mjs"
+  }
+}

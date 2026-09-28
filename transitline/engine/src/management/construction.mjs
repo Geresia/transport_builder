@@ -1,26 +1,27 @@
 import { validatePlanGeometry } from "./domain.mjs";
+import { synchronizeStationDeliveryPackages } from "./station-delivery.mjs";
 
 export const TECHNICAL_PROFILES = Object.freeze({
-  medium_steel: { id: "medium_steel", gaugeMm: 1435, carWidthM: 2.8, carLengthM: 20, minCars: 4, maxCars: 10, power: "overhead-1500v-dc", platformLengthPerCarM: 20.5, maxGradientPermille: 35, minimumCurveRadiusMeters: 160 },
-  small_steel: { id: "small_steel", gaugeMm: 1435, carWidthM: 2.5, carLengthM: 16, minCars: 2, maxCars: 8, power: "third-rail-750v-dc", platformLengthPerCarM: 16.5, maxGradientPermille: 45, minimumCurveRadiusMeters: 120 },
-  large_steel: { id: "large_steel", gaugeMm: 1435, carWidthM: 3.0, carLengthM: 20, minCars: 6, maxCars: 12, power: "overhead-1500v-dc", platformLengthPerCarM: 20.5, maxGradientPermille: 30, minimumCurveRadiusMeters: 200 },
-  agt: { id: "agt", gaugeMm: null, carWidthM: 2.5, carLengthM: 9, minCars: 4, maxCars: 8, power: "guideway-750v-dc", platformLengthPerCarM: 9.5, maxGradientPermille: 60, minimumCurveRadiusMeters: 60 },
-  monorail: { id: "monorail", gaugeMm: null, carWidthM: 3.0, carLengthM: 15, minCars: 4, maxCars: 8, power: "straddle-beam-1500v-dc", platformLengthPerCarM: 15.5, maxGradientPermille: 60, minimumCurveRadiusMeters: 70 },
-  linear_metro: { id: "linear_metro", gaugeMm: 1435, carWidthM: 2.5, carLengthM: 16, minCars: 4, maxCars: 8, power: "linear-motor-1500v-dc", platformLengthPerCarM: 16.5, maxGradientPermille: 60, minimumCurveRadiusMeters: 100 },
+  medium_steel: { id: "medium_steel", gaugeMm: 1435, carWidthM: 2.8, carLengthM: 20, minCars: 4, maxCars: 10, power: "overhead-1500v-dc", platformLengthPerCarM: 20.5, maxGradientPermille: 35, minimumCurveRadiusMeters: 160, guidewayCostFactor: 1, stationCostFactor: 1, systemsCostFactor: 0.18 },
+  small_steel: { id: "small_steel", gaugeMm: 1435, carWidthM: 2.5, carLengthM: 16, minCars: 2, maxCars: 8, power: "third-rail-750v-dc", platformLengthPerCarM: 16.5, maxGradientPermille: 45, minimumCurveRadiusMeters: 120, guidewayCostFactor: 0.88, stationCostFactor: 0.86, systemsCostFactor: 0.18 },
+  large_steel: { id: "large_steel", gaugeMm: 1435, carWidthM: 3.0, carLengthM: 20, minCars: 6, maxCars: 12, power: "overhead-1500v-dc", platformLengthPerCarM: 20.5, maxGradientPermille: 30, minimumCurveRadiusMeters: 200, guidewayCostFactor: 1.15, stationCostFactor: 1.12, systemsCostFactor: 0.19 },
+  agt: { id: "agt", gaugeMm: null, carWidthM: 2.5, carLengthM: 9, minCars: 3, maxCars: 8, power: "guideway-750v-dc", platformLengthPerCarM: 9.5, maxGradientPermille: 60, minimumCurveRadiusMeters: 60, guidewayCostFactor: 0.8, stationCostFactor: 0.8, platformCostFactor: 0.75, systemsCostFactor: 0.18, technologyPreparation: 1_000_000_000 },
+  monorail: { id: "monorail", gaugeMm: null, carWidthM: 3.0, carLengthM: 15, minCars: 4, maxCars: 8, power: "straddle-beam-1500v-dc", platformLengthPerCarM: 15.5, maxGradientPermille: 60, minimumCurveRadiusMeters: 70, guidewayCostFactor: 0.95, stationCostFactor: 0.9, systemsCostFactor: 0.21, technologyPreparation: 1_500_000_000 },
+  linear_metro: { id: "linear_metro", gaugeMm: 1435, carWidthM: 2.5, carLengthM: 16, minCars: 4, maxCars: 8, power: "linear-motor-1500v-dc", platformLengthPerCarM: 16.5, maxGradientPermille: 60, minimumCurveRadiusMeters: 100, guidewayCostFactor: 0.9, stationCostFactor: 0.88, systemsCostFactor: 0.19, technologyPreparation: 1_000_000_000 },
 });
 
 const COST_PER_KM_JPY = {
   surface: 4_500_000_000,
   elevated: 12_000_000_000,
-  "cut-cover": 22_000_000_000,
-  shield: 28_000_000_000,
-  deep: 36_000_000_000,
+  "cut-cover": 14_500_000_000,
+  shield: 16_500_000_000,
+  deep: 24_000_000_000,
   bridge: 18_000_000_000,
   embankment: 6_000_000_000,
   cutting: 8_000_000_000,
 };
 
-const STATION_COST_JPY = { surface: 6_000_000_000, elevated: 10_000_000_000, "cut-cover": 20_000_000_000, shield: 27_000_000_000, deep: 38_000_000_000 };
+const STATION_COST_JPY = { surface: 6_000_000_000, elevated: 10_000_000_000, "cut-cover": 12_000_000_000, shield: 12_000_000_000, deep: 25_000_000_000 };
 
 export function assessPlan(plan, technicalProfileId, countryProfile) {
   const validation = validatePlanGeometry(plan);
@@ -50,34 +51,41 @@ export function estimatePlan(plan, technicalProfileId, countryProfile, strict = 
   const profile = TECHNICAL_PROFILES[technicalProfileId];
   if (!profile || (strict && validation.buildable === false)) return null;
   let guideway = 0;
-  let longestMonths = 0;
+  let sequentialCivilMonths = 0;
+  let routeKm = 0;
   const byStructure = {};
   for (const segment of plan.segments ?? []) {
     const km = segment.lengthMeters / 1000;
-    const unit = COST_PER_KM_JPY[segment.structureHint] ?? COST_PER_KM_JPY.elevated;
+    routeKm += km;
+    const unit = (COST_PER_KM_JPY[segment.structureHint] ?? COST_PER_KM_JPY.elevated) * (profile.guidewayCostFactor ?? 1);
     const constraint = 1 + (segment.constraintFlags?.length ?? 0) * 0.06 + (segment.dataQuality === "low" ? 0.12 : 0);
     const cost = km * unit * constraint;
     guideway += cost;
     byStructure[segment.structureHint] = (byStructure[segment.structureHint] ?? 0) + cost;
-    const productivityKmMonth = ["shield", "deep"].includes(segment.structureHint) ? 0.18 : segment.structureHint === "cut-cover" ? 0.12 : 0.42;
-    longestMonths += km / productivityKmMonth;
+    const productivityKmMonth = ["shield", "deep"].includes(segment.structureHint) ? 0.15 : segment.structureHint === "cut-cover" ? 0.12 : 0.42;
+    sequentialCivilMonths += km / productivityKmMonth;
   }
   let stations = 0;
+  const stationItems = [];
   for (const station of plan.stationCandidates ?? []) {
     const structure = station.structure ?? plan.segments?.[0]?.structureHint ?? "surface";
     const depth = Math.max(0, station.depthMeters ?? 0);
-    const platform = station.platformType === "island" ? 1.08 : 1;
-    stations += (STATION_COST_JPY[structure] ?? STATION_COST_JPY.surface) * platform * (1 + depth * 0.008);
+    const platform = (station.platformType === "island" ? 1.08 : 1) * (profile.platformCostFactor ?? 1);
+    const cost = (STATION_COST_JPY[structure] ?? STATION_COST_JPY.surface) * (profile.stationCostFactor ?? 1) * platform * (1 + depth * 0.008);
+    stations += cost;
+    stationItems.push({ stationId: station.id, structure, directCost: cost * countryProfile.constructionCostModifier });
   }
-  const systems = (guideway + stations) * 0.18;
+  const systems = (guideway + stations) * (profile.systemsCostFactor ?? 0.18);
   const direct = guideway + stations + systems;
-  const designManagement = direct * 0.12;
-  const testing = direct * 0.04;
-  const contingency = direct * 0.2;
+  const designManagement = direct * 0.08;
+  const testing = direct * 0.01 + (profile.technologyPreparation ?? 0);
+  const contingency = (direct + designManagement + testing) * 0.2;
   const modifier = countryProfile.constructionCostModifier;
   const totalP50 = (direct + designManagement + testing + contingency) * modifier;
-  const durationMonths = Math.ceil(countryProfile.approvalMonths + Math.max(18, longestMonths, (plan.stationCandidates?.length ?? 0) * 4) + 9);
-  return { currency: "JPY", priceBaseYear: 2026, guideway: guideway * modifier, stations: stations * modifier, systems: systems * modifier, designManagement: designManagement * modifier, testing: testing * modifier, contingency: contingency * modifier, totalP50, totalP90: totalP50 * 1.25, durationMonths, byStructure };
+  const parallelCivilFronts = Math.max(1, Math.min(2, Math.ceil(routeKm / 20)));
+  const civilMonths = sequentialCivilMonths / parallelCivilFronts;
+  const durationMonths = Math.ceil(countryProfile.approvalMonths + Math.max(18, civilMonths, (plan.stationCandidates?.length ?? 0) * 4) + 9);
+  return { currency: "JPY", priceBaseYear: 2026, guideway: guideway * modifier, stations: stations * modifier, stationItems, systems: systems * modifier, designManagement: designManagement * modifier, testing: testing * modifier, contingency: contingency * modifier, totalP50, totalP90: totalP50 * 1.25, durationMonths, parallelCivilFronts, byStructure };
 }
 
 export function createConstructionProject(plan, technicalProfileId, countryProfile) {
@@ -110,24 +118,30 @@ export function createConstructionProject(plan, technicalProfileId, countryProfi
 
 export function contractConstruction(project, ledger, clock) {
   if (project.status !== "estimated" && project.status !== "approved") throw new Error("Project must be estimated or approved");
+  if (project.stationDeliveryPackages?.length && !project.stationPackageCoverageComplete) throw new Error("Every planned station must have an awarded delivery package before construction contract");
   const deposit = project.estimate.totalP50 * 0.1;
   ledger.commit({ id: `construction:${project.id}`, atMinute: clock.minute, amount: project.estimate.totalP50, category: "construction", reference: project.id });
   ledger.settle(`construction:${project.id}`, deposit, clock.minute, "Contract deposit");
   project.paid += deposit;
   project.status = "contracted";
+  synchronizeStationDeliveryPackages(project, clock);
   return deposit;
 }
 
-export function advanceConstructionMonth(project, ledger, clock, rng, countryProfile) {
+export function advanceConstructionMonth(project, ledger, clock, rng, countryProfile, { randomRisk = true } = {}) {
   if (!["contracted", "underConstruction", "inspection"].includes(project.status)) throw new Error("Project is not active");
   if (project.status === "contracted") project.status = "underConstruction";
+  synchronizeStationDeliveryPackages(project, clock);
   project.elapsedMonths++;
   const riskProbability = 0.025 * countryProfile.disputeDelayModifier + (project.elapsedMonths % 12 === 0 ? 0.02 : 0);
-  if (project.status === "underConstruction" && rng.next() < riskProbability) {
+  const riskRoll = project.status === "underConstruction" ? rng.next() : 1;
+  if (riskRoll < riskProbability) {
     const delay = 1 + Math.floor(rng.next() * 3);
-    project.delayMonths += delay;
-    project.riskEvents.push({ atMinute: clock.minute, type: "construction-delay", delayMonths: delay });
-    return { delayed: true, delayMonths: delay, payment: 0 };
+    if (randomRisk) {
+      project.delayMonths += delay;
+      project.riskEvents.push({ atMinute: clock.minute, type: "construction-delay", delayMonths: delay });
+      return { delayed: true, delayMonths: delay, payment: 0 };
+    }
   }
   if (project.delayMonths > 0) {
     project.delayMonths--;
@@ -184,6 +198,7 @@ export function advanceConstructionMonth(project, ledger, clock, rng, countryPro
       { id: `systems:${project.id}`, kind: "power-signal", status: "available" }];
     ledger.release(`construction:${project.id}`);
   }
+  synchronizeStationDeliveryPackages(project, clock);
   return { delayed: false, payment, progress: project.progress };
 }
 
@@ -194,6 +209,7 @@ export function suspendConstruction(project, reason, clock) {
   project.suspendedAt = clock.minute;
   project.suspensionReason = String(reason || "Player decision");
   project.riskEvents.push({ atMinute: clock.minute, type: "construction-suspended", reason: project.suspensionReason });
+  synchronizeStationDeliveryPackages(project, clock);
   return project;
 }
 
@@ -204,13 +220,16 @@ export function resumeConstruction(project, clock) {
   delete project.suspendedAt;
   delete project.suspensionReason;
   project.riskEvents.push({ atMinute: clock.minute, type: "construction-resumed" });
+  synchronizeStationDeliveryPackages(project, clock);
   return project;
 }
 
-export function cancelConstruction(project, ledger) {
+export function cancelConstruction(project, ledger, clock = { minute: 0 }) {
   if (["available", "cancelled"].includes(project.status)) throw new Error("Project cannot be cancelled");
   ledger.release(`construction:${project.id}`);
   project.status = "cancelled";
+  project.cancelledAt = clock.minute;
   project.sunkCost = project.paid;
+  synchronizeStationDeliveryPackages(project, clock);
   return project.sunkCost;
 }

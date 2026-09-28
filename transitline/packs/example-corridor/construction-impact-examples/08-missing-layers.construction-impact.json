@@ -1,0 +1,97 @@
+{
+  "schema": "transitline.construction-impact-geometry/1",
+  "contractVersion": 1,
+  "eventId": "example:corridor:impact-missing-layers",
+  "constructionSiteId": "cons:301d21bfade7d5d1",
+  "eventKind": "incident",
+  "eventLocation": [
+    -0.010179,
+    0
+  ],
+  "affectedPolygon": [
+    [
+      -0.010359,
+      -0.000135
+    ],
+    [
+      -0.01,
+      -0.000135
+    ],
+    [
+      -0.01,
+      0.000135
+    ],
+    [
+      -0.010359,
+      0.000135
+    ]
+  ],
+  "spatialFacts": {
+    "connected": {
+      "planId": "plan:6c4c613145a2a1b3",
+      "segmentIds": [
+        "seg:a3ad0d61ab3ad4d7"
+      ],
+      "stationId": null,
+      "depotSiteId": null
+    },
+    "intersectedBuildingCount": null,
+    "waterOverlapCount": null,
+    "roadsOccupied": null,
+    "existingRailwayOverlapCount": null,
+    "distanceToResidentialMeters": null,
+    "residentialBasis": null,
+    "nearestMajorRoad": null,
+    "majorRoadAccessible": null
+  },
+  "linkedCandidateIds": [
+    {
+      "kind": "workArea",
+      "id": "work:6884ac4fa5c3d685"
+    }
+  ],
+  "alternativeCandidates": [],
+  "selectedResponseCandidateId": null,
+  "dataQuality": "low",
+  "unknown": [
+    "intersectedBuildingCount",
+    "waterOverlapCount",
+    "existingRailwayOverlapCount",
+    "roadsOccupied",
+    "distanceToResidentialMeters",
+    "nearestMajorRoad"
+  ],
+  "unknownReasons": {
+    "intersectedBuildingCount": "no-layer",
+    "waterOverlapCount": "no-layer",
+    "existingRailwayOverlapCount": "no-layer",
+    "roadsOccupied": "no-layer",
+    "distanceToResidentialMeters": "no-layer",
+    "nearestMajorRoad": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "sourceLayers": [],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnEvent": {
+      "eventId": "example:corridor:impact-missing-layers",
+      "eventKind": "incident",
+      "constructionSiteId": "cons:301d21bfade7d5d1",
+      "candidateRef": {
+        "kind": "workArea",
+        "id": "work:6884ac4fa5c3d685"
+      }
+    },
+    "layers": {
+      "kind": "none"
+    },
+    "generatedBy": "scripts/build-construction-impact-examples.mjs"
+  }
+}
