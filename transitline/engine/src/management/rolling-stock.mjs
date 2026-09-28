@@ -4,6 +4,7 @@ export const VEHICLE_MODELS = Object.freeze({
   medium_4car: { id: "medium_4car", profileId: "medium_steel", cars: 4, capacity: 560, pricePerSet: 1_450_000_000, productionMonths: 20, reliability: 0.985, energyKwhPerCarKm: 3.2 },
   small_4car: { id: "small_4car", profileId: "small_steel", cars: 4, capacity: 400, pricePerSet: 1_150_000_000, productionMonths: 18, reliability: 0.98, energyKwhPerCarKm: 2.5 },
   large_8car: { id: "large_8car", profileId: "large_steel", cars: 8, capacity: 1280, pricePerSet: 2_900_000_000, productionMonths: 26, reliability: 0.987, energyKwhPerCarKm: 3.6 },
+  agt_3car: { id: "agt_3car", profileId: "agt", cars: 3, capacity: 240, pricePerSet: 950_000_000, productionMonths: 20, reliability: 0.982, energyKwhPerCarKm: 2.1 },
   agt_6car: { id: "agt_6car", profileId: "agt", cars: 6, capacity: 420, pricePerSet: 1_600_000_000, productionMonths: 22, reliability: 0.982, energyKwhPerCarKm: 2.1 },
   monorail_6car: { id: "monorail_6car", profileId: "monorail", cars: 6, capacity: 600, pricePerSet: 2_250_000_000, productionMonths: 28, reliability: 0.983, energyKwhPerCarKm: 3.8 },
   linear_6car: { id: "linear_6car", profileId: "linear_metro", cars: 6, capacity: 650, pricePerSet: 2_050_000_000, productionMonths: 25, reliability: 0.984, energyKwhPerCarKm: 3.4 },

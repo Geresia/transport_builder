@@ -2,8 +2,9 @@
 
 - 작성일: 2026-09-24
 - 기준 지역: 일본, 한국 사례는 플레이어 이해를 위한 비교
-- 상태: 차량기지 필수기능·입지·지역협의·사업자 손익까지 포함한 상세 설계 초안
+- 상태: 차량기지 필수기능·입지·지역협의·사업자 손익 설계 및 경영 엔진 1차 구현
 - 관련: [철도 기본요소 명세](railway-system-foundations.md), [한국 토지·지하사용 보상](railway-land-compensation-kr.md), [일본 철도사업 방식](japan-rail-project-system-agt-case.md)
+- 구현 결과: [차량기지 입지·경제·협의·건설 엔진 구현 보고서](depot-management-implementation-2026-09-26.md)
 
 ## 1. 결론
 

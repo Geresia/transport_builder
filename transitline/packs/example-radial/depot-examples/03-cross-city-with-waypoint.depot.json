@@ -1,0 +1,170 @@
+{
+  "schema": "transitline.depot-site-geometry/1",
+  "contractVersion": 1,
+  "depotSiteId": "depot:ebabd97eb816eabc",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "name": "Cross-city yard with a routed connection",
+  "geometryKind": "polygon",
+  "location": [
+    -0.07395,
+    -0.0315
+  ],
+  "polygon": [
+    [
+      -0.07695,
+      -0.0335
+    ],
+    [
+      -0.07095,
+      -0.0335
+    ],
+    [
+      -0.07095,
+      -0.0295
+    ],
+    [
+      -0.07695,
+      -0.0295
+    ]
+  ],
+  "areaSquareMeters": 297411.4,
+  "connectedPlanId": "plan:3e604547f4feb1f9",
+  "connectedSegmentId": "seg:561cd0ff56a9b7bd",
+  "connectedExternalNetworkId": null,
+  "connectedExternalLineId": null,
+  "connectionBasis": "plan-segment",
+  "connectionAlignment": [
+    [
+      -0.07095,
+      -0.0335
+    ],
+    [
+      -0.06895,
+      -0.0365
+    ],
+    [
+      -0.06495,
+      -0.0375
+    ]
+  ],
+  "connectionAttachPoint": [
+    -0.06495,
+    -0.0375
+  ],
+  "connectionTrackLengthMeters": 859.4,
+  "distanceToMainlineMeters": 801.8,
+  "terminalStationId": "stn:cdc0aee5e316e33f",
+  "distanceToTerminalMeters": 1202.8,
+  "nearestStationId": "stn:cdc0aee5e316e33f",
+  "nearestStationKind": "plan",
+  "distanceToNearestStationMeters": 802.7,
+  "groundElevationMeters": null,
+  "elevationRangeMeters": null,
+  "averageSlopePercent": null,
+  "maximumSlopePercent": null,
+  "intersectedBuildingCount": null,
+  "waterOverlapCount": null,
+  "roadsThroughSite": null,
+  "connectionCrossings": {
+    "river": null,
+    "road": null,
+    "railway": 0,
+    "building": null,
+    "utility": null
+  },
+  "roadCrossingCount": null,
+  "waterCrossingCount": null,
+  "distanceToResidentialMeters": null,
+  "residentialBasis": null,
+  "residentialSearchRadiusMeters": 2000,
+  "surroundingBuildingCount": null,
+  "surroundingBuildingDensity": null,
+  "densityRadiusMeters": 300,
+  "existingFacilityReuse": null,
+  "spatialFlags": [],
+  "dataQuality": "low",
+  "unknown": [
+    "averageSlopePercent",
+    "maximumSlopePercent",
+    "groundElevationMeters",
+    "elevationRangeMeters",
+    "intersectedBuildingCount",
+    "waterOverlapCount",
+    "roadsThroughSite",
+    "waterCrossingCount",
+    "roadCrossingCount",
+    "distanceToResidentialMeters",
+    "surroundingBuildingCount",
+    "surroundingBuildingDensity",
+    "existingFacilityReuse"
+  ],
+  "unknownReasons": {
+    "averageSlopePercent": "no-layer",
+    "maximumSlopePercent": "no-layer",
+    "groundElevationMeters": "no-layer",
+    "elevationRangeMeters": "no-layer",
+    "intersectedBuildingCount": "no-layer",
+    "waterOverlapCount": "no-layer",
+    "roadsThroughSite": "no-layer",
+    "waterCrossingCount": "no-layer",
+    "roadCrossingCount": "no-layer",
+    "distanceToResidentialMeters": "no-layer",
+    "surroundingBuildingCount": "no-layer",
+    "surroundingBuildingDensity": "no-layer",
+    "existingFacilityReuse": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground"
+  ],
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnSite": {
+      "key": "example:radial:depot-cross-city",
+      "name": "Cross-city yard with a routed connection",
+      "polygon": [
+        [
+          -0.07694999999999999,
+          -0.0335
+        ],
+        [
+          -0.07094999999999999,
+          -0.0335
+        ],
+        [
+          -0.07094999999999999,
+          -0.029500000000000002
+        ],
+        [
+          -0.07694999999999999,
+          -0.029500000000000002
+        ]
+      ],
+      "connect": {
+        "planId": "plan:3e604547f4feb1f9",
+        "segmentId": "seg:561cd0ff56a9b7bd",
+        "via": [
+          [
+            -0.06895,
+            -0.0365
+          ]
+        ]
+      }
+    },
+    "requestedMode": "scratch",
+    "generatedBy": "scripts/build-depot-examples.mjs"
+  }
+}

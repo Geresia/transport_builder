@@ -1,0 +1,132 @@
+{
+  "schema": "transitline.depot-site-geometry/1",
+  "contractVersion": 1,
+  "depotSiteId": "depot:bb7791331da35265",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "name": "Point candidate off the ring arc",
+  "geometryKind": "point",
+  "location": [
+    0.03582,
+    0.03482
+  ],
+  "polygon": null,
+  "areaSquareMeters": null,
+  "connectedPlanId": "plan:0ba95ad4e2dead9a",
+  "connectedSegmentId": "seg:644f9e1e5fa5774c",
+  "connectedExternalNetworkId": null,
+  "connectedExternalLineId": null,
+  "connectionBasis": "nearest-segment",
+  "connectionAlignment": [
+    [
+      0.03582,
+      0.03482
+    ],
+    [
+      0.03182,
+      0.03182
+    ]
+  ],
+  "connectionAttachPoint": [
+    0.03182,
+    0.03182
+  ],
+  "connectionTrackLengthMeters": 556,
+  "distanceToMainlineMeters": 556,
+  "terminalStationId": "stn:1c7dc899c704388b",
+  "distanceToTerminalMeters": 2713.2,
+  "nearestStationId": "stn:366c6db4372e1252",
+  "nearestStationKind": "plan",
+  "distanceToNearestStationMeters": 556.6,
+  "groundElevationMeters": null,
+  "elevationRangeMeters": null,
+  "averageSlopePercent": null,
+  "maximumSlopePercent": null,
+  "intersectedBuildingCount": null,
+  "waterOverlapCount": null,
+  "roadsThroughSite": null,
+  "connectionCrossings": {
+    "river": null,
+    "road": null,
+    "railway": 0,
+    "building": null,
+    "utility": null
+  },
+  "roadCrossingCount": null,
+  "waterCrossingCount": null,
+  "distanceToResidentialMeters": null,
+  "residentialBasis": null,
+  "residentialSearchRadiusMeters": 2000,
+  "surroundingBuildingCount": null,
+  "surroundingBuildingDensity": null,
+  "densityRadiusMeters": 300,
+  "existingFacilityReuse": null,
+  "spatialFlags": [],
+  "dataQuality": "low",
+  "unknown": [
+    "areaSquareMeters",
+    "polygon",
+    "averageSlopePercent",
+    "maximumSlopePercent",
+    "groundElevationMeters",
+    "elevationRangeMeters",
+    "intersectedBuildingCount",
+    "waterOverlapCount",
+    "roadsThroughSite",
+    "waterCrossingCount",
+    "roadCrossingCount",
+    "distanceToResidentialMeters",
+    "surroundingBuildingCount",
+    "surroundingBuildingDensity",
+    "existingFacilityReuse"
+  ],
+  "unknownReasons": {
+    "areaSquareMeters": "no-polygon",
+    "polygon": "no-polygon",
+    "averageSlopePercent": "no-layer",
+    "maximumSlopePercent": "no-layer",
+    "groundElevationMeters": "no-layer",
+    "elevationRangeMeters": "no-layer",
+    "intersectedBuildingCount": "no-polygon",
+    "waterOverlapCount": "no-polygon",
+    "roadsThroughSite": "no-polygon",
+    "waterCrossingCount": "no-layer",
+    "roadCrossingCount": "no-layer",
+    "distanceToResidentialMeters": "no-layer",
+    "surroundingBuildingCount": "no-layer",
+    "surroundingBuildingDensity": "no-layer",
+    "existingFacilityReuse": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground"
+  ],
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnSite": {
+      "key": "example:radial:depot-ring-point",
+      "name": "Point candidate off the ring arc",
+      "location": [
+        0.035820000000000005,
+        0.034820000000000004
+      ],
+      "connect": {
+        "planId": "plan:0ba95ad4e2dead9a"
+      }
+    },
+    "requestedMode": "scratch",
+    "generatedBy": "scripts/build-depot-examples.mjs"
+  }
+}

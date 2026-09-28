@@ -1,0 +1,159 @@
+{
+  "schema": "transitline.depot-site-geometry/1",
+  "contractVersion": 1,
+  "depotSiteId": "depot:c07bc3244b4b9146",
+  "sourcePackId": "example-corridor",
+  "sourcePackVersion": "0.1.0",
+  "name": "Corridor yard",
+  "geometryKind": "polygon",
+  "location": [
+    -0.044,
+    -0.004
+  ],
+  "polygon": [
+    [
+      -0.048,
+      -0.006
+    ],
+    [
+      -0.04,
+      -0.006
+    ],
+    [
+      -0.04,
+      -0.002
+    ],
+    [
+      -0.048,
+      -0.002
+    ]
+  ],
+  "areaSquareMeters": 396548.6,
+  "connectedPlanId": "plan:6c4c613145a2a1b3",
+  "connectedSegmentId": "seg:ec9f04866349d294",
+  "connectedExternalNetworkId": null,
+  "connectedExternalLineId": null,
+  "connectionBasis": "nearest-segment",
+  "connectionAlignment": [
+    [
+      -0.04,
+      -0.002
+    ],
+    [
+      -0.04,
+      0
+    ]
+  ],
+  "connectionAttachPoint": [
+    -0.04,
+    0
+  ],
+  "connectionTrackLengthMeters": 222.4,
+  "distanceToMainlineMeters": 222.4,
+  "terminalStationId": "stn:8442bc4fe5e68e95",
+  "distanceToTerminalMeters": 801.8,
+  "nearestStationId": "stn:8442bc4fe5e68e95",
+  "nearestStationKind": "plan",
+  "distanceToNearestStationMeters": 314.9,
+  "groundElevationMeters": null,
+  "elevationRangeMeters": null,
+  "averageSlopePercent": null,
+  "maximumSlopePercent": null,
+  "intersectedBuildingCount": null,
+  "waterOverlapCount": null,
+  "roadsThroughSite": null,
+  "connectionCrossings": {
+    "river": null,
+    "road": null,
+    "railway": 0,
+    "building": null,
+    "utility": null
+  },
+  "roadCrossingCount": null,
+  "waterCrossingCount": null,
+  "distanceToResidentialMeters": null,
+  "residentialBasis": null,
+  "residentialSearchRadiusMeters": 2000,
+  "surroundingBuildingCount": null,
+  "surroundingBuildingDensity": null,
+  "densityRadiusMeters": 300,
+  "existingFacilityReuse": null,
+  "spatialFlags": [],
+  "dataQuality": "low",
+  "unknown": [
+    "averageSlopePercent",
+    "maximumSlopePercent",
+    "groundElevationMeters",
+    "elevationRangeMeters",
+    "intersectedBuildingCount",
+    "waterOverlapCount",
+    "roadsThroughSite",
+    "waterCrossingCount",
+    "roadCrossingCount",
+    "distanceToResidentialMeters",
+    "surroundingBuildingCount",
+    "surroundingBuildingDensity",
+    "existingFacilityReuse"
+  ],
+  "unknownReasons": {
+    "averageSlopePercent": "no-layer",
+    "maximumSlopePercent": "no-layer",
+    "groundElevationMeters": "no-layer",
+    "elevationRangeMeters": "no-layer",
+    "intersectedBuildingCount": "no-layer",
+    "waterOverlapCount": "no-layer",
+    "roadsThroughSite": "no-layer",
+    "waterCrossingCount": "no-layer",
+    "roadCrossingCount": "no-layer",
+    "distanceToResidentialMeters": "no-layer",
+    "surroundingBuildingCount": "no-layer",
+    "surroundingBuildingDensity": "no-layer",
+    "existingFacilityReuse": "no-layer"
+  },
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground"
+  ],
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnSite": {
+      "key": "example:corridor:depot-yard",
+      "name": "Corridor yard",
+      "polygon": [
+        [
+          -0.048,
+          -0.006
+        ],
+        [
+          -0.04,
+          -0.006
+        ],
+        [
+          -0.04,
+          -0.002
+        ],
+        [
+          -0.048,
+          -0.002
+        ]
+      ],
+      "connect": {
+        "planId": "plan:6c4c613145a2a1b3"
+      }
+    },
+    "requestedMode": "scratch",
+    "generatedBy": "scripts/build-depot-examples.mjs"
+  }
+}
