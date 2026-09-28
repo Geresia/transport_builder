@@ -79,3 +79,24 @@ export function buildStationSiteScene(site) {
     facts: factRows(site),
   };
 }
+
+// ---- surroundingSpatialData (site-design-session.mjs's SiteDesignSession input) -> local-metre shapes ----
+// Read-only background geometry the parent may attach when the pack's own basemap doesn't cover the site
+// (e.g. a station outside Tokyo's 23-ku survey coverage). Every category is optional and defaults to [].
+// Shape: { buildings?: [{id?, polygon:[[lon,lat]...], heightMeters?}], roads?: [{id?, line:[[lon,lat]...], class?}],
+//          water?: [{id?, polygon:[[lon,lat]...]}], existingRail?: [{id?, line:[[lon,lat]...]}] }
+export const SURROUNDING_DEFAULT_BUILDING_HEIGHT_METERS = 8; // nominal, used only when a building carries no height
+
+export function buildSurroundingScene(surroundingSpatialData, origin) {
+  const frame = frameAt(origin);
+  const data = surroundingSpatialData ?? {};
+  const buildings = (data.buildings ?? []).map((b, i) => ({
+    id: b.id ?? `surrounding-building-${i}`,
+    polygonXY: ringXY(b.polygon, frame),
+    heightMeters: typeof b.heightMeters === "number" && Number.isFinite(b.heightMeters) ? b.heightMeters : SURROUNDING_DEFAULT_BUILDING_HEIGHT_METERS,
+  }));
+  const roads = (data.roads ?? []).map((r, i) => ({ id: r.id ?? `surrounding-road-${i}`, lineXY: ringXY(r.line, frame), roadClass: r.class ?? null }));
+  const water = (data.water ?? []).map((w, i) => ({ id: w.id ?? `surrounding-water-${i}`, polygonXY: ringXY(w.polygon, frame) }));
+  const existingRail = (data.existingRail ?? []).map((r, i) => ({ id: r.id ?? `surrounding-rail-${i}`, lineXY: ringXY(r.line, frame) }));
+  return { buildings, roads, water, existingRail };
+}

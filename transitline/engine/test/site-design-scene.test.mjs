@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildStationSiteScene, SITE_DESIGN_SCENE_SCHEMA, SITE_DESIGN_MODEL } from "../src/map/site-design-scene.mjs";
+import { buildStationSiteScene, buildSurroundingScene, SITE_DESIGN_SCENE_SCHEMA, SITE_DESIGN_MODEL, SURROUNDING_DEFAULT_BUILDING_HEIGHT_METERS } from "../src/map/site-design-scene.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const readJson = (p) => JSON.parse(fs.readFileSync(path.join(root, p), "utf8"));
@@ -51,6 +51,34 @@ test("entrance flags carry through as the blocked flag, read-only", () => {
   assert.ok(scene.entrances.length > 0);
   for (const e of scene.entrances) assert.equal(e.blocked, e.flags.includes("building-collision") || e.flags.includes("in-water"));
   assert.ok(scene.entrances.some((e) => e.blocked));
+});
+
+test("requirement 1: buildSurroundingScene converts buildings/roads/water/existingRail to local-metre geometry, defaulting missing categories to []", () => {
+  const origin = groundSite.location;
+  const empty = buildSurroundingScene(null, origin);
+  assert.deepEqual(empty, { buildings: [], roads: [], water: [], existingRail: [] });
+
+  const [lon0, lat0] = origin;
+  const nearbySquare = (dx, dy) => [[lon0, lat0], [lon0 + dx, lat0], [lon0 + dx, lat0 + dy], [lon0, lat0 + dy]];
+  const data = {
+    buildings: [{ id: "b1", polygon: nearbySquare(0.0005, 0.0005), heightMeters: 12 }, { polygon: nearbySquare(0.0003, 0.0003) }],
+    roads: [{ id: "r1", line: [[lon0, lat0], [lon0 + 0.001, lat0]], class: "major" }],
+    water: [{ polygon: nearbySquare(0.0008, 0.0008) }],
+    existingRail: [{ line: [[lon0 - 0.001, lat0], [lon0, lat0]] }],
+  };
+  const scene = buildSurroundingScene(data, origin);
+  assert.equal(scene.buildings.length, 2);
+  assert.equal(scene.buildings[0].id, "b1");
+  assert.equal(scene.buildings[0].heightMeters, 12);
+  assert.equal(scene.buildings[1].heightMeters, SURROUNDING_DEFAULT_BUILDING_HEIGHT_METERS); // no height given -> nominal default
+  assert.equal(scene.buildings[0].polygonXY.length, 4);
+  assert.equal(scene.roads.length, 1);
+  assert.equal(scene.roads[0].roadClass, "major");
+  assert.equal(scene.roads[0].lineXY.length, 2);
+  assert.equal(scene.water.length, 1);
+  assert.equal(scene.existingRail.length, 1);
+  // local-metre coordinates: everything here is within a couple hundred metres of the origin
+  for (const b of scene.buildings) for (const [x, y] of b.polygonXY) { assert.ok(Math.abs(x) < 200); assert.ok(Math.abs(y) < 200); }
 });
 
 test("never carries a cost, duration or risk figure — this module only renders spatial facts", () => {
