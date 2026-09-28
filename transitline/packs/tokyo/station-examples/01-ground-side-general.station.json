@@ -1,0 +1,600 @@
+{
+  "schema": "transitline.station-site-geometry/1",
+  "contractVersion": 1,
+  "stationSiteId": "stn-site:c9b4ab727427cc68",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "name": "Setagaya ground station (side platforms)",
+  "coordinateReference": "EPSG:4326",
+  "location": [
+    139.63564,
+    35.63909
+  ],
+  "connectedPlanId": "plan:d085337f3df72aa5",
+  "connectedStationId": "stn:57ff38745a8ebf96",
+  "connectedSegmentIds": [
+    "seg:4e8a42d3bd4548a5"
+  ],
+  "connectionBasis": "plan-station",
+  "planStationIndex": 0,
+  "planTerminalEnd": "start",
+  "offsetFromPlanStationMeters": 0,
+  "planHints": {
+    "structure": "surface",
+    "structureBasis": "player",
+    "depthMeters": 0,
+    "platformType": "side"
+  },
+  "trackHeadingDegrees": 103.3,
+  "bodyHeadingDegrees": 103.3,
+  "bodyHeadingBasis": "alignment",
+  "bodyPolygon": [
+    [
+      139.635136,
+      35.639076
+    ],
+    [
+      139.636083,
+      35.638894
+    ],
+    [
+      139.636144,
+      35.639104
+    ],
+    [
+      139.635197,
+      35.639286
+    ]
+  ],
+  "bodyLengthMeters": 88,
+  "bodyWidthMeters": 24,
+  "bodyDimensionBasis": {
+    "length": "plan-platform-length",
+    "width": "default"
+  },
+  "bodyAreaSquareMeters": 2114.7,
+  "groundElevationMeters": 45.8,
+  "elevationRangeMeters": 1,
+  "averageSlopePercent": 0.35,
+  "maximumSlopePercent": 1.75,
+  "plannedDepthMeters": 0,
+  "plannedTrackElevationMeters": 45.8,
+  "intersectedBuildingCount": 21,
+  "waterOverlapCount": 0,
+  "roadsThroughBody": {
+    "highway": 0,
+    "major": 0,
+    "minor": 0
+  },
+  "roadsNearby": {
+    "highway": 0,
+    "major": 1,
+    "minor": 8
+  },
+  "nearestRoad": {
+    "roadClass": "minor",
+    "distanceMeters": 12.1
+  },
+  "roadWidthMeters": null,
+  "nearestExistingStation": null,
+  "nearestPlannedStation": {
+    "stationId": "stn:e64d5ed374ba5971",
+    "name": null,
+    "networkId": "plan:fecf90025bb0baa8",
+    "lineIds": [],
+    "distanceMeters": 7413.7,
+    "locationBasis": "player-placed"
+  },
+  "transferCandidates": [],
+  "entranceCandidates": [
+    {
+      "entranceId": "ent:beffffb0c2afbcfe",
+      "name": null,
+      "location": [
+        139.635696,
+        35.639282
+      ],
+      "collidingBuildingCount": 2,
+      "waterOverlapCount": 0,
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 15.5
+      },
+      "roadsideDistanceMeters": 15.5,
+      "roadside": false,
+      "landUses": [],
+      "publicLand": null,
+      "publicLandEvidence": null,
+      "distanceToBodyMeters": 10,
+      "spatialFlags": [
+        "building-collision",
+        "not-roadside"
+      ],
+      "dataQuality": "medium",
+      "unknown": [
+        "publicLand"
+      ],
+      "unknownReasons": {
+        "publicLand": "no-parcel-data"
+      }
+    },
+    {
+      "entranceId": "ent:c400078fc7afc4dd",
+      "name": null,
+      "location": [
+        139.636221,
+        35.638978
+      ],
+      "collidingBuildingCount": 1,
+      "waterOverlapCount": 0,
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 3.5
+      },
+      "roadsideDistanceMeters": 3.5,
+      "roadside": true,
+      "landUses": [],
+      "publicLand": true,
+      "publicLandEvidence": "road-edge",
+      "distanceToBodyMeters": 10,
+      "spatialFlags": [
+        "building-collision"
+      ],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "entranceId": "ent:c5000922c4afc024",
+      "name": null,
+      "location": [
+        139.635059,
+        35.639202
+      ],
+      "collidingBuildingCount": 1,
+      "waterOverlapCount": 0,
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 14.6
+      },
+      "roadsideDistanceMeters": 14.6,
+      "roadside": true,
+      "landUses": [],
+      "publicLand": null,
+      "publicLandEvidence": null,
+      "distanceToBodyMeters": 10,
+      "spatialFlags": [
+        "building-collision"
+      ],
+      "dataQuality": "medium",
+      "unknown": [
+        "publicLand"
+      ],
+      "unknownReasons": {
+        "publicLand": "no-parcel-data"
+      }
+    },
+    {
+      "entranceId": "ent:c6000ab5c5afc1b7",
+      "name": null,
+      "location": [
+        139.635584,
+        35.638898
+      ],
+      "collidingBuildingCount": 0,
+      "waterOverlapCount": 0,
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 21.9
+      },
+      "roadsideDistanceMeters": 21.9,
+      "roadside": false,
+      "landUses": [],
+      "publicLand": null,
+      "publicLandEvidence": null,
+      "distanceToBodyMeters": 10,
+      "spatialFlags": [
+        "not-roadside"
+      ],
+      "dataQuality": "medium",
+      "unknown": [
+        "publicLand"
+      ],
+      "unknownReasons": {
+        "publicLand": "no-parcel-data"
+      }
+    }
+  ],
+  "demandAccess": [
+    {
+      "demandNodeId": "ward-setagaya",
+      "name": "世田谷区",
+      "distanceMeters": 22,
+      "walkMinutes": 1,
+      "measuredFrom": "entrance",
+      "entranceId": "ent:beffffb0c2afbcfe"
+    }
+  ],
+  "workAreaCandidates": [
+    {
+      "workAreaId": "work:0934caefbc0df569",
+      "slot": "side-right",
+      "polygon": [
+        [
+          139.635318,
+          35.638764
+        ],
+        [
+          139.635748,
+          35.638681
+        ],
+        [
+          139.635825,
+          35.638944
+        ],
+        [
+          139.635394,
+          35.639026
+        ]
+      ],
+      "areaSquareMeters": 1201.7,
+      "intersectedBuildingCount": 10,
+      "waterOverlapCount": 0,
+      "roadsThrough": {
+        "highway": 0,
+        "major": 0,
+        "minor": 1
+      },
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 0
+      },
+      "nearestMajorRoad": null,
+      "averageSlopePercent": 0,
+      "maximumSlopePercent": 0,
+      "spatialFlags": [
+        "building-overlap"
+      ],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "workAreaId": "work:3f7d4a5638067e4c",
+      "slot": "end-backward",
+      "polygon": [
+        [
+          139.634698,
+          35.639132
+        ],
+        [
+          139.635129,
+          35.63905
+        ],
+        [
+          139.635205,
+          35.639312
+        ],
+        [
+          139.634775,
+          35.639395
+        ]
+      ],
+      "areaSquareMeters": 1201.7,
+      "intersectedBuildingCount": 17,
+      "waterOverlapCount": 0,
+      "roadsThrough": {
+        "highway": 0,
+        "major": 0,
+        "minor": 3
+      },
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 0
+      },
+      "nearestMajorRoad": {
+        "roadClass": "major",
+        "distanceMeters": 44.8
+      },
+      "averageSlopePercent": 0,
+      "maximumSlopePercent": 0,
+      "spatialFlags": [
+        "building-overlap"
+      ],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "workAreaId": "work:65ee64a845460f32",
+      "slot": "end-forward",
+      "polygon": [
+        [
+          139.636075,
+          35.638868
+        ],
+        [
+          139.636505,
+          35.638785
+        ],
+        [
+          139.636582,
+          35.639048
+        ],
+        [
+          139.636151,
+          35.63913
+        ]
+      ],
+      "areaSquareMeters": 1201.7,
+      "intersectedBuildingCount": 11,
+      "waterOverlapCount": 0,
+      "roadsThrough": {
+        "highway": 0,
+        "major": 0,
+        "minor": 1
+      },
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 0
+      },
+      "nearestMajorRoad": null,
+      "averageSlopePercent": 0.44,
+      "maximumSlopePercent": 1.75,
+      "spatialFlags": [
+        "building-overlap"
+      ],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "workAreaId": "work:89a38b825898f01c",
+      "slot": "side-left",
+      "polygon": [
+        [
+          139.635455,
+          35.639236
+        ],
+        [
+          139.635886,
+          35.639154
+        ],
+        [
+          139.635962,
+          35.639416
+        ],
+        [
+          139.635532,
+          35.639499
+        ]
+      ],
+      "areaSquareMeters": 1201.7,
+      "intersectedBuildingCount": 9,
+      "waterOverlapCount": 0,
+      "roadsThrough": {
+        "highway": 0,
+        "major": 0,
+        "minor": 1
+      },
+      "nearestRoad": {
+        "roadClass": "minor",
+        "distanceMeters": 0
+      },
+      "nearestMajorRoad": {
+        "roadClass": "major",
+        "distanceMeters": 40.1
+      },
+      "averageSlopePercent": 1.75,
+      "maximumSlopePercent": 1.75,
+      "spatialFlags": [
+        "building-overlap"
+      ],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "extensionSpace": [
+    {
+      "end": "forward",
+      "probeLengthMeters": 400,
+      "freeLengthMeters": 0,
+      "blockedBy": "building",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "end": "backward",
+      "probeLengthMeters": 400,
+      "freeLengthMeters": 0,
+      "blockedBy": "building",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "spatialFlags": [
+    "body-building-overlap",
+    "no-clear-work-area"
+  ],
+  "model": {
+    "defaultBody": {
+      "lengthMeters": 160,
+      "widthMeters": 24
+    },
+    "entranceFootprintMeters": 6,
+    "roadsideThresholdMeters": 15,
+    "roadEdgeMeters": 5,
+    "roadSearchRadiusMeters": 60,
+    "transferRadiusMeters": 500,
+    "access": {
+      "radiusMeters": 800,
+      "maxNodes": 8,
+      "detourFactor": 1.3,
+      "walkMetersPerMinute": 80,
+      "minMinutes": 1
+    },
+    "workArea": {
+      "alongMeters": 40,
+      "acrossMeters": 30
+    },
+    "extensionProbe": {
+      "lengthMeters": 400,
+      "stepMeters": 10
+    },
+    "steepSitePercent": 3
+  },
+  "dataQuality": "medium",
+  "unknown": [
+    "roadWidthMeters"
+  ],
+  "unknownReasons": {
+    "roadWidthMeters": "no-attribute"
+  },
+  "unknownSummary": [
+    "entranceCandidates[].publicLand",
+    "roadWidthMeters"
+  ],
+  "constraintUnknown": [
+    "groundwater",
+    "soft-ground",
+    "utilities"
+  ],
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "国土地理院 数値標高モデル DEM10B (dem_png z14), 31 m mean grid",
+      "license": "GSI terms of use (credit: 国土地理院)"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json",
+      "license": "MLIT-KSJ-terms"
+    },
+    {
+      "layer": "roads",
+      "quality": "high",
+      "name": "OpenStreetMap roads (23 wards), subway-builder-export/roads.all.geojson",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "high",
+      "name": "OpenStreetMap building footprints (23 wards), packs/tokyo/tokyo-buildings.pmtiles z14",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "residential",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse=residential, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "landuse",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse / leisure / amenity areas, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "railFacilities",
+      "quality": "high",
+      "license": "ODbL-1.0",
+      "name": "OpenStreetMap landuse=railway, packs/tokyo/areas.pmtiles z14"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "source": {
+    "drawnStation": {
+      "key": "example:tokyo:station-ground-side",
+      "name": "Setagaya ground station (side platforms)",
+      "location": null,
+      "connect": {
+        "planId": "plan:d085337f3df72aa5",
+        "stationId": "stn:57ff38745a8ebf96"
+      },
+      "headingDegrees": null,
+      "lengthMeters": null,
+      "widthMeters": null,
+      "entrances": [
+        {
+          "key": "entrance-1",
+          "name": null,
+          "location": [
+            139.63622087294286,
+            35.63897840562515
+          ]
+        },
+        {
+          "key": "entrance-2",
+          "name": null,
+          "location": [
+            139.63505912705713,
+            35.63920159437485
+          ]
+        },
+        {
+          "key": "entrance-3",
+          "name": null,
+          "location": [
+            139.635584057852,
+            35.63889767215953
+          ]
+        },
+        {
+          "key": "entrance-4",
+          "name": null,
+          "location": [
+            139.635695942148,
+            35.639282327840476
+          ]
+        }
+      ],
+      "transfers": [],
+      "workAreas": [],
+      "entranceSeq": 4,
+      "deleted": false
+    },
+    "requestedMode": "scratch",
+    "layers": {
+      "kind": "tokyo-pack-layers",
+      "layers": [
+        "dem",
+        "water",
+        "roads",
+        "buildings",
+        "landuse"
+      ]
+    },
+    "generatedBy": "scripts/build-station-examples.mjs"
+  }
+}

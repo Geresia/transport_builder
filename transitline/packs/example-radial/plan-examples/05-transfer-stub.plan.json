@@ -1,0 +1,200 @@
+{
+  "schema": "transitline.plan-geometry/1",
+  "planId": "plan:92c8983ba0999f9d",
+  "name": "Short stub line beside the CBD (transfer target)",
+  "coordinateReference": "EPSG:4326",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "mode": "scratch",
+  "stationCandidates": [
+    {
+      "id": "stn:40c9079e948a41dc",
+      "location": [
+        0.003,
+        0.0012
+      ],
+      "name": null,
+      "nameSource": null,
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": "side",
+      "groundElevationMeters": null,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "name",
+        "groundElevationMeters"
+      ],
+      "unknownReasons": {
+        "name": "not-provided",
+        "groundElevationMeters": "no-layer"
+      },
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ],
+      "platformLengthM": 88
+    },
+    {
+      "id": "stn:ae68362f35f834a5",
+      "location": [
+        0.009,
+        0.004
+      ],
+      "name": null,
+      "nameSource": null,
+      "structure": "elevated",
+      "structureBasis": "inferred:adjacent-segment",
+      "depthMeters": 0,
+      "platformType": "side",
+      "groundElevationMeters": null,
+      "transferTargets": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "name",
+        "groundElevationMeters"
+      ],
+      "unknownReasons": {
+        "name": "not-provided",
+        "groundElevationMeters": "no-layer"
+      },
+      "inferred": [
+        "depthMeters",
+        "structure"
+      ],
+      "platformLengthM": 88
+    }
+  ],
+  "segments": [
+    {
+      "id": "seg:f1a5c5979278da51",
+      "from": "stn:40c9079e948a41dc",
+      "to": "stn:ae68362f35f834a5",
+      "lengthMeters": 736.2,
+      "lengthBasis": "geodesic along the drawn alignment (station-to-station unless waypoints were drawn)",
+      "elevationStartMeters": null,
+      "elevationEndMeters": null,
+      "gradientPermille": null,
+      "maxSlopeDegrees": null,
+      "steepShare": null,
+      "minCurveRadiusMeters": 100000,
+      "structureHint": "elevated",
+      "structureHintBasis": "default:no-building-data",
+      "constraintFlags": [],
+      "constraintUnknown": [
+        "groundwater",
+        "soft-ground"
+      ],
+      "crossings": {
+        "river": null,
+        "road": null,
+        "railway": 0,
+        "building": null,
+        "utility": null
+      },
+      "alignment": [
+        [
+          0.003,
+          0.0012
+        ],
+        [
+          0.009,
+          0.004
+        ]
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "elevationStartMeters",
+        "elevationEndMeters",
+        "maxSlopeDegrees",
+        "steepShare",
+        "crossings.river",
+        "crossings.road",
+        "crossings.building"
+      ],
+      "unknownReasons": {
+        "elevationStartMeters": "no-layer",
+        "elevationEndMeters": "no-layer",
+        "maxSlopeDegrees": "no-layer",
+        "steepShare": "no-layer",
+        "crossings.river": "no-layer",
+        "crossings.road": "no-layer",
+        "crossings.building": "no-layer"
+      },
+      "inferred": [
+        "structureHint"
+      ]
+    }
+  ],
+  "accessLinks": [
+    {
+      "id": "acc:d87b04990745d50b",
+      "demandNodeId": "cbd",
+      "stationId": "stn:40c9079e948a41dc",
+      "walkMinutes": 5.8,
+      "distanceMeters": 359.3
+    }
+  ],
+  "accessModel": {
+    "radiusMeters": 800,
+    "maxLinks": 3,
+    "detourFactor": 1.3,
+    "walkMetersPerMinute": 80,
+    "minMinutes": 1,
+    "basis": "straight-line distance x detour factor / walking speed, at least minMinutes"
+  },
+  "dataQuality": "low",
+  "unknownSummary": [
+    "crossings.building",
+    "crossings.river",
+    "crossings.road",
+    "elevationEndMeters",
+    "elevationStartMeters",
+    "groundElevationMeters",
+    "maxSlopeDegrees",
+    "name",
+    "steepShare"
+  ],
+  "warnings": [],
+  "sources": {
+    "pack": {
+      "license": "CC0-1.0",
+      "attribution": []
+    },
+    "layers": [
+      {
+        "layer": "rail",
+        "quality": "low",
+        "name": "ExternalNetwork (station-level, coarse)",
+        "license": "same as the pack it was derived from"
+      }
+    ]
+  },
+  "source": {
+    "drawnLine": {
+      "key": "example:radial:transfer-stub",
+      "name": "Short stub line beside the CBD (transfer target)",
+      "vertices": [
+        {
+          "location": [
+            0.003,
+            0.0012
+          ],
+          "platformType": "side",
+          "platformLengthM": 88
+        },
+        {
+          "location": [
+            0.009,
+            0.004
+          ],
+          "platformType": "side",
+          "platformLengthM": 88
+        }
+      ]
+    },
+    "requestedMode": "scratch",
+    "generatedBy": "scripts/build-plan-examples.mjs"
+  }
+}
