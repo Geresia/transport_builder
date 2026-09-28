@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>도쿄 현장 설계 편집기 (3D)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #c9e0f5; }
+  #map { position: absolute; inset: 0; }
+  .panel {
+    position: absolute; z-index: 2; font: 13px/1.5 "Inter", system-ui, "Malgun Gothic", sans-serif; color: #2b2f33;
+    background: rgba(255,255,255,.92); padding: 10px 14px; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.25);
+  }
+  #hud { left: 12px; top: 12px; max-width: 320px; }
+  #hud b { color: #1a5fb4; }
+  #hud .warn { color: #b45f1a; }
+  #hud .note { font-size: 11px; color: #777; margin: 2px 0 8px; }
+  #hud select { width: 100%; margin: 4px 0 8px; font: inherit; }
+  #hud .row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  #hud button { font: inherit; padding: 4px 8px; border: 1px solid #b6bac2; border-radius: 5px; background: #fff; cursor: pointer; }
+  #hud button.active { background: #1a5fb4; color: #fff; border-color: #1a5fb4; }
+  #hud button:disabled { opacity: .4; cursor: not-allowed; }
+  #hud .legend { font-size: 11px; color: #555; margin-top: 6px; }
+  #hud .legend span { display: inline-block; width: 9px; height: 9px; margin-right: 4px; border-radius: 2px; vertical-align: middle; }
+  #status-banner { position: absolute; left: 12px; right: 12px; top: 0; z-index: 5; display: none; }
+  #status-banner .msg {
+    margin: 10px auto 0; max-width: 760px; padding: 8px 14px; border-radius: 8px; font: 13px/1.4 "Inter", system-ui, "Malgun Gothic", sans-serif;
+    box-shadow: 0 1px 6px rgba(0,0,0,.3); display: flex; justify-content: space-between; gap: 10px; align-items: center;
+  }
+  #status-banner .msg.info { background: #e7f1ff; color: #14477a; }
+  #status-banner .msg.warn { background: #fff2df; color: #7a4a10; }
+  #status-banner .msg.error { background: #fde3e3; color: #7a1414; }
+  #status-banner button { border: none; background: transparent; cursor: pointer; font-weight: bold; }
+  #detail { right: 12px; top: 12px; bottom: 12px; width: 320px; overflow-y: auto; }
+  #detail .section-label { font-weight: bold; color: #1a5fb4; margin-bottom: 4px; }
+  #detail table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  #detail th { text-align: left; font-weight: normal; color: #666; padding: 2px 6px 2px 0; white-space: nowrap; vertical-align: top; }
+  #detail td { text-align: right; padding: 2px 0; }
+  #detail td.missing { color: #b45f1a; }
+  #detail .diag.warning { color: #b45f1a; font-size: 12px; margin: 2px 0; }
+  #detail .empty { color: #888; }
+  #selection { border-top: 1px solid #d8dae0; padding-top: 8px; margin-top: 4px; }
+  .edit-box { border: 1px dashed #b6bac2; border-radius: 6px; padding: 8px; margin-top: 8px; }
+  .edit-box h4 { margin: 0 0 6px; font-size: 12px; color: #1a5fb4; }
+  .edit-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .edit-row label { flex: 0 0 64px; color: #555; font-size: 12px; }
+  .edit-row input[type="number"] { width: 80px; font: inherit; padding: 2px 4px; }
+  .edit-row input[type="checkbox"] { margin: 0; }
+  .collision-text.unknown { color: #8c93a4; }
+  .collision-text.clear { color: #2fbf71; }
+  .collision-text.blocked { color: #e5484d; font-weight: bold; }
+  #action-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 3; display: flex; gap: 8px; }
+  #action-bar button { font: 13px/1.4 "Inter", system-ui, sans-serif; padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; box-shadow: 0 1px 6px rgba(0,0,0,.3); }
+  #btn-apply { background: #1a5fb4; color: #fff; }
+  #btn-cancel { background: #fff; color: #7a1414; }
+  #action-bar button:disabled { opacity: .4; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="status-banner"></div>
+<div id="hud" class="panel">
+  <div><b>도쿄 현장 설계 편집기 (3D)</b></div>
+  <div id="hud-connection" class="note">대기 중…</div>
+  <div class="row">
+    <button id="mode-walk">걷기 (WASD)</button>
+    <button id="mode-free">자유 카메라</button>
+    <button id="mode-xray">X-ray (지표 투명화)</button>
+  </div>
+  <div class="note">※ &ldquo;걷기&rdquo;는 지도 카메라 중심을 수평 이동할 뿐입니다 — 충돌·경사·계단 등
+    실제 보행 물리는 없습니다(walk.html과 같은 한계). &ldquo;자유 카메라&rdquo;는 마우스로 각도·줌을
+    자유롭게 조작합니다.</div>
+  <div>데모 예제 (부모 세션이 없을 때의 폴백)
+    <select id="site-select"></select>
+  </div>
+  <div id="hud-status" class="warn">불러오는 중…</div>
+  <div class="row"><button id="copy-link">이 뷰 링크 복사</button></div>
+  <div class="legend">
+    <div><span style="background:#4895ef"></span>역 본체·승강장(원본/미편집) &nbsp; <span style="background:#f4c430"></span>편집됨(충돌 미확인)</div>
+    <div><span style="background:#2fbf71"></span>충돌 없음 확인됨 &nbsp; <span style="background:#e5484d"></span>충돌 있음</div>
+    <div><span style="background:#ff9f1c"></span>작업구 후보(참고용, 편집 불가)</div>
+  </div>
+</div>
+<div id="detail" class="panel">
+  <div id="summary"><div class="empty">불러오는 중…</div></div>
+  <div id="selection"><div class="empty">구조물을 클릭하면 정보가 표시됩니다.</div></div>
+</div>
+<div id="action-bar">
+  <button id="btn-cancel" disabled>취소(원래 형상으로 복원)</button>
+  <button id="btn-apply" disabled>적용(편집 결과 전송)</button>
+</div>
+<script>
+  window.__mapLibreFailed = false;
+  window.__pmtilesFailed = false;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js" onerror="window.__mapLibreFailed = true"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@3/dist/pmtiles.js" onerror="window.__pmtilesFailed = true"></script>
+<script type="module">
+// 3D 현장 설계 편집기 — 2단계(편집 세션).
+//
+// 경계: engine/src/main.mjs·state.mjs·render.mjs·engine/index.html·engine/style.css는 건드리지 않는다
+// (메인 화면 연결은 다른 세션의 몫). engine/src/management/**·construction-workfront-*도 건드리지 않는다.
+// 건물 충돌은 여기서 새로 계산하지 않는다 — postMessage로 부모에게 재확인을 요청하고, 돌아온 결과를
+// 색으로만 표시한다(engine/src/map/site-design-session.mjs의 buildCollisionRequest/applyCollisionResult).
+// 비용·기간·위험·현금 계산은 어디에도 없다.
+//
+// 통신 계약 (자세한 필드는 docs/site-design-mvp-2026-09-28.md §7):
+//   부모→편집기: transitline.site-design-session/1, transitline.site-design-collision-result/1
+//   편집기→부모: transitline.site-design-ready/1, transitline.site-design-edit/1, transitline.site-design-collision-request/1
+//
+// station-examples 드롭다운은 부모 세션이 없을 때만 쓰는 데모 폴백이다 (요구사항 1).
+import { buildStationSiteScene } from "../../engine/src/map/site-design-scene.mjs";
+import { FLAG_LABELS, ENTRANCE_FLAG_LABELS, REASON_LABELS } from "../../engine/src/map/station-view.mjs";
+import {
+  SITE_DESIGN_SESSION_SCHEMA, SITE_DESIGN_COLLISION_RESULT_SCHEMA, SITE_DESIGN_READY_SCHEMA,
+  parseSiteDesignSession, createDraft, resetDraft,
+  moveBodyTo, rotateBodyTo, resizeBody, setBodyDepth, moveEntrance,
+  draftIsEdited, buildSiteDesignEdit, buildCollisionRequest, applyCollisionResult,
+  bodyElevationInfo, sceneFromDraft,
+} from "../../engine/src/map/site-design-session.mjs";
+
+const VIEW_STATE_SCHEMA = "transitline.site-design-view/1";
+const STORAGE_KEY = "transitline.site-design.view";
+const FILES = [
+  "01-ground-side-general.station.json",
+  "02-elevated-island-general.station.json",
+  "03-shallow-cut-cover.station.json",
+  "04-deep-station.station.json",
+  "05-existing-transfer.station.json",
+  "06-terminal-turnback.station.json",
+  "07-blocked-entrances.station.json",
+  "08-partial-layers.station.json",
+];
+const COLORS = { body: 0x4895ef, good: 0x2fbf71, bad: 0xe5484d, work: 0xff9f1c, editedUnknown: 0xf4c430 };
+const LABEL_OF = { body: "역 본체 · 승강장", entrance: "출입구", workArea: "작업구 후보" };
+const MOVE_M_PER_SEC = 22;
+const START = { lng: 139.63564, lat: 35.63909, zoom: 17.6, bearing: 20 };
+const DEMO_WAIT_MS = 1500; // how long we wait for a parent session before falling back to the demo dropdown
+const TARGET_ORIGIN = new URLSearchParams(location.search).get("targetOrigin") ?? "*";
+
+// ---- fatal/визible error banner (also used for "CDN 실패", "잘못된 세션 메시지 없음" per the boundary rules) ----
+const bannerEl = document.getElementById("status-banner");
+function showBanner(text, tone = "info", { sticky = false } = {}) {
+  bannerEl.style.display = "block";
+  const msg = document.createElement("div");
+  msg.className = `msg ${tone}`;
+  const span = document.createElement("span");
+  span.textContent = text;
+  msg.append(span);
+  if (!sticky) {
+    const close = document.createElement("button");
+    close.textContent = "×";
+    close.addEventListener("click", () => msg.remove());
+    msg.append(close);
+  }
+  bannerEl.append(msg);
+  return msg;
+}
+function fatalError(text) {
+  showBanner(text, "error", { sticky: true });
+  document.getElementById("hud-status").textContent = "오류로 중단됨";
+}
+
+if (window.__mapLibreFailed || typeof maplibregl === "undefined") { fatalError("지도 엔진(MapLibre GL JS)을 CDN에서 불러오지 못했습니다. 네트워크 연결을 확인하고 새로고침하세요."); throw new Error("maplibre-gl failed to load"); }
+if (window.__pmtilesFailed || typeof pmtiles === "undefined") { fatalError("타일 로더(PMTiles)를 CDN에서 불러오지 못했습니다. 네트워크 연결을 확인하고 새로고침하세요."); throw new Error("pmtiles failed to load"); }
+maplibregl.addProtocol("pmtiles", new pmtiles.Protocol().tile);
+
+let THREE;
+try {
+  THREE = await import("https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js");
+} catch (err) {
+  fatalError("3D 엔진(three.js)을 CDN에서 불러오지 못했습니다. 네트워크 연결을 확인하고 새로고침하세요.");
+  throw err;
+}
+
+const THEME = { // walk.html의 팔레트를 그대로 복사 (두 파일이 같은 색을 쓰게)
+  bg: "#c9e0f5", earth: "#f6f5f1", water: "#c3dcf3", river: "#a9cdee",
+  landuse: { forest: "#d3e9c4", farm: "#eef0d6", grass: "#deeeca", park: "#d5eac6", wetland: "#d1e7e0", sand: "#f2ead0", school: "#e8ecdc", hospital: "#f5e6e6", industrial: "#ebe9ef", other: "#efeee9" },
+  road: { minor: "#ffffff", medium: "#fff6cf", major: "#fbd75e", highway: "#f5a04a", rail: "#9b5fc0", case: "#dedad0" },
+  bldg: "#ffffff", bldgLine: "#cdc8bd", bldgOp: 0.98,
+};
+const road = (kind) => ["all", ["==", ["get", "kind"], kind], ["!=", ["get", "is_tunnel"], true]];
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: {
+    version: 8,
+    glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    sources: {
+      basemap: { type: "vector", url: "pmtiles://" + new URL("./basemap.pmtiles", location.href).href,
+        attribution: "&copy; OpenStreetMap contributors, ODbL &middot; Protomaps" },
+      bldg23: { type: "vector", url: "pmtiles://" + new URL("./tokyo-survey-buildings.pmtiles", location.href).href,
+        attribution: "東京都 令和3年度 区部土地利用現況調査 (CC BY 4.0)" },
+    },
+    layers: [
+      { id: "bg", type: "background", paint: { "background-color": THEME.bg } },
+      { id: "bm-earth", source: "basemap", "source-layer": "earth", type: "fill", paint: { "fill-color": THEME.earth } },
+      { id: "bm-landuse", source: "basemap", "source-layer": "landuse", type: "fill",
+        filter: ["in", ["get", "kind"], ["literal", ["forest", "wood", "nature_reserve", "farmland", "allotments", "grass", "grassland", "scrub", "meadow", "park", "garden", "recreation_ground", "golf_course", "wetland", "sand", "cemetery", "school", "college", "university", "hospital", "industrial", "military"]]],
+        paint: { "fill-color": ["match", ["get", "kind"],
+          ["forest", "wood", "nature_reserve"], THEME.landuse.forest,
+          ["farmland", "allotments"], THEME.landuse.farm,
+          ["grass", "grassland", "scrub", "meadow"], THEME.landuse.grass,
+          ["park", "garden", "recreation_ground", "golf_course"], THEME.landuse.park,
+          "wetland", THEME.landuse.wetland,
+          "sand", THEME.landuse.sand,
+          ["school", "college", "university", "military"], THEME.landuse.school,
+          "hospital", THEME.landuse.hospital,
+          "industrial", THEME.landuse.industrial,
+          THEME.landuse.other] } },
+      { id: "bm-water", source: "basemap", "source-layer": "water", type: "fill", paint: { "fill-color": THEME.water } },
+      { id: "bm-river", source: "basemap", "source-layer": "water", type: "line",
+        filter: ["==", ["geometry-type"], "LineString"], paint: { "line-color": THEME.river, "line-width": 1.2 } },
+      { id: "bm-road-case", source: "basemap", "source-layer": "roads", type: "line",
+        filter: ["in", ["get", "kind"], ["literal", ["minor_road", "medium_road"]]],
+        paint: { "line-color": THEME.road.case, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1, 18, 7] } },
+      { id: "bm-road-minor", source: "basemap", "source-layer": "roads", type: "line",
+        filter: road("minor_road"), paint: { "line-color": THEME.road.minor, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.6, 18, 5] } },
+      { id: "bm-road-medium", source: "basemap", "source-layer": "roads", type: "line",
+        filter: road("medium_road"), paint: { "line-color": THEME.road.medium, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.8, 18, 6] } },
+      { id: "bm-road-major", source: "basemap", "source-layer": "roads", type: "line",
+        filter: road("major_road"), paint: { "line-color": THEME.road.major, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1.2, 18, 8] } },
+      { id: "bm-road-highway", source: "basemap", "source-layer": "roads", type: "line",
+        filter: road("highway"), paint: { "line-color": THEME.road.highway, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1.6, 18, 10] } },
+      { id: "bm-rail", source: "basemap", "source-layer": "roads", type: "line",
+        filter: ["all", ["==", ["get", "kind"], "rail"], ["!=", ["get", "kind_detail"], "light_rail"]],
+        paint: { "line-color": THEME.road.rail, "line-width": 2, "line-opacity": 0.85 } },
+      { id: "bldg-flat", source: "bldg23", "source-layer": "building", type: "fill", maxzoom: 15,
+        paint: { "fill-color": THEME.bldg, "fill-opacity": THEME.bldgOp } },
+      { id: "bldg-line", source: "bldg23", "source-layer": "building", type: "line",
+        paint: { "line-color": THEME.bldgLine, "line-width": 0.6 } },
+      { id: "bldg-3d", source: "bldg23", "source-layer": "building", type: "fill-extrusion", minzoom: 14,
+        paint: {
+          "fill-extrusion-color": THEME.bldg,
+          "fill-extrusion-opacity": THEME.bldgOp,
+          "fill-extrusion-height": ["case", [">", ["to-number", ["coalesce", ["get", "levels"], 0]], 0],
+            ["*", ["to-number", ["get", "levels"]], 3.2], 6.4],
+          "fill-extrusion-base": 0,
+        } },
+    ],
+  },
+  center: [START.lng, START.lat],
+  zoom: START.zoom,
+  pitch: 78,
+  bearing: START.bearing,
+  maxPitch: 85,
+  antialias: true,
+});
+window.__map = map; // TEMP DEBUG — removed before finishing
+
+const hud = document.getElementById("hud-status");
+const connectionEl = document.getElementById("hud-connection");
+map.on("error", (e) => (hud.textContent = "로드 오류: " + (e?.error?.message ?? e)));
+
+// ---- base64url helpers for the view-state URL hash (Korean/Japanese names -> UTF-8 safe) ----
+const b64urlEncode = (str) => btoa(unescape(encodeURIComponent(str))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+function b64urlDecode(b64url) {
+  let b64 = b64url.replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4) b64 += "=";
+  return decodeURIComponent(escape(atob(b64)));
+}
+function readHashState() {
+  if (!location.hash.startsWith("#v=")) return null;
+  try { return JSON.parse(b64urlDecode(location.hash.slice(3))); } catch { return null; }
+}
+function readStoredState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+}
+
+// ---- postMessage: to the parent (ready handshake, edit result, collision-check requests) ----
+function postToParent(msg) {
+  if (window.parent === window) return; // opened standalone (not embedded) — nothing to post to
+  try { window.parent.postMessage(msg, TARGET_ORIGIN); } catch { /* parent gone / origin mismatch — nothing we can do */ }
+}
+postToParent({ schema: SITE_DESIGN_READY_SCHEMA });
+
+// ---- Three.js scene, hosted inside a MapLibre custom layer (official maplibre+three.js integration recipe) ----
+// Local scene axes: X = east metres, Y = south metres (-north), Z = up metres, all centred on the current
+// site's location — matches engine/src/map/local-geometry.mjs's frameAt() convention (x=east, y=north),
+// just mirrored on Y so it lines up with MapLibre's mercator Y (grows south).
+let camera = null, scene = null, renderer = null, modelTransform = null;
+const siteGroup = new THREE.Group();
+const pickable = [];
+let bodyMesh = null;
+const entranceMeshes = new Map(); // entranceId -> mesh
+
+function computeModelTransform([lng, lat]) {
+  const m = maplibregl.MercatorCoordinate.fromLngLat({ lng, lat }, 0);
+  return { x: m.x, y: m.y, z: m.z, scale: m.meterInMercatorCoordinateUnits() };
+}
+function clearSiteGroup() {
+  for (const child of [...siteGroup.children]) { siteGroup.remove(child); child.geometry?.dispose?.(); child.material?.dispose?.(); }
+  pickable.length = 0;
+  bodyMesh = null;
+  entranceMeshes.clear();
+}
+function polygonShape(polygonXY) {
+  const shape = new THREE.Shape();
+  polygonXY.forEach(([e, n], i) => (i ? shape.lineTo(e, -n) : shape.moveTo(e, -n)));
+  return shape;
+}
+function addExtrudedPolygon(polygonXY, baseZ, height, color, opacity, userData) {
+  const geom = new THREE.ExtrudeGeometry(polygonShape(polygonXY), { depth: Math.max(height, 0.1), bevelEnabled: false });
+  const mesh = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({ color, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false }));
+  mesh.position.z = baseZ;
+  mesh.userData = userData;
+  siteGroup.add(mesh);
+  pickable.push(mesh);
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geom), new THREE.LineBasicMaterial({ color: 0x111318 }));
+  edges.position.z = baseZ;
+  siteGroup.add(edges);
+  return mesh;
+}
+function addBoxAt([e, n], baseZ, size, height, color, opacity, userData) {
+  const geom = new THREE.BoxGeometry(size, size, Math.max(height, 0.1));
+  geom.translate(0, 0, Math.max(height, 0.1) / 2);
+  const mesh = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false }));
+  mesh.position.set(e, -n, baseZ);
+  mesh.userData = userData;
+  siteGroup.add(mesh);
+  pickable.push(mesh);
+  return mesh;
+}
+// 단면/깊이 표시: 본체 중심에서 지표(z=0)까지 점선. 깊이·고도 숫자는 HUD 패널이 정확한 값을 낸다 —
+// 이 막대는 "지상과 얼마나 떨어져 있는지" 한눈에 보이게 하는 시각 보조일 뿐이다.
+function addDepthRod(body) {
+  if (!body || body.depthMeters === 0) return;
+  const cx = body.polygonXY.reduce((s, p) => s + p[0], 0) / body.polygonXY.length;
+  const cy = body.polygonXY.reduce((s, p) => s + p[1], 0) / body.polygonXY.length;
+  const geom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(cx, -cy, 0), new THREE.Vector3(cx, -cy, body.baseZMeters)]);
+  const mat = new THREE.LineDashedMaterial({ color: 0x1a5fb4, dashSize: 2, gapSize: 1.2 });
+  const line = new THREE.Line(geom, mat);
+  line.computeLineDistances();
+  siteGroup.add(line);
+}
+// X-ray 모드에서 지표 아래(또는 위) 구조물이 실측 건물에 가려지지 않도록 depthTest를 끄고 맨 위에 그린다.
+function applyXrayState() {
+  const dt = !xrayMode;
+  for (const m of [bodyMesh, ...entranceMeshes.values()]) {
+    if (!m) continue;
+    m.material.depthTest = dt;
+    m.renderOrder = xrayMode ? 999 : 0;
+  }
+  const bldgOpacity = xrayMode ? 0.12 : THEME.bldgOp;
+  const earthOpacity = xrayMode ? 0.35 : 1;
+  if (map.getLayer("bldg-3d")) map.setPaintProperty("bldg-3d", "fill-extrusion-opacity", bldgOpacity);
+  if (map.getLayer("bldg-flat")) map.setPaintProperty("bldg-flat", "fill-opacity", bldgOpacity);
+  if (map.getLayer("bm-earth")) map.setPaintProperty("bm-earth", "fill-opacity", earthOpacity);
+  if (map.getLayer("bm-landuse")) map.setPaintProperty("bm-landuse", "fill-opacity", earthOpacity);
+}
+function colorForBody(body) {
+  if (body.collision === true) return COLORS.bad;
+  if (body.collision === false) return COLORS.good;
+  if (body.edited) return COLORS.editedUnknown;
+  return COLORS.body;
+}
+function colorForEntrance(e) {
+  if (e.blocked === true) return COLORS.bad;
+  if (e.blocked === false) return COLORS.good;
+  return COLORS.editedUnknown; // null: moved-and-not-yet-rechecked
+}
+function buildMeshesFor(sceneData) {
+  clearSiteGroup();
+  if (sceneData.body) {
+    bodyMesh = addExtrudedPolygon(sceneData.body.polygonXY, sceneData.body.baseZMeters, sceneData.body.heightMeters, colorForBody(sceneData.body), 0.45, { kind: "body", id: sceneData.stationSiteId, data: sceneData.body });
+    addDepthRod(sceneData.body);
+  }
+  for (const e of sceneData.entrances) {
+    const mesh = addBoxAt(e.xy, e.baseZMeters, e.footprintMeters ?? 6, e.heightMeters, colorForEntrance(e), 0.6, { kind: "entrance", id: e.id, data: e });
+    entranceMeshes.set(e.id, mesh);
+  }
+  for (const w of sceneData.workAreas) addExtrudedPolygon(w.polygonXY, w.baseZMeters, w.heightMeters, w.blocked ? COLORS.bad : COLORS.work, 0.3, { kind: "workArea", id: w.id, data: w });
+  applyXrayState();
+}
+
+const customLayer = {
+  id: "site-3d",
+  type: "custom",
+  renderingMode: "3d",
+  onAdd(_map, gl) {
+    camera = new THREE.PerspectiveCamera();
+    scene = new THREE.Scene();
+    scene.add(new THREE.AmbientLight(0xffffff, 1));
+    scene.add(siteGroup);
+    renderer = new THREE.WebGLRenderer({ canvas: map.getCanvas(), context: gl, antialias: true });
+    renderer.autoClear = false;
+  },
+  render(gl, args) {
+    if (!modelTransform) return;
+    // MapLibre >= 4 passes a CustomRenderMethodInput object (modelViewProjectionMatrix/projectionMatrix/…),
+    // not the flat 16-number array the older custom-layer API used — accept both shapes.
+    const matrixArray = Array.isArray(args) || ArrayBuffer.isView(args) ? args : args.modelViewProjectionMatrix;
+    const m = new THREE.Matrix4().fromArray(matrixArray);
+    const l = new THREE.Matrix4()
+      .makeTranslation(modelTransform.x, modelTransform.y, modelTransform.z)
+      .scale(new THREE.Vector3(modelTransform.scale, modelTransform.scale, modelTransform.scale));
+    camera.projectionMatrix = m.multiply(l);
+    camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+    renderer.resetState();
+    renderer.render(scene, camera);
+    map.triggerRepaint();
+  },
+};
+
+// ================= 편집 세션 상태 =================
+let session = null;   // parseSiteDesignSession()의 결과
+let baseScene = null; // buildStationSiteScene(session.stationSite) — 원본, 절대 안 바뀜
+let draft = null;     // createDraft(session) — 유일하게 바뀌는 상태
+let demoMode = true;
+let xrayMode = false;
+let requestCounter = 0;
+let lastRequestId = null;
+let interactionMode = null; // null | "move-body" | "move-entrance"
+let dragMoved = false;
+
+function currentDraftScene() { return draft && baseScene ? sceneFromDraft(draft, baseScene) : null; }
+
+function requestCollisionCheck() {
+  if (!draft) return;
+  requestCounter += 1;
+  lastRequestId = `req-${requestCounter}`;
+  postToParent(buildCollisionRequest(draft, lastRequestId));
+}
+function rerender() {
+  const sceneData = currentDraftScene();
+  if (!sceneData) return;
+  buildMeshesFor(sceneData);
+  renderSummary(baseScene);
+  renderSelection();
+}
+function commitEdit() {
+  rerender();
+  requestCollisionCheck();
+  updateActionButtons();
+  persist();
+}
+
+// ================= 세션 시작(부모 메시지 또는 데모) =================
+function beginSession(parsedSession, isDemo) {
+  session = parsedSession;
+  baseScene = buildStationSiteScene(session.stationSite);
+  draft = createDraft(session);
+  demoMode = isDemo;
+  document.getElementById("site-select").disabled = false;
+  connectionEl.textContent = isDemo ? "데모 모드 (부모 세션 없음)" : `부모 세션 연결됨 · sessionId=${session.sessionId}`;
+  modelTransform = computeModelTransform(baseScene.origin);
+  const view = !isDemo && session.initialView ? session.initialView : null;
+  if (view?.center) map.jumpTo({ center: view.center, zoom: view.zoom ?? map.getZoom(), bearing: view.bearing ?? map.getBearing(), pitch: view.pitch ?? map.getPitch() });
+  else map.jumpTo({ center: baseScene.origin });
+  selectObject(null);
+  rerender();
+  hud.textContent = `건물·도로: 도쿄도 23구 실측 데이터(배경) · 구조물: ${isDemo ? "데모 예제" : "부모 세션"} (읽기전용 원본 + 편집 draft)`;
+  updateActionButtons();
+}
+
+async function loadDemoSite(file) {
+  if (draft && draftIsEdited(draft) && !confirm("편집 중인 내용이 사라집니다. 데모 예제로 바꿀까요?")) {
+    document.getElementById("site-select").value = state.file;
+    return;
+  }
+  hud.textContent = "불러오는 중…";
+  let site;
+  try {
+    site = await fetch(`./station-examples/${file}`).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
+  } catch (err) {
+    fatalError(`데모 예제를 불러오지 못했습니다: ${err.message}`);
+    return;
+  }
+  const raw = { schema: SITE_DESIGN_SESSION_SCHEMA, sessionId: `demo-${file}`, stationSite: site, baseRevision: "demo", surroundingSpatialData: null, initialView: null };
+  const { session: parsed, error } = parseSiteDesignSession(raw);
+  if (error) { fatalError(`데모 예제 생성 실패: ${error}`); return; }
+  state.file = file;
+  beginSession(parsed, true);
+}
+
+// ---- 부모로부터 받는 메시지: 세션 시작 / 충돌 재확인 결과 ----
+let sawParentSession = false;
+window.addEventListener("message", (event) => {
+  const data = event.data;
+  if (!data || typeof data !== "object") return;
+  if (data.schema === SITE_DESIGN_SESSION_SCHEMA) {
+    if (draft && draftIsEdited(draft) && draft.status === "draft") {
+      if (!confirm("편집 중인 내용이 있습니다. 새 세션으로 바꾸면 사라집니다. 계속할까요?")) return;
+    }
+    const { session: parsed, error } = parseSiteDesignSession(data);
+    if (error) { showBanner(`잘못된 세션 메시지를 받았습니다: ${error}`, "error"); return; }
+    sawParentSession = true;
+    document.getElementById("site-select").disabled = true;
+    beginSession(parsed, false);
+  } else if (data.schema === SITE_DESIGN_COLLISION_RESULT_SCHEMA) {
+    if (!draft) return;
+    applyCollisionResult(draft, data, lastRequestId);
+    rerender();
+  }
+});
+
+setTimeout(() => {
+  if (!sawParentSession) {
+    showBanner("부모 세션 메시지를 받지 못해 데모 예제로 시작합니다. (postMessage로 transitline.site-design-session/1을 보내면 실제 역을 편집할 수 있습니다)", "warn");
+    loadDemoSite(FILES[0]);
+  }
+}, DEMO_WAIT_MS);
+
+// ================= 읽기 전용 요약 패널 (원본 station-site 사실) =================
+const num = (v, digits = 0) => (v === null || v === undefined ? "미상" : v.toLocaleString("en-US", { maximumFractionDigits: digits }));
+function renderSummary(sceneData) {
+  const el = document.getElementById("summary");
+  el.replaceChildren();
+  const h = document.createElement("div"); h.className = "section-label"; h.textContent = `${sceneData.name ?? sceneData.stationSiteId} · 원본 자료 품질 ${sceneData.dataQuality}`;
+  el.append(h);
+  const table = document.createElement("table");
+  for (const row of sceneData.facts) {
+    const tr = document.createElement("tr");
+    const th = document.createElement("th"); th.textContent = row.label;
+    const td = document.createElement("td"); td.textContent = row.text;
+    if (row.missing) { td.className = "missing"; if (row.reason) td.title = REASON_LABELS[row.reason] ?? row.reason; }
+    tr.append(th, td); table.append(tr);
+  }
+  el.append(table);
+  for (const flag of sceneData.flags) {
+    const d = document.createElement("div"); d.className = "diag warning"; d.textContent = `⚠ ${FLAG_LABELS[flag] ?? flag} (원본 기준)`; el.append(d);
+  }
+}
+
+// ================= 선택 + 편집 패널 =================
+let selectedKind = null, selectedId = null;
+
+function collisionLabel(v) { return v === true ? { text: "충돌 있음", cls: "blocked" } : v === false ? { text: "충돌 없음", cls: "clear" } : { text: "충돌 확인 안 됨(부모 재계산 대기)", cls: "unknown" }; }
+
+function selectObject(userData) {
+  selectedKind = userData?.kind ?? null;
+  selectedId = userData?.id ?? null;
+  renderSelection();
+}
+function renderSelection() {
+  const el = document.getElementById("selection");
+  el.replaceChildren();
+  if (!draft) { el.append(Object.assign(document.createElement("div"), { className: "empty", textContent: "세션을 기다리는 중…" })); return; }
+  const sceneData = currentDraftScene();
+  if (!selectedKind || !sceneData) {
+    el.append(Object.assign(document.createElement("div"), { className: "empty", textContent: "구조물을 클릭하면 정보와 편집 도구가 표시됩니다." }));
+    return;
+  }
+  const h = document.createElement("div"); h.className = "section-label"; h.textContent = LABEL_OF[selectedKind] ?? selectedKind; el.append(h);
+
+  if (selectedKind === "body" && sceneData.body) {
+    const b = sceneData.body;
+    const table = document.createElement("table");
+    const rows = [
+      ["방향", `${num(b.headingDegrees, 1)}°`], ["길이 × 폭", `${num(b.lengthMeters)} × ${num(b.widthMeters)} m`],
+      ["깊이(+지하/-고가)", `${num(b.depthMeters, 1)} m`], ["편집됨", b.edited ? "예" : "아니오"],
+    ];
+    for (const [label, text] of rows) { const tr = document.createElement("tr"); tr.append(Object.assign(document.createElement("th"), { textContent: label }), Object.assign(document.createElement("td"), { textContent: text })); table.append(tr); }
+    el.append(table);
+    const cl = collisionLabel(b.collision);
+    el.append(Object.assign(document.createElement("div"), { className: `collision-text ${cl.cls}`, textContent: cl.text }));
+
+    const elev = bodyElevationInfo(draft, baseScene.groundElevationMeters);
+    const box = document.createElement("div"); box.className = "edit-box";
+    box.append(Object.assign(document.createElement("h4"), { textContent: "본체 편집" }));
+
+    const moveBtn = document.createElement("button");
+    moveBtn.textContent = interactionMode === "move-body" ? "이동 중… (지도 드래그, 클릭해서 끝내기)" : "이동(드래그로 옮기기)";
+    moveBtn.className = interactionMode === "move-body" ? "active" : "";
+    moveBtn.addEventListener("click", () => setInteractionMode(interactionMode === "move-body" ? null : "move-body"));
+    box.append(moveBtn);
+
+    const headingRow = editRow("방향(°)", b.headingDegrees, 1, (v) => { rotateBodyTo(draft, v); commitEdit(); });
+    const lengthRow = editRow("길이(m)", b.lengthMeters, 1, (v) => { if (v > 0) { resizeBody(draft, { lengthMeters: v }); commitEdit(); } });
+    const widthRow = editRow("폭(m)", b.widthMeters, 1, (v) => { if (v > 0) { resizeBody(draft, { widthMeters: v }); commitEdit(); } });
+    box.append(headingRow, lengthRow, widthRow);
+
+    // 지상/지하 전환: 체크가 꺼지면 깊이를 0(지상)으로 강제하고 입력을 비활성화한다.
+    const depthWrap = document.createElement("div"); depthWrap.className = "edit-row";
+    const underCheck = document.createElement("input"); underCheck.type = "checkbox"; underCheck.checked = b.depthMeters !== 0;
+    const depthInput = document.createElement("input"); depthInput.type = "number"; depthInput.step = "0.5"; depthInput.value = b.depthMeters; depthInput.disabled = !underCheck.checked;
+    const depthLabel = document.createElement("label"); depthLabel.textContent = "지상/지하";
+    underCheck.addEventListener("change", () => {
+      depthInput.disabled = !underCheck.checked;
+      const v = underCheck.checked ? (b.depthMeters !== 0 ? b.depthMeters : 15) : 0;
+      depthInput.value = v;
+      setBodyDepth(draft, v); commitEdit();
+    });
+    depthInput.addEventListener("change", () => { const v = Number(depthInput.value); if (Number.isFinite(v)) { setBodyDepth(draft, v); commitEdit(); } });
+    depthWrap.append(depthLabel, underCheck, depthInput, Object.assign(document.createElement("span"), { textContent: "m (+지하/-고가)" }));
+    box.append(depthWrap);
+
+    box.append(Object.assign(document.createElement("div"), {
+      className: "note",
+      textContent: elev.groundElevationMeters !== null
+        ? `지표고 ${num(elev.groundElevationMeters, 1)} m → 선로고(추정) ${num(elev.trackElevationMeters, 1)} m`
+        : "지표고 자료 없음(원본 station-site 기준)",
+    }));
+    el.append(box);
+  } else if (selectedKind === "entrance") {
+    const e = sceneData.entrances.find((x) => x.id === selectedId);
+    if (!e) return;
+    const table = document.createElement("table");
+    const rows = [["이름", e.name ?? "미지정"], ["이동됨", e.moved ? "예" : "아니오"], ["플래그(원본)", e.flags?.length ? e.flags.map((f) => ENTRANCE_FLAG_LABELS[f] ?? f).join(", ") : "없음"]];
+    for (const [label, text] of rows) { const tr = document.createElement("tr"); tr.append(Object.assign(document.createElement("th"), { textContent: label }), Object.assign(document.createElement("td"), { textContent: text })); table.append(tr); }
+    el.append(table);
+    const cl = collisionLabel(e.blocked);
+    el.append(Object.assign(document.createElement("div"), { className: `collision-text ${cl.cls}`, textContent: cl.text }));
+
+    const box = document.createElement("div"); box.className = "edit-box";
+    box.append(Object.assign(document.createElement("h4"), { textContent: "출입구 편집" }));
+    const moveBtn = document.createElement("button");
+    moveBtn.textContent = interactionMode === "move-entrance" ? "이동 중… (지도 드래그, 클릭해서 끝내기)" : "이동(드래그로 옮기기)";
+    moveBtn.className = interactionMode === "move-entrance" ? "active" : "";
+    moveBtn.addEventListener("click", () => setInteractionMode(interactionMode === "move-entrance" ? null : "move-entrance"));
+    box.append(moveBtn);
+    el.append(box);
+  } else if (selectedKind === "workArea") {
+    el.append(Object.assign(document.createElement("div"), { className: "note", textContent: "작업구 후보는 원본 station-site 계약의 참고용 표시이며 이 편집기에서 옮기거나 바꿀 수 없습니다." }));
+  }
+}
+function editRow(label, value, step, onChange) {
+  const row = document.createElement("div"); row.className = "edit-row";
+  const lab = document.createElement("label"); lab.textContent = label;
+  const input = document.createElement("input"); input.type = "number"; input.step = String(step); input.value = value;
+  input.addEventListener("change", () => { const v = Number(input.value); if (Number.isFinite(v)) onChange(v); });
+  row.append(lab, input);
+  return row;
+}
+
+// ================= 이동 도구: 지도 드래그로 본체/출입구를 옮긴다 =================
+// 회전·크기·깊이는 숫자 입력으로만 바꾼다(3D 기즈모 없이 정확한 값을 바로 넣는 쪽이 더 간단하고 정확하다).
+function setInteractionMode(mode) {
+  interactionMode = mode;
+  if (mode) { map.dragPan.disable(); map.dragRotate.disable(); } else { map.dragPan.enable(); map.dragRotate.enable(); }
+  renderSelection();
+}
+let dragging = false;
+map.on("mousedown", (e) => {
+  if (!interactionMode) return;
+  dragging = true; dragMoved = false;
+  e.preventDefault();
+});
+map.on("mousemove", (e) => {
+  if (!dragging || !interactionMode) return;
+  dragMoved = true;
+  const loc = [e.lngLat.lng, e.lngLat.lat];
+  if (interactionMode === "move-body") moveBodyTo(draft, loc);
+  else if (interactionMode === "move-entrance" && selectedId) moveEntrance(draft, selectedId, loc);
+  rerender();
+});
+map.on("mouseup", () => {
+  if (!dragging) return;
+  dragging = false;
+  if (dragMoved) commitEdit();
+});
+
+// ---- 클릭 선택(레이캐스팅) — 드래그 직후의 클릭은 무시해 이동 도구와 겹치지 않게 한다 ----
+map.on("click", (e) => {
+  if (interactionMode || dragMoved) { dragMoved = false; return; }
+  if (!camera || !pickable.length) return;
+  const canvas = map.getCanvas();
+  const ndcX = (e.point.x / canvas.clientWidth) * 2 - 1;
+  const ndcY = -(e.point.y / canvas.clientHeight) * 2 + 1;
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
+  const hits = raycaster.intersectObjects(pickable, false);
+  selectObject(hits.length ? hits[0].object.userData : null);
+});
+map.on("moveend", persist);
+
+// ================= 적용 / 취소 =================
+const btnApply = document.getElementById("btn-apply");
+const btnCancel = document.getElementById("btn-cancel");
+function updateActionButtons() {
+  const active = !!draft && draft.status === "draft";
+  btnApply.disabled = !active;
+  btnCancel.disabled = !active || !draftIsEdited(draft);
+}
+btnApply.addEventListener("click", () => {
+  if (!draft) return;
+  draft.status = "submitted";
+  postToParent(buildSiteDesignEdit(draft, "submitted")); // 요구사항 7: 적용은 이 메시지만 부모로 보낸다
+  showBanner("편집 결과를 부모에게 전송했습니다(status: submitted). 새 세션 메시지가 오면 다시 편집할 수 있습니다.", "info");
+  setInteractionMode(null);
+  updateActionButtons();
+  persist();
+});
+btnCancel.addEventListener("click", () => {
+  if (!draft || !session) return;
+  draft = resetDraft(session); // 요구사항 8: 원래 형상으로 완전히 복원
+  draft.status = "draft";
+  postToParent(buildSiteDesignEdit(draft, "cancelled"));
+  showBanner("편집을 취소하고 원래 형상으로 복원했습니다.", "info");
+  setInteractionMode(null);
+  selectObject(null);
+  rerender();
+});
+
+map.on("load", () => { map.addLayer(customLayer); });
+
+// ================= 뷰 상태 저장/복원 (카메라 북마크 — stage 1과 동일한 형식) =================
+const state = { mode: "walk", file: FILES[0] };
+function currentViewState() {
+  const c = map.getCenter();
+  return {
+    schema: VIEW_STATE_SCHEMA, stationSiteFile: state.file, cameraMode: state.mode,
+    center: [Number(c.lng.toFixed(6)), Number(c.lat.toFixed(6))],
+    zoom: Number(map.getZoom().toFixed(2)), bearing: Number(map.getBearing().toFixed(1)), pitch: Number(map.getPitch().toFixed(1)),
+    selected: selectedKind ? { kind: selectedKind, id: selectedId } : null,
+  };
+}
+function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(currentViewState())); } catch {} }
+
+function setMode(mode) {
+  state.mode = mode;
+  document.getElementById("mode-walk").classList.toggle("active", mode === "walk");
+  document.getElementById("mode-free").classList.toggle("active", mode === "free");
+  map.easeTo({ pitch: mode === "walk" ? 78 : 40, duration: 400 });
+  persist();
+}
+document.getElementById("mode-walk").addEventListener("click", () => setMode("walk"));
+document.getElementById("mode-free").addEventListener("click", () => setMode("free"));
+document.getElementById("mode-xray").addEventListener("click", () => {
+  xrayMode = !xrayMode;
+  document.getElementById("mode-xray").classList.toggle("active", xrayMode);
+  applyXrayState();
+});
+
+const selectEl = document.getElementById("site-select");
+for (const f of FILES) {
+  const opt = document.createElement("option");
+  opt.value = f; opt.textContent = f.replace(/^\d+-/, "").replace(/\.station\.json$/, "");
+  selectEl.append(opt);
+}
+selectEl.addEventListener("change", () => loadDemoSite(selectEl.value));
+
+document.getElementById("copy-link").addEventListener("click", async () => {
+  location.hash = "v=" + b64urlEncode(JSON.stringify(currentViewState()));
+  try { await navigator.clipboard.writeText(location.href); hud.textContent = "이 뷰 링크를 복사했습니다."; }
+  catch { window.prompt("아래 링크를 복사하세요:", location.href); }
+});
+
+// ---- WASD 걷기: bearing 기준 지도 중심 수평 이동 (walk.html의 moveBy와 동일한 기법·동일한 한계) ----
+const keys = new Set();
+addEventListener("keydown", (e) => keys.add(e.key.toLowerCase()));
+addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
+function moveBy(forwardM, strafeM) {
+  const b = (map.getBearing() * Math.PI) / 180;
+  const c = map.getCenter();
+  const dNorth = forwardM * Math.cos(b) + strafeM * Math.cos(b + Math.PI / 2);
+  const dEast = forwardM * Math.sin(b) + strafeM * Math.sin(b + Math.PI / 2);
+  map.jumpTo({ center: [c.lng + dEast / (111320 * Math.cos((c.lat * Math.PI) / 180)), c.lat + dNorth / 111320] });
+}
+let last = performance.now();
+function tick(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  if (state.mode === "walk" && !interactionMode) {
+    const step = MOVE_M_PER_SEC * dt;
+    let f = 0, s = 0;
+    if (keys.has("w") || keys.has("arrowup")) f += step;
+    if (keys.has("s") || keys.has("arrowdown")) f -= step;
+    if (keys.has("d") || keys.has("arrowright")) s += step;
+    if (keys.has("a") || keys.has("arrowleft")) s -= step;
+    if (f || s) moveBy(f, s);
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// ---- 부팅: 해시/localStorage에 저장된 카메라만 복원한다(세션 데이터는 저장하지 않음 — §4) ----
+const saved = readHashState() || readStoredState();
+if (saved?.cameraMode) setMode(saved.cameraMode); else setMode("walk");
+updateActionButtons();
+</script>
+</body>
+</html>

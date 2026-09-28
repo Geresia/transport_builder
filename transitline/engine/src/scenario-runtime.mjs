@@ -166,6 +166,9 @@ export class ScenarioRuntime {
       projects: this.game.projects,
       schedules: this.game.schedules,
       constructionPackages: this.game.constructionPackageReport(),
+      equipmentAssignments: this.game.equipmentAssignmentReport(),
+      workfrontAssessments: this.game.workfrontAssessmentReport(),
+      constructionChangeOrders: this.game.constructionChangeOrderReport(),
       constructionMarkers: this.game.constructionMarkers,
       constructionEvents: this.game.constructionEventReport(),
       assessments,
@@ -534,6 +537,44 @@ export class ScenarioRuntime {
     const schedule = this.constructionSchedule(planId);
     if (!schedule) throw new Error("통합 공정표가 없습니다.");
     return this.game.integrateConstructionPackageAwards(schedule.id);
+  }
+
+  settleConstructionPriceIndex(planId, priceIndex, options = {}) {
+    const schedule = this.constructionSchedule(planId);
+    if (!schedule) throw new Error("통합 공정표가 없습니다.");
+    return this.game.settleConstructionPriceIndex(schedule.id, priceIndex, options);
+  }
+
+  applyConstructionWorkfront(planId, workfront) {
+    const schedule = this.constructionSchedule(planId);
+    if (!schedule) throw new Error("통합 공정표가 없습니다.");
+    if (!schedule.constructionPackages?.some((entry) => entry.constructionSiteId === workfront?.constructionSiteId)) throw new Error("현재 계획 노선의 공사 공구가 아닙니다.");
+    return this.game.applyConstructionWorkfront(schedule.id, workfront);
+  }
+
+  requestConstructionChangeOrder(planId, input) {
+    const schedule = this.constructionSchedule(planId);
+    if (!schedule) throw new Error("통합 공정표가 없습니다.");
+    if (!schedule.constructionPackages?.some((entry) => entry.constructionSiteId === input?.constructionSiteId)) throw new Error("현재 계획 노선의 공사 공구가 아닙니다.");
+    return this.game.requestConstructionChangeOrder(schedule.id, input);
+  }
+
+  resolveConstructionChangeResponsibility(planId, changeOrderId, responsibility) {
+    const schedule = this.constructionSchedule(planId);
+    if (!schedule) throw new Error("통합 공정표가 없습니다.");
+    return this.game.resolveConstructionChangeResponsibility(schedule.id, changeOrderId, responsibility);
+  }
+
+  approveConstructionChangeOrder(planId, changeOrderId) {
+    const schedule = this.constructionSchedule(planId);
+    if (!schedule) throw new Error("통합 공정표가 없습니다.");
+    return this.game.approveConstructionChangeOrder(schedule.id, changeOrderId);
+  }
+
+  rejectConstructionChangeOrder(planId, changeOrderId, reason) {
+    const schedule = this.constructionSchedule(planId);
+    if (!schedule) throw new Error("통합 공정표가 없습니다.");
+    return this.game.rejectConstructionChangeOrder(schedule.id, changeOrderId, reason);
   }
 
   recordConstructionMarker(planId, marker) {

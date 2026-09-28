@@ -11,7 +11,8 @@ import { createPlanRecord } from "./domain.mjs";
 import { createIntegratedConstructionSchedule, integratedScheduleSummary, recordIntegratedTaskDelay, refreshIntegratedConstructionSchedule } from "./integrated-schedule.mjs";
 import { applyConstructionCandidateSelection, attachConstructionSitePackages, CONSTRUCTION_EXPORT_SCHEMA, mergeConstructionPackageReports, validateConstructionMarker } from "./construction-package-adapter.mjs";
 import { applyConstructionEventOccurrence, applyConstructionImpactGeometry, createConstructionEvent, defaultConstructionResponse, ignoreConstructionEvent, resolveConstructionEvent, rollConstructionEvent } from "./construction-events.mjs";
-import { awardConstructionPackage, constructionContractorSummary, createConstructionContractors, integrateConstructionPackageAwards, prepareConstructionPackageProcurement, releaseConstructionPackageContract, tenderConstructionPackage } from "./construction-contractors.mjs";
+import { applyConstructionWorkfront, awardConstructionPackage, constructionContractorSummary, createConstructionContractors, integrateConstructionPackageAwards, prepareConstructionPackageProcurement, releaseConstructionPackageContract, settleConstructionPriceIndex, tenderConstructionPackage } from "./construction-contractors.mjs";
+import { approveConstructionChangeOrder, constructionChangeOrderSummary, proposeConstructionChangeOrder, rejectConstructionChangeOrder, resolveConstructionChangeResponsibility } from "./construction-change-orders.mjs";
 
 export class ManagementGame {
   constructor({ countryId = "JP", seed = 1, openingCash = 500_000_000_000, playerName = "Player Transit" } = {}) {
@@ -36,6 +37,7 @@ export class ManagementGame {
     this.constructionMarkers = [];
     this.constructionEvents = [];
     this.nextConstructionEventSequence = 1;
+    this.nextConstructionChangeOrderSequence = 1;
     this.services = [];
     this.plans = [];
   }
@@ -63,6 +65,7 @@ export class ManagementGame {
       constructionMarkers: structuredClone(this.constructionMarkers),
       constructionEvents: structuredClone(this.constructionEvents),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
+      nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -93,6 +96,8 @@ export class ManagementGame {
     for (const marker of this.constructionMarkers) if (marker.status === "awaiting-response") marker.status = "unresolved";
     this.nextConstructionEventSequence = snapshot.nextConstructionEventSequence
       ?? this.constructionEvents.reduce((max, event) => Math.max(max, Number(event.id?.match(/^construction-event:(\d+)$/)?.[1]) || 0), 0) + 1;
+    this.nextConstructionChangeOrderSequence = snapshot.nextConstructionChangeOrderSequence
+      ?? this.schedules.flatMap((schedule) => schedule.constructionChangeOrders ?? []).reduce((max, order) => Math.max(max, Number(order.id?.match(/^construction-change-order:(\d+)$/)?.[1]) || 0), 0) + 1;
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
     this.scenario = structuredClone(snapshot.scenario ?? null);
@@ -456,9 +461,87 @@ export class ManagementGame {
     });
   }
 
+  settleConstructionPriceIndex(scheduleId, priceIndex, options = {}) {
+    return this.transact("construction-price-index-settled", () => {
+      const schedule = this.requireSchedule(scheduleId);
+      const project = this.requireProject(schedule.projectId);
+      const settlement = settleConstructionPriceIndex(schedule, project, priceIndex, this.clock, options);
+      this.adjustConstructionCommitment(project);
+      return settlement;
+    });
+  }
+
   constructionContractorReport(scheduleId = null) {
     const schedules = scheduleId === null ? this.schedules : [this.requireSchedule(scheduleId)];
     return schedules.flatMap((schedule) => constructionContractorSummary(schedule));
+  }
+
+  applyConstructionWorkfront(scheduleId, workfront) {
+    return this.transact("construction-workfront-assessed", () => applyConstructionWorkfront(
+      this.requireSchedule(scheduleId), workfront, this.constructionContractors, this.clock,
+    ));
+  }
+
+  equipmentAssignmentReport(scheduleId = null) {
+    return this.constructionContractorReport(scheduleId).flatMap((entry) => entry.equipmentAssignments);
+  }
+
+  workfrontAssessmentReport(scheduleId = null) {
+    const schedules = scheduleId === null ? this.schedules : [this.requireSchedule(scheduleId)];
+    return schedules.flatMap((schedule) => (schedule.constructionPackages ?? []).flatMap((deliveryPackage) =>
+      (deliveryPackage.procurement?.workfrontAssessments ?? []).map((assessment) => ({
+        scheduleId: schedule.id,
+        projectId: schedule.projectId,
+        planId: schedule.planId,
+        constructionSiteId: deliveryPackage.constructionSiteId,
+        kind: deliveryPackage.kind,
+        equipmentType: deliveryPackage.procurement.equipmentType,
+        ...structuredClone(assessment),
+      }))));
+  }
+
+  requestConstructionChangeOrder(scheduleId, input) {
+    return this.transact("construction-change-order-requested", () => {
+      const schedule = this.requireSchedule(scheduleId);
+      const order = proposeConstructionChangeOrder({
+        id: `construction-change-order:${this.nextConstructionChangeOrderSequence}`,
+        schedule,
+        project: this.requireProject(schedule.projectId),
+        contractors: this.constructionContractors,
+        input,
+        clock: this.clock,
+      });
+      this.nextConstructionChangeOrderSequence++;
+      return order;
+    });
+  }
+
+  resolveConstructionChangeResponsibility(scheduleId, changeOrderId, responsibility) {
+    return this.transact("construction-change-responsibility-resolved", () => resolveConstructionChangeResponsibility(
+      this.requireSchedule(scheduleId), changeOrderId, responsibility, this.clock,
+    ));
+  }
+
+  approveConstructionChangeOrder(scheduleId, changeOrderId) {
+    return this.transact("construction-change-order-approved", () => {
+      const schedule = this.requireSchedule(scheduleId);
+      const project = this.requireProject(schedule.projectId);
+      const order = approveConstructionChangeOrder(schedule, project, changeOrderId, this.clock);
+      this.adjustConstructionCommitment(project);
+      this.refreshScheduleRecord(schedule);
+      return order;
+    });
+  }
+
+  rejectConstructionChangeOrder(scheduleId, changeOrderId, reason) {
+    return this.transact("construction-change-order-rejected", () => rejectConstructionChangeOrder(
+      this.requireSchedule(scheduleId), changeOrderId, reason, this.clock,
+    ));
+  }
+
+  constructionChangeOrderReport(scheduleId = null) {
+    const schedules = scheduleId === null ? this.schedules : [this.requireSchedule(scheduleId)];
+    return schedules.flatMap((schedule) => constructionChangeOrderSummary(schedule));
   }
 
   recordConstructionMarker(input) {
@@ -554,6 +637,9 @@ export class ManagementGame {
         .map((project) => {
           const procurement = this.schedules.find((schedule) => schedule.projectId === project.id && schedule.contractorProcurementPrepared && !schedule.contractorProcurementIntegrated);
           if (procurement) return { projectId: project.id, blocked: true, reason: "construction-package-procurement" };
+          const equipmentBlocked = this.schedules.find((schedule) => schedule.projectId === project.id
+            && this.equipmentAssignmentReport(schedule.id).some((assignment) => assignment.status === "assigned" && assignment.placementStatus === "infeasible"));
+          if (equipmentBlocked) return { projectId: project.id, blocked: true, reason: "equipment-workfront-infeasible" };
           const packageEventsEnabled = this.schedules.some((schedule) => schedule.projectId === project.id && (schedule.constructionPackages?.length ?? 0) > 0);
           const result = advanceConstructionMonth(project, this.ledger, this.clock, this.rng, this.country, { randomRisk: !packageEventsEnabled });
           if (project.status === "available") {

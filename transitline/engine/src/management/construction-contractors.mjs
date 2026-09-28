@@ -8,6 +8,13 @@ const EQUIPMENT_BY_KIND = Object.freeze({
   viaduct: "heavy-lift",
   systems: "rail-systems",
 });
+export const EQUIPMENT_PLACEMENT_STATUSES = Object.freeze(["feasible", "conditional", "infeasible"]);
+export const EQUIPMENT_WORKFRONT_REQUIREMENTS = Object.freeze({
+  "tunnel-boring": Object.freeze({ usableAreaSquareMeters: 1_000, minimumWidthMeters: 18, turningSpaceSquareMeters: 250, entryWidthMeters: 6, roadWidthMeters: 5.5, overheadClearanceMeters: 4.5, assemblyAreaSquareMeters: 500, storageAreaSquareMeters: 300, maximumSlopePercent: 3, majorRoad: true }),
+  "retaining-wall": Object.freeze({ usableAreaSquareMeters: 600, minimumWidthMeters: 12, turningSpaceSquareMeters: 160, entryWidthMeters: 4, roadWidthMeters: 4.5, overheadClearanceMeters: 4.2, assemblyAreaSquareMeters: 150, storageAreaSquareMeters: 150, maximumSlopePercent: 4, majorRoad: true }),
+  "heavy-lift": Object.freeze({ usableAreaSquareMeters: 800, minimumWidthMeters: 16, turningSpaceSquareMeters: 220, entryWidthMeters: 5, roadWidthMeters: 5, overheadClearanceMeters: 4.5, assemblyAreaSquareMeters: 200, storageAreaSquareMeters: 120, maximumSlopePercent: 3, majorRoad: true }),
+  "rail-systems": Object.freeze({ usableAreaSquareMeters: 300, minimumWidthMeters: 8, turningSpaceSquareMeters: 80, entryWidthMeters: 3.5, roadWidthMeters: 3.5, overheadClearanceMeters: 3.8, assemblyAreaSquareMeters: 80, storageAreaSquareMeters: 120, maximumSlopePercent: 5, majorRoad: false }),
+});
 const clone = (value) => structuredClone(value);
 const round = (value, digits = 0) => Number(Number(value).toFixed(digits));
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -59,6 +66,73 @@ function contractTerms(model) {
   if (model === "index-linked") return { priceAdjustmentShare: 0.75, ownerDesignChangeShare: 1, ownerGroundRiskShare: 0.6, liquidatedDamagesMonthlyRate: 0.004, earlyCompletionBonusMonthlyRate: 0.0015 };
   if (model === "target-cost") return { priceAdjustmentShare: 0.5, ownerDesignChangeShare: 0.8, ownerGroundRiskShare: 0.5, liquidatedDamagesMonthlyRate: 0.003, earlyCompletionBonusMonthlyRate: 0.003 };
   throw new Error(`Unknown construction contract model ${model}`);
+}
+
+export function assessEquipmentWorkfront(workfront, equipmentType) {
+  if (workfront?.schema !== "transitline.construction-workfront-geometry/1" || workfront.contractVersion !== 1) throw new Error("A valid ConstructionWorkfrontGeometry is required");
+  const requirements = EQUIPMENT_WORKFRONT_REQUIREMENTS[equipmentType];
+  if (!requirements) throw new Error(`Unknown construction equipment type ${equipmentType}`);
+  const failures = [];
+  const conditions = [];
+  const checkMinimum = (field, value, required) => {
+    if (!Number.isFinite(value)) conditions.push({ field, reason: workfront.unknownReasons?.[field] ?? "not-verified", required });
+    else if (value < required) failures.push({ field, actual: value, required, reason: "below-minimum" });
+  };
+  checkMinimum("usableAreaSquareMeters", workfront.usableAreaSquareMeters, requirements.usableAreaSquareMeters);
+  checkMinimum("minimumWidthMeters", workfront.minimumWidthMeters, requirements.minimumWidthMeters);
+  checkMinimum("equipmentAccessFacts.turningSpaceSquareMeters", workfront.equipmentAccessFacts?.turningSpaceSquareMeters, requirements.turningSpaceSquareMeters);
+  checkMinimum("equipmentAccessFacts.entryWidthMeters", workfront.equipmentAccessFacts?.entryWidthMeters, requirements.entryWidthMeters);
+  checkMinimum("equipmentAccessFacts.roadWidthMeters", workfront.equipmentAccessFacts?.roadWidthMeters, requirements.roadWidthMeters);
+  checkMinimum("equipmentAccessFacts.overheadClearanceMeters", workfront.equipmentAccessFacts?.overheadClearanceMeters, requirements.overheadClearanceMeters);
+  checkMinimum("stagingFacts.assemblyAreaSquareMeters", workfront.stagingFacts?.assemblyAreaSquareMeters, requirements.assemblyAreaSquareMeters);
+  checkMinimum("stagingFacts.storageAreaSquareMeters", workfront.stagingFacts?.storageAreaSquareMeters, requirements.storageAreaSquareMeters);
+  if (!Number.isFinite(workfront.maximumSlopePercent)) conditions.push({ field: "maximumSlopePercent", reason: workfront.unknownReasons?.maximumSlopePercent ?? "not-verified", maximum: requirements.maximumSlopePercent });
+  else if (workfront.maximumSlopePercent > requirements.maximumSlopePercent) failures.push({ field: "maximumSlopePercent", actual: workfront.maximumSlopePercent, maximum: requirements.maximumSlopePercent, reason: "above-maximum" });
+  for (const field of ["intersectedBuildingCount", "waterOverlapCount"]) {
+    const value = workfront[field];
+    if (!Number.isFinite(value)) conditions.push({ field, reason: workfront.unknownReasons?.[field] ?? "not-verified", maximum: 0 });
+    else if (value > 0) failures.push({ field, actual: value, maximum: 0, reason: "physical-obstruction" });
+  }
+  if (!workfront.linkedAccessCandidateRef) failures.push({ field: "linkedAccessCandidateRef", reason: "no-equipment-access" });
+  if (requirements.majorRoad) {
+    if (workfront.majorRoadAccessible === null || workfront.majorRoadAccessible === undefined) conditions.push({ field: "majorRoadAccessible", reason: workfront.unknownReasons?.majorRoadAccessible ?? "not-verified", required: true });
+    else if (!workfront.majorRoadAccessible) failures.push({ field: "majorRoadAccessible", actual: false, required: true, reason: "no-major-road-access" });
+  } else {
+    const delivery = workfront.stagingFacts?.deliveryAccess;
+    if (delivery === null || delivery === undefined) conditions.push({ field: "stagingFacts.deliveryAccess", reason: workfront.unknownReasons?.["stagingFacts.deliveryAccess"] ?? "not-verified", required: true });
+    else if (!delivery) failures.push({ field: "stagingFacts.deliveryAccess", actual: false, required: true, reason: "no-delivery-access" });
+  }
+  const placementStatus = failures.length ? "infeasible" : conditions.length ? "conditional" : "feasible";
+  return {
+    workfrontId: workfront.workfrontId,
+    constructionSiteId: workfront.constructionSiteId,
+    equipmentType,
+    placementStatus,
+    failures,
+    conditions,
+    requirements: clone(requirements),
+  };
+}
+
+export function applyConstructionWorkfront(schedule, workfront, contractors = [], clock = { minute: 0 }) {
+  assertSchedule(schedule);
+  const deliveryPackage = requirePackage(schedule, workfront?.constructionSiteId);
+  const procurement = deliveryPackage.procurement;
+  if (!procurement?.equipmentType) throw new Error(`Construction site ${workfront?.constructionSiteId} must prepare contractor procurement first`);
+  const assessment = assessEquipmentWorkfront(workfront, procurement.equipmentType);
+  procurement.workfrontAssessments ??= [];
+  procurement.workfrontAssessments = procurement.workfrontAssessments.filter((entry) => entry.workfrontId !== assessment.workfrontId);
+  procurement.workfrontAssessments.push({ ...clone(assessment), assessedAtMinute: clock.minute });
+  const contract = procurement.contract;
+  if (contract) {
+    const fields = { workfrontId: assessment.workfrontId, placementStatus: assessment.placementStatus, placementFailures: clone(assessment.failures), placementConditions: clone(assessment.conditions), placementAssessedAtMinute: clock.minute };
+    for (const assignment of contract.equipmentAssignments) Object.assign(assignment, fields);
+    const contractor = contractors.find((entry) => entry.id === contract.contractorId);
+    for (const assignment of contractor?.equipmentAssignments ?? []) {
+      if (assignment.constructionSiteId === deliveryPackage.constructionSiteId && assignment.status === "assigned") Object.assign(assignment, clone(fields));
+    }
+  }
+  return clone(assessment);
 }
 
 export function createConstructionContractors(countryId = "JP") {
@@ -134,6 +208,7 @@ export function tenderConstructionPackage(schedule, constructionSiteId, contract
   const procurement = deliveryPackage.procurement;
   if (!procurement || !PROCURED_KINDS.has(deliveryPackage.kind)) throw new Error(`Construction site ${constructionSiteId} uses another contract system`);
   if (!["planned", "retender"].includes(procurement.status)) throw new Error(`Construction package tender cannot start from ${procurement.status}`);
+  if (procurement.workfrontAssessments?.length && procurement.workfrontAssessments.every((entry) => entry.placementStatus === "infeasible")) throw new Error("No viable equipment work front is available for this construction package");
   const terms = contractTerms(contractModel);
   const selectedFacts = deliveryPackage.selectedCandidate?.facts ?? null;
   const accessKnown = selectedFacts !== null;
@@ -208,6 +283,16 @@ export function awardConstructionPackage(schedule, constructionSiteId, contracto
     status: "assigned",
     assignedAtMinute: clock.minute,
   };
+  const preferredWorkfront = [...(procurement.workfrontAssessments ?? [])]
+    .filter((entry) => entry.placementStatus !== "infeasible")
+    .sort((a, b) => (a.placementStatus === "feasible" ? 0 : 1) - (b.placementStatus === "feasible" ? 0 : 1))[0];
+  if (preferredWorkfront) Object.assign(assignment, {
+    workfrontId: preferredWorkfront.workfrontId,
+    placementStatus: preferredWorkfront.placementStatus,
+    placementFailures: clone(preferredWorkfront.failures),
+    placementConditions: clone(preferredWorkfront.conditions),
+    placementAssessedAtMinute: preferredWorkfront.assessedAtMinute,
+  });
   contractor.equipmentAssignments.push(assignment);
   procurement.contract = {
     schema: CONSTRUCTION_PACKAGE_CONTRACT_SCHEMA,
@@ -219,6 +304,9 @@ export function awardConstructionPackage(schedule, constructionSiteId, contracto
     originalPriceP50: bid.priceP50,
     currentPriceP50: bid.priceP50,
     priceP90: bid.priceP90,
+    priceIndexBase: 100,
+    lastSettledPriceIndex: 100,
+    priceAdjustments: [],
     durationMonths: bid.durationMonths,
     terms: clone(procurement.terms),
     equipmentAssignments: [clone(assignment)],
@@ -266,6 +354,94 @@ export function integrateConstructionPackageAwards(schedule, project) {
   return clone(schedule.constructionContractReplacement);
 }
 
+function deliveryPackageProgress(schedule, deliveryPackage, project) {
+  const tasks = new Map(schedule.tasks.map((entry) => [entry.id, entry]));
+  let totalWeight = 0;
+  let completedWeight = 0;
+  for (const taskId of deliveryPackage.taskIds ?? []) {
+    const task = tasks.get(taskId);
+    if (!task) continue;
+    const weight = Math.max(1, task.baselineDurationMonths ?? task.contractDurationMonths ?? 1);
+    totalWeight += weight;
+    completedWeight += weight * clamp(Number(task.progress) || 0, 0, 1);
+  }
+  if (totalWeight > 0) return clamp(completedWeight / totalWeight, 0, 1);
+  return clamp(Number(project?.progress) || 0, 0, 1);
+}
+
+export function settleConstructionPriceIndex(schedule, project, priceIndex, clock = { minute: 0 }, { sourceEventId = null } = {}) {
+  assertSchedule(schedule);
+  if (schedule.projectId !== project?.id) throw new Error("Construction schedule does not match its project");
+  if (!schedule.contractorProcurementIntegrated) throw new Error("Construction package awards must be integrated before price adjustment");
+  if (!Number.isFinite(priceIndex) || priceIndex < 100) throw new Error("Construction price index must be a finite value of at least 100");
+  const packages = schedule.constructionPackages.filter((entry) => PROCURED_KINDS.has(entry.kind));
+  const adjustments = [];
+  let ownerAdjustmentJPY = 0;
+  let contractorAbsorbedJPY = 0;
+
+  for (const deliveryPackage of packages) {
+    const contract = deliveryPackage.procurement?.contract;
+    if (!contract || !["awarded", "active", "suspended"].includes(contract.status)) continue;
+    contract.priceIndexBase ??= 100;
+    contract.lastSettledPriceIndex ??= contract.priceIndexBase;
+    contract.priceAdjustments ??= [];
+    if (priceIndex < contract.lastSettledPriceIndex) throw new Error("Construction price index cannot move below its last settlement");
+    if (priceIndex === contract.lastSettledPriceIndex) continue;
+
+    const progress = deliveryPackageProgress(schedule, deliveryPackage, project);
+    const remainingBaseJPY = round(contract.originalPriceP50 * (1 - progress));
+    const indexChangeRate = (priceIndex - contract.lastSettledPriceIndex) / contract.priceIndexBase;
+    const grossEscalationJPY = round(remainingBaseJPY * indexChangeRate);
+    const ownerShare = clamp(Number(contract.terms?.priceAdjustmentShare) || 0, 0, 1);
+    const ownerAmountJPY = round(grossEscalationJPY * ownerShare);
+    const contractorAmountJPY = grossEscalationJPY - ownerAmountJPY;
+    const adjustment = {
+      id: `price-adjustment:${contract.id}:${contract.priceAdjustments.length + 1}`,
+      sourceEventId,
+      fromIndex: contract.lastSettledPriceIndex,
+      toIndex: priceIndex,
+      progress: round(progress, 6),
+      remainingBaseJPY,
+      grossEscalationJPY,
+      ownerShare,
+      ownerAmountJPY,
+      contractorAmountJPY,
+      settledAtMinute: clock.minute,
+    };
+    contract.currentPriceP50 = round(contract.currentPriceP50 + ownerAmountJPY);
+    contract.priceP90 = round(contract.priceP90 + ownerAmountJPY);
+    contract.lastSettledPriceIndex = priceIndex;
+    contract.priceAdjustments.push(adjustment);
+    ownerAdjustmentJPY += ownerAmountJPY;
+    contractorAbsorbedJPY += contractorAmountJPY;
+    adjustments.push({ constructionSiteId: deliveryPackage.constructionSiteId, contractId: contract.id, ...clone(adjustment) });
+  }
+
+  if (ownerAdjustmentJPY > 0) {
+    project.estimate.totalP50 = round(project.estimate.totalP50 + ownerAdjustmentJPY);
+    project.estimate.totalP90 = round(project.estimate.totalP90 + ownerAdjustmentJPY);
+    const replacement = schedule.constructionContractReplacement;
+    if (replacement) {
+      replacement.awardedP50 = round(replacement.awardedP50 + ownerAdjustmentJPY);
+      replacement.awardedP90 = round(replacement.awardedP90 + ownerAdjustmentJPY);
+      replacement.deltaP50 = round(replacement.awardedP50 - replacement.legacyP50);
+      replacement.deltaP90 = round(replacement.awardedP90 - replacement.legacyP90);
+    }
+  }
+  schedule.lastSettledConstructionPriceIndex = priceIndex;
+  const settlement = {
+    priceIndex,
+    sourceEventId,
+    settledAtMinute: clock.minute,
+    ownerAdjustmentJPY: round(ownerAdjustmentJPY),
+    contractorAbsorbedJPY: round(contractorAbsorbedJPY),
+    adjustments,
+  };
+  schedule.constructionPriceSettlements ??= [];
+  if (adjustments.length) schedule.constructionPriceSettlements.push(clone(settlement));
+  return settlement;
+}
+
 export function constructionContractorSummary(schedule) {
   assertSchedule(schedule);
   return (schedule.constructionPackages ?? []).map((deliveryPackage) => ({
@@ -275,9 +451,16 @@ export function constructionContractorSummary(schedule) {
     procurementStatus: deliveryPackage.procurement?.status ?? null,
     contractorId: deliveryPackage.procurement?.contract?.contractorId ?? null,
     packageContractId: deliveryPackage.procurement?.contract?.id ?? null,
-    equipmentAssignments: clone(deliveryPackage.procurement?.contract?.equipmentAssignments ?? []),
+    equipmentAssignments: (deliveryPackage.procurement?.contract?.equipmentAssignments ?? []).map((assignment) => ({
+      ...clone(assignment),
+      contractorId: deliveryPackage.procurement.contract.contractorId,
+      packageContractId: deliveryPackage.procurement.contract.id,
+    })),
+    workfrontAssessments: clone(deliveryPackage.procurement?.workfrontAssessments ?? []),
     originalPriceP50: deliveryPackage.procurement?.contract?.originalPriceP50 ?? null,
     currentPriceP50: deliveryPackage.procurement?.contract?.currentPriceP50 ?? null,
+    lastSettledPriceIndex: deliveryPackage.procurement?.contract?.lastSettledPriceIndex ?? null,
+    priceAdjustments: clone(deliveryPackage.procurement?.contract?.priceAdjustments ?? []),
     durationMonths: deliveryPackage.procurement?.contract?.durationMonths ?? null,
   }));
 }

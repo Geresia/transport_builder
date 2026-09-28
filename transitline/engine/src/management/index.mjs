@@ -12,6 +12,7 @@ export * from "./integrated-schedule.mjs";
 export * from "./construction-package-adapter.mjs";
 export * from "./construction-events.mjs";
 export * from "./construction-contractors.mjs";
+export * from "./construction-change-orders.mjs";
 export * from "./rolling-stock.mjs";
 export * from "./depot-planning.mjs";
 export * from "./operations.mjs";
