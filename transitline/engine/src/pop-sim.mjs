@@ -161,6 +161,21 @@ export function popSimStep(sim, state, seconds = 1) {
     const revenue = journeyRevenue(pop, sim.fare);
     sim.money += revenue; sim.revenueToday += revenue;
     sim.stats.revenue += revenue; sim.stats.completed++; sim.stats.ridersDelivered += riders(pop);
+    // Feed the old engine's own delivered-by-line counters (state.stats, written by passengers.mjs's handleStop for
+    // individual passengers) with the same shape: credited to the LAST line ridden, once per completed journey. This is
+    // the actual connection point to scenario-runtime.mjs's settleOperatingDays/settleIntegratedServiceDay, which reads
+    // deliveredByLine to bill a career-mode service - open() must be called with { passengerWeight: 1 } for that
+    // service, since a pop's rider count is already real people, unlike the old engine's small synthetic-agent count
+    // (which settlement scales up by its own passengerWeight, default 100). Not touched here: spawned/spawnedByHour/
+    // modeShare, which only feed the old engine's own departure-side Analysis panel, not settlement.
+    const n = riders(pop);
+    const lastRide = pop.journey.segments.findLast((s) => s.kind === "transit");
+    if (lastRide) {
+      state.stats.delivered += n;
+      state.stats.deliveredByHour[Math.floor(nowS / 3600) % 24] += n;
+      const key = String(lastRide.routeId);
+      state.stats.deliveredByLine[key] = (state.stats.deliveredByLine[key] ?? 0) + n;
+    }
     pop.journey = null;
   }
 

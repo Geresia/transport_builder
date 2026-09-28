@@ -45,6 +45,16 @@ test("same seed, same day", () => {
   assert.deepEqual(run(), run());
 });
 
+test("delivered riders are credited to the old engine's own deliveredByLine, for scenario-runtime.mjs's settlement to read", () => {
+  const { state, sim } = makeSim([LINE, LINE_B]);
+  advancePopSim(sim, state, 6 * 3600);
+  assert.equal(state.stats.delivered, sim.stats.ridersDelivered, "every completed pop rode a transit leg, so the two counters agree");
+  const total = Object.values(state.stats.deliveredByLine).reduce((a, b) => a + b, 0);
+  assert.equal(total, sim.stats.ridersDelivered, "each rider is credited to exactly the line they finished on");
+  assert.ok(Object.keys(state.stats.deliveredByLine).length >= 2, "both lines carried some final leg");
+  assert.ok(state.stats.deliveredByHour.some((h) => h > 0));
+});
+
 test("commuters never give up: a suspended line strands them, they stay in the queue for 12 h", () => {
   const { state, sim } = makeSim();
   advancePopSim(sim, state, 90 * 60); // 06:00 -> 07:30, the rush is on
