@@ -53,6 +53,44 @@ if (!api) {
         roads: DATA + 'roads.geojson', // real, 23 wards - see file header
       });
 
+      // 2026-09-28 playtest: the bay read as barely darker than the land at the default colors. A stronger blue
+      // gives the coastline actual contrast; game-native (setLayerOverride), no tile regeneration needed.
+      api.map.setLayerOverride({ layerId: 'water', paint: { 'fill-extrusion-color': '#0a3d63' } });
+
+      // 2026-09-28 playtest: rename the built-in US-flavoured train types to their closest Japanese-operator
+      // equivalent (name/description/livery colour only - stats are untouched, so balance doesn't change).
+      const trainTypeRenames: Record<string, { name: string; description: string; color: string }> = {
+        'heavy-metro': {
+          name: '지하철 (Chikatetsu)',
+          description: '도쿄메트로/도영지하철 스타일의 대형 지하철 차량 (예: 도쿄메트로 10000계).',
+          color: '#009944', // Tokyo Metro Ginza-line-adjacent green
+        },
+        'light-metro': {
+          name: '신교통 시스템 (Shinkotsu)',
+          description: '유리카모메 같은 고무바퀴 자동운전 신교통시스템 차량.',
+          color: '#f39800',
+        },
+        'commuter-rail': {
+          name: '통근형 전차 (JR 스타일)',
+          description: 'JR 동일본 통근형 전차 스타일 (예: E231계/E233계).',
+          color: '#00b2e5', // JR East Yamanote/Keihin-Tohoku blue-green family
+        },
+        'light-rail': {
+          name: '노면전차 (LRT)',
+          description: '도쿄 아라카와선 같은 노면전차/LRT 차량.',
+          color: '#f9c900',
+        },
+        tram: {
+          name: '노면전차 (Tram)',
+          description: '시내를 달리는 소형 노면전차.',
+          color: '#e6002d',
+        },
+      };
+      for (const [id, { name, description, color }] of Object.entries(trainTypeRenames)) {
+        if (!api.trains.getTrainType(id)) continue; // skip if the game ever renames/removes a built-in id
+        api.trains.modifyTrainType(id, { name, description, appearance: { color } });
+      }
+
       api.ui.showNotification(`${TAG} Tokyo CityPack registered (code ${CITY_CODE}).`, 'success');
       console.log(`${TAG} Registered city ${CITY_CODE}.`);
     } catch (err) {
