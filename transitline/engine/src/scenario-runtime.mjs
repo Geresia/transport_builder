@@ -177,6 +177,7 @@ export class ScenarioRuntime {
       constructionFinancing: this.game.constructionFinanceReport(),
       services: this.game.services,
       operatingMonths: this.game.operatingMonthReport(),
+      operatingResourcePools: this.game.operatingResourcePoolReport(),
       corporateFinance: this.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(this.game.clock.minute / (30 * 1440)) - 11) }),
       assessments,
     });
@@ -769,6 +770,22 @@ export class ScenarioRuntime {
 
   addOperatingCompetitor(serviceId, input) {
     return this.game.addOperatingCompetitor(serviceId, input);
+  }
+
+  createOperatingResourcePool(input) {
+    return this.game.createOperatingResourcePool(input);
+  }
+
+  assignServiceToOperatingResourcePool(serviceId, poolId, options = {}) {
+    return this.game.assignServiceToOperatingResourcePool(serviceId, poolId, options);
+  }
+
+  removeServiceFromOperatingResourcePool(serviceId) {
+    return this.game.removeServiceFromOperatingResourcePool(serviceId);
+  }
+
+  operatingResourcePoolReport(poolId = null) {
+    return this.game.operatingResourcePoolReport(poolId);
   }
 
   evaluate() {

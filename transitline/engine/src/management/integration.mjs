@@ -180,13 +180,13 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     const maintenanceCost = carKm * service.maintenanceYenPerCarKm;
     const staffCost = trainKm * (service.staffCostPerTrainKm ?? 1_800);
     const fixedCost = days * service.dailyInfrastructureCost;
-    const order = game.vehicleOrders.find((item) => item.id === service.vehicleOrderId);
-    const depot = game.depots.find((item) => item.id === service.depotId);
-    if (!depot) throw new Error(`Service ${serviceId} has no depot`);
+    const resources = game.resolveOperatingResources(serviceId);
+    const depot = resources.depot;
     const infrastructureMaintenance = game.infrastructureMaintenanceImpact(service.projectId);
-    const requiredSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureMaintenance.capacityFactor));
+    const infrastructureSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureMaintenance.capacityFactor));
+    const requiredSets = Math.min(infrastructureSets, resources.maximumStaffedSets ?? infrastructureSets);
     const reliability = dispatchVehicleFleet({
-      units: order?.units ?? [],
+      units: resources.units,
       modelId: service.modelId,
       requiredSets,
       days,
@@ -194,6 +194,8 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       ledger: game.ledger,
       clock: game.clock,
       serviceId: service.id,
+      preferredUnitIds: resources.preferredUnitIds,
+      operatingDay: day,
     });
     const scheduledSets = reliability.operatingSets;
     const punctuality = Math.max(0.5, Math.min(0.999, 0.985 - reliabilityPunctualityPenalty(reliability) - infrastructureMaintenance.punctualityPenalty + staffingPunctualityAdjustment(service)));
@@ -223,7 +225,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     const cost = energyCost + maintenanceCost + staffCost + fixedCost + deadheadCost + depotCost;
     if (income > 0) game.ledger.post({ atMinute: game.clock.minute, amount: income, category: "integrated-operating-income", reference: service.id });
     if (cost > 0) game.ledger.post({ atMinute: game.clock.minute, amount: -cost, category: "integrated-operating-cost", reference: service.id });
-    const vehicle = applyVehicleOperatingWear({ units: order?.units ?? [], modelId: service.modelId, trainKm, days, depot, ledger: game.ledger, clock: game.clock, maxUsedSets: scheduledSets, usedUnitIds: reliability.operatingUnitIds });
+    const vehicle = applyVehicleOperatingWear({ units: resources.units, modelId: service.modelId, trainKm, days, depot, ledger: game.ledger, clock: game.clock, maxUsedSets: scheduledSets, usedUnitIds: reliability.operatingUnitIds });
     service.engineCursor = { day, delivered: deliveredNow, trainKm: trainKmNow };
     service.integratedTotals = service.integratedTotals ?? { passengers: 0, trainKm: 0, income: 0, cost: 0 };
     service.integratedTotals.passengers += passengers;
@@ -235,7 +237,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     if (line) {
       const nextMaintenance = game.infrastructureMaintenanceImpact(service.projectId);
       const nextRequiredSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * nextMaintenance.capacityFactor));
-      const nextAvailableSets = Math.min(nextRequiredSets, (order?.units ?? []).filter((unit) => unit.status === "available").length);
+      const nextAvailableSets = Math.min(nextRequiredSets, resources.units.filter((unit) => unit.status === "available").length, resources.maximumStaffedSets ?? nextRequiredSets);
       const nextAvailabilityRatio = nextAvailableSets / Math.max(1, service.fleetRequirement.serviceSets);
       for (const [bandId, nominal] of Object.entries(service.nominalLineFrequency)) line.frequency[bandId] = Math.max(0, Math.floor(nominal * nextAvailabilityRatio));
     }
@@ -266,6 +268,8 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       },
       vehicle,
       reliability,
+      resourcePoolId: resources.poolId,
+      resourceWarnings: resources.warnings,
       infrastructureMaintenance,
       maintenanceProgress,
     };

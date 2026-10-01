@@ -37,7 +37,8 @@ export function operateServiceDay(input, ledger, clock, rng) {
   const { service, units, depot, contract } = input;
   if (service.status !== "open") throw new Error("Service is not open");
   const infrastructureImpact = input.infrastructureImpact ?? { capacityFactor: 1, punctualityPenalty: 0, activeProgramIds: [] };
-  const requiredSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureImpact.capacityFactor));
+  const infrastructureSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureImpact.capacityFactor));
+  const requiredSets = Math.min(infrastructureSets, input.maximumStaffedSets ?? infrastructureSets);
   const reliability = dispatchVehicleFleet({
     units,
     modelId: service.modelId,
@@ -47,6 +48,8 @@ export function operateServiceDay(input, ledger, clock, rng) {
     ledger,
     clock,
     serviceId: service.id,
+    preferredUnitIds: input.preferredUnitIds,
+    operatingDay: input.operatingDay,
   });
   const scheduledSets = reliability.operatingSets;
   const supplyRatio = scheduledSets / Math.max(1, service.fleetRequirement.serviceSets);
@@ -121,7 +124,9 @@ export function operateServiceDay(input, ledger, clock, rng) {
     infrastructureMaintenance: infrastructureImpact,
     electricityYenPerKwh,
     market,
-    depotWarnings: depotWarnings(depot, units),
+    resourcePoolId: input.resourcePoolId ?? null,
+    resourceWarnings: [...(input.resourceWarnings ?? [])],
+    depotWarnings: [...depotWarnings(depot, units), ...(input.resourceWarnings ?? [])],
   };
 }
 

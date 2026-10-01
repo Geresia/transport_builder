@@ -20,6 +20,7 @@ import { activateProjectOperatingFinance, applyInfrastructureOperatingWear, oper
 import { advanceInfrastructureMaintenancePrograms, infrastructureMaintenanceImpact, startInfrastructureMaintenance } from "./infrastructure-maintenance.mjs";
 import { applyServicePolicy, createOperatingCompetitor, ELECTRICITY_CONTRACTS } from "./service-policy.mjs";
 import { corporateFinancialStatements } from "./corporate-finance.mjs";
+import { assignServiceToOperatingResourcePool as assignPoolService, createOperatingResourcePool as buildOperatingResourcePool, operatingResourcePoolReport as buildOperatingResourcePoolReport, rebalanceOperatingResourcePool as rebalancePool, removeServiceFromOperatingResourcePool as removePoolService, resolveOperatingResourcePoolService as resolvePoolService } from "./operating-resource-pool.mjs";
 
 export class ManagementGame {
   constructor({ countryId = "JP", seed = 1, openingCash = 500_000_000_000, playerName = "Player Transit" } = {}) {
@@ -49,6 +50,7 @@ export class ManagementGame {
     this.constructionFinancing = [];
     this.operatingMonthReports = [];
     this.infrastructureMaintenancePrograms = [];
+    this.operatingResourcePools = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -87,6 +89,7 @@ export class ManagementGame {
       constructionFinancing: structuredClone(this.constructionFinancing),
       operatingMonthReports: structuredClone(this.operatingMonthReports),
       infrastructureMaintenancePrograms: structuredClone(this.infrastructureMaintenancePrograms),
+      operatingResourcePools: structuredClone(this.operatingResourcePools),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -110,7 +113,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -870,6 +873,7 @@ export class ManagementGame {
       });
       const depots = this.depots.filter((depot) => depot.status === "underConstruction")
         .map((depot) => ({ depotId: depot.id, ...advanceDepotDevelopmentMonth(depot, this.ledger, this.clock, this.rng, this.country) }));
+      for (const pool of this.operatingResourcePools) rebalancePool(pool, this.operatingResourceContext());
       let schedules = this.schedules.map((schedule) => integratedScheduleSummary(this.refreshScheduleRecord(schedule)));
       const generatedEvents = [];
       const priceShocks = [];
@@ -967,6 +971,73 @@ export class ManagementGame {
     return structuredClone(this.infrastructureMaintenancePrograms.filter((entry) => projectId === null || entry.projectId === projectId));
   }
 
+  operatingResourceContext() {
+    return { services: this.services, vehicleOrders: this.vehicleOrders, depots: this.depots };
+  }
+
+  createOperatingResourcePool(input) {
+    return this.transact("operating-resource-pool-created", () => {
+      if (this.operatingResourcePools.some((entry) => entry.id === input.id)) throw new Error(`Duplicate operating resource pool ${input.id}`);
+      const pool = buildOperatingResourcePool(input, this.operatingResourceContext());
+      this.operatingResourcePools.push(pool);
+      rebalancePool(pool, this.operatingResourceContext());
+      return structuredClone(pool);
+    });
+  }
+
+  assignServiceToOperatingResourcePool(serviceId, poolId, options = {}) {
+    return this.transact("operating-resource-pool-service-assigned", () => {
+      const service = this.services.find((entry) => entry.id === serviceId);
+      if (!service) throw new Error(`Unknown service ${serviceId}`);
+      const pool = this.operatingResourcePools.find((entry) => entry.id === poolId);
+      if (!pool) throw new Error(`Unknown operating resource pool ${poolId}`);
+      if (service.resourcePoolId && service.resourcePoolId !== poolId) {
+        const previous = this.operatingResourcePools.find((entry) => entry.id === service.resourcePoolId);
+        if (previous) removePoolService(previous, serviceId, this.services);
+      }
+      assignPoolService(pool, service, options, this.operatingResourceContext());
+      return buildOperatingResourcePoolReport(pool, this.operatingResourceContext());
+    });
+  }
+
+  removeServiceFromOperatingResourcePool(serviceId) {
+    return this.transact("operating-resource-pool-service-removed", () => {
+      const service = this.services.find((entry) => entry.id === serviceId);
+      if (!service) throw new Error(`Unknown service ${serviceId}`);
+      const pool = this.operatingResourcePools.find((entry) => entry.id === service.resourcePoolId);
+      if (!pool) return false;
+      const removed = removePoolService(pool, serviceId, this.services);
+      rebalancePool(pool, this.operatingResourceContext());
+      return removed;
+    });
+  }
+
+  rebalanceOperatingResourcePool(poolId) {
+    return this.transact("operating-resource-pool-rebalanced", () => {
+      const pool = this.operatingResourcePools.find((entry) => entry.id === poolId);
+      if (!pool) throw new Error(`Unknown operating resource pool ${poolId}`);
+      return rebalancePool(pool, this.operatingResourceContext());
+    });
+  }
+
+  operatingResourcePoolReport(poolId = null) {
+    const pools = poolId === null ? this.operatingResourcePools : this.operatingResourcePools.filter((entry) => entry.id === poolId);
+    if (poolId !== null && !pools.length) throw new Error(`Unknown operating resource pool ${poolId}`);
+    const reports = pools.map((pool) => buildOperatingResourcePoolReport(pool, this.operatingResourceContext()));
+    return poolId === null ? reports : reports[0];
+  }
+
+  resolveOperatingResources(serviceId) {
+    const service = this.services.find((entry) => entry.id === serviceId);
+    if (!service) throw new Error(`Unknown service ${serviceId}`);
+    const pool = this.operatingResourcePools.find((entry) => entry.id === service.resourcePoolId);
+    if (pool) return resolvePoolService(pool, service, this.operatingResourceContext());
+    const order = this.vehicleOrders.find((entry) => entry.id === service.vehicleOrderId);
+    const depot = this.depots.find((entry) => entry.id === service.depotId);
+    if (!depot) throw new Error(`Service ${serviceId} has no depot`);
+    return { poolId: null, assignment: null, units: order?.units ?? [], depot, preferredUnitIds: null, maximumStaffedSets: Infinity, warnings: [] };
+  }
+
   createService(input) {
     return this.transact("service-created", () => {
       const project = this.requireProject(input.projectId);
@@ -1017,21 +1088,23 @@ export class ManagementGame {
         trainsPerHour: service.trainsPerHour,
         reserveRatio: service.reserveRatio,
       });
+      const resourcePool = this.operatingResourcePools.find((entry) => entry.id === service.resourcePoolId);
+      if (resourcePool) rebalancePool(resourcePool, this.operatingResourceContext());
       const electricityChanged = policy.previous.electricityContractId !== policy.current.electricityContractId;
       const electricity = ELECTRICITY_CONTRACTS[policy.current.electricityContractId];
       if (electricityChanged && electricity.switchingCostJPY > 0) {
         this.ledger.post({ atMinute: this.clock.minute, amount: -electricity.switchingCostJPY, category: "electricity-contract-change", reference: service.id, memo: electricity.label });
         if (electricity.reputationDelta) this.player.reputation = Math.min(100, this.player.reputation + electricity.reputationDelta);
       }
-      const order = this.vehicleOrders.find((entry) => entry.id === service.vehicleOrderId);
-      const depot = this.depots.find((entry) => entry.id === service.depotId);
-      const availableSets = order?.units?.filter((unit) => unit.status === "available").length ?? 0;
+      const resources = this.resolveOperatingResources(service.id);
+      const availableSets = resources.units.filter((unit) => unit.status === "available").length;
       return {
         policy,
         fleetRequirement: structuredClone(service.fleetRequirement),
         warnings: [
           availableSets < service.fleetRequirement.minimumFleet ? "fleet-shortfall" : null,
-          depot && depot.capacitySets < service.fleetRequirement.minimumFleet ? "depot-capacity-shortfall" : null,
+          resources.poolId === null && resources.depot.capacitySets < service.fleetRequirement.minimumFleet ? "depot-capacity-shortfall" : null,
+          ...resources.warnings,
         ].filter(Boolean),
       };
     });
@@ -1053,12 +1126,22 @@ export class ManagementGame {
     return this.transact("service-day-operated", () => {
       const service = this.services.find((item) => item.id === serviceId);
       if (!service) throw new Error(`Unknown service ${serviceId}`);
-      const order = this.vehicleOrders.find((item) => item.id === service.vehicleOrderId);
-      const depot = this.depots.find((item) => item.id === service.depotId);
       const contract = this.contracts.find((item) => item.id === service.contractId);
       const infrastructureImpact = this.infrastructureMaintenanceImpact(service.projectId);
       this.clock.advance(1440);
-      const settlement = operateServiceDay({ service, units: order?.units ?? [], depot, contract, infrastructureImpact }, this.ledger, this.clock, this.rng);
+      const resources = this.resolveOperatingResources(service.id);
+      const settlement = operateServiceDay({
+        service,
+        units: resources.units,
+        depot: resources.depot,
+        contract,
+        infrastructureImpact,
+        resourcePoolId: resources.poolId,
+        resourceWarnings: resources.warnings,
+        preferredUnitIds: resources.preferredUnitIds,
+        maximumStaffedSets: resources.maximumStaffedSets,
+        operatingDay: Math.floor(this.clock.minute / 1440),
+      }, this.ledger, this.clock, this.rng);
       const maintenanceProgress = this.advanceInfrastructureMaintenanceToCurrentDay();
       return { ...settlement, maintenanceProgress, ...this.applyOperatingSettlement(service, settlement) };
     });

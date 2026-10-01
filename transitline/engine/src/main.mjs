@@ -719,11 +719,61 @@ async function main() {
       }
       corporateCard.append(corporateMetrics);
       container.append(corporateCard);
+      const poolReports = runtime.operatingResourcePoolReport();
+      for (const pool of poolReports) {
+        const poolCard = document.createElement("article");
+        poolCard.className = "operations-economy-card operations-resource-pool-card";
+        const poolHead = document.createElement("div");
+        poolHead.className = "operations-economy-head";
+        const poolName = document.createElement("b");
+        poolName.textContent = `공동운용 · ${pool.name}`;
+        const poolStatus = document.createElement("span");
+        poolStatus.textContent = pool.warnings.length ? `제약 ${pool.warnings.join(", ")}` : "정상 배분";
+        poolHead.append(poolName, poolStatus);
+        const poolMetrics = document.createElement("div");
+        poolMetrics.className = "operations-economy-metrics";
+        for (const [label, value] of [
+          ["소속 노선", `${pool.assignments.length}개`],
+          ["주력 편성", `${pool.capacity.assignedPrimarySets}편성`],
+          ["공동 예비", `${pool.capacity.sharedReserveSets}편성`],
+          ["동시근무", `${pool.capacity.assignedStaffConcurrent.toFixed(1)} / ${pool.capacity.totalStaffConcurrent.toFixed(1)}명`],
+          ["유치 용량", `${pool.capacity.totalVehicleSets} / ${pool.capacity.totalDepotCapacitySets}편성`],
+          ["일일 검사", `${pool.capacity.totalInspectionSetsPerDay}편성`],
+        ]) {
+          const cell = document.createElement("div");
+          const name = document.createElement("span");
+          const number = document.createElement("b");
+          name.textContent = label;
+          number.textContent = value;
+          cell.append(name, number);
+          poolMetrics.append(cell);
+        }
+        poolCard.append(poolHead, poolMetrics);
+        container.append(poolCard);
+      }
+      const unassignedServices = runtime.game.services.filter((service) => !service.resourcePoolId);
+      if (unassignedServices.length >= 2) {
+        const createPool = document.createElement("button");
+        createPool.type = "button";
+        createPool.className = "operations-create-pool";
+        createPool.textContent = `미배정 ${unassignedServices.length}개 노선 공동운용 시작`;
+        createPool.addEventListener("click", () => run(() => {
+          const id = `operating-pool:${runtime.game.operatingResourcePools.length + 1}`;
+          const vehicleOrderIds = [...new Set(unassignedServices.map((service) => service.vehicleOrderId))];
+          const depotIds = [...new Set(unassignedServices.map((service) => service.depotId))];
+          const totalStaffConcurrent = Math.ceil(unassignedServices.reduce((sum, service) => sum + service.fleetRequirement.serviceSets * service.staffPerSet, 0) * 1.1);
+          runtime.createOperatingResourcePool({ id, name: `통합 운용본부 ${runtime.game.operatingResourcePools.length + 1}`, vehicleOrderIds, depotIds, totalStaffConcurrent });
+          unassignedServices.forEach((service, index) => runtime.assignServiceToOperatingResourcePool(service.id, id, { priority: unassignedServices.length - index, homeDepotId: service.depotId }));
+          message(`${unassignedServices.length}개 노선의 차량·예비편성·인력·차량기지를 공동운용합니다.`);
+          return runtime.operatingResourcePoolReport(id);
+        }));
+        container.append(createPool);
+      }
       for (const service of runtime.game.services) {
         const reports = runtime.game.operatingMonthReport(service.id).sort((a, b) => b.month - a.month);
         const latest = reports[0] ?? null;
-        const order = runtime.game.vehicleOrders.find((entry) => entry.id === service.vehicleOrderId);
-        const units = order?.units ?? [];
+        const resources = runtime.game.resolveOperatingResources(service.id);
+        const units = resources.units;
         const due = units.filter((unit) => unit.status === "inspection-due").length;
         const repairing = units.filter((unit) => unit.status === "repairing").length;
         const averageCondition = units.length ? units.reduce((sum, unit) => sum + (unit.condition ?? 1), 0) / units.length : null;
@@ -741,6 +791,7 @@ async function main() {
         const metrics = document.createElement("div");
         metrics.className = "operations-economy-metrics";
         const values = latest ? [
+          ["운용 자원", resources.poolId ? `공동 풀 ${resources.poolId}` : "노선 전용"],
           ["운송수입", yen.format(latest.operatingIncomeJPY)],
           ["운영비", yen.format(latest.operatingCostJPY)],
           ["금융비", yen.format(latest.financeCostJPY)],
@@ -761,6 +812,7 @@ async function main() {
         ] : [
           ["운영 정산", "첫 영업일 대기"],
           ["차량", `${units.length}편성`],
+          ["운용 자원", resources.poolId ? `공동 풀 ${resources.poolId}` : "노선 전용"],
         ];
         for (const [label, value] of values) {
           const cell = document.createElement("div");
@@ -839,6 +891,17 @@ async function main() {
         const policyLabels = document.createElement("span");
         policyLabels.textContent = "운임(JPY) · 시간당 운행 · 인력 · 전력계약";
         policy.append(policyLabels, fare, frequency, staffing, electricity, applyPolicy, addCompetitor);
+        if (service.resourcePoolId) {
+          const leavePool = document.createElement("button");
+          leavePool.type = "button";
+          leavePool.textContent = "공동운용 해제";
+          leavePool.addEventListener("click", () => run(() => {
+            runtime.removeServiceFromOperatingResourcePool(service.id);
+            message(`${service.name ?? service.id} 노선을 전용 차량·차량기지 운용으로 되돌렸습니다.`);
+            return true;
+          }));
+          policy.append(leavePool);
+        }
         card.append(policy);
         if (reports.length) {
           const table = document.createElement("table");

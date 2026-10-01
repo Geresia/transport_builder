@@ -10,6 +10,7 @@ export * from "./service-reliability.mjs";
 export * from "./infrastructure-maintenance.mjs";
 export * from "./service-policy.mjs";
 export * from "./corporate-finance.mjs";
+export * from "./operating-resource-pool.mjs";
 export * from "./station-planning.mjs";
 export * from "./station-flow.mjs";
 export * from "./station-construction.mjs";

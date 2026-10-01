@@ -14,10 +14,12 @@ function severityFromRoll(value) {
   return "critical";
 }
 
-export function advanceVehicleRepairs(units, days = 1, atMinute = 0) {
+export function advanceVehicleRepairs(units, days = 1, atMinute = 0, operatingDay = null) {
   const restoredUnitIds = [];
   for (const unit of units.filter((entry) => entry.status === "repairing")) {
-    unit.repairDaysRemaining = Math.max(0, (unit.repairDaysRemaining ?? 1) - days);
+    const elapsedDays = operatingDay === null || unit.lastRepairAdvanceDay !== operatingDay ? days : 0;
+    if (operatingDay !== null) unit.lastRepairAdvanceDay = operatingDay;
+    unit.repairDaysRemaining = Math.max(0, (unit.repairDaysRemaining ?? 1) - elapsedDays);
     if (unit.repairDaysRemaining > 0) continue;
     unit.status = "available";
     unit.repairDaysRemaining = 0;
@@ -29,14 +31,15 @@ export function advanceVehicleRepairs(units, days = 1, atMinute = 0) {
   return restoredUnitIds;
 }
 
-export function dispatchVehicleFleet({ units = [], modelId, requiredSets, days = 1, rng, ledger, clock, serviceId = null } = {}) {
+export function dispatchVehicleFleet({ units = [], modelId, requiredSets, days = 1, rng, ledger, clock, serviceId = null, preferredUnitIds = null, operatingDay = null } = {}) {
   const model = VEHICLE_MODELS[modelId];
   if (!model) throw new Error(`Unknown vehicle model ${modelId}`);
   if (!rng?.next) throw new Error("Vehicle dispatch requires a deterministic RNG");
-  const restoredUnitIds = advanceVehicleRepairs(units, days, clock?.minute ?? 0);
+  const restoredUnitIds = advanceVehicleRepairs(units, days, clock?.minute ?? 0, operatingDay);
   const requestedSets = Math.max(0, Math.floor(requiredSets ?? 0));
-  const available = units.filter((unit) => unit.status === "available")
-    .sort((a, b) => (b.condition ?? 1) - (a.condition ?? 1) || a.id.localeCompare(b.id));
+  const preferred = new Set(preferredUnitIds ?? []);
+  const available = units.filter((unit) => unit.status === "available" && (operatingDay === null || unit.lastDispatchedDay !== operatingDay))
+    .sort((a, b) => Number(preferred.has(b.id)) - Number(preferred.has(a.id)) || (b.condition ?? 1) - (a.condition ?? 1) || a.id.localeCompare(b.id));
   const primary = available.slice(0, requestedSets);
   const reserves = available.slice(requestedSets);
   const operatingUnitIds = [];
@@ -62,6 +65,7 @@ export function dispatchVehicleFleet({ units = [], modelId, requiredSets, days =
     unit.repairDaysRemaining = profile.repairDays;
     unit.failureCount = (unit.failureCount ?? 0) + 1;
     unit.lastFailureAtMinute = clock?.minute ?? 0;
+    if (operatingDay !== null) unit.lastRepairAdvanceDay = operatingDay;
     unit.condition = Math.max(0.35, (unit.condition ?? 1) - (severity === "critical" ? 0.04 : severity === "major" ? 0.02 : 0.008));
     if (replacement) {
       operatingUnitIds.push(replacement.id);
@@ -95,6 +99,12 @@ export function dispatchVehicleFleet({ units = [], modelId, requiredSets, days =
       reference: serviceId ?? modelId,
       memo: `${incidents.length} vehicle failure repair(s)`,
     });
+  }
+  for (const unitId of operatingUnitIds) {
+    const unit = units.find((entry) => entry.id === unitId);
+    if (!unit) continue;
+    if (operatingDay !== null) unit.lastDispatchedDay = operatingDay;
+    unit.lastDispatchedServiceId = serviceId;
   }
   const lostServiceSets = Math.max(0, requestedSets - operatingUnitIds.length);
   return {
