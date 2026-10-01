@@ -10,7 +10,8 @@ import { attachInput } from "./input.mjs";
 import { startLoop } from "./loop.mjs";
 import { startPopLoop } from "./pop-loop.mjs";
 import { withStationAccess } from "./access-demand.mjs";
-import { buildMapExport, drawnLinesFromState } from "./map/plan-geometry.mjs";
+import { buildMapExport, drawnLinesFromState, withRailLayer } from "./map/plan-geometry.mjs";
+import { spatialContextFromPack } from "./map/pack-spatial.mjs";
 import { buildOverlayModel, defineViewSlots, renderDiagnosticsPanel, renderPhaseLegend } from "./map/overlay.mjs";
 import { attachDepotEditor } from "./map/depot-ui.mjs";
 import { attachStationEditor } from "./map/station-ui.mjs";
@@ -309,6 +310,7 @@ async function main() {
   const difficulty = ["easy", "normal", "hard"].includes(params.get("difficulty")) ? params.get("difficulty") : "normal";
   const fundingMode = params.get("funding") === "sandbox" ? "sandbox" : "limited";
   const runtime = scenarioPlay ? new ScenarioRuntime({ pack, operationalState: state, countryId, networkMode, fundingMode, difficulty }) : null;
+  const packSpatial = spatialContextFromPack(pack);
 
   // Map -> engine is data only: player plans become PlanGeometry; the management engine's report
   // (statuses, verdicts) comes back through setEngineReport and is only displayed, never written.
@@ -324,8 +326,9 @@ async function main() {
   let constructionImpact = null;
   let constructionImpactOutput = null;
   let constructionWorkfront = null;
+  const getCurrentSpatial = () => withRailLayer(packSpatial, currentMapExport?.externalNetworks ?? []);
   refreshMapOverlay = () => {
-    currentMapExport = buildMapExport({ pack, mode: networkMode, drawnLines: drawnLinesFromState(state) });
+    currentMapExport = buildMapExport({ pack, mode: networkMode, drawnLines: drawnLinesFromState(state), spatial: packSpatial });
     const report = runtime?.report() ?? engineReport ?? {};
     state.mapOverlay = scenarioPlay ? buildOverlayModel(currentMapExport, report) : null;
     renderDiagnosticsPanel($("map-diagnostics"), state.mapOverlay?.diagnostics ?? []);
@@ -357,9 +360,9 @@ async function main() {
   resize();
 
   // Depot candidate sites: spatial facts for the management engine, drawn and compared on this map
-  depotUi = attachDepotEditor({ canvas, projection, pack, state, getMapExport: () => currentMapExport, panel: $("depot-panel"), compare: $("depot-compare"), button: $("btn-depot") });
+  depotUi = attachDepotEditor({ canvas, projection, pack, state, getMapExport: () => currentMapExport, getSpatial: getCurrentSpatial, panel: $("depot-panel"), compare: $("depot-compare"), button: $("btn-depot") });
   // Station sites: spatial facts for stations, entrances, transfers and work areas; the engine verdict is drawn read-only
-  stationUi = attachStationEditor({ canvas, projection, pack, state, getMapExport: () => currentMapExport, getOverlay: () => state.mapOverlay, panel: $("station-panel"), button: $("btn-station") });
+  stationUi = attachStationEditor({ canvas, projection, pack, state, getMapExport: () => currentMapExport, getSpatial: getCurrentSpatial, getOverlay: () => state.mapOverlay, panel: $("station-panel"), button: $("btn-station") });
   constructionUi = attachConstructionEditor({
     canvas,
     projection,
@@ -367,6 +370,7 @@ async function main() {
     state,
     getMapExport: () => currentMapExport,
     getDepotExport: () => depotUi?.depotExport,
+    getSpatial: getCurrentSpatial,
     getReport: () => runtime?.report() ?? engineReport ?? {},
     panel: $("construction-panel"),
     phasePanel: $("construction-phase-panel"),
@@ -425,6 +429,7 @@ async function main() {
       pack,
       getConstructionExport: () => constructionUi?.constructionExport,
       getReport: () => runtime.report(),
+      getSpatial: getCurrentSpatial,
       enabled: false,
       onChange: (output) => { constructionImpactOutput = output; queueMicrotask(() => refreshScenarioPanel()); },
     });
@@ -449,6 +454,7 @@ async function main() {
       pack,
       getConstructionExport: () => constructionUi?.constructionExport,
       getReport: () => runtime.report(),
+      getSpatial: getCurrentSpatial,
       enabled: false,
       onChange: (output) => {
         if (output?.connectedPlanId) {
@@ -477,12 +483,14 @@ async function main() {
     // reason) — never a cost, duration or bid eligibility judgement of its own.
     const siteDesignBridge = mountSiteDesignBridge({
       pack,
+      getSpatial: getCurrentSpatial,
       onSubmit: (edit, { collisionResult }) => {
         const deliveryPackage = runtime.game.stationPackages.find((p) => p.stationSiteId === edit.stationSiteId);
         if (!deliveryPackage) return { accepted: false, reason: "이 역은 아직 시공사 낙찰까지 진행되지 않아 설계변경을 접수할 수 없습니다." };
         const planId = deliveryPackage.connectedPlanId;
+        let proposal = null;
         try {
-          const proposal = runtime.requestStationDesignChange(planId, deliveryPackage.id, { designEdit: edit, collisionResult });
+          proposal = runtime.requestStationDesignChange(planId, deliveryPackage.id, { designEdit: edit, collisionResult });
           const blocking = proposal.collision?.blocking === true;
           const unconfirmed = proposal.collision?.status === "unknown";
           if (proposal.violations?.length || blocking || unconfirmed) {
@@ -501,6 +509,14 @@ async function main() {
           refreshScenarioPanel();
           return { accepted: true };
         } catch (error) {
+          // Approval can fail after the proposal was created (for example, insufficient cash).
+          // Finalize it as rejected so it cannot block the player's next revision attempt.
+          if (proposal?.id) {
+            try { runtime.rejectStationDesignChange(planId, deliveryPackage.id, proposal.id, `approval-failed: ${error.message}`); }
+            catch { /* already finalized; preserve the original failure */ }
+          }
+          refreshMapOverlay();
+          refreshScenarioPanel();
           return { accepted: false, reason: error.message };
         }
       },
@@ -657,6 +673,358 @@ async function main() {
         comparisonCount: depotUi?.depotExport?.sites.length ?? 0,
         fundingShares: { operatorShare, nationalGovernmentShare, localGovernmentShare },
       };
+    };
+
+    const renderOperatingEconomy = () => {
+      const container = $("scenario-operations-economy");
+      container.replaceChildren();
+      if (!runtime.game.services.length) {
+        const empty = document.createElement("div");
+        empty.className = "operations-economy-empty";
+        empty.textContent = "노선 개통 후 실제 승객·열차 운행 결과가 월별 손익으로 집계됩니다.";
+        container.append(empty);
+        return;
+      }
+      const corporate = runtime.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(runtime.game.clock.minute / (30 * 1440)) - 5) });
+      const corporateLatest = corporate.monthly.at(-1);
+      const corporateCard = document.createElement("article");
+      corporateCard.className = "operations-economy-card operations-corporate-card";
+      const corporateTitle = document.createElement("div");
+      corporateTitle.className = "operations-economy-head";
+      const corporateName = document.createElement("b");
+      corporateName.textContent = "회사 연결재무";
+      const corporateMonth = document.createElement("span");
+      corporateMonth.textContent = `${corporate.throughMonth}월 결산`;
+      corporateTitle.append(corporateName, corporateMonth);
+      corporateCard.append(corporateTitle);
+      const corporateMetrics = document.createElement("div");
+      corporateMetrics.className = "operations-economy-metrics";
+      for (const [label, value] of [
+        ["현금", yen.format(corporate.balanceSheet.cashJPY)],
+        ["가용현금", yen.format(corporate.balanceSheet.availableCashJPY)],
+        ["고정자산", yen.format(corporate.balanceSheet.fixedAssetsJPY)],
+        ["건설부채", yen.format(corporate.balanceSheet.constructionDebtJPY)],
+        ["자기자본", yen.format(corporate.balanceSheet.equityJPY)],
+        ["월 EBITDA", yen.format(corporateLatest.ebitdaJPY)],
+        ["월 세전손익", yen.format(corporateLatest.pretaxProfitJPY)],
+        ["영업현금흐름", yen.format(corporateLatest.cashFlow.operatingJPY)],
+      ]) {
+        const cell = document.createElement("div");
+        const name = document.createElement("span");
+        const number = document.createElement("b");
+        name.textContent = label;
+        number.textContent = value;
+        cell.append(name, number);
+        corporateMetrics.append(cell);
+      }
+      corporateCard.append(corporateMetrics);
+      container.append(corporateCard);
+      for (const service of runtime.game.services) {
+        const reports = runtime.game.operatingMonthReport(service.id).sort((a, b) => b.month - a.month);
+        const latest = reports[0] ?? null;
+        const order = runtime.game.vehicleOrders.find((entry) => entry.id === service.vehicleOrderId);
+        const units = order?.units ?? [];
+        const due = units.filter((unit) => unit.status === "inspection-due").length;
+        const repairing = units.filter((unit) => unit.status === "repairing").length;
+        const averageCondition = units.length ? units.reduce((sum, unit) => sum + (unit.condition ?? 1), 0) / units.length : null;
+        const card = document.createElement("article");
+        card.className = "operations-economy-card";
+        const head = document.createElement("div");
+        head.className = "operations-economy-head";
+        const title = document.createElement("b");
+        title.textContent = service.name ?? service.id;
+        const status = document.createElement("span");
+        status.textContent = `${service.status} · 재무 ${service.financialStatus ?? "current"}`;
+        head.append(title, status);
+        card.append(head);
+
+        const metrics = document.createElement("div");
+        metrics.className = "operations-economy-metrics";
+        const values = latest ? [
+          ["운송수입", yen.format(latest.operatingIncomeJPY)],
+          ["운영비", yen.format(latest.operatingCostJPY)],
+          ["금융비", yen.format(latest.financeCostJPY)],
+          ["갱신투자", yen.format(latest.capitalCostJPY ?? 0)],
+          ["월 순현금", yen.format(latest.netCashJPY)],
+          ["수송인원", `${Math.round(latest.passengers).toLocaleString("ko-KR")}명`],
+          ["열차 주행", `${Math.round(latest.trainKm).toLocaleString("ko-KR")}km`],
+          ["차량 평균상태", averageCondition === null ? "-" : `${(averageCondition * 100).toFixed(1)}%`],
+          ["시설 평균상태", latest.infrastructure.averageCondition === null ? "-" : `${(latest.infrastructure.averageCondition * 100).toFixed(1)}%`],
+          ["검사 대기", `${due}편성`],
+          ["고장 수리", `${repairing}편성`],
+          ["월 고장", `${latest.reliability?.failures ?? 0}건`],
+          ["예비 대체", `${latest.reliability?.reserveSubstitutions ?? 0}회`],
+          ["평균 정시율", latest.reliability?.averagePunctuality === null || latest.reliability?.averagePunctuality === undefined ? "-" : `${(latest.reliability.averagePunctuality * 100).toFixed(2)}%`],
+          ["고장 수리비", yen.format(latest.money.vehicleRepairJPY ?? 0)],
+          ["시장점유율", latest.market?.averagePlayerShare === null || latest.market?.averagePlayerShare === undefined ? "-" : `${(latest.market.averagePlayerShare * 100).toFixed(1)}%`],
+          ["경쟁사업자", `${service.operatingCompetitors?.length ?? 0}개사`],
+        ] : [
+          ["운영 정산", "첫 영업일 대기"],
+          ["차량", `${units.length}편성`],
+        ];
+        for (const [label, value] of values) {
+          const cell = document.createElement("div");
+          const name = document.createElement("span");
+          const number = document.createElement("b");
+          name.textContent = label;
+          number.textContent = value;
+          cell.append(name, number);
+          metrics.append(cell);
+        }
+        card.append(metrics);
+        const project = runtime.game.projects.find((entry) => entry.id === service.projectId);
+        const activePrograms = runtime.game.infrastructureMaintenanceReport(service.projectId).filter((entry) => entry.status === "active");
+        const maintenanceAssets = (project?.assets ?? []).filter((asset) => !asset.maintenanceProgramId && (asset.condition ?? 1) < 0.75);
+        const maintenance = document.createElement("div");
+        maintenance.className = "operations-maintenance-actions";
+        const maintenanceStatus = document.createElement("span");
+        maintenanceStatus.textContent = activePrograms.length
+          ? `보수 진행 ${activePrograms.map((entry) => `${entry.strategyId} ${entry.elapsedDays}/${entry.durationDays}일`).join(" · ")}`
+          : maintenanceAssets.length ? `보수 필요 자산 ${maintenanceAssets.length}개` : "보수 필요 자산 없음";
+        maintenance.append(maintenanceStatus);
+        for (const [strategyId, label] of [["night", "야간보수"], ["intensive", "집중보수"], ["renewal", "전면갱신"]]) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = label;
+          const targets = strategyId === "renewal" ? maintenanceAssets.filter((asset) => (asset.condition ?? 1) < 0.55) : maintenanceAssets;
+          button.disabled = !targets.length;
+          button.addEventListener("click", () => run(() => {
+            const program = runtime.game.startInfrastructureMaintenance(service.projectId, { assetIds: targets.map((asset) => asset.id), strategyId });
+            message(`${label} 착수 · ${program.durationDays}일 · ${yen.format(program.totalCostJPY)}`);
+            return program;
+          }));
+          maintenance.append(button);
+        }
+        card.append(maintenance);
+        const policy = document.createElement("div");
+        policy.className = "operations-policy-actions";
+        const fare = document.createElement("input");
+        fare.type = "number";
+        fare.min = "100";
+        fare.max = "2000";
+        fare.step = "10";
+        fare.value = String(service.averageFare);
+        fare.title = "기본운임(JPY)";
+        const frequency = document.createElement("input");
+        frequency.type = "number";
+        frequency.min = "0.5";
+        frequency.max = "30";
+        frequency.step = "0.5";
+        frequency.value = String(service.trainsPerHour);
+        frequency.title = "시간당 운행횟수";
+        const staffing = document.createElement("select");
+        for (const [value, label] of [["lean", "최소인력"], ["balanced", "균형인력"], ["resilient", "예비인력"]]) staffing.append(new Option(label, value));
+        staffing.value = service.staffingPolicyId ?? "balanced";
+        const electricity = document.createElement("select");
+        for (const [value, label] of [["spot", "시장연동 전력"], ["fixed", "고정단가 전력"], ["renewable", "재생에너지"]]) electricity.append(new Option(label, value));
+        electricity.value = service.electricityContractId ?? "spot";
+        const applyPolicy = document.createElement("button");
+        applyPolicy.type = "button";
+        applyPolicy.textContent = "운영정책 적용";
+        applyPolicy.addEventListener("click", () => run(() => {
+          const result = runtime.updateServicePolicy(service.id, { fareJPY: Number(fare.value), trainsPerHour: Number(frequency.value), staffingPolicyId: staffing.value, electricityContractId: electricity.value });
+          message(`운영정책 개정 ${result.policy.revision} · 수요계수 ${result.policy.forecastDemandMultiplier.toFixed(2)}${result.warnings.length ? ` · 경고 ${result.warnings.join(", ")}` : ""}`);
+          return result;
+        }));
+        const addCompetitor = document.createElement("button");
+        addCompetitor.type = "button";
+        addCompetitor.textContent = "경쟁사업자 진입";
+        addCompetitor.disabled = (service.operatingCompetitors?.length ?? 0) >= 3;
+        addCompetitor.addEventListener("click", () => run(() => {
+          const index = (service.operatingCompetitors?.length ?? 0) + 1;
+          const competitor = runtime.addOperatingCompetitor(service.id, { id: `rival:${service.id}:${index}`, name: `경쟁교통 ${index}`, fareJPY: Math.max(100, service.averageFare + (index - 2) * 20), trainsPerHour: Math.max(1, service.trainsPerHour + (index % 2 ? 1 : -1)), punctuality: 0.96 + index * 0.005 });
+          message(`${competitor.name}이 동일 교통시장에 진입했습니다.`);
+          return competitor;
+        }));
+        const policyLabels = document.createElement("span");
+        policyLabels.textContent = "운임(JPY) · 시간당 운행 · 인력 · 전력계약";
+        policy.append(policyLabels, fare, frequency, staffing, electricity, applyPolicy, addCompetitor);
+        card.append(policy);
+        if (reports.length) {
+          const table = document.createElement("table");
+          table.className = "operations-economy-history";
+          const header = document.createElement("tr");
+          for (const label of ["월", "정시율", "고장", "영업손익", "금융비", "갱신", "순현금"]) {
+            const th = document.createElement("th");
+            th.textContent = label;
+            header.append(th);
+          }
+          const thead = document.createElement("thead");
+          thead.append(header);
+          const tbody = document.createElement("tbody");
+          for (const report of reports.slice(0, 6)) {
+            const row = document.createElement("tr");
+            const punctuality = report.reliability?.averagePunctuality;
+            for (const value of [`${report.month}`, punctuality === null || punctuality === undefined ? "-" : `${(punctuality * 100).toFixed(1)}%`, `${report.reliability?.failures ?? 0}`, yen.format(report.operatingProfitJPY), yen.format(report.financeCostJPY), yen.format(report.capitalCostJPY ?? 0), yen.format(report.netCashJPY)]) {
+              const td = document.createElement("td");
+              td.textContent = value;
+              row.append(td);
+            }
+            tbody.append(row);
+          }
+          table.append(thead, tbody);
+          card.append(table);
+        }
+        container.append(card);
+      }
+    };
+
+    const renderConstructionCycle = (plan, project) => {
+      const container = $("scenario-construction-cycle");
+      container.replaceChildren();
+      if (!project) {
+        const empty = document.createElement("div");
+        empty.className = "construction-cycle-empty";
+        empty.textContent = plan ? "아직 이 계획의 건설 사업이 만들어지지 않았습니다." : "계획선을 선택하세요.";
+        container.append(empty);
+        return;
+      }
+      const reports = runtime.constructionCycleReport()
+        .filter((report) => report.projects.some((entry) => entry.projectId === project.id)
+          || report.schedules.some((entry) => entry.projectId === project.id))
+        .sort((a, b) => b.atMinute - a.atMinute);
+      if (!reports.length) {
+        const empty = document.createElement("div");
+        empty.className = "construction-cycle-empty";
+        empty.textContent = "월을 진행하면 공정·기성금·지연을 한 장부에서 추적합니다.";
+        container.append(empty);
+        return;
+      }
+
+      const latest = reports[0];
+      const projectCycle = latest.projects.find((entry) => entry.projectId === project.id) ?? null;
+      const schedule = latest.schedules.find((entry) => entry.projectId === project.id) ?? null;
+      const reasonLabels = {
+        "construction-package-procurement": "공구별 입찰·낙찰 미완료",
+        "equipment-workfront-infeasible": "중장비 반입 작업면 부적합",
+        "integrated-schedule": "통합 공정의 임계 지연 또는 시험 선행조건 미충족",
+        "construction-funding-gap": "물가조정분을 반영할 가용 예산 부족",
+        suspended: "사업자 결정으로 공사 일시중단",
+      };
+      const card = document.createElement("article");
+      card.className = "construction-cycle-latest";
+      const head = document.createElement("div");
+      head.className = "construction-cycle-head";
+      const title = document.createElement("b");
+      title.textContent = `${latest.month}개월차 통합 정산`;
+      const stateLabel = document.createElement("span");
+      stateLabel.textContent = projectCycle ? `${projectCycle.status ?? project.status} · ${Math.round((projectCycle.progress ?? project.progress) * 100)}%` : project.status;
+      head.append(title, stateLabel);
+      card.append(head);
+
+      const metrics = document.createElement("div");
+      metrics.className = "construction-cycle-metrics";
+      const values = [
+        ["당월 공사 기성금", yen.format(projectCycle?.paymentJPY ?? 0)],
+        ["전체 차량·기지 지급", yen.format(latest.payments.vehiclesJPY + latest.payments.depotsJPY)],
+        ["당월 현금 증감", yen.format(latest.cashChangeJPY)],
+        ["누적 개통 지연", schedule ? `${schedule.delayMonths}개월` : "공정표 미연결"],
+        ["공사비 지수", latest.constructionPrice ? `${latest.constructionPrice.currentIndex.toFixed(3)} (2026=100)` : "-"],
+        ["기준 개통월", schedule ? `${schedule.baselineOpeningMonth}개월차` : "-"],
+        ["예상 개통월", schedule ? `${schedule.forecastOpeningMonth}개월차` : "-"],
+      ];
+      for (const [label, value] of values) {
+        const cell = document.createElement("div");
+        const name = document.createElement("span");
+        const amount = document.createElement("b");
+        name.textContent = label;
+        amount.textContent = value;
+        cell.append(name, amount);
+        metrics.append(cell);
+      }
+      card.append(metrics);
+
+      if (projectCycle?.blocked) {
+        const blocker = document.createElement("div");
+        blocker.className = "construction-cycle-blocker";
+        const gateDetails = (projectCycle.gateReasons ?? []).map((entry) => {
+          if (entry.code === "critical-task-delay") return `임계 작업 ${entry.taskId} · ${entry.releaseMonth}개월차까지 제한`;
+          if (entry.code === "testing-dependencies") return `종합시험 선행작업 ${entry.dependencyTaskIds.length}개 미완료`;
+          return entry.code;
+        });
+        blocker.textContent = `진행 정지: ${reasonLabels[projectCycle.reason] ?? projectCycle.reason ?? "원인 미상"}${gateDetails.length ? ` · ${gateDetails.join(" · ")}` : ""}`;
+        card.append(blocker);
+      } else {
+        const ok = document.createElement("div");
+        ok.className = "construction-cycle-ok";
+        ok.textContent = `이번 달 공정 +${Math.round((projectCycle?.progressDelta ?? 0) * 1000) / 10}%p · 신규 사건 ${latest.generatedEventIds.length}건`;
+        card.append(ok);
+      }
+      container.append(card);
+
+      const fundingCase = runtime.game.constructionFundingReport(project.id)
+        .find((entry) => ["open", "suspended"].includes(entry.status));
+      if (fundingCase) {
+        const funding = document.createElement("article");
+        funding.className = "construction-funding-case";
+        const fundingTitle = document.createElement("b");
+        fundingTitle.textContent = `공사비 부족 ${yen.format(fundingCase.fundingGapJPY)}`;
+        const fundingMeta = document.createElement("p");
+        fundingMeta.textContent = `지수 ${fundingCase.priceIndex.toFixed(3)} · 발주자 조정액 ${yen.format(fundingCase.ownerAdjustmentJPY)} · 현재 가용현금 ${yen.format(fundingCase.availableCashJPY)}`;
+        const choices = document.createElement("div");
+        choices.className = "construction-funding-options";
+        for (const option of runtime.constructionFundingOptions(fundingCase.id)) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = option.label;
+          const detail = document.createElement("small");
+          detail.textContent = option.id === "suspend"
+            ? "지급과 공정을 멈추고 나중에 재원 대책을 선택"
+            : `조달 ${yen.format(option.fundingJPY)}${option.delayMonths ? ` · ${option.delayMonths}개월 지연` : ""}${option.futureMonthlyCostJPY ? ` · 향후 월 부담 ${yen.format(option.futureMonthlyCostJPY)}` : ""}`;
+          button.append(detail);
+          button.addEventListener("click", () => run(() => {
+            const result = runtime.resolveConstructionFundingCase(fundingCase.id, option.id);
+            message(option.id === "suspend"
+              ? `공사비 부족으로 사업을 중단했습니다. 재원 대책을 선택하면 재개할 수 있습니다.`
+              : `${option.label}으로 ${yen.format(result.option.fundingJPY ?? 0)}을 조달하고 물가조정분을 계약과 총사업비에 반영했습니다.`);
+            return result;
+          }));
+          choices.append(button);
+        }
+        funding.append(fundingTitle, fundingMeta, choices);
+        container.append(funding);
+      }
+      const financing = runtime.game.constructionFinanceReport(project.id);
+      if (financing.length) {
+        const financeBox = document.createElement("div");
+        financeBox.className = "construction-finance-summary";
+        const debt = financing.filter((entry) => entry.kind === "construction-loan").reduce((sum, entry) => sum + entry.balanceJPY, 0);
+        const monthly = financing.reduce((sum, entry) => sum + entry.futureMonthlyCostJPY, 0);
+        const publicFunding = financing.filter((entry) => entry.kind === "supplementary-budget").reduce((sum, entry) => sum + entry.netConstructionFundingJPY, 0);
+        const equity = financing.filter((entry) => entry.kind === "sponsor-equity").reduce((sum, entry) => sum + entry.netConstructionFundingJPY, 0);
+        financeBox.textContent = `확정 재원 · 추가예산 ${yen.format(publicFunding)} · 추가출자 ${yen.format(equity)} · 건설대출 잔액 ${yen.format(debt)} · 향후 월 부담 ${yen.format(monthly)}`;
+        container.append(financeBox);
+      }
+
+      const table = document.createElement("table");
+      table.className = "construction-cycle-history";
+      const header = document.createElement("tr");
+      for (const label of ["월", "공정", "공사비", "지연"]) {
+        const cell = document.createElement("th");
+        cell.textContent = label;
+        header.append(cell);
+      }
+      const thead = document.createElement("thead");
+      thead.append(header);
+      const tbody = document.createElement("tbody");
+      for (const report of reports.slice(0, 6)) {
+        const entry = report.projects.find((item) => item.projectId === project.id);
+        const reportSchedule = report.schedules.find((item) => item.projectId === project.id);
+        const row = document.createElement("tr");
+        for (const value of [
+          `${report.month}`,
+          entry ? `${Math.round(entry.progress * 100)}%` : "-",
+          entry ? yen.format(entry.paymentJPY) : "-",
+          reportSchedule ? `${reportSchedule.delayMonths}개월` : "-",
+        ]) {
+          const cell = document.createElement("td");
+          cell.textContent = value;
+          row.append(cell);
+        }
+        tbody.append(row);
+      }
+      table.append(thead, tbody);
+      container.append(table);
     };
 
     const renderConstructionEvents = (plan, project) => {
@@ -840,6 +1208,8 @@ async function main() {
         structure.value = line.planningOptions?.structure ?? "elevated";
         platform.value = line.planningOptions?.platformType ?? "island";
       }
+      renderConstructionCycle(plan, project);
+      renderOperatingEconomy();
       renderConstructionEvents(plan, project);
       stationManagement?.refresh();
       constructionContractorManagement?.refresh();
@@ -960,14 +1330,20 @@ async function main() {
     }));
     $("scenario-month").addEventListener("click", () => run(() => {
       const result = runtime.advanceMonths(1)[0];
-      message(`공사와 차량 제작을 1개월 진행했습니다. 신규 사건 ${result.generatedEvents?.length ?? 0}건 · 자동 대응 ${result.autoResolvedEvents?.length ?? 0}건.`);
+      const cycle = result.cycleReport;
+      const currentProject = runtime.projectForPlan(selectedPlan()?.planId);
+      const current = cycle?.projects.find((entry) => entry.projectId === currentProject?.id);
+      const blocked = current?.blocked ? ` · 진행 정지 ${current.reason}` : "";
+      message(`1개월 진행 · 지급 ${yen.format(cycle?.payments.knownTotalJPY ?? 0)} · 현금 증감 ${yen.format(cycle?.cashChangeJPY ?? 0)} · 신규 사건 ${result.generatedEvents?.length ?? 0}건${blocked}`);
       return result;
     }));
     $("scenario-year").addEventListener("click", () => run(() => {
       const results = runtime.advanceMonths(12);
       const generated = results.reduce((sum, result) => sum + (result.generatedEvents?.length ?? 0), 0);
       const resolved = results.reduce((sum, result) => sum + (result.autoResolvedEvents?.length ?? 0), 0);
-      message(`공사와 차량 제작을 12개월 진행했습니다. 신규 사건 ${generated}건 · 자동 대응 ${resolved}건.`);
+      const paid = results.reduce((sum, result) => sum + (result.cycleReport?.payments.knownTotalJPY ?? 0), 0);
+      const cashChange = results.reduce((sum, result) => sum + (result.cycleReport?.cashChangeJPY ?? 0), 0);
+      message(`12개월 진행 · 지급 ${yen.format(paid)} · 현금 증감 ${yen.format(cashChange)} · 신규 사건 ${generated}건 · 자동 대응 ${resolved}건.`);
       return results;
     }));
     $("scenario-suspend").addEventListener("click", () => run(() => {

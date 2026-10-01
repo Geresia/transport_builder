@@ -180,6 +180,51 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .construction-events summary { cursor: pointer; color: var(--text); }
 .construction-events summary span { float: right; min-width: 18px; padding: 1px 5px; border-radius: 10px; background: var(--danger); color: white; text-align: center; font: 10px var(--mono); }
 #scenario-construction-events { display: grid; gap: 6px; margin-top: 6px; }
+.construction-cycle { margin-top: 7px; border-top: 1px solid var(--panel-line); padding-top: 5px; }
+.construction-cycle summary { cursor: pointer; color: #7dd3fc; font-weight: 600; }
+#scenario-construction-cycle { display: grid; gap: 5px; margin-top: 6px; }
+.construction-cycle-empty { padding: 4px 0; color: var(--muted); }
+.construction-cycle-latest { display: grid; gap: 5px; padding: 7px; border: 1px solid color-mix(in srgb, #7dd3fc 35%, var(--chip-line)); border-radius: 6px; background: color-mix(in srgb, #7dd3fc 5%, var(--chip)); }
+.construction-cycle-head { display: flex; justify-content: space-between; gap: 8px; color: var(--text); }
+.construction-cycle-head span { color: var(--muted); font: 10px var(--mono); }
+.construction-cycle-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.construction-cycle-metrics div { min-width: 0; padding: 4px; background: var(--chip); }
+.construction-cycle-metrics span, .construction-cycle-metrics b { display: block; overflow-wrap: anywhere; }
+.construction-cycle-metrics span { color: var(--muted); font-size: 9px; }
+.construction-cycle-metrics b { margin-top: 2px; font: 10px var(--mono); }
+.construction-cycle-blocker { padding: 5px 6px; border-left: 3px solid var(--danger); background: var(--chip); color: var(--danger); line-height: 1.45; }
+.construction-cycle-ok { color: var(--ok); }
+.construction-funding-case { display: grid; gap: 5px; padding: 7px; border: 1px solid color-mix(in srgb, var(--danger) 55%, var(--chip-line)); border-radius: 6px; background: color-mix(in srgb, var(--danger) 7%, var(--chip)); }
+.construction-funding-case > b { color: var(--danger); }
+.construction-funding-case p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.construction-funding-options { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.construction-funding-options button { padding: 5px; text-align: left; color: var(--text); }
+.construction-funding-options small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; line-height: 1.35; }
+.construction-finance-summary { padding: 5px 6px; border-left: 3px solid #7dd3fc; background: var(--chip); color: var(--muted); font-size: 9px; line-height: 1.45; }
+.construction-cycle-history { width: 100%; border-collapse: collapse; font: 9px var(--mono); }
+.construction-cycle-history th, .construction-cycle-history td { padding: 3px 2px; border-bottom: 1px solid var(--panel-line); text-align: right; }
+.construction-cycle-history th:first-child, .construction-cycle-history td:first-child { text-align: left; }
+.operations-economy { margin-top: 7px; border-top: 1px solid var(--panel-line); padding-top: 5px; }
+.operations-economy summary { cursor: pointer; color: #67d7c4; font-weight: 600; }
+#scenario-operations-economy { display: grid; gap: 6px; margin-top: 6px; }
+.operations-economy-empty { padding: 4px 0; color: var(--muted); }
+.operations-economy-card { display: grid; gap: 6px; padding: 7px; border: 1px solid color-mix(in srgb, #67d7c4 35%, var(--chip-line)); border-radius: 6px; background: color-mix(in srgb, #67d7c4 4%, var(--chip)); }
+.operations-economy-head { display: flex; justify-content: space-between; gap: 8px; }
+.operations-economy-head span { color: var(--muted); font: 9px var(--mono); }
+.operations-economy-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.operations-economy-metrics div { min-width: 0; padding: 4px; background: var(--chip); }
+.operations-economy-metrics span, .operations-economy-metrics b { display: block; overflow-wrap: anywhere; }
+.operations-economy-metrics span { color: var(--muted); font-size: 9px; }
+.operations-economy-metrics b { margin-top: 2px; font: 10px var(--mono); }
+.operations-maintenance-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding-top: 4px; border-top: 1px solid var(--panel-line); }
+.operations-maintenance-actions span { flex: 1 1 100%; color: var(--muted); font: 9px var(--mono); }
+.operations-maintenance-actions button { padding: 3px 6px; font-size: 9px; }
+.operations-policy-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding-top: 4px; border-top: 1px solid var(--panel-line); }
+.operations-policy-actions span { grid-column: 1 / -1; color: var(--muted); font: 9px var(--mono); }
+.operations-policy-actions input, .operations-policy-actions select, .operations-policy-actions button { min-width: 0; padding: 3px 5px; font-size: 9px; }
+.operations-economy-history { width: 100%; border-collapse: collapse; font: 9px var(--mono); }
+.operations-economy-history th, .operations-economy-history td { padding: 3px 2px; border-bottom: 1px solid var(--panel-line); text-align: right; }
+.operations-economy-history th:first-child, .operations-economy-history td:first-child { text-align: left; }
 .construction-contractors { margin-top: 7px; border-top: 1px solid var(--panel-line); padding-top: 5px; }
 .construction-contractors summary { cursor: pointer; color: #ffd166; font-weight: 600; }
 #scenario-construction-contractors { display: grid; gap: 7px; margin-top: 7px; }

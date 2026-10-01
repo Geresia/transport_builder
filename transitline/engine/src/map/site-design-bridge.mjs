@@ -9,7 +9,7 @@
 // (supplied as `onSubmit`), reached through whatever management API the caller wires up.
 import { buildStationSite } from "./station-site.mjs";
 import { stableId } from "./ids.mjs";
-import { makeSpatialContext } from "./spatial.mjs";
+import { makeSpatialContext, overlaps } from "./spatial.mjs";
 import {
   SITE_DESIGN_COLLISION_REQUEST_SCHEMA, SITE_DESIGN_COLLISION_RESULT_SCHEMA,
   SITE_DESIGN_EDIT_SCHEMA, SITE_DESIGN_READY_SCHEMA, SITE_DESIGN_SESSION_SCHEMA,
@@ -17,6 +17,7 @@ import {
 
 export const SITE_DESIGN_IFRAME_PATH = "../packs/tokyo/site-design.html";
 const RECHECK_KEY = "site-design-collision-check";
+const INBOUND_SCHEMAS = new Set([SITE_DESIGN_READY_SCHEMA, SITE_DESIGN_COLLISION_REQUEST_SCHEMA, SITE_DESIGN_EDIT_SCHEMA]);
 
 // null/undefined counts stay null (never coerced to false) unless a real collision was already confirmed by a
 // non-null positive count — a confirmed hit is certain even if the other layer is unknown.
@@ -30,9 +31,25 @@ function collisionOf(buildingCount, waterCount) {
 // reusing buildStationSite() wholesale (same code the original StationSiteGeometry was built with) rather than
 // re-implementing overlap math here. `originalEntrances`: session.stationSite.entranceCandidates — an entrance
 // the editor never moved keeps its original location; a moved one uses the request's new location.
-export function recomputeCollision(requestMessage, originalEntrances, { pack, spatial } = {}) {
-  const changeById = new Map((requestMessage.entranceChanges ?? []).map((c) => [c.entranceId, c.location]));
-  const entrances = (originalEntrances ?? []).map((e) => ({ key: e.entranceId, location: changeById.get(e.entranceId) ?? e.location }));
+export function recomputeCollision(requestMessage, originalSiteOrEntrances, { pack, spatial } = {}) {
+  const originalSite = Array.isArray(originalSiteOrEntrances) ? null : originalSiteOrEntrances;
+  const originalEntrances = Array.isArray(originalSiteOrEntrances) ? originalSiteOrEntrances : originalSite?.entranceCandidates ?? [];
+  const originalWorkAreas = originalSite?.workAreaCandidates ?? [];
+  const entranceChanges = new Map((requestMessage.entranceChanges ?? []).map((change) => [change.entranceId, change]));
+  const entrances = originalEntrances
+    .filter((entrance) => entranceChanges.get(entrance.entranceId)?.action !== "remove")
+    .map((entrance) => {
+      const change = entranceChanges.get(entrance.entranceId);
+      return { key: entrance.entranceId, location: change?.location ?? entrance.location };
+    });
+  for (const change of requestMessage.entranceChanges ?? []) {
+    if (change.action === "add" && Array.isArray(change.location)) entrances.push({ key: change.entranceId, location: change.location });
+  }
+  const originalWorkById = new Map(originalWorkAreas.map((workArea) => [workArea.workAreaId, workArea]));
+  const workAreas = (requestMessage.workAreaChanges ?? []).map((change) => ({
+    key: change.workAreaId,
+    polygon: change.polygon ?? originalWorkById.get(change.workAreaId)?.polygon,
+  })).filter((entry) => Array.isArray(entry.polygon));
   const drawn = {
     key: RECHECK_KEY,
     location: requestMessage.body.location,
@@ -40,15 +57,35 @@ export function recomputeCollision(requestMessage, originalEntrances, { pack, sp
     lengthMeters: requestMessage.body.lengthMeters,
     widthMeters: requestMessage.body.widthMeters,
     entrances,
+    workAreas,
   };
   const site = buildStationSite(drawn, { pack, spatial: spatial ?? makeSpatialContext() });
   const bodyCollision = collisionOf(site.intersectedBuildingCount, site.waterOverlapCount);
-  const entranceCollisions = (originalEntrances ?? []).map((e) => {
-    const expectedId = stableId("ent", site.stationSiteId, "key", e.entranceId);
+  const entranceCollisions = entrances.map((entrance) => {
+    const expectedId = stableId("ent", site.stationSiteId, "key", entrance.key);
     const found = site.entranceCandidates.find((c) => c.entranceId === expectedId);
-    return { entranceId: e.entranceId, collides: found ? collisionOf(found.collidingBuildingCount, found.waterOverlapCount) : null };
+    return { entranceId: entrance.key, collides: found ? collisionOf(found.collidingBuildingCount, found.waterOverlapCount) : null };
   });
-  return { bodyCollision, entranceCollisions };
+  const workAreaCollisions = workAreas.map((workArea) => {
+    const expectedId = stableId("work", site.stationSiteId, "key", workArea.key);
+    const found = site.workAreaCandidates.find((candidate) => candidate.workAreaId === expectedId);
+    return { workAreaId: workArea.key, collides: found ? collisionOf(found.intersectedBuildingCount, found.waterOverlapCount) : null };
+  });
+  return { bodyCollision, entranceCollisions, workAreaCollisions };
+}
+
+export function surroundingSpatialData(spatial, location, radiusMeters = 350) {
+  if (!spatial?.layers || !Array.isArray(location)) return { buildings: [], roads: [], water: [], existingRail: [] };
+  const dLat = radiusMeters / 110_540;
+  const dLon = radiusMeters / (111_320 * Math.max(0.1, Math.cos(location[1] * Math.PI / 180)));
+  const box = [location[0] - dLon, location[1] - dLat, location[0] + dLon, location[1] + dLat];
+  const nearby = (layer) => layer?.items?.filter((item) => !item.bbox || overlaps(item.bbox, box)) ?? [];
+  return {
+    buildings: nearby(spatial.layers.buildings).map((item, index) => ({ id: item.id ?? `building:${index}`, polygon: item.rings?.[0], heightMeters: item.heightMeters ?? null })).filter((item) => Array.isArray(item.polygon)),
+    roads: nearby(spatial.layers.roads).map((item, index) => ({ id: item.id ?? `road:${index}`, line: item.line, class: item.cls ?? item.kind ?? null })).filter((item) => Array.isArray(item.line)),
+    water: nearby(spatial.layers.water).map((item, index) => ({ id: item.id ?? `water:${index}`, polygon: item.rings?.[0] })).filter((item) => Array.isArray(item.polygon)),
+    existingRail: nearby(spatial.layers.rail).map((item, index) => ({ id: item.id ?? `rail:${index}`, line: item.line })).filter((item) => Array.isArray(item.line)),
+  };
 }
 
 // Checks the fields every inbound message needs validated before anything in it is trusted: schema, the
@@ -57,7 +94,7 @@ export function recomputeCollision(requestMessage, originalEntrances, { pack, sp
 export function validateInboundMessage(data, eventOrigin, expected) {
   if (!data || typeof data !== "object") return "empty-message";
   if (expected.origin !== "*" && eventOrigin !== expected.origin) return "origin-mismatch";
-  if (typeof data.schema !== "string" || !data.schema.startsWith("transitline.site-design-")) return "unknown-schema";
+  if (!INBOUND_SCHEMAS.has(data.schema)) return "unknown-schema";
   if (expected.sessionId !== undefined && data.sessionId !== undefined && data.sessionId !== expected.sessionId) return "session-mismatch";
   if (expected.stationSiteId !== undefined && data.stationSiteId !== undefined && data.stationSiteId !== expected.stationSiteId) return "station-mismatch";
   return null;
@@ -89,7 +126,14 @@ const CSS = `
 // nothing on acceptance) — it decides nothing about geometry itself, only whatever the caller's management call
 // decided. onCancel(edit) is called only for status:"cancelled" and its return value is ignored — nothing about
 // game state may change in response to a cancel; that is the caller's responsibility to uphold.
-export function mountSiteDesignBridge({ hostDoc = document, pack, getSpatial = () => makeSpatialContext(), onSubmit, onCancel = () => {} }) {
+export function mountSiteDesignBridge({
+  hostDoc = document,
+  pack,
+  getSpatial = () => makeSpatialContext(),
+  getSurroundingSpatialData = (stationSite, spatial) => surroundingSpatialData(spatial, stationSite.location),
+  onSubmit,
+  onCancel = () => {},
+}) {
   if (!hostDoc.getElementById(STYLE_ID)) { const s = hostDoc.createElement("style"); s.id = STYLE_ID; s.textContent = CSS; hostDoc.head.append(s); }
   const win = hostDoc.defaultView;
   const iframeOrigin = new URL(SITE_DESIGN_IFRAME_PATH, win.location.href).origin;
@@ -150,12 +194,14 @@ export function mountSiteDesignBridge({ hostDoc = document, pack, getSpatial = (
 
   function handleMessage(event) {
     if (!current) return;
+    if (event.source !== iframeEl?.contentWindow) return;
     const data = event.data;
     if (!data || typeof data !== "object" || !data.schema?.startsWith?.("transitline.site-design-")) return; // not for us
     const err = validateInboundMessage(data, event.origin, { origin: iframeOrigin, sessionId: current.sessionId, stationSiteId: current.stationSite.stationSiteId });
-    if (err && data.schema !== SITE_DESIGN_READY_SCHEMA) { banner(`편집기 메시지를 거부했습니다 (${err}).`, "error"); return; }
+    if (err) { banner(`편집기 메시지를 거부했습니다 (${err}).`, "error"); return; }
 
     if (data.schema === SITE_DESIGN_READY_SCHEMA) {
+      const spatial = getSpatial();
       statusEl.textContent = "연결됨";
       statusEl.className = "tl-sitedesign-status ready";
       send({
@@ -163,14 +209,14 @@ export function mountSiteDesignBridge({ hostDoc = document, pack, getSpatial = (
         sessionId: current.sessionId,
         stationSite: current.stationSite,
         baseRevision: current.baseRevision,
-        surroundingSpatialData: null,
+        surroundingSpatialData: getSurroundingSpatialData(current.stationSite, spatial),
         initialView: null,
       });
       return;
     }
 
     if (data.schema === SITE_DESIGN_COLLISION_REQUEST_SCHEMA) {
-      const result = recomputeCollision(data, current.stationSite.entranceCandidates ?? [], { pack, spatial: getSpatial() });
+      const result = recomputeCollision(data, current.stationSite, { pack, spatial: getSpatial() });
       const resultMsg = { schema: SITE_DESIGN_COLLISION_RESULT_SCHEMA, sessionId: current.sessionId, requestId: data.requestId, ...result };
       current.lastCollisionResult = resultMsg;
       send(resultMsg);

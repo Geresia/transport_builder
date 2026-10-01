@@ -533,12 +533,13 @@ export function advanceDepotDevelopmentMonth(depot, ledger, clock, rng, countryP
   const targetPaid = Math.min(operatorCapex, operatorCapex * (0.1 + depot.progress * 0.8));
   const commitmentId = `depot-development:${depot.id}`;
   const commitment = ledger.commitments.get(commitmentId);
-  const payment = Math.min(commitment?.remaining ?? 0, Math.max(0, targetPaid - depot.paid));
+  let payment = Math.min(commitment?.remaining ?? 0, Math.max(0, targetPaid - depot.paid));
   if (payment > 0) ledger.settle(commitmentId, payment, clock.minute, "Depot monthly progress payment");
   depot.paid += payment;
   if (depot.progress >= 1) {
     const finalPayment = ledger.commitments.get(commitmentId)?.remaining ?? 0;
     if (finalPayment > 0) ledger.settle(commitmentId, finalPayment, clock.minute, "Depot testing and acceptance");
+    payment += Math.max(0, finalPayment);
     depot.paid = operatorCapex;
     depot.status = "secured";
     depot.entryRouteAvailable = true;

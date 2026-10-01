@@ -107,6 +107,8 @@ test("scenario runtime connects a map plan to suspended construction, fleet, com
   assert.equal(runtime.report().constructionMarkers[0].kind, "complaint");
 
   runtime.advanceMonths(1);
+  assert.equal(runtime.report().constructionCycles.length, 1);
+  assert.equal(runtime.constructionCycleReport(1)[0].schema, "transitline.construction-cycle-report/1");
   const project = runtime.projectForPlan(geometry.planId);
   const progress = project.progress;
   runtime.suspend(geometry.planId, "resident consultation");
@@ -114,6 +116,7 @@ test("scenario runtime connects a map plan to suspended construction, fleet, com
   runtime.advanceMonths(2);
   assert.equal(project.status, "suspended");
   assert.equal(project.progress, progress, "a suspended project must not build or pay progress claims");
+  assert.equal(runtime.constructionCycleReport(1)[0].projects[0].reason, "suspended");
   runtime.resume(geometry.planId);
 
   for (let month = 0; month < 240; month++) {

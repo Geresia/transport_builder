@@ -1,6 +1,9 @@
 import { VEHICLE_MODELS, depotWarnings } from "./rolling-stock.mjs";
 import { TECHNICAL_PROFILES } from "./construction.mjs";
 import { stationDeliveryReadiness } from "./station-delivery.mjs";
+import { applyVehicleOperatingWear } from "./operating-economy.mjs";
+import { dispatchVehicleFleet, reliabilityPunctualityPenalty } from "./service-reliability.mjs";
+import { electricityPriceForPeriod, serviceDemandMultiplier, settleOperatingMarketDay, staffingPunctualityAdjustment } from "./service-policy.mjs";
 
 export function calculateFleetRequirement({ routeKm, stations, commercialSpeedKph, trainsPerHour, reserveRatio = 0.15 }) {
   const oneWayMinutes = (routeKm / commercialSpeedKph) * 60 + Math.max(0, stations - 1) * 0.5;
@@ -33,21 +36,36 @@ export function checkOpenReady({ project, units, depot, fleetRequirement, staffR
 export function operateServiceDay(input, ledger, clock, rng) {
   const { service, units, depot, contract } = input;
   if (service.status !== "open") throw new Error("Service is not open");
-  const available = units.filter((unit) => unit.status === "available");
-  const scheduledSets = Math.min(service.fleetRequirement.serviceSets, available.length);
+  const infrastructureImpact = input.infrastructureImpact ?? { capacityFactor: 1, punctualityPenalty: 0, activeProgramIds: [] };
+  const requiredSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureImpact.capacityFactor));
+  const reliability = dispatchVehicleFleet({
+    units,
+    modelId: service.modelId,
+    requiredSets,
+    days: 1,
+    rng,
+    ledger,
+    clock,
+    serviceId: service.id,
+  });
+  const scheduledSets = reliability.operatingSets;
   const supplyRatio = scheduledSets / Math.max(1, service.fleetRequirement.serviceSets);
   const effectiveFrequency = service.trainsPerHour * supplyRatio;
   const waitMinutes = effectiveFrequency > 0 ? 30 / effectiveFrequency : 120;
   const demandNoise = 0.96 + rng.next() * 0.08;
-  const demand = Math.round(service.dailyDemand * demandNoise);
+  const provisionalPunctuality = Math.max(0.5, Math.min(0.999, 0.985 - depot.deadheadKm * 0.0003 - reliabilityPunctualityPenalty(reliability) - infrastructureImpact.punctualityPenalty + staffingPunctualityAdjustment(service)));
+  const addressableDemand = Math.round((service.baseDailyDemand ?? service.dailyDemand) * serviceDemandMultiplier(service, effectiveFrequency) * demandNoise);
+  const market = settleOperatingMarketDay({ service, competitors: service.operatingCompetitors ?? [], addressableDemand, playerPunctuality: provisionalPunctuality, routeKm: service.routeKm });
+  const demand = Math.round(addressableDemand * market.playerShare);
   const capacity = scheduledSets * service.tripsPerSetDay * VEHICLE_MODELS[service.modelId].capacity;
   const boarded = Math.min(demand, capacity);
   const denied = Math.max(0, demand - capacity);
-  const punctuality = Math.max(0.75, Math.min(0.999, 0.985 - denied / Math.max(1, demand) * 0.08 - depot.deadheadKm * 0.0003));
+  const punctuality = Math.max(0.5, provisionalPunctuality - denied / Math.max(1, demand) * 0.08);
   const fareRevenue = boarded * service.averageFare;
   const trainKm = scheduledSets * service.tripsPerSetDay * service.routeKm * 2;
   const carKm = trainKm * VEHICLE_MODELS[service.modelId].cars;
-  const energyCost = carKm * VEHICLE_MODELS[service.modelId].energyKwhPerCarKm * service.electricityYenPerKwh;
+  const electricityYenPerKwh = electricityPriceForPeriod(service, rng);
+  const energyCost = carKm * VEHICLE_MODELS[service.modelId].energyKwhPerCarKm * electricityYenPerKwh;
   const staffCost = scheduledSets * service.staffPerSet * service.dailyStaffCost;
   const maintenanceCost = carKm * service.maintenanceYenPerCarKm;
   const deadheadCost = depot.assessment?.economics?.deadhead
@@ -65,16 +83,46 @@ export function operateServiceDay(input, ledger, clock, rng) {
   const cost = energyCost + staffCost + maintenanceCost + deadheadCost + infrastructureCost + depot.annualLeaseCost / 365;
   if (income > 0) ledger.post({ atMinute: clock.minute, amount: income, category: "operating-income", reference: service.id });
   if (cost > 0) ledger.post({ atMinute: clock.minute, amount: -cost, category: "operating-cost", reference: service.id });
-  for (const unit of available.slice(0, scheduledSets)) unit.mileageKm += trainKm / Math.max(1, scheduledSets);
+  const vehicle = applyVehicleOperatingWear({ units, modelId: service.modelId, trainKm, days: 1, depot, ledger, clock, maxUsedSets: scheduledSets, usedUnitIds: reliability.operatingUnitIds });
   service.daysOperated = (service.daysOperated ?? 0) + 1;
   service.totals = service.totals ?? { demand: 0, boarded: 0, denied: 0, revenue: 0, cost: 0, trainKm: 0 };
   service.totals.demand += demand;
   service.totals.boarded += boarded;
   service.totals.denied += denied;
   service.totals.revenue += income;
-  service.totals.cost += cost;
+  service.totals.cost += cost + vehicle.inspectionCostJPY + reliability.repairCostJPY;
   service.totals.trainKm += trainKm;
-  return { demand, boarded, denied, waitMinutes, punctuality, income, cost, profit: income - cost, trainKm, depotWarnings: depotWarnings(depot, units) };
+  return {
+    demand,
+    boarded,
+    denied,
+    waitMinutes,
+    punctuality,
+    income,
+    cost: cost + vehicle.inspectionCostJPY + reliability.repairCostJPY,
+    profit: income - cost - vehicle.inspectionCostJPY - reliability.repairCostJPY,
+    trainKm,
+    money: {
+      fareRevenueJPY: fareRevenue,
+      publicPaymentJPY: publicPayment + kpiAdjustment,
+      advertisingJPY: service.dailyAdvertisingRevenue,
+      ancillaryRevenueJPY: depotAncillaryRevenue,
+      energyJPY: energyCost,
+      staffJPY: staffCost,
+      vehicleMaintenanceJPY: maintenanceCost,
+      vehicleInspectionJPY: vehicle.inspectionCostJPY,
+      vehicleRepairJPY: reliability.repairCostJPY,
+      deadheadJPY: deadheadCost,
+      infrastructureJPY: infrastructureCost,
+      depotJPY: depot.annualLeaseCost / 365,
+    },
+    vehicle,
+    reliability,
+    infrastructureMaintenance: infrastructureImpact,
+    electricityYenPerKwh,
+    market,
+    depotWarnings: depotWarnings(depot, units),
+  };
 }
 
 export function operatingReport(service) {

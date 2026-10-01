@@ -6,12 +6,12 @@
 import { addSite, moveSite, redrawSite, removeSite, restoreDepotDoc, serializeDepotDoc, updateSite } from "./depot-editor.mjs";
 import { buildDepotExport, keyedDepotSiteId } from "./depot-site.mjs";
 import { buildDepotView, renderDepotCompare } from "./depot-view.mjs";
-import { inRing } from "./spatial.mjs";
+import { inRing, makeSpatialContext } from "./spatial.mjs";
 
 const HIT_PX = 14;
 
 // state: read-only for the depot editor except `state.depotView` (what render.mjs draws)
-export function attachDepotEditor({ canvas, projection, pack, state, getMapExport, panel, compare, button }) {
+export function attachDepotEditor({ canvas, projection, pack, state, getMapExport, getSpatial = () => makeSpatialContext(), panel, compare, button }) {
   const packId = pack.manifest?.id ?? "pack";
   const storageKey = `transitline.depots.v1:${packId}`;
   let stored = null;
@@ -49,7 +49,7 @@ export function attachDepotEditor({ canvas, projection, pack, state, getMapExpor
 
   function refresh() {
     const mapExport = getMapExport() ?? { plans: [], externalNetworks: [] };
-    depotExport = buildDepotExport({ pack, mapExport, depots: doc.sites });
+    depotExport = buildDepotExport({ pack, mapExport, depots: doc.sites, spatial: getSpatial() });
     const selectedId = selectedKey ? keyedDepotSiteId(packId, selectedKey) : null;
     state.depotView = { ...buildDepotView(depotExport, selectedId), draft: draft && draft.kind !== "via" ? draft.points : null };
     renderDepotCompare(compare, state.depotView);

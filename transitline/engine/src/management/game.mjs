@@ -13,6 +13,13 @@ import { applyConstructionCandidateSelection, attachConstructionSitePackages, CO
 import { applyConstructionEventOccurrence, applyConstructionImpactGeometry, createConstructionEvent, defaultConstructionResponse, ignoreConstructionEvent, resolveConstructionEvent, rollConstructionEvent } from "./construction-events.mjs";
 import { applyConstructionWorkfront, awardConstructionPackage, constructionContractorSummary, createConstructionContractors, integrateConstructionPackageAwards, prepareConstructionPackageProcurement, releaseConstructionPackageContract, settleConstructionPriceIndex, tenderConstructionPackage } from "./construction-contractors.mjs";
 import { approveConstructionChangeOrder, constructionChangeOrderSummary, proposeConstructionChangeOrder, rejectConstructionChangeOrder, resolveConstructionChangeResponsibility } from "./construction-change-orders.mjs";
+import { approveStationDesignChange, proposeStationDesignChange, rejectStationDesignChange, stationDesignChangeSummary } from "./station-design-changes.mjs";
+import { createConstructionCycleReport, integratedConstructionProgressGate } from "./construction-cycle.mjs";
+import { advanceConstructionPriceMonth, applyConstructionPriceShock, constructionFundingOptions, createConstructionFinanceRecord, createConstructionPriceState, createOrUpdateConstructionFundingCase } from "./construction-finance.mjs";
+import { activateProjectOperatingFinance, applyInfrastructureOperatingWear, operatingMonthFromMinute, operatingMonthReport, recordInfrastructureMaintenancePayments, recordOperatingFinanceSettlements, recordOperatingPeriod, settleProjectOperatingFinance } from "./operating-economy.mjs";
+import { advanceInfrastructureMaintenancePrograms, infrastructureMaintenanceImpact, startInfrastructureMaintenance } from "./infrastructure-maintenance.mjs";
+import { applyServicePolicy, createOperatingCompetitor, ELECTRICITY_CONTRACTS } from "./service-policy.mjs";
+import { corporateFinancialStatements } from "./corporate-finance.mjs";
 
 export class ManagementGame {
   constructor({ countryId = "JP", seed = 1, openingCash = 500_000_000_000, playerName = "Player Transit" } = {}) {
@@ -36,8 +43,18 @@ export class ManagementGame {
     this.schedules = [];
     this.constructionMarkers = [];
     this.constructionEvents = [];
+    this.constructionCycleReports = [];
+    this.constructionPriceState = createConstructionPriceState(countryId);
+    this.constructionFundingCases = [];
+    this.constructionFinancing = [];
+    this.operatingMonthReports = [];
+    this.infrastructureMaintenancePrograms = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
+    this.nextStationDesignChangeSequence = 1;
+    this.nextConstructionFundingCaseSequence = 1;
+    this.nextConstructionFinanceSequence = 1;
+    this.nextInfrastructureMaintenanceSequence = 1;
     this.services = [];
     this.plans = [];
   }
@@ -64,8 +81,18 @@ export class ManagementGame {
       schedules: structuredClone(this.schedules),
       constructionMarkers: structuredClone(this.constructionMarkers),
       constructionEvents: structuredClone(this.constructionEvents),
+      constructionCycleReports: structuredClone(this.constructionCycleReports),
+      constructionPriceState: structuredClone(this.constructionPriceState),
+      constructionFundingCases: structuredClone(this.constructionFundingCases),
+      constructionFinancing: structuredClone(this.constructionFinancing),
+      operatingMonthReports: structuredClone(this.operatingMonthReports),
+      infrastructureMaintenancePrograms: structuredClone(this.infrastructureMaintenancePrograms),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
+      nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
+      nextConstructionFundingCaseSequence: this.nextConstructionFundingCaseSequence,
+      nextConstructionFinanceSequence: this.nextConstructionFinanceSequence,
+      nextInfrastructureMaintenanceSequence: this.nextInfrastructureMaintenanceSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -83,8 +110,17 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
+    }
+    this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
+    if (!snapshot.constructionPriceState) {
+      const settledIndices = this.schedules.flatMap((schedule) => (schedule.constructionPackages ?? [])
+        .map((deliveryPackage) => deliveryPackage.procurement?.contract?.lastSettledPriceIndex)
+        .filter(Number.isFinite));
+      this.constructionPriceState.currentIndex = Math.max(100, ...settledIndices);
+      this.constructionPriceState.lastAdvancedMonth = Math.floor(this.clock.minute / (30 * 1440));
+      this.constructionPriceState.history.push({ id: "construction-price:migrated", type: "migration", month: this.constructionPriceState.lastAdvancedMonth, atMinute: this.clock.minute, fromIndex: 100, toIndex: this.constructionPriceState.currentIndex });
     }
     for (const event of this.constructionEvents) {
       if (event.status === "awaiting-response") event.status = "unresolved";
@@ -98,6 +134,14 @@ export class ManagementGame {
       ?? this.constructionEvents.reduce((max, event) => Math.max(max, Number(event.id?.match(/^construction-event:(\d+)$/)?.[1]) || 0), 0) + 1;
     this.nextConstructionChangeOrderSequence = snapshot.nextConstructionChangeOrderSequence
       ?? this.schedules.flatMap((schedule) => schedule.constructionChangeOrders ?? []).reduce((max, order) => Math.max(max, Number(order.id?.match(/^construction-change-order:(\d+)$/)?.[1]) || 0), 0) + 1;
+    this.nextStationDesignChangeSequence = snapshot.nextStationDesignChangeSequence
+      ?? this.stationPackages.flatMap((deliveryPackage) => deliveryPackage.designChanges ?? []).reduce((max, change) => Math.max(max, Number(change.id?.match(/^station-design-change:(\d+)$/)?.[1]) || 0), 0) + 1;
+    this.nextConstructionFundingCaseSequence = snapshot.nextConstructionFundingCaseSequence
+      ?? this.constructionFundingCases.reduce((max, fundingCase) => Math.max(max, Number(fundingCase.id?.match(/^construction-funding-case:(\d+)$/)?.[1]) || 0), 0) + 1;
+    this.nextConstructionFinanceSequence = snapshot.nextConstructionFinanceSequence
+      ?? this.constructionFinancing.reduce((max, finance) => Math.max(max, Number(finance.id?.match(/^construction-finance:(\d+)$/)?.[1]) || 0), 0) + 1;
+    this.nextInfrastructureMaintenanceSequence = snapshot.nextInfrastructureMaintenanceSequence
+      ?? this.infrastructureMaintenancePrograms.reduce((max, program) => Math.max(max, Number(program.id?.match(/^infrastructure-maintenance:(\d+)$/)?.[1]) || 0), 0) + 1;
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
     this.scenario = structuredClone(snapshot.scenario ?? null);
@@ -270,6 +314,7 @@ export class ManagementGame {
 
   resumeProject(projectId) {
     return this.transact("construction-resumed", () => {
+      if (this.constructionFundingCases.some((entry) => entry.projectId === projectId && ["open", "suspended"].includes(entry.status))) throw new Error("Construction funding gap must be resolved before work can resume");
       const project = resumeConstruction(this.requireProject(projectId), this.clock);
       this.syncStationPackageRecords(project);
       this.refreshProjectSchedules(project.id);
@@ -325,6 +370,55 @@ export class ManagementGame {
       const packages = packageIds.map((id) => this.requireStationPackage(id));
       return integrateStationDeliveryPackages(project, packages, options);
     });
+  }
+
+  requestStationDesignChange(packageId, { designEdit, collisionResult = null } = {}) {
+    return this.transact("station-design-change-requested", () => {
+      const deliveryPackage = this.requireStationPackage(packageId);
+      const project = this.projects.find((entry) => entry.stationDeliveryPackages?.some((item) => item.id === packageId));
+      if (!project) throw new Error(`Station package ${packageId} is not integrated into a project`);
+      const proposal = proposeStationDesignChange({
+        id: `station-design-change:${this.nextStationDesignChangeSequence}`,
+        deliveryPackage,
+        project,
+        designEdit,
+        collisionResult,
+        countryProfile: this.country,
+        clock: this.clock,
+      });
+      this.nextStationDesignChangeSequence++;
+      this.syncStationPackageToProject(project, deliveryPackage);
+      return proposal;
+    });
+  }
+
+  approveStationDesignChange(packageId, changeId) {
+    return this.transact("station-design-change-approved", () => {
+      const deliveryPackage = this.requireStationPackage(packageId);
+      const project = this.projects.find((entry) => entry.stationDeliveryPackages?.some((item) => item.id === packageId));
+      if (!project) throw new Error(`Station package ${packageId} is not integrated into a project`);
+      const proposal = approveStationDesignChange({ deliveryPackage, project, changeId, clock: this.clock });
+      this.syncStationPackageToProject(project, deliveryPackage);
+      this.adjustConstructionCommitment(project);
+      this.refreshProjectSchedules(project.id);
+      return proposal;
+    });
+  }
+
+  rejectStationDesignChange(packageId, changeId, reason) {
+    return this.transact("station-design-change-rejected", () => {
+      const deliveryPackage = this.requireStationPackage(packageId);
+      const project = this.projects.find((entry) => entry.stationDeliveryPackages?.some((item) => item.id === packageId));
+      if (!project) throw new Error(`Station package ${packageId} is not integrated into a project`);
+      const proposal = rejectStationDesignChange(deliveryPackage, changeId, reason, this.clock);
+      this.syncStationPackageToProject(project, deliveryPackage);
+      return proposal;
+    });
+  }
+
+  stationDesignChangeReport(packageId = null) {
+    const packages = packageId === null ? this.stationPackages : [this.requireStationPackage(packageId)];
+    return packages.flatMap((deliveryPackage) => stationDesignChangeSummary(deliveryPackage));
   }
 
   addDepot(input) {
@@ -445,9 +539,19 @@ export class ManagementGame {
   }
 
   awardConstructionPackage(scheduleId, constructionSiteId, bidId) {
-    return this.transact("construction-package-awarded", () => awardConstructionPackage(
-      this.requireSchedule(scheduleId), constructionSiteId, this.constructionContractors, bidId, this.clock,
-    ));
+    return this.transact("construction-package-awarded", () => {
+      const schedule = this.requireSchedule(scheduleId);
+      const awarded = awardConstructionPackage(schedule, constructionSiteId, this.constructionContractors, bidId, this.clock);
+      const deliveryPackage = schedule.constructionPackages.find((entry) => entry.constructionSiteId === constructionSiteId);
+      const contract = deliveryPackage?.procurement?.contract;
+      if (contract) {
+        contract.priceIndexBase = this.constructionPriceState.currentIndex;
+        contract.lastSettledPriceIndex = this.constructionPriceState.currentIndex;
+        awarded.priceIndexBase = contract.priceIndexBase;
+        awarded.lastSettledPriceIndex = contract.lastSettledPriceIndex;
+      }
+      return awarded;
+    });
   }
 
   integrateConstructionPackageAwards(scheduleId) {
@@ -463,11 +567,97 @@ export class ManagementGame {
 
   settleConstructionPriceIndex(scheduleId, priceIndex, options = {}) {
     return this.transact("construction-price-index-settled", () => {
+      if (priceIndex < this.constructionPriceState.currentIndex) throw new Error("Construction price index cannot move below the current market index");
+      if (priceIndex > this.constructionPriceState.currentIndex) {
+        const fromIndex = this.constructionPriceState.currentIndex;
+        this.constructionPriceState.currentIndex = priceIndex;
+        this.constructionPriceState.history.push({
+          id: `construction-price:manual:${this.clock.minute}`,
+          type: "manual",
+          month: Math.floor(this.clock.minute / (30 * 1440)),
+          atMinute: this.clock.minute,
+          fromIndex,
+          toIndex: priceIndex,
+          sourceEventId: options.sourceEventId ?? null,
+        });
+      }
       const schedule = this.requireSchedule(scheduleId);
       const project = this.requireProject(schedule.projectId);
       const settlement = settleConstructionPriceIndex(schedule, project, priceIndex, this.clock, options);
       this.adjustConstructionCommitment(project);
       return settlement;
+    });
+  }
+
+  constructionFundingReport(projectId = null) {
+    return structuredClone(projectId === null ? this.constructionFundingCases : this.constructionFundingCases.filter((entry) => entry.projectId === projectId));
+  }
+
+  constructionFinanceReport(projectId = null) {
+    return structuredClone(projectId === null ? this.constructionFinancing : this.constructionFinancing.filter((entry) => entry.projectId === projectId));
+  }
+
+  constructionFundingOptions(caseId) {
+    const fundingCase = this.constructionFundingCases.find((entry) => entry.id === caseId);
+    if (!fundingCase) throw new Error(`Unknown construction funding case ${caseId}`);
+    return constructionFundingOptions(fundingCase, this.country.id);
+  }
+
+  resolveConstructionFundingCase(caseId, optionId) {
+    return this.transact("construction-funding-resolved", () => {
+      const fundingCase = this.constructionFundingCases.find((entry) => entry.id === caseId);
+      if (!fundingCase || !["open", "suspended"].includes(fundingCase.status)) throw new Error(`Construction funding case ${caseId} is not open`);
+      const schedule = this.requireSchedule(fundingCase.scheduleId);
+      const project = this.requireProject(fundingCase.projectId);
+      const preview = this.previewConstructionPriceSettlement(schedule, project, this.constructionPriceState.currentIndex);
+      if (preview.ownerAdjustmentJPY <= this.ledger.availableCash + 1e-6) {
+        const settlement = settleConstructionPriceIndex(schedule, project, this.constructionPriceState.currentIndex, this.clock, { sourceEventId: fundingCase.sourceEventId ?? null });
+        this.adjustConstructionCommitment(project);
+        fundingCase.status = "auto-funded";
+        fundingCase.resolvedAtMinute = this.clock.minute;
+        fundingCase.selectedOptionId = "existing-cash";
+        if (fundingCase.suspendedByCase && project.status === "suspended") resumeConstruction(project, this.clock);
+        this.syncStationPackageRecords(project);
+        this.refreshScheduleRecord(schedule);
+        return { fundingCase: structuredClone(fundingCase), option: { id: "existing-cash", label: "기존 가용현금" }, settlement };
+      }
+      this.updateConstructionFundingCase(fundingCase, schedule, project, preview);
+      const option = constructionFundingOptions(fundingCase, this.country.id).find((entry) => entry.id === optionId);
+      if (!option) throw new Error(`Unknown construction funding option ${optionId}`);
+      if (option.id === "suspend") {
+        if (project.status !== "suspended") suspendConstruction(project, "construction-funding-gap", this.clock);
+        fundingCase.status = "suspended";
+        fundingCase.suspendedByCase = true;
+        fundingCase.decisions.push({ optionId, atMinute: this.clock.minute, fundingJPY: 0 });
+        this.syncStationPackageRecords(project);
+        this.refreshScheduleRecord(schedule);
+        return { fundingCase: structuredClone(fundingCase), option: structuredClone(option), settlement: null };
+      }
+
+      if (option.id === "construction-loan") {
+        this.ledger.post({ atMinute: this.clock.minute, amount: option.debtJPY, category: "construction-finance", reference: fundingCase.id, memo: "Construction loan drawdown" });
+        if (option.feeJPY > 0) this.ledger.post({ atMinute: this.clock.minute, amount: -option.feeJPY, category: "construction-finance-fee", reference: fundingCase.id, memo: "Construction loan arrangement fee" });
+      } else {
+        this.ledger.post({ atMinute: this.clock.minute, amount: option.fundingJPY, category: option.id, reference: fundingCase.id, memo: option.label });
+      }
+      const finance = createConstructionFinanceRecord({ id: `construction-finance:${this.nextConstructionFinanceSequence++}`, fundingCase, option, atMinute: this.clock.minute });
+      this.constructionFinancing.push(finance);
+      if (this.scenario) {
+        this.scenario.constructionFundingInflowsJPY = (this.scenario.constructionFundingInflowsJPY ?? 0) + finance.raisedJPY;
+        if (option.id === "supplementary-budget") this.scenario.supplementaryPublicFundingJPY = (this.scenario.supplementaryPublicFundingJPY ?? 0) + option.fundingJPY;
+      }
+      if (option.delayMonths > 0) this.delayConstructionForFunding(schedule, option.delayMonths, option.id);
+      const settlement = settleConstructionPriceIndex(schedule, project, this.constructionPriceState.currentIndex, this.clock, { sourceEventId: fundingCase.sourceEventId ?? null });
+      this.adjustConstructionCommitment(project);
+      fundingCase.status = "resolved";
+      fundingCase.resolvedAtMinute = this.clock.minute;
+      fundingCase.selectedOptionId = option.id;
+      fundingCase.financeId = finance.id;
+      fundingCase.decisions.push({ optionId: option.id, atMinute: this.clock.minute, fundingJPY: option.fundingJPY, financeId: finance.id });
+      if (fundingCase.suspendedByCase && project.status === "suspended") resumeConstruction(project, this.clock);
+      this.syncStationPackageRecords(project);
+      this.refreshScheduleRecord(schedule);
+      return { fundingCase: structuredClone(fundingCase), option: structuredClone(option), finance: structuredClone(finance), settlement };
     });
   }
 
@@ -631,23 +821,43 @@ export class ManagementGame {
 
   advanceMonth() {
     return this.transact("month-advanced", () => {
+      const cashBeforeJPY = this.ledger.cash;
       this.clock.advance(30 * 1440);
+      const infrastructureMaintenance = this.advanceInfrastructureMaintenanceToCurrentDay();
+      const operatingFinanceSettlements = [];
+      const servicedProjects = new Set();
+      for (const service of this.services) {
+        if (servicedProjects.has(service.projectId)) continue;
+        servicedProjects.add(service.projectId);
+        const settlements = settleProjectOperatingFinance({ financing: this.constructionFinancing, projectId: service.projectId, throughMonth: operatingMonthFromMinute(this.clock.minute), ledger: this.ledger, clock: this.clock });
+        recordOperatingFinanceSettlements(this.operatingMonthReports, service, settlements);
+        this.updateServiceFinancialStatus(service);
+        operatingFinanceSettlements.push(...settlements);
+      }
       const autoResolvedEvents = this.resolveExpiredConstructionEvents();
-      const construction = this.projects.filter((project) => ["contracted", "underConstruction", "inspection"].includes(project.status))
+      for (const schedule of this.schedules) this.refreshScheduleRecord(schedule);
+      const normalPriceChange = advanceConstructionPriceMonth(this.constructionPriceState, this.clock.minute, this.scenario?.difficulty ?? "normal");
+      const priceSettlements = this.settleMonthlyConstructionPrices();
+      const construction = this.projects.filter((project) => ["contracted", "underConstruction", "inspection", "suspended"].includes(project.status))
         .map((project) => {
+          if (project.status === "suspended") return { projectId: project.id, status: project.status, progress: project.progress, progressDelta: 0, payment: 0, blocked: true, reason: "suspended" };
+          const fundingCase = this.constructionFundingCases.find((entry) => entry.projectId === project.id && ["open", "suspended"].includes(entry.status));
+          if (fundingCase) return { projectId: project.id, status: project.status, progress: project.progress, progressDelta: 0, payment: 0, blocked: true, reason: "construction-funding-gap", fundingCaseId: fundingCase.id };
           const procurement = this.schedules.find((schedule) => schedule.projectId === project.id && schedule.contractorProcurementPrepared && !schedule.contractorProcurementIntegrated);
-          if (procurement) return { projectId: project.id, blocked: true, reason: "construction-package-procurement" };
+          if (procurement) return { projectId: project.id, status: project.status, progress: project.progress, progressDelta: 0, payment: 0, blocked: true, reason: "construction-package-procurement" };
           const equipmentBlocked = this.schedules.find((schedule) => schedule.projectId === project.id
             && this.equipmentAssignmentReport(schedule.id).some((assignment) => assignment.status === "assigned" && assignment.placementStatus === "infeasible"));
-          if (equipmentBlocked) return { projectId: project.id, blocked: true, reason: "equipment-workfront-infeasible" };
-          const packageEventsEnabled = this.schedules.some((schedule) => schedule.projectId === project.id && (schedule.constructionPackages?.length ?? 0) > 0);
-          const result = advanceConstructionMonth(project, this.ledger, this.clock, this.rng, this.country, { randomRisk: !packageEventsEnabled });
+          if (equipmentBlocked) return { projectId: project.id, status: project.status, progress: project.progress, progressDelta: 0, payment: 0, blocked: true, reason: "equipment-workfront-infeasible" };
+          const schedule = this.schedules.find((entry) => entry.projectId === project.id);
+          const packageEventsEnabled = Boolean(schedule && (schedule.constructionPackages?.length ?? 0) > 0);
+          const gate = integratedConstructionProgressGate(schedule, project);
+          const result = advanceConstructionMonth(project, this.ledger, this.clock, this.rng, this.country, { randomRisk: !packageEventsEnabled, progressCap: gate.cap });
           if (project.status === "available") {
             for (const schedule of this.schedules.filter((entry) => entry.projectId === project.id)) {
               for (const deliveryPackage of schedule.constructionPackages ?? []) releaseConstructionPackageContract(deliveryPackage, this.constructionContractors, "completed", this.clock);
             }
           }
-          return { projectId: project.id, ...result };
+          return { projectId: project.id, ...result, gate };
         });
       for (const project of this.projects) this.syncStationPackageRecords(project);
       for (const project of this.projects.filter((item) => item.status === "available" && item.planRecordId)) {
@@ -662,6 +872,7 @@ export class ManagementGame {
         .map((depot) => ({ depotId: depot.id, ...advanceDepotDevelopmentMonth(depot, this.ledger, this.clock, this.rng, this.country) }));
       let schedules = this.schedules.map((schedule) => integratedScheduleSummary(this.refreshScheduleRecord(schedule)));
       const generatedEvents = [];
+      const priceShocks = [];
       for (const schedule of this.schedules) {
         const project = this.requireProject(schedule.projectId);
         const event = rollConstructionEvent({
@@ -680,11 +891,80 @@ export class ManagementGame {
         this.constructionEvents.push(event);
         this.addConstructionEventMarker(event);
         generatedEvents.push(structuredClone(event));
+        if (event.kind === "cost-inflation") {
+          const points = event.severity === "major" ? 6 : event.severity === "moderate" ? 3 : 1;
+          priceShocks.push(applyConstructionPriceShock(this.constructionPriceState, { points, sourceEventId: event.id, atMinute: this.clock.minute }));
+        }
         this.refreshScheduleRecord(schedule);
       }
       if (generatedEvents.length) schedules = this.schedules.map((schedule) => integratedScheduleSummary(schedule));
-      return { construction, vehicles, depots, schedules, generatedEvents, autoResolvedEvents };
+      const cycleReport = createConstructionCycleReport({
+        atMinute: this.clock.minute,
+        cashBeforeJPY,
+        cashAfterJPY: this.ledger.cash,
+        construction,
+        vehicles,
+        depots,
+        schedules,
+        generatedEvents,
+        autoResolvedEvents,
+        priceState: this.constructionPriceState,
+        normalPriceChange,
+        priceShocks,
+        priceSettlements,
+        fundingCases: this.constructionFundingCases.filter((entry) => ["open", "suspended"].includes(entry.status)),
+        operatingFinanceSettlements,
+      });
+      this.constructionCycleReports.push(cycleReport);
+      return { construction, vehicles, depots, schedules, generatedEvents, autoResolvedEvents, normalPriceChange, priceShocks, priceSettlements, operatingFinanceSettlements, infrastructureMaintenance, cycleReport: structuredClone(cycleReport) };
     });
+  }
+
+  constructionCycleReport(limit = null) {
+    const reports = limit === null ? this.constructionCycleReports : this.constructionCycleReports.slice(-Math.max(0, limit));
+    return structuredClone(reports);
+  }
+
+  startInfrastructureMaintenance(projectId, { assetIds, strategyId } = {}) {
+    return this.transact("infrastructure-maintenance-started", () => {
+      const project = this.requireProject(projectId);
+      if (project.status !== "available") throw new Error("Infrastructure maintenance requires an available project");
+      const program = startInfrastructureMaintenance({
+        id: `infrastructure-maintenance:${this.nextInfrastructureMaintenanceSequence++}`,
+        project,
+        assetIds,
+        strategyId,
+        ledger: this.ledger,
+        clock: this.clock,
+      });
+      this.infrastructureMaintenancePrograms.push(program);
+      const service = this.services.find((entry) => entry.projectId === projectId);
+      if (service) recordInfrastructureMaintenancePayments(this.operatingMonthReports, service, [{ programId: program.id, projectId, paymentJPY: program.paidJPY, atMinute: this.clock.minute }]);
+      return structuredClone(program);
+    });
+  }
+
+  advanceInfrastructureMaintenanceToCurrentDay() {
+    const result = advanceInfrastructureMaintenancePrograms({
+      programs: this.infrastructureMaintenancePrograms,
+      projects: this.projects,
+      throughDay: Math.floor(this.clock.minute / 1440),
+      ledger: this.ledger,
+      clock: this.clock,
+    });
+    for (const payment of result.payments) {
+      const service = this.services.find((entry) => entry.projectId === payment.projectId);
+      if (service) recordInfrastructureMaintenancePayments(this.operatingMonthReports, service, [payment]);
+    }
+    return structuredClone(result);
+  }
+
+  infrastructureMaintenanceImpact(projectId) {
+    return infrastructureMaintenanceImpact(this.infrastructureMaintenancePrograms, projectId);
+  }
+
+  infrastructureMaintenanceReport(projectId = null) {
+    return structuredClone(this.infrastructureMaintenancePrograms.filter((entry) => projectId === null || entry.projectId === projectId));
   }
 
   createService(input) {
@@ -713,8 +993,59 @@ export class ManagementGame {
         fleetRequirement,
         readiness,
       };
+      service.baseAverageFare = service.baseAverageFare ?? service.averageFare;
+      service.baseTrainsPerHour = service.baseTrainsPerHour ?? service.trainsPerHour;
+      service.baseDailyDemand = service.baseDailyDemand ?? service.dailyDemand;
+      service.staffingPolicyId ??= "balanced";
+      service.electricityContractId ??= "spot";
+      service.operatingCompetitors ??= [];
       this.services.push(service);
+      if (service.status === "open") activateProjectOperatingFinance(this.constructionFinancing, project.id, operatingMonthFromMinute(this.clock.minute));
       return service;
+    });
+  }
+
+  updateServicePolicy(serviceId, input = {}) {
+    return this.transact("service-policy-updated", () => {
+      const service = this.services.find((entry) => entry.id === serviceId);
+      if (!service) throw new Error(`Unknown service ${serviceId}`);
+      const policy = applyServicePolicy(service, input, { atMinute: this.clock.minute });
+      service.fleetRequirement = calculateFleetRequirement({
+        routeKm: service.routeKm,
+        stations: service.stations,
+        commercialSpeedKph: service.commercialSpeedKph,
+        trainsPerHour: service.trainsPerHour,
+        reserveRatio: service.reserveRatio,
+      });
+      const electricityChanged = policy.previous.electricityContractId !== policy.current.electricityContractId;
+      const electricity = ELECTRICITY_CONTRACTS[policy.current.electricityContractId];
+      if (electricityChanged && electricity.switchingCostJPY > 0) {
+        this.ledger.post({ atMinute: this.clock.minute, amount: -electricity.switchingCostJPY, category: "electricity-contract-change", reference: service.id, memo: electricity.label });
+        if (electricity.reputationDelta) this.player.reputation = Math.min(100, this.player.reputation + electricity.reputationDelta);
+      }
+      const order = this.vehicleOrders.find((entry) => entry.id === service.vehicleOrderId);
+      const depot = this.depots.find((entry) => entry.id === service.depotId);
+      const availableSets = order?.units?.filter((unit) => unit.status === "available").length ?? 0;
+      return {
+        policy,
+        fleetRequirement: structuredClone(service.fleetRequirement),
+        warnings: [
+          availableSets < service.fleetRequirement.minimumFleet ? "fleet-shortfall" : null,
+          depot && depot.capacitySets < service.fleetRequirement.minimumFleet ? "depot-capacity-shortfall" : null,
+        ].filter(Boolean),
+      };
+    });
+  }
+
+  addOperatingCompetitor(serviceId, input) {
+    return this.transact("operating-competitor-added", () => {
+      const service = this.services.find((entry) => entry.id === serviceId);
+      if (!service) throw new Error(`Unknown service ${serviceId}`);
+      service.operatingCompetitors ??= [];
+      if (service.operatingCompetitors.some((entry) => entry.id === input.id)) throw new Error(`Duplicate operating competitor ${input.id}`);
+      const competitor = createOperatingCompetitor(input);
+      service.operatingCompetitors.push(competitor);
+      return structuredClone(competitor);
     });
   }
 
@@ -725,9 +1056,84 @@ export class ManagementGame {
       const order = this.vehicleOrders.find((item) => item.id === service.vehicleOrderId);
       const depot = this.depots.find((item) => item.id === service.depotId);
       const contract = this.contracts.find((item) => item.id === service.contractId);
+      const infrastructureImpact = this.infrastructureMaintenanceImpact(service.projectId);
       this.clock.advance(1440);
-      return operateServiceDay({ service, units: order?.units ?? [], depot, contract }, this.ledger, this.clock, this.rng);
+      const settlement = operateServiceDay({ service, units: order?.units ?? [], depot, contract, infrastructureImpact }, this.ledger, this.clock, this.rng);
+      const maintenanceProgress = this.advanceInfrastructureMaintenanceToCurrentDay();
+      return { ...settlement, maintenanceProgress, ...this.applyOperatingSettlement(service, settlement) };
     });
+  }
+
+  recordIntegratedOperatingSettlement(serviceId, settlement) {
+    return this.transact("integrated-operating-period-recorded", () => {
+      const service = this.services.find((item) => item.id === serviceId);
+      if (!service) throw new Error(`Unknown service ${serviceId}`);
+      return this.applyOperatingSettlement(service, settlement);
+    });
+  }
+
+  settleOperatingFinanceCalendar(serviceId) {
+    return this.transact("operating-finance-calendar-settled", () => {
+      const service = this.services.find((item) => item.id === serviceId);
+      if (!service) throw new Error(`Unknown service ${serviceId}`);
+      const financeSettlements = settleProjectOperatingFinance({
+        financing: this.constructionFinancing,
+        projectId: service.projectId,
+        throughMonth: operatingMonthFromMinute(this.clock.minute),
+        ledger: this.ledger,
+        clock: this.clock,
+      });
+      recordOperatingFinanceSettlements(this.operatingMonthReports, service, financeSettlements);
+      this.updateServiceFinancialStatus(service);
+      return structuredClone(financeSettlements);
+    });
+  }
+
+  applyOperatingSettlement(service, settlement) {
+    const project = this.requireProject(service.projectId);
+    const infrastructure = applyInfrastructureOperatingWear({ project, trainKm: settlement.trainKm ?? 0, days: settlement.days ?? 1 });
+    const report = recordOperatingPeriod(this.operatingMonthReports, {
+      service,
+      atMinute: this.clock.minute,
+      days: settlement.days ?? 1,
+      passengers: settlement.passengers ?? settlement.boarded ?? 0,
+      denied: settlement.denied ?? 0,
+      trainKm: settlement.trainKm ?? 0,
+      money: settlement.money ?? {},
+      vehicle: settlement.vehicle ?? null,
+      infrastructure,
+      reliability: settlement.reliability ?? null,
+      punctuality: settlement.punctuality ?? null,
+      market: settlement.market ?? null,
+    });
+    for (const incident of settlement.reliability?.incidents ?? []) {
+      this.events.record(this.clock.minute, "vehicle-failure", incident);
+    }
+    const financeSettlements = settleProjectOperatingFinance({
+      financing: this.constructionFinancing,
+      projectId: service.projectId,
+      throughMonth: operatingMonthFromMinute(this.clock.minute),
+      ledger: this.ledger,
+      clock: this.clock,
+    });
+    recordOperatingFinanceSettlements(this.operatingMonthReports, service, financeSettlements);
+    this.updateServiceFinancialStatus(service);
+    return { operatingMonth: structuredClone(report), financeSettlements: structuredClone(financeSettlements), financialStatus: service.financialStatus };
+  }
+
+  updateServiceFinancialStatus(service) {
+    const defaulted = this.constructionFinancing.some((entry) => entry.projectId === service.projectId && entry.status === "default");
+    const delinquent = this.constructionFinancing.some((entry) => entry.projectId === service.projectId && entry.status === "delinquent");
+    service.financialStatus = defaulted ? "default" : delinquent ? "delinquent" : "current";
+    return service.financialStatus;
+  }
+
+  operatingMonthReport(serviceId = null, limit = null) {
+    return operatingMonthReport(this.operatingMonthReports, serviceId, limit);
+  }
+
+  corporateFinancialStatements(options = {}) {
+    return corporateFinancialStatements(this, options);
   }
 
   requireOpportunity(id) {
@@ -846,6 +1252,57 @@ export class ManagementGame {
     return structuredClone(commitment);
   }
 
+  previewConstructionPriceSettlement(schedule, project, priceIndex = this.constructionPriceState.currentIndex) {
+    return settleConstructionPriceIndex(structuredClone(schedule), structuredClone(project), priceIndex, this.clock);
+  }
+
+  updateConstructionFundingCase(existing, schedule, project, preview) {
+    return createOrUpdateConstructionFundingCase(existing, {
+      id: existing?.id ?? `construction-funding-case:${this.nextConstructionFundingCaseSequence++}`,
+      scheduleId: schedule.id,
+      projectId: project.id,
+      planId: project.planId,
+      priceIndex: this.constructionPriceState.currentIndex,
+      ownerAdjustmentJPY: preview.ownerAdjustmentJPY,
+      availableCashJPY: this.ledger.availableCash,
+      atMinute: this.clock.minute,
+    });
+  }
+
+  delayConstructionForFunding(schedule, months, optionId) {
+    const entry = schedule.tasks.find((task) => task.critical && !["complete", "cancelled", "missing"].includes(task.status))
+      ?? schedule.tasks.find((task) => !["complete", "cancelled", "missing", "opening-readiness"].includes(task.status));
+    if (!entry) return null;
+    return recordIntegratedTaskDelay(schedule, entry.id, { months, reason: `Construction funding: ${optionId}`, source: "construction-funding" }, this.clock);
+  }
+
+  settleMonthlyConstructionPrices() {
+    const outcomes = [];
+    for (const schedule of this.schedules) {
+      if (!schedule.contractorProcurementIntegrated) continue;
+      const project = this.requireProject(schedule.projectId);
+      if (["available", "cancelled"].includes(project.status)) continue;
+      const preview = this.previewConstructionPriceSettlement(schedule, project);
+      if (preview.adjustments.length === 0) continue;
+      const pending = this.constructionFundingCases.find((entry) => entry.scheduleId === schedule.id && ["open", "suspended"].includes(entry.status));
+      if (preview.ownerAdjustmentJPY > this.ledger.availableCash + 1e-6) {
+        const fundingCase = this.updateConstructionFundingCase(pending, schedule, project, preview);
+        if (!pending) this.constructionFundingCases.push(fundingCase);
+        outcomes.push({ scheduleId: schedule.id, projectId: project.id, status: "funding-required", priceIndex: this.constructionPriceState.currentIndex, ownerAdjustmentJPY: preview.ownerAdjustmentJPY, contractorAbsorbedJPY: preview.contractorAbsorbedJPY, fundingCaseId: fundingCase.id, fundingGapJPY: fundingCase.fundingGapJPY });
+        continue;
+      }
+      const settlement = settleConstructionPriceIndex(schedule, project, this.constructionPriceState.currentIndex, this.clock);
+      this.adjustConstructionCommitment(project);
+      if (pending) {
+        pending.status = "auto-funded";
+        pending.resolvedAtMinute = this.clock.minute;
+        pending.selectedOptionId = "existing-cash";
+      }
+      outcomes.push({ scheduleId: schedule.id, projectId: project.id, status: "settled", ...structuredClone(settlement) });
+    }
+    return outcomes;
+  }
+
   scheduleEntities(schedule) {
     const project = this.requireProject(schedule.projectId);
     const stationPackages = schedule.linkedStationPackageIds.map((id) => this.stationPackages.find((entry) => entry.id === id)
@@ -880,5 +1337,12 @@ export class ManagementGame {
         embedded.capacityReleased = true;
       }
     }
+  }
+
+  syncStationPackageToProject(project, deliveryPackage) {
+    const embedded = project.stationDeliveryPackages?.find((entry) => entry.id === deliveryPackage.id);
+    if (!embedded) throw new Error(`Station package ${deliveryPackage.id} is not embedded in project ${project.id}`);
+    Object.assign(embedded, structuredClone(deliveryPackage));
+    return embedded;
   }
 }

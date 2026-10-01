@@ -13,12 +13,13 @@ import {
 import { buildConstructionExport, PACKAGE_KINDS } from "./construction-site.mjs";
 import { buildConstructionView, renderConstructionLegend, renderConstructionPanel } from "./construction-view.mjs";
 import { nearestOnPolyline } from "./local-geometry.mjs";
+import { makeSpatialContext } from "./spatial.mjs";
 
 const LINE_KIND_LABEL = { tunnel: "터널 공구", cutCover: "개착 공구", viaduct: "고가·교량 공구", systems: "전력·신호·궤도 공구" };
 const PICK_PX = 14;
 
 // state: read-only for this editor except `state.constructionView` (what render.mjs draws)
-export function attachConstructionEditor({ canvas, projection, pack, state, getMapExport, getDepotExport = () => null, getReport = () => ({}), panel, phasePanel = null, legend, button }) {
+export function attachConstructionEditor({ canvas, projection, pack, state, getMapExport, getDepotExport = () => null, getSpatial = () => makeSpatialContext(), getReport = () => ({}), panel, phasePanel = null, legend, button }) {
   const packId = pack.manifest?.id ?? "pack";
   const storageKey = `transitline.construction.v1:${packId}`;
   let stored = null;
@@ -68,7 +69,7 @@ export function attachConstructionEditor({ canvas, projection, pack, state, getM
 
   function refresh() {
     const mapExport = getMapExport() ?? { plans: [], externalNetworks: [] };
-    exp = buildConstructionExport({ pack, mapExport, depotExport: getDepotExport(), packages: activePackages(doc) });
+    exp = buildConstructionExport({ pack, mapExport, depotExport: getDepotExport(), packages: activePackages(doc), spatial: getSpatial() });
     state.constructionView = buildConstructionView(exp, getReport());
     if (legend) renderConstructionLegend(legend);
     if (phasePanel) renderConstructionPanel(phasePanel, state.constructionView);

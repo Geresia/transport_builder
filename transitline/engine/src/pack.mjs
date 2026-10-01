@@ -58,5 +58,18 @@ export async function loadPack(packPath) {
     catch (e) { console.warn("existing-network.json not loaded, starting blank:", e.message); }
   }
 
-  return { manifest, demand, od, odSchool, existingNetwork };
+  // Optional construction/site-design geometry. These are gameplay collision layers, not merely
+  // visual basemap tiles. Failure remains non-fatal, but callers must then preserve unknown/null.
+  let obstacles = null;
+  if (manifest.files?.obstacles) {
+    try { obstacles = await fetchJson(new URL(manifest.files.obstacles, new URL(base, document.baseURI)), manifest.compressed); }
+    catch (e) { console.warn("obstacles.json not loaded; building collisions remain unknown:", e.message); }
+  }
+  let barriers = null;
+  if (manifest.files?.barriers) {
+    try { barriers = await fetchJson(new URL(manifest.files.barriers, new URL(base, document.baseURI)), manifest.compressed); }
+    catch (e) { console.warn("barriers.json not loaded; water collisions remain unknown:", e.message); }
+  }
+
+  return { manifest, demand, od, odSchool, existingNetwork, obstacles, barriers };
 }

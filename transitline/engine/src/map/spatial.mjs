@@ -83,7 +83,13 @@ export function waterLayerFromBarriers(json, extra = {}) {
 // coverage is the per-district bounding box of the footprints, not the whole pack.
 export function buildingLayerFromObstacles(json, extra = {}) {
   const buildings = json.obstacles.filter((o) => o.kind === "building");
-  const items = buildings.map((o) => ({ rings: [o.polygon], bbox: bboxOf(o.polygon), kind: o.sourceKind }));
+  const items = buildings.map((o, index) => ({
+    id: o.id ?? `building:${o.district ?? "unknown"}:${index}`,
+    rings: [o.polygon],
+    bbox: bboxOf(o.polygon),
+    kind: o.sourceKind,
+    heightMeters: Number.isFinite(o.height) ? o.height : (Number.isFinite(o.levels) ? o.levels * 3 : null),
+  }));
   const byDistrict = new Map();
   for (const o of buildings) byDistrict.set(o.district, [...(byDistrict.get(o.district) ?? []), ...o.polygon]);
   const boxes = [...byDistrict.values()].map(bboxOf);

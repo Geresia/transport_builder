@@ -8,6 +8,9 @@ import {
   setLineSuspended,
 } from "../state.mjs";
 import { VEHICLE_MODELS } from "./rolling-stock.mjs";
+import { applyVehicleOperatingWear } from "./operating-economy.mjs";
+import { dispatchVehicleFleet, reliabilityPunctualityPenalty } from "./service-reliability.mjs";
+import { electricityPriceForPeriod, staffingPunctualityAdjustment } from "./service-policy.mjs";
 
 function orderedStationSourceIds(plan) {
   const adjacency = new Map(plan.stationCandidates.map((station) => [station.id, []]));
@@ -172,23 +175,99 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     const model = VEHICLE_MODELS[service.modelId];
     const fareRevenue = passengers * service.averageFare;
     const carKm = trainKm * model.cars;
-    const energyCost = carKm * model.energyKwhPerCarKm * service.electricityYenPerKwh;
+    const electricityYenPerKwh = electricityPriceForPeriod(service, game.rng);
+    const energyCost = carKm * model.energyKwhPerCarKm * electricityYenPerKwh;
     const maintenanceCost = carKm * service.maintenanceYenPerCarKm;
     const staffCost = trainKm * (service.staffCostPerTrainKm ?? 1_800);
     const fixedCost = days * service.dailyInfrastructureCost;
+    const order = game.vehicleOrders.find((item) => item.id === service.vehicleOrderId);
+    const depot = game.depots.find((item) => item.id === service.depotId);
+    if (!depot) throw new Error(`Service ${serviceId} has no depot`);
+    const infrastructureMaintenance = game.infrastructureMaintenanceImpact(service.projectId);
+    const requiredSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureMaintenance.capacityFactor));
+    const reliability = dispatchVehicleFleet({
+      units: order?.units ?? [],
+      modelId: service.modelId,
+      requiredSets,
+      days,
+      rng: game.rng,
+      ledger: game.ledger,
+      clock: game.clock,
+      serviceId: service.id,
+    });
+    const scheduledSets = reliability.operatingSets;
+    const punctuality = Math.max(0.5, Math.min(0.999, 0.985 - reliabilityPunctualityPenalty(reliability) - infrastructureMaintenance.punctualityPenalty + staffingPunctualityAdjustment(service)));
+    const line = operationalState.lines.find((entry) => String(entry.id) === lineId);
+    if (line) {
+      service.nominalLineFrequency ??= structuredClone(line.frequency);
+      const availabilityRatio = scheduledSets / Math.max(1, service.fleetRequirement.serviceSets);
+      for (const [bandId, nominal] of Object.entries(service.nominalLineFrequency)) {
+        line.frequency[bandId] = Math.max(0, Math.floor(nominal * availabilityRatio));
+      }
+    }
+    const deadheadCost = depot.assessment?.economics?.deadhead
+      ? depot.assessment.economics.deadhead.totalAnnualCost / 365 * days
+      : scheduledSets * depot.deadheadKm * 2 * service.deadheadYenPerSetKm * days;
+    const depotCost = depot.annualLeaseCost / 365 * days;
     const contract = game.contracts.find((item) => item.id === service.contractId);
-    const publicPayment = contract ? contract.annualPayment / 365 * days : service.dailyPublicPayment * days;
+    const basePublicPayment = contract ? contract.annualPayment / 365 * days : service.dailyPublicPayment * days;
+    const target = contract?.kpi?.punctualityTarget ?? 0.97;
+    const maxDeductionRate = contract?.kpi?.maxDeductionRate ?? 0.1;
+    const kpiAdjustment = punctuality >= target
+      ? basePublicPayment * (contract?.kpi?.bonusRate ?? 0.01)
+      : -basePublicPayment * Math.min(maxDeductionRate, (target - punctuality) * 2);
+    const publicPayment = basePublicPayment + kpiAdjustment;
     const advertising = service.dailyAdvertisingRevenue * days;
-    const income = fareRevenue + publicPayment + advertising;
-    const cost = energyCost + maintenanceCost + staffCost + fixedCost;
+    const ancillaryRevenue = (depot.annualAncillaryRevenue ?? 0) / 365 * days;
+    const income = fareRevenue + publicPayment + advertising + ancillaryRevenue;
+    const cost = energyCost + maintenanceCost + staffCost + fixedCost + deadheadCost + depotCost;
     if (income > 0) game.ledger.post({ atMinute: game.clock.minute, amount: income, category: "integrated-operating-income", reference: service.id });
     if (cost > 0) game.ledger.post({ atMinute: game.clock.minute, amount: -cost, category: "integrated-operating-cost", reference: service.id });
+    const vehicle = applyVehicleOperatingWear({ units: order?.units ?? [], modelId: service.modelId, trainKm, days, depot, ledger: game.ledger, clock: game.clock, maxUsedSets: scheduledSets, usedUnitIds: reliability.operatingUnitIds });
     service.engineCursor = { day, delivered: deliveredNow, trainKm: trainKmNow };
     service.integratedTotals = service.integratedTotals ?? { passengers: 0, trainKm: 0, income: 0, cost: 0 };
     service.integratedTotals.passengers += passengers;
     service.integratedTotals.trainKm += trainKm;
     service.integratedTotals.income += income;
-    service.integratedTotals.cost += cost;
-    return { day, days, passengers, trainKm, income, cost, profit: income - cost };
+    service.integratedTotals.cost += cost + vehicle.inspectionCostJPY + reliability.repairCostJPY;
+    service.daysOperated = (service.daysOperated ?? 0) + days;
+    const maintenanceProgress = game.advanceInfrastructureMaintenanceToCurrentDay();
+    if (line) {
+      const nextMaintenance = game.infrastructureMaintenanceImpact(service.projectId);
+      const nextRequiredSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * nextMaintenance.capacityFactor));
+      const nextAvailableSets = Math.min(nextRequiredSets, (order?.units ?? []).filter((unit) => unit.status === "available").length);
+      const nextAvailabilityRatio = nextAvailableSets / Math.max(1, service.fleetRequirement.serviceSets);
+      for (const [bandId, nominal] of Object.entries(service.nominalLineFrequency)) line.frequency[bandId] = Math.max(0, Math.floor(nominal * nextAvailabilityRatio));
+    }
+    return {
+      day,
+      days,
+      passengers,
+      denied: 0,
+      punctuality,
+      electricityYenPerKwh,
+      trainKm,
+      income,
+      cost: cost + vehicle.inspectionCostJPY + reliability.repairCostJPY,
+      profit: income - cost - vehicle.inspectionCostJPY - reliability.repairCostJPY,
+      money: {
+        fareRevenueJPY: fareRevenue,
+        publicPaymentJPY: publicPayment,
+        advertisingJPY: advertising,
+        ancillaryRevenueJPY: ancillaryRevenue,
+        energyJPY: energyCost,
+        staffJPY: staffCost,
+        vehicleMaintenanceJPY: maintenanceCost,
+        vehicleInspectionJPY: vehicle.inspectionCostJPY,
+        vehicleRepairJPY: reliability.repairCostJPY,
+        deadheadJPY: deadheadCost,
+        infrastructureJPY: fixedCost,
+        depotJPY: depotCost,
+      },
+      vehicle,
+      reliability,
+      infrastructureMaintenance,
+      maintenanceProgress,
+    };
   });
 }

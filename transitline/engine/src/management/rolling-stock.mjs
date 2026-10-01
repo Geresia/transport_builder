@@ -67,12 +67,13 @@ export function advanceVehicleOrderMonth(order, manufacturer, ledger, clock, rng
     return { stage: order.stage, delayed: true, payment: 0 };
   }
   const targetPaid = Math.min(order.totalPrice, order.totalPrice * (0.15 + 0.75 * Math.min(1, ratio)));
-  const payment = Math.max(0, targetPaid - order.paid);
+  let payment = Math.max(0, targetPaid - order.paid);
   if (payment > 0) ledger.settle(`vehicles:${order.id}`, payment, clock.minute, "Vehicle production milestone");
   order.paid += payment;
   if (order.elapsedMonths >= order.productionMonths) {
     const finalPayment = order.totalPrice - order.paid;
     if (finalPayment > 0) ledger.settle(`vehicles:${order.id}`, finalPayment, clock.minute, "Vehicle acceptance");
+    payment += Math.max(0, finalPayment);
     order.paid = order.totalPrice;
     order.stage = "accepted";
     order.units = Array.from({ length: order.quantity }, (_, index) => ({

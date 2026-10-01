@@ -168,10 +168,14 @@ test("actual network counters settle once per simulation day into the management
   state.stats.deliveredByLine[lineId] = 125;
   state.stats.trainKmByLine[lineId] = 880;
   const result = settleIntegratedServiceDay(game, state, service.id);
+  const accounting = game.recordIntegratedOperatingSettlement(service.id, result);
   assert.equal(result.passengers, 12_500);
   assert.equal(result.trainKm, 880);
   assert.ok(result.income > 0);
   assert.ok(result.cost > 0);
+  assert.equal(accounting.operatingMonth.passengers, 12_500);
+  assert.ok(accounting.operatingMonth.operatingCostJPY > 0);
+  assert.equal(game.operatingMonthReport(service.id).length, 1);
   assert.throws(() => settleIntegratedServiceDay(game, state, service.id), /already settled/);
   assert.equal(game.services[0].integratedTotals.passengers, 12_500);
   suspendCommissionedService(game, state, service.id, true);

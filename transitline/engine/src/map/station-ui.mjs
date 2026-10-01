@@ -9,12 +9,12 @@ import {
 } from "./station-editor.mjs";
 import { buildStationExport, keyedStationSiteId } from "./station-site.mjs";
 import { buildStationView, LAYERS, LAYER_LABELS, renderStationDetail } from "./station-view.mjs";
-import { inRing } from "./spatial.mjs";
+import { inRing, makeSpatialContext } from "./spatial.mjs";
 
 const HIT_PX = 12;
 
 // state: read-only for the station editor except `state.stationView` (what render.mjs draws)
-export function attachStationEditor({ canvas, projection, pack, state, getMapExport, getOverlay = () => null, panel, button }) {
+export function attachStationEditor({ canvas, projection, pack, state, getMapExport, getSpatial = () => makeSpatialContext(), getOverlay = () => null, panel, button }) {
   const packId = pack.manifest?.id ?? "pack";
   const storageKey = `transitline.stations.v1:${packId}`;
   let stored = null;
@@ -77,7 +77,7 @@ export function attachStationEditor({ canvas, projection, pack, state, getMapExp
 
   function refresh() {
     const mapExport = getMapExport() ?? { plans: [], externalNetworks: [], demandNodes: [] };
-    stationExport = buildStationExport({ pack, mapExport, stations: activeSites(doc) });
+    stationExport = buildStationExport({ pack, mapExport, stations: activeSites(doc), spatial: getSpatial() });
     const selectedId = selectedKey ? keyedStationSiteId(packId, selectedKey) : null;
     view = { ...buildStationView(stationExport, getOverlay(), selectedId), layers, draft: null };
     state.stationView = view;

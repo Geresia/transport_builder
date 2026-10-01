@@ -171,6 +171,13 @@ export class ScenarioRuntime {
       constructionChangeOrders: this.game.constructionChangeOrderReport(),
       constructionMarkers: this.game.constructionMarkers,
       constructionEvents: this.game.constructionEventReport(),
+      constructionCycles: this.game.constructionCycleReport(),
+      constructionPrice: this.game.constructionPriceState,
+      constructionFundingCases: this.game.constructionFundingReport(),
+      constructionFinancing: this.game.constructionFinanceReport(),
+      services: this.game.services,
+      operatingMonths: this.game.operatingMonthReport(),
+      corporateFinance: this.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(this.game.clock.minute / (30 * 1440)) - 11) }),
       assessments,
     });
   }
@@ -373,6 +380,35 @@ export class ScenarioRuntime {
     return this.game.integrateStationPackages(project.id, packages.map((item) => item.id));
   }
 
+  stationDesignRevision(packageId) {
+    const deliveryPackage = this.game.requireStationPackage(packageId);
+    return deliveryPackage.geometryRevision ?? `station-design:${deliveryPackage.id}:0`;
+  }
+
+  requestStationDesignChange(planId, packageId, input) {
+    const project = this.projectForPlan(planId);
+    if (!project) throw new Error("A project is required before changing a station design.");
+    const deliveryPackage = this.game.requireStationPackage(packageId);
+    if (deliveryPackage.connectedPlanId !== planId) throw new Error("The station package is connected to a different plan.");
+    return this.game.requestStationDesignChange(packageId, input);
+  }
+
+  approveStationDesignChange(planId, packageId, changeId) {
+    const project = this.projectForPlan(planId);
+    if (!project) throw new Error("A project is required before approving a station design change.");
+    const deliveryPackage = this.game.requireStationPackage(packageId);
+    if (deliveryPackage.connectedPlanId !== planId) throw new Error("The station package is connected to a different plan.");
+    return this.game.approveStationDesignChange(packageId, changeId);
+  }
+
+  rejectStationDesignChange(planId, packageId, changeId, reason) {
+    const project = this.projectForPlan(planId);
+    if (!project) throw new Error("A project is required before rejecting a station design change.");
+    const deliveryPackage = this.game.requireStationPackage(packageId);
+    if (deliveryPackage.connectedPlanId !== planId) throw new Error("The station package is connected to a different plan.");
+    return this.game.rejectStationDesignChange(packageId, changeId, reason);
+  }
+
   evaluateDepotCandidate(planId, {
     depotStrategy = "terminal",
     depotSite = null,
@@ -485,6 +521,18 @@ export class ScenarioRuntime {
     const results = [];
     for (let index = 0; index < months; index++) results.push(this.game.advanceMonth());
     return results;
+  }
+
+  constructionCycleReport(limit = null) {
+    return this.game.constructionCycleReport(limit);
+  }
+
+  resolveConstructionFundingCase(caseId, optionId) {
+    return this.game.resolveConstructionFundingCase(caseId, optionId);
+  }
+
+  constructionFundingOptions(caseId) {
+    return this.game.constructionFundingOptions(caseId);
   }
 
   constructionSchedule(planId) {
@@ -682,14 +730,45 @@ export class ScenarioRuntime {
 
   settleOperatingDays() {
     const settlements = [];
+    const commissioned = this.game.services.filter((item) => item.operationalLineId !== undefined && item.operationsStartedAtGameMinute !== undefined);
+    const calendarTarget = commissioned.reduce((latest, service) => Math.max(latest,
+      service.operationsStartedAtGameMinute + Math.max(0, this.operationalState.simMinutes - service.operationsStartedAtSimMinute)), this.game.clock.minute);
+    if (calendarTarget > this.game.clock.minute) this.game.clock.advance(calendarTarget - this.game.clock.minute);
     for (const service of this.game.services.filter((item) => item.status === "open" && item.operationalLineId !== undefined)) {
       const currentDay = Math.floor(this.operationalState.simMinutes / 1440);
       if (currentDay <= (service.engineCursor?.day ?? currentDay)) continue;
-      const target = service.operationsStartedAtGameMinute + Math.max(0, this.operationalState.simMinutes - service.operationsStartedAtSimMinute);
-      if (target > this.game.clock.minute) this.game.clock.advance(target - this.game.clock.minute);
-      settlements.push(settleIntegratedServiceDay(this.game, this.operationalState, service.id));
+      const settlement = settleIntegratedServiceDay(this.game, this.operationalState, service.id);
+      const accounting = this.game.recordIntegratedOperatingSettlement(service.id, settlement);
+      settlements.push({ ...settlement, ...accounting });
+    }
+    const currentMonth = Math.floor(this.game.clock.minute / (30 * 1440));
+    const seenProjects = new Set();
+    for (const service of commissioned) {
+      if (seenProjects.has(service.projectId)) continue;
+      seenProjects.add(service.projectId);
+      const financeDue = this.game.constructionFinancing.some((entry) => entry.projectId === service.projectId
+        && entry.firstDueMonth !== undefined
+        && (entry.lastServicedMonth ?? entry.firstDueMonth - 1) < currentMonth
+        && !["repaid", "closed"].includes(entry.status));
+      if (financeDue) this.game.settleOperatingFinanceCalendar(service.id);
     }
     return settlements;
+  }
+
+  updateServicePolicy(serviceId, input) {
+    const result = this.game.updateServicePolicy(serviceId, input);
+    const service = this.game.services.find((entry) => entry.id === serviceId);
+    const line = service?.operationalLineId === undefined ? null : this.operationalState.lines.find((entry) => String(entry.id) === String(service.operationalLineId));
+    if (line) {
+      const base = service.trainsPerHour;
+      line.frequency = { high: Math.min(30, Math.round(base * 1.5)), medium: Math.round(base), low: Math.max(1, Math.round(base * 0.5)), veryLow: Math.max(1, Math.round(base * 0.25)) };
+      service.nominalLineFrequency = structuredClone(line.frequency);
+    }
+    return result;
+  }
+
+  addOperatingCompetitor(serviceId, input) {
+    return this.game.addOperatingCompetitor(serviceId, input);
   }
 
   evaluate() {

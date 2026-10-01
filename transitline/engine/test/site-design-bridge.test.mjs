@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildStationSite } from "../src/map/station-site.mjs";
 import { makeSpatialContext, polygonLayer } from "../src/map/spatial.mjs";
-import { recomputeCollision, validateInboundMessage, SITE_DESIGN_IFRAME_PATH } from "../src/map/site-design-bridge.mjs";
+import { recomputeCollision, surroundingSpatialData, validateInboundMessage, SITE_DESIGN_IFRAME_PATH } from "../src/map/site-design-bridge.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -23,6 +23,7 @@ function makeSite(spatial) {
   const drawn = {
     key: "fixture", location: CENTRE, headingDegrees: 0, lengthMeters: 160, widthMeters: 24,
     entrances: [{ key: "north", location: [139.7, 35.7012] }, { key: "south", location: [139.7, 35.6988] }],
+    workAreas: [{ key: "yard", polygon: sq(139.698, 35.698, 0.0002)[0] }],
   };
   return buildStationSite(drawn, { pack, spatial });
 }
@@ -74,6 +75,52 @@ test("recomputeCollision never mutates the original entrance candidates it was g
   const request = { body: { location: [139.7002, 35.70015], headingDegrees: 0, lengthMeters: 160, widthMeters: 24 }, entranceChanges: [] };
   recomputeCollision(request, site.entranceCandidates, { pack, spatial });
   assert.equal(JSON.stringify(site.entranceCandidates), before);
+});
+
+test("recomputeCollision applies add/remove entrance actions and omits removed entrances", () => {
+  const site = makeSite(makeSpatialContext());
+  const removed = site.entranceCandidates[0];
+  const before = JSON.stringify(site);
+  const spatial = makeSpatialContext({ buildings: buildingNearBody, water: emptyWater });
+  const request = {
+    body: { location: CENTRE, headingDegrees: 0, lengthMeters: 160, widthMeters: 24 },
+    entranceChanges: [
+      { action: "remove", entranceId: removed.entranceId },
+      { action: "add", entranceId: "draft-entrance-1", location: [139.7002, 35.70015] },
+    ],
+  };
+  const result = recomputeCollision(request, site, { pack, spatial });
+  assert.equal(result.entranceCollisions.some((entry) => entry.entranceId === removed.entranceId), false);
+  assert.equal(result.entranceCollisions.find((entry) => entry.entranceId === "draft-entrance-1")?.collides, true);
+  assert.equal(JSON.stringify(site), before, "the original complete site stays immutable");
+});
+
+test("recomputeCollision checks edited work-area polygons independently", () => {
+  const site = makeSite(makeSpatialContext());
+  const workAreaId = site.workAreaCandidates[0].workAreaId;
+  const spatial = makeSpatialContext({ buildings: buildingNearBody, water: emptyWater });
+  const request = {
+    body: { location: CENTRE, headingDegrees: 0, lengthMeters: 160, widthMeters: 24 },
+    entranceChanges: [],
+    workAreaChanges: [{ workAreaId, polygon: sq(139.7002, 35.7001)[0] }],
+  };
+  const result = recomputeCollision(request, site, { pack, spatial });
+  assert.deepEqual(result.workAreaCollisions, [{ workAreaId, collides: true }]);
+});
+
+test("surroundingSpatialData returns only nearby renderable facts", () => {
+  const far = polygonLayer([{ rings: sq(140.7, 36.7), kind: "far" }]);
+  const spatial = makeSpatialContext({
+    buildings: { ...buildingNearBody, items: [...buildingNearBody.items, ...far.items] },
+    water: polygonLayer([{ rings: sq(139.699, 35.699) }]),
+    roads: { items: [{ id: "road-near", line: [[139.699, 35.7], [139.701, 35.7]], bbox: [139.699, 35.7, 139.701, 35.7], cls: "major" }] },
+    rail: { items: [{ id: "rail-near", line: [[139.7, 35.699], [139.7, 35.701]], bbox: [139.7, 35.699, 139.7, 35.701] }] },
+  });
+  const result = surroundingSpatialData(spatial, CENTRE, 350);
+  assert.equal(result.buildings.length, 1);
+  assert.equal(result.water.length, 1);
+  assert.equal(result.roads[0].class, "major");
+  assert.equal(result.existingRail.length, 1);
 });
 
 // --- inbound message validation ---

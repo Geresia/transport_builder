@@ -110,7 +110,7 @@ export function evaluateScenario(game, operationalState) {
     return totals;
   }, { passengers: 0, days: 0, profit: 0 });
   const dailyPassengers = integrated.days > 0 ? integrated.passengers / integrated.days : 0;
-  const spent = scenario.initialCash - game.ledger.cash;
+  const spent = scenario.initialCash + (scenario.constructionFundingInflowsJPY ?? 0) - game.ledger.cash;
   const checks = {
     deadline: game.clock.minute <= scenario.deadlineMinute,
     passengers: dailyPassengers >= scenario.objectives.minimumDailyPassengers,

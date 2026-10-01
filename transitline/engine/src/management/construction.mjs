@@ -128,11 +128,19 @@ export function contractConstruction(project, ledger, clock) {
   return deposit;
 }
 
-export function advanceConstructionMonth(project, ledger, clock, rng, countryProfile, { randomRisk = true } = {}) {
+export function advanceConstructionMonth(project, ledger, clock, rng, countryProfile, { randomRisk = true, progressCap = 1 } = {}) {
   if (!["contracted", "underConstruction", "inspection"].includes(project.status)) throw new Error("Project is not active");
   if (project.status === "contracted") project.status = "underConstruction";
   synchronizeStationDeliveryPackages(project, clock);
   project.elapsedMonths++;
+  const buildMonths = Math.max(1, project.estimate.durationMonths - countryProfile.approvalMonths - 3);
+  if (project.status === "inspection") {
+    project.inspectionElapsedMonths ??= Math.max(0, project.elapsedMonths - buildMonths - 1);
+    project.inspectionElapsedMonths++;
+    if (project.inspectionElapsedMonths >= 3) completeConstruction(project, ledger);
+    synchronizeStationDeliveryPackages(project, clock);
+    return { delayed: false, payment: 0, progress: project.progress, progressDelta: 0, status: project.status };
+  }
   const riskProbability = 0.025 * countryProfile.disputeDelayModifier + (project.elapsedMonths % 12 === 0 ? 0.02 : 0);
   const riskRoll = project.status === "underConstruction" ? rng.next() : 1;
   if (riskRoll < riskProbability) {
@@ -148,8 +156,13 @@ export function advanceConstructionMonth(project, ledger, clock, rng, countryPro
     return { delayed: true, delayMonths: 1, payment: 0 };
   }
 
-  const buildMonths = Math.max(1, project.estimate.durationMonths - countryProfile.approvalMonths - 3);
-  const increment = Math.min(1 - project.progress, 1 / buildMonths);
+  const cap = Math.max(project.progress, Math.min(1, Number.isFinite(progressCap) ? progressCap : 1));
+  const priorProgress = project.progress;
+  const increment = Math.max(0, Math.min(1 - project.progress, 1 / buildMonths, cap - project.progress));
+  if (increment <= 1e-12) {
+    synchronizeStationDeliveryPackages(project, clock);
+    return { delayed: true, blocked: true, reason: "integrated-schedule", payment: 0, progress: project.progress, progressDelta: 0, progressCap: cap, status: project.status };
+  }
   const commitment = ledger.commitments.get(`construction:${project.id}`);
   const payment = Math.min(commitment?.remaining ?? 0, project.estimate.totalP50 - project.paid, project.estimate.totalP50 * increment);
   if (payment > 0) ledger.settle(`construction:${project.id}`, payment, clock.minute, "Monthly progress payment");
@@ -164,10 +177,15 @@ export function advanceConstructionMonth(project, ledger, clock, rng, countryPro
   if (project.progress >= 1 - 1e-9) {
     project.progress = 1;
     project.status = "inspection";
+    project.inspectionElapsedMonths = 0;
   }
-  if (project.status === "inspection" && project.elapsedMonths >= buildMonths + 3) {
-    project.status = "available";
-    const stationAssets = project.planGeometry.stationCandidates.map((station) => ({
+  synchronizeStationDeliveryPackages(project, clock);
+  return { delayed: false, payment, progress: project.progress, progressDelta: project.progress - priorProgress, progressCap: cap, status: project.status };
+}
+
+function completeConstruction(project, ledger) {
+  project.status = "available";
+  const stationAssets = project.planGeometry.stationCandidates.map((station) => ({
       id: `station:${project.id}:${station.id}`,
       sourceId: station.id,
       kind: "station",
@@ -194,12 +212,9 @@ export function advanceConstructionMonth(project, ledger, clock, rng, countryPro
       structure: segment.structureHint,
       status: "available",
     }));
-    project.assets = [...stationAssets, ...platformAssets, ...trackAssets,
-      { id: `systems:${project.id}`, kind: "power-signal", status: "available" }];
-    ledger.release(`construction:${project.id}`);
-  }
-  synchronizeStationDeliveryPackages(project, clock);
-  return { delayed: false, payment, progress: project.progress };
+  project.assets = [...stationAssets, ...platformAssets, ...trackAssets,
+    { id: `systems:${project.id}`, kind: "power-signal", status: "available" }];
+  ledger.release(`construction:${project.id}`);
 }
 
 export function suspendConstruction(project, reason, clock) {
