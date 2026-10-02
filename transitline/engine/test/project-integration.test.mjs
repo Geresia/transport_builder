@@ -6,7 +6,8 @@ import { buildDemandModel } from "../src/demand-engine.mjs";
 import { withStationAccess } from "../src/access-demand.mjs";
 import { buildRouteGraph } from "../src/network.mjs";
 import { createMapEngineBridge } from "../src/map-engine-bridge.mjs";
-import { loadIntegratedGame, saveIntegratedGame } from "../src/integrated-save.mjs";
+import { loadIntegratedGame, saveIntegratedGame, snapshotOperationalState } from "../src/integrated-save.mjs";
+import { ScenarioRuntime } from "../src/scenario-runtime.mjs";
 
 function integrationPack() {
   return {
@@ -168,19 +169,92 @@ test("actual network counters settle once per simulation day into the management
   state.stats.deliveredByLine[lineId] = 125;
   state.stats.trainKmByLine[lineId] = 880;
   const result = settleIntegratedServiceDay(game, state, service.id);
-  const accounting = game.recordIntegratedOperatingSettlement(service.id, result);
   assert.equal(result.passengers, 12_500);
   assert.equal(result.trainKm, 880);
   assert.ok(result.income > 0);
   assert.ok(result.cost > 0);
-  assert.equal(accounting.operatingMonth.passengers, 12_500);
-  assert.ok(accounting.operatingMonth.operatingCostJPY > 0);
+  assert.equal(result.operatingMonth.passengers, 12_500);
+  assert.ok(result.operatingMonth.operatingCostJPY > 0);
   assert.equal(game.operatingMonthReport(service.id).length, 1);
   assert.throws(() => settleIntegratedServiceDay(game, state, service.id), /already settled/);
   assert.equal(game.services[0].integratedTotals.passengers, 12_500);
   suspendCommissionedService(game, state, service.id, true);
   assert.equal(state.lines[0].suspended, true);
   assert.equal(game.services[0].status, "suspended");
+});
+
+test("combined integrated settlement rolls back management and line frequency when accounting fails", () => {
+  const game = new ManagementGame({ seed: 103, openingCash: 1_000_000_000_000 });
+  const { project, service } = completeProjectAndFleet(game);
+  const state = createState(integrationPack(), { materializeDemandStations: false, seed: 103 });
+  commissionProject(game, state, { projectId: project.id, serviceId: service.id });
+  const lineId = String(state.lines[0].id);
+  state.simMinutes = 1440;
+  state.stats.deliveredByLine[lineId] = 50;
+  state.stats.trainKmByLine[lineId] = 320;
+  const managementBefore = game.snapshot();
+  const operationsBefore = snapshotOperationalState(state);
+  const applyOperatingSettlement = game.applyOperatingSettlement;
+  game.applyOperatingSettlement = () => { throw new Error("forced accounting failure"); };
+  try {
+    assert.throws(() => settleIntegratedServiceDay(game, state, service.id), /forced accounting failure/);
+  } finally {
+    game.applyOperatingSettlement = applyOperatingSettlement;
+  }
+  assert.deepEqual(game.snapshot(), managementBefore);
+  assert.deepEqual(snapshotOperationalState(state), operationsBefore);
+});
+
+test("scenario settlement aligns simulation days with the game calendar and rolls the whole batch back", () => {
+  const game = new ManagementGame({ seed: 107, openingCash: 1_000_000_000_000 });
+  const { project, service } = completeProjectAndFleet(game);
+  const state = createState(integrationPack(), { materializeDemandStations: false, seed: 107 });
+  commissionProject(game, state, { projectId: project.id, serviceId: service.id });
+  service.engineCursor = { day: 0, delivered: 0, trainKm: 0 };
+  service.operationsStartedAtSimMinute = 0;
+  service.operationsStartedAtGameMinute = game.clock.minute;
+  const startDay = Math.floor(game.clock.minute / 1440);
+  game.trackAccessAgreements.push({
+    id: "agreement:calendar",
+    hostServiceId: service.id,
+    guestOperatorId: game.competitors[0].id,
+    trainsPerHour: 1,
+    hostCapacityTrainsPerHour: 12,
+    dailyTrainKm: 100,
+    dailyStationStops: 20,
+    accessFeeJPYPerTrainKm: 1_000,
+    stationFeeJPYPerStop: 10_000,
+    startDay,
+    endDay: startDay + 365,
+    lastSettledDay: startDay - 1,
+    status: "active",
+    totals: { settledDays: 0, accessRevenueJPY: 0 },
+  });
+  const runtime = Object.create(ScenarioRuntime.prototype);
+  runtime.pack = { manifest: { id: "integration", version: "1" } };
+  runtime.game = game;
+  runtime.operationalState = state;
+  runtime.bridge = createMapEngineBridge(game, state);
+  const lineId = String(state.lines[0].id);
+  state.simMinutes = 1440;
+  state.stats.deliveredByLine[lineId] = 25;
+  state.stats.trainKmByLine[lineId] = 160;
+  const [first] = runtime.settleOperatingDays();
+  assert.equal(first.day, 1, "simulation cursor uses the map day");
+  assert.equal(first.operatingDay, startDay + 1, "economic settlement uses the synchronized game day");
+  assert.equal(first.trackAccess.settlement.settlements[0].throughDay, startDay);
+  assert.ok(first.money.trackAccessRevenueJPY > 0);
+  assert.equal(runtime.game.operatingMonthReport(service.id).length, 1);
+
+  state.simMinutes = 2880;
+  state.stats.deliveredByLine[lineId] = 40;
+  state.stats.trainKmByLine[lineId] = 260;
+  const managementBefore = runtime.game.snapshot();
+  const operationsBefore = snapshotOperationalState(runtime.operationalState);
+  runtime.game.applyOperatingSettlement = () => { throw new Error("forced batch failure"); };
+  assert.throws(() => runtime.settleOperatingDays(), /forced batch failure/);
+  assert.deepEqual(runtime.game.snapshot(), managementBefore, "clock, ledger, cursor and agreement totals all roll back");
+  assert.deepEqual(snapshotOperationalState(runtime.operationalState), operationsBefore, "map-side line state rolls back too");
 });
 
 test("map bridge exposes commands and read-only serialisable results", () => {
@@ -211,6 +285,7 @@ test("integrated save restores commissioned assets, links, RNG and management re
   assert.equal(restored.operationalState.trackSegments.length, 2);
   assert.equal(restored.operationalState.accessLinks.length, 3);
   assert.equal(restored.operationalState.lines[0].projectId, project.id);
+  assert.equal(restored.operationalState.lines[0].lastDispatch, -Infinity);
   assert.equal(restored.game.projects[0].commissionedLineId, restored.operationalState.lines[0].id);
   assert.equal(restored.operationalState.simMinutes, 4321);
   assert.equal(restored.operationalState.rng.snapshot(), state.rng.snapshot());

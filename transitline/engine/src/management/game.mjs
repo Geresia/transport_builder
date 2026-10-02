@@ -63,6 +63,7 @@ export class ManagementGame {
     this.nextTrackAccessSequence = 1;
     this.services = [];
     this.plans = [];
+    this._transactionDepth = 0;
   }
 
   snapshot() {
@@ -171,6 +172,7 @@ export class ManagementGame {
 
   transact(type, action) {
     const before = this.snapshot();
+    this._transactionDepth += 1;
     try {
       const result = action();
       this.ledger.assertInvariant();
@@ -180,6 +182,8 @@ export class ManagementGame {
     } catch (error) {
       this.restore(before);
       throw error;
+    } finally {
+      this._transactionDepth -= 1;
     }
   }
 
@@ -1106,6 +1110,7 @@ export class ManagementGame {
   }
 
   settleTrackAccessForService(serviceId, throughDay) {
+    if (this._transactionDepth <= 0) throw new Error("Track access settlement requires an active game transaction");
     return settleTrackAccessRevenue(this.trackAccessAgreements, serviceId, throughDay, this.competitors);
   }
 
@@ -1222,14 +1227,6 @@ export class ManagementGame {
       }, this.ledger, this.clock, this.rng);
       const maintenanceProgress = this.advanceInfrastructureMaintenanceToCurrentDay();
       return { ...settlement, maintenanceProgress, ...this.applyOperatingSettlement(service, settlement) };
-    });
-  }
-
-  recordIntegratedOperatingSettlement(serviceId, settlement) {
-    return this.transact("integrated-operating-period-recorded", () => {
-      const service = this.services.find((item) => item.id === serviceId);
-      if (!service) throw new Error(`Unknown service ${serviceId}`);
-      return this.applyOperatingSettlement(service, settlement);
     });
   }
 

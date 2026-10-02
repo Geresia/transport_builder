@@ -141,3 +141,9 @@ test("failed access transactions roll back opportunity, competitor, and agreemen
   assert.equal(game.trackAccessAgreements.length, 0);
   assert.ok(offers.length > 0);
 });
+
+test("game-level access settlement cannot mutate contract totals outside a transaction", () => {
+  const game = gameFixture();
+  assert.throws(() => game.settleTrackAccessForService("service:host", 0), /requires an active game transaction/);
+  assert.equal(game.trackAccessAgreements.length, 0);
+});

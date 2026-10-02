@@ -158,18 +158,25 @@ export function decommissionService(game, operationalState, serviceId) {
 }
 
 export function settleIntegratedServiceDay(game, operationalState, serviceId) {
-  return game.transact("integrated-service-day-settled", () => {
+  const serviceBefore = game.services.find((item) => item.id === serviceId);
+  const lineBefore = serviceBefore?.operationalLineId === undefined
+    ? null
+    : operationalState.lines.find((entry) => String(entry.id) === String(serviceBefore.operationalLineId));
+  const frequencyBefore = lineBefore ? structuredClone(lineBefore.frequency) : null;
+  try {
+    return game.transact("integrated-service-day-settled", () => {
     const service = game.services.find((item) => item.id === serviceId);
     if (!service || service.status !== "open" || service.operationalLineId === undefined) throw new Error(`Service ${serviceId} is not operating on the network`);
     const lineId = String(service.operationalLineId);
-    const day = Math.floor(operationalState.simMinutes / 1440);
-    const cursor = service.engineCursor ?? { day: day - 1, delivered: 0, trainKm: 0 };
-    if (day <= cursor.day) throw new Error(`Service ${serviceId} day ${day} is already settled`);
+    const simulationDay = Math.floor(operationalState.simMinutes / 1440);
+    const operatingDay = Math.floor(game.clock.minute / 1440);
+    const cursor = service.engineCursor ?? { day: simulationDay - 1, delivered: 0, trainKm: 0 };
+    if (simulationDay <= cursor.day) throw new Error(`Service ${serviceId} day ${simulationDay} is already settled`);
     const deliveredNow = operationalState.stats.deliveredByLine?.[lineId] ?? 0;
     const trainKmNow = operationalState.stats.trainKmByLine?.[lineId] ?? 0;
     const deliveredAgents = Math.max(0, deliveredNow - cursor.delivered);
     const trainKm = Math.max(0, trainKmNow - cursor.trainKm);
-    const days = day - cursor.day;
+    const days = simulationDay - cursor.day;
     const passengerWeight = service.passengerWeight ?? 100;
     const passengers = deliveredAgents * passengerWeight;
     const model = VEHICLE_MODELS[service.modelId];
@@ -183,7 +190,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     const resources = game.resolveOperatingResources(serviceId);
     const depot = resources.depot;
     const accessImpact = game.trackAccessImpact(serviceId);
-    const accessSettlement = game.settleTrackAccessForService(serviceId, day - 1);
+    const accessSettlement = game.settleTrackAccessForService(serviceId, operatingDay - 1);
     const infrastructureMaintenance = game.infrastructureMaintenanceImpact(service.projectId);
     const infrastructureSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureMaintenance.capacityFactor));
     const requiredSets = Math.min(infrastructureSets, resources.maximumStaffedSets ?? infrastructureSets);
@@ -197,7 +204,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       clock: game.clock,
       serviceId: service.id,
       preferredUnitIds: resources.preferredUnitIds,
-      operatingDay: day,
+      operatingDay,
     });
     const scheduledSets = reliability.operatingSets;
     const punctuality = Math.max(0.5, Math.min(0.999, 0.985 - reliabilityPunctualityPenalty(reliability) - infrastructureMaintenance.punctualityPenalty - accessImpact.punctualityPenalty + staffingPunctualityAdjustment(service)));
@@ -230,7 +237,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     if (income > 0) game.ledger.post({ atMinute: game.clock.minute, amount: income, category: "integrated-operating-income", reference: service.id });
     if (cost > 0) game.ledger.post({ atMinute: game.clock.minute, amount: -cost, category: "integrated-operating-cost", reference: service.id });
     const vehicle = applyVehicleOperatingWear({ units: resources.units, modelId: service.modelId, trainKm, days, depot, ledger: game.ledger, clock: game.clock, maxUsedSets: scheduledSets, usedUnitIds: reliability.operatingUnitIds });
-    service.engineCursor = { day, delivered: deliveredNow, trainKm: trainKmNow };
+    service.engineCursor = { day: simulationDay, delivered: deliveredNow, trainKm: trainKmNow };
     service.integratedTotals = service.integratedTotals ?? { passengers: 0, trainKm: 0, income: 0, cost: 0 };
     service.integratedTotals.passengers += passengers;
     service.integratedTotals.trainKm += trainKm;
@@ -245,8 +252,9 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       const nextAvailabilityRatio = nextAvailableSets / Math.max(1, service.fleetRequirement.serviceSets);
       for (const [bandId, nominal] of Object.entries(service.nominalLineFrequency)) line.frequency[bandId] = Math.max(0, Math.floor(nominal * nextAvailabilityRatio));
     }
-    return {
-      day,
+    const settlement = {
+      day: simulationDay,
+      operatingDay,
       days,
       passengers,
       denied: 0,
@@ -280,5 +288,10 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       infrastructureMaintenance,
       maintenanceProgress,
     };
-  });
+    return { ...settlement, ...game.applyOperatingSettlement(service, settlement) };
+    });
+  } catch (error) {
+    if (lineBefore && frequencyBefore) lineBefore.frequency = frequencyBefore;
+    throw error;
+  }
 }

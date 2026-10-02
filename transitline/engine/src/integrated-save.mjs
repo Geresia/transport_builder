@@ -31,6 +31,10 @@ export function restoreOperationalState(snapshot) {
   state.demandNodes = new Map((snapshot.demandNodes ?? []).map(([key, value]) => [key, structuredClone(value)]));
   state.rng = new DeterministicRng(1);
   if (snapshot.rngState !== null) state.rng.restore(snapshot.rngState);
+  for (const line of state.lines ?? []) {
+    // JSON encodes the initial -Infinity dispatch sentinel as null. Restore its operational meaning.
+    if (line.lastDispatch === null) line.lastDispatch = -Infinity;
+  }
   return state;
 }
 

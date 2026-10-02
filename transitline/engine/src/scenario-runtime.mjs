@@ -1,4 +1,4 @@
-import { loadIntegratedGame, saveIntegratedGame } from "./integrated-save.mjs";
+import { loadIntegratedGame, restoreOperationalState, saveIntegratedGame, snapshotOperationalState } from "./integrated-save.mjs";
 import { createMapEngineBridge } from "./map-engine-bridge.mjs";
 import {
   ManagementGame,
@@ -731,30 +731,37 @@ export class ScenarioRuntime {
   }
 
   settleOperatingDays() {
-    const settlements = [];
-    const commissioned = this.game.services.filter((item) => item.operationalLineId !== undefined && item.operationsStartedAtGameMinute !== undefined);
-    const calendarTarget = commissioned.reduce((latest, service) => Math.max(latest,
-      service.operationsStartedAtGameMinute + Math.max(0, this.operationalState.simMinutes - service.operationsStartedAtSimMinute)), this.game.clock.minute);
-    if (calendarTarget > this.game.clock.minute) this.game.clock.advance(calendarTarget - this.game.clock.minute);
-    for (const service of this.game.services.filter((item) => item.status === "open" && item.operationalLineId !== undefined)) {
-      const currentDay = Math.floor(this.operationalState.simMinutes / 1440);
-      if (currentDay <= (service.engineCursor?.day ?? currentDay)) continue;
-      const settlement = settleIntegratedServiceDay(this.game, this.operationalState, service.id);
-      const accounting = this.game.recordIntegratedOperatingSettlement(service.id, settlement);
-      settlements.push({ ...settlement, ...accounting });
+    const managementCheckpoint = this.game.snapshot();
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      const settlements = [];
+      const commissioned = this.game.services.filter((item) => item.operationalLineId !== undefined && item.operationsStartedAtGameMinute !== undefined);
+      const calendarTarget = commissioned.reduce((latest, service) => Math.max(latest,
+        service.operationsStartedAtGameMinute + Math.max(0, this.operationalState.simMinutes - service.operationsStartedAtSimMinute)), this.game.clock.minute);
+      if (calendarTarget > this.game.clock.minute) this.game.clock.advance(calendarTarget - this.game.clock.minute);
+      for (const service of this.game.services.filter((item) => item.status === "open" && item.operationalLineId !== undefined)) {
+        const currentDay = Math.floor(this.operationalState.simMinutes / 1440);
+        if (currentDay <= (service.engineCursor?.day ?? currentDay)) continue;
+        settlements.push(settleIntegratedServiceDay(this.game, this.operationalState, service.id));
+      }
+      const currentMonth = Math.floor(this.game.clock.minute / (30 * 1440));
+      const seenProjects = new Set();
+      for (const service of commissioned) {
+        if (seenProjects.has(service.projectId)) continue;
+        seenProjects.add(service.projectId);
+        const financeDue = this.game.constructionFinancing.some((entry) => entry.projectId === service.projectId
+          && entry.firstDueMonth !== undefined
+          && (entry.lastServicedMonth ?? entry.firstDueMonth - 1) < currentMonth
+          && !["repaid", "closed"].includes(entry.status));
+        if (financeDue) this.game.settleOperatingFinanceCalendar(service.id);
+      }
+      return settlements;
+    } catch (error) {
+      this.game = new ManagementGame({ countryId: managementCheckpoint.countryId }).restore(managementCheckpoint);
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
     }
-    const currentMonth = Math.floor(this.game.clock.minute / (30 * 1440));
-    const seenProjects = new Set();
-    for (const service of commissioned) {
-      if (seenProjects.has(service.projectId)) continue;
-      seenProjects.add(service.projectId);
-      const financeDue = this.game.constructionFinancing.some((entry) => entry.projectId === service.projectId
-        && entry.firstDueMonth !== undefined
-        && (entry.lastServicedMonth ?? entry.firstDueMonth - 1) < currentMonth
-        && !["repaid", "closed"].includes(entry.status));
-      if (financeDue) this.game.settleOperatingFinanceCalendar(service.id);
-    }
-    return settlements;
   }
 
   updateServicePolicy(serviceId, input) {
