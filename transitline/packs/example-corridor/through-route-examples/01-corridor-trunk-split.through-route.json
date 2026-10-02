@@ -1,0 +1,149 @@
+{
+  "schema": "transitline.through-route-geometry/1",
+  "contractVersion": 1,
+  "throughRouteId": "through-route:1ec0b464d02d3b46",
+  "key": "example:corridor:through-trunk-split",
+  "sourcePackId": "example-corridor",
+  "sourcePackVersion": "0.1.0",
+  "name": "Corridor trunk run as two legs",
+  "coordinateReference": "EPSG:4326",
+  "legs": [
+    {
+      "legId": "through-leg:4aaff69660f8ea84",
+      "sequence": 0,
+      "sourceKind": "planned",
+      "connectedPlanId": "plan:6c4c613145a2a1b3",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "infrastructureOwnerId": null,
+      "segmentIds": [
+        "seg:ec9f04866349d294",
+        "seg:eb4da0e7656e2861"
+      ],
+      "stationIds": [
+        "stn:8442bc4fe5e68e95",
+        "stn:76a46fe9f1760313",
+        "stn:681d3c2bc9c10e71"
+      ],
+      "alignment": [
+        [
+          -0.05,
+          0
+        ],
+        [
+          -0.03,
+          0
+        ],
+        [
+          -0.01,
+          0
+        ]
+      ],
+      "lengthMeters": 4447.8,
+      "unknown": [
+        "infrastructureOwnerId"
+      ],
+      "unknownReasons": {
+        "infrastructureOwnerId": "owner-not-in-source-data"
+      }
+    },
+    {
+      "legId": "through-leg:8517197e67cee160",
+      "sequence": 1,
+      "sourceKind": "planned",
+      "connectedPlanId": "plan:6c4c613145a2a1b3",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "infrastructureOwnerId": null,
+      "segmentIds": [
+        "seg:a3ad0d61ab3ad4d7"
+      ],
+      "stationIds": [
+        "stn:681d3c2bc9c10e71",
+        "stn:da06a0704e508dea"
+      ],
+      "alignment": [
+        [
+          -0.01,
+          0
+        ],
+        [
+          0.01,
+          0
+        ]
+      ],
+      "lengthMeters": 2223.9,
+      "unknown": [
+        "infrastructureOwnerId"
+      ],
+      "unknownReasons": {
+        "infrastructureOwnerId": "owner-not-in-source-data"
+      }
+    }
+  ],
+  "handovers": [
+    {
+      "handoverId": "through-handover:651b0ae3e0dbf5dd",
+      "sequence": 0,
+      "stationId": "stn:681d3c2bc9c10e71",
+      "location": [
+        -0.01,
+        0
+      ],
+      "fromLegId": "through-leg:4aaff69660f8ea84",
+      "toLegId": "through-leg:8517197e67cee160",
+      "fromStationId": "stn:681d3c2bc9c10e71",
+      "toStationId": "stn:681d3c2bc9c10e71",
+      "physicalConnection": true,
+      "gapMeters": 0,
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "totalLengthMeters": 6671.7,
+  "dataQuality": "low",
+  "unknown": [
+    "leg:through-leg:4aaff69660f8ea84:infrastructureOwnerId",
+    "leg:through-leg:8517197e67cee160:infrastructureOwnerId"
+  ],
+  "unknownReasons": {
+    "leg:through-leg:4aaff69660f8ea84:infrastructureOwnerId": "owner-not-in-source-data",
+    "leg:through-leg:8517197e67cee160:infrastructureOwnerId": "owner-not-in-source-data"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "plan-geometry",
+      "quality": "low",
+      "name": "PlanGeometry plan:6c4c613145a2a1b3",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnRoute": {
+      "key": "example:corridor:through-trunk-split",
+      "name": "Corridor trunk run as two legs",
+      "legs": [
+        {
+          "sourceKind": "planned",
+          "planId": "plan:6c4c613145a2a1b3",
+          "fromStationId": "stn:8442bc4fe5e68e95",
+          "toStationId": "stn:681d3c2bc9c10e71"
+        },
+        {
+          "sourceKind": "planned",
+          "planId": "plan:6c4c613145a2a1b3",
+          "fromStationId": "stn:681d3c2bc9c10e71",
+          "toStationId": "stn:da06a0704e508dea"
+        }
+      ]
+    },
+    "generatedBy": "scripts/build-through-route-examples.mjs"
+  }
+}
