@@ -1,0 +1,284 @@
+{
+  "schema": "transitline.through-route-geometry/1",
+  "contractVersion": 1,
+  "throughRouteId": "through-route:20b472b2ecebde64",
+  "key": "example:tokyo:through-east-river-koto-shinjuku",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "name": "Planned, existing, planned (legs listed out of order, sequence is explicit)",
+  "coordinateReference": "EPSG:4326",
+  "legs": [
+    {
+      "legId": "through-leg:559e4076e230e7fc",
+      "sequence": 0,
+      "sourceKind": "planned",
+      "connectedPlanId": "plan:b9b153e3df14331d",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "infrastructureOwnerId": null,
+      "segmentIds": [
+        "seg:29a889cbeeb9b321",
+        "seg:4c77da73dfd17c89"
+      ],
+      "stationIds": [
+        "stn:b00d2c67f5415425",
+        "stn:b811921b26eaebbd",
+        "stn:c247c3f5a3f53c4b"
+      ],
+      "alignment": [
+        [
+          139.81276,
+          35.67399
+        ],
+        [
+          139.81254,
+          35.70474
+        ],
+        [
+          139.87118,
+          35.7136
+        ]
+      ],
+      "lengthMeters": 8804.7,
+      "unknown": [
+        "infrastructureOwnerId"
+      ],
+      "unknownReasons": {
+        "infrastructureOwnerId": "owner-not-in-source-data"
+      }
+    },
+    {
+      "legId": "through-leg:aecf361ecf87b520",
+      "sequence": 1,
+      "sourceKind": "external",
+      "connectedPlanId": null,
+      "connectedProjectId": null,
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "infrastructureOwnerId": null,
+      "segmentIds": [],
+      "stationIds": [
+        "kanto-12203",
+        "ward-edogawa",
+        "ward-koto",
+        "ward-sumida",
+        "ward-koto",
+        "ward-chuo",
+        "ward-chiyoda",
+        "ward-shinjuku"
+      ],
+      "alignment": null,
+      "lengthMeters": null,
+      "unknown": [
+        "infrastructureOwnerId",
+        "segmentIds",
+        "alignment",
+        "lengthMeters"
+      ],
+      "unknownReasons": {
+        "infrastructureOwnerId": "owner-not-in-source-data",
+        "segmentIds": "external-network-has-no-segment-ids",
+        "alignment": "external-location-basis:demand-node",
+        "lengthMeters": "external-location-basis:demand-node"
+      }
+    },
+    {
+      "legId": "through-leg:c8640bdca936cfc2",
+      "sequence": 2,
+      "sourceKind": "planned",
+      "connectedPlanId": "plan:fecf90025bb0baa8",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "infrastructureOwnerId": null,
+      "segmentIds": [
+        "seg:10cf24ba517e0854",
+        "seg:fb160b74ec3c163e"
+      ],
+      "stationIds": [
+        "stn:e64d5ed374ba5971",
+        "stn:f2c1d30755698c75",
+        "stn:2dc10901f79065b3"
+      ],
+      "alignment": [
+        [
+          139.692896,
+          35.687146
+        ],
+        [
+          139.698786,
+          35.688025
+        ],
+        [
+          139.697945,
+          35.695943
+        ],
+        [
+          139.703835,
+          35.693303
+        ]
+      ],
+      "lengthMeters": 2032.1,
+      "unknown": [
+        "infrastructureOwnerId"
+      ],
+      "unknownReasons": {
+        "infrastructureOwnerId": "owner-not-in-source-data"
+      }
+    }
+  ],
+  "handovers": [
+    {
+      "handoverId": "through-handover:19210f94c228817e",
+      "sequence": 0,
+      "stationId": null,
+      "location": null,
+      "fromLegId": "through-leg:559e4076e230e7fc",
+      "toLegId": "through-leg:aecf361ecf87b520",
+      "fromStationId": "stn:c247c3f5a3f53c4b",
+      "toStationId": "kanto-12203",
+      "physicalConnection": null,
+      "gapMeters": null,
+      "unknown": [
+        "stationId",
+        "location",
+        "physicalConnection",
+        "gapMeters"
+      ],
+      "unknownReasons": {
+        "location": "legs-end-at-different-stations",
+        "stationId": "legs-end-at-different-stations",
+        "physicalConnection": "external-topology-not-in-source",
+        "gapMeters": "external-topology-not-in-source"
+      }
+    },
+    {
+      "handoverId": "through-handover:009c24059a5ee183",
+      "sequence": 1,
+      "stationId": null,
+      "location": null,
+      "fromLegId": "through-leg:aecf361ecf87b520",
+      "toLegId": "through-leg:c8640bdca936cfc2",
+      "fromStationId": "ward-shinjuku",
+      "toStationId": "stn:e64d5ed374ba5971",
+      "physicalConnection": null,
+      "gapMeters": null,
+      "unknown": [
+        "stationId",
+        "location",
+        "physicalConnection",
+        "gapMeters"
+      ],
+      "unknownReasons": {
+        "location": "legs-end-at-different-stations",
+        "stationId": "legs-end-at-different-stations",
+        "physicalConnection": "external-topology-not-in-source",
+        "gapMeters": "external-topology-not-in-source"
+      }
+    }
+  ],
+  "totalLengthMeters": null,
+  "dataQuality": "low",
+  "unknown": [
+    "leg:through-leg:559e4076e230e7fc:infrastructureOwnerId",
+    "leg:through-leg:aecf361ecf87b520:infrastructureOwnerId",
+    "leg:through-leg:aecf361ecf87b520:segmentIds",
+    "leg:through-leg:aecf361ecf87b520:alignment",
+    "leg:through-leg:aecf361ecf87b520:lengthMeters",
+    "leg:through-leg:c8640bdca936cfc2:infrastructureOwnerId",
+    "handover:through-handover:19210f94c228817e:stationId",
+    "handover:through-handover:19210f94c228817e:location",
+    "handover:through-handover:19210f94c228817e:physicalConnection",
+    "handover:through-handover:19210f94c228817e:gapMeters",
+    "handover:through-handover:009c24059a5ee183:stationId",
+    "handover:through-handover:009c24059a5ee183:location",
+    "handover:through-handover:009c24059a5ee183:physicalConnection",
+    "handover:through-handover:009c24059a5ee183:gapMeters",
+    "totalLengthMeters"
+  ],
+  "unknownReasons": {
+    "leg:through-leg:559e4076e230e7fc:infrastructureOwnerId": "owner-not-in-source-data",
+    "leg:through-leg:aecf361ecf87b520:infrastructureOwnerId": "owner-not-in-source-data",
+    "leg:through-leg:aecf361ecf87b520:segmentIds": "external-network-has-no-segment-ids",
+    "leg:through-leg:aecf361ecf87b520:alignment": "external-location-basis:demand-node",
+    "leg:through-leg:aecf361ecf87b520:lengthMeters": "external-location-basis:demand-node",
+    "leg:through-leg:c8640bdca936cfc2:infrastructureOwnerId": "owner-not-in-source-data",
+    "handover:through-handover:19210f94c228817e:stationId": "legs-end-at-different-stations",
+    "handover:through-handover:19210f94c228817e:location": "legs-end-at-different-stations",
+    "handover:through-handover:19210f94c228817e:physicalConnection": "external-topology-not-in-source",
+    "handover:through-handover:19210f94c228817e:gapMeters": "external-topology-not-in-source",
+    "handover:through-handover:009c24059a5ee183:stationId": "legs-end-at-different-stations",
+    "handover:through-handover:009c24059a5ee183:location": "legs-end-at-different-stations",
+    "handover:through-handover:009c24059a5ee183:physicalConnection": "external-topology-not-in-source",
+    "handover:through-handover:009c24059a5ee183:gapMeters": "external-topology-not-in-source",
+    "totalLengthMeters": "leg-length-unknown"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "existing-network",
+      "quality": "low",
+      "name": "CityPack existing network (external:tokyo)",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "plan-geometry",
+      "quality": "medium",
+      "name": "PlanGeometry plan:b9b153e3df14331d",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "plan-geometry",
+      "quality": "medium",
+      "name": "PlanGeometry plan:fecf90025bb0baa8",
+      "license": "ODbL-1.0"
+    }
+  ],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "source": {
+    "drawnRoute": {
+      "key": "example:tokyo:through-east-river-koto-shinjuku",
+      "name": "Planned, existing, planned (legs listed out of order, sequence is explicit)",
+      "legs": [
+        {
+          "sourceKind": "planned",
+          "planId": "plan:fecf90025bb0baa8",
+          "sequence": 2
+        },
+        {
+          "sourceKind": "planned",
+          "planId": "plan:b9b153e3df14331d",
+          "sequence": 0
+        },
+        {
+          "sourceKind": "external",
+          "externalLineId": "ext-line:443259",
+          "sequence": 1
+        }
+      ]
+    },
+    "generatedBy": "scripts/build-through-route-examples.mjs"
+  }
+}

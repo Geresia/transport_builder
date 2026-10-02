@@ -1,0 +1,169 @@
+{
+  "schema": "transitline.through-route-geometry/1",
+  "contractVersion": 1,
+  "throughRouteId": "through-route:b3a5e60831d27cba",
+  "key": "example:radial:through-spoke-cross-city",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "name": "Spoke end to cross-city start (legs listed out of order)",
+  "coordinateReference": "EPSG:4326",
+  "legs": [
+    {
+      "legId": "through-leg:8062dda624f7826c",
+      "sequence": 0,
+      "sourceKind": "planned",
+      "connectedPlanId": "plan:0ecd95b1d71018d3",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "infrastructureOwnerId": null,
+      "segmentIds": [
+        "seg:3dfc854cd7a7747a",
+        "seg:9756d646c00e7a0c",
+        "seg:093a835d10ac7a0b"
+      ],
+      "stationIds": [
+        "stn:cbcf9940f43b2516",
+        "stn:350dbe3a0551f15c",
+        "stn:1c7dc899c704388b",
+        "stn:12eab25d4b99dd0f"
+      ],
+      "alignment": [
+        [
+          0,
+          0
+        ],
+        [
+          0.02,
+          0
+        ],
+        [
+          0.04347,
+          0.01165
+        ],
+        [
+          0.06495,
+          0.0375
+        ]
+      ],
+      "lengthMeters": 8874.7,
+      "unknown": [
+        "infrastructureOwnerId"
+      ],
+      "unknownReasons": {
+        "infrastructureOwnerId": "owner-not-in-source-data"
+      }
+    },
+    {
+      "legId": "through-leg:fad8a227e151ed71",
+      "sequence": 1,
+      "sourceKind": "planned",
+      "connectedPlanId": "plan:3e604547f4feb1f9",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "infrastructureOwnerId": null,
+      "segmentIds": [
+        "seg:64fff2e16a5ede5f",
+        "seg:561cd0ff56a9b7bd"
+      ],
+      "stationIds": [
+        "stn:12eab25d4b99dd0f",
+        "stn:cbcf9940f43b2516",
+        "stn:cdc0aee5e316e33f"
+      ],
+      "alignment": [
+        [
+          0.06495,
+          0.0375
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0.012,
+          -0.012
+        ],
+        [
+          -0.06495,
+          -0.0375
+        ]
+      ],
+      "lengthMeters": 19240.5,
+      "unknown": [
+        "infrastructureOwnerId"
+      ],
+      "unknownReasons": {
+        "infrastructureOwnerId": "owner-not-in-source-data"
+      }
+    }
+  ],
+  "handovers": [
+    {
+      "handoverId": "through-handover:11bcba10925b4106",
+      "sequence": 0,
+      "stationId": "stn:12eab25d4b99dd0f",
+      "location": [
+        0.06495,
+        0.0375
+      ],
+      "fromLegId": "through-leg:8062dda624f7826c",
+      "toLegId": "through-leg:fad8a227e151ed71",
+      "fromStationId": "stn:12eab25d4b99dd0f",
+      "toStationId": "stn:12eab25d4b99dd0f",
+      "physicalConnection": true,
+      "gapMeters": 0,
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "totalLengthMeters": 28115.2,
+  "dataQuality": "low",
+  "unknown": [
+    "leg:through-leg:8062dda624f7826c:infrastructureOwnerId",
+    "leg:through-leg:fad8a227e151ed71:infrastructureOwnerId"
+  ],
+  "unknownReasons": {
+    "leg:through-leg:8062dda624f7826c:infrastructureOwnerId": "owner-not-in-source-data",
+    "leg:through-leg:fad8a227e151ed71:infrastructureOwnerId": "owner-not-in-source-data"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "plan-geometry",
+      "quality": "low",
+      "name": "PlanGeometry plan:0ecd95b1d71018d3",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "plan-geometry",
+      "quality": "low",
+      "name": "PlanGeometry plan:3e604547f4feb1f9",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnRoute": {
+      "key": "example:radial:through-spoke-cross-city",
+      "name": "Spoke end to cross-city start (legs listed out of order)",
+      "legs": [
+        {
+          "sourceKind": "planned",
+          "planId": "plan:3e604547f4feb1f9",
+          "sequence": 1
+        },
+        {
+          "sourceKind": "planned",
+          "planId": "plan:0ecd95b1d71018d3",
+          "sequence": 0
+        }
+      ]
+    },
+    "generatedBy": "scripts/build-through-route-examples.mjs"
+  }
+}

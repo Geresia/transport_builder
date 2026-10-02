@@ -1,0 +1,164 @@
+{
+  "schema": "transitline.through-route-geometry/1",
+  "contractVersion": 1,
+  "throughRouteId": "through-route:5c931b041ca0821a",
+  "key": "example:radial:through-ring-stub",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "name": "Ring arc end and transfer stub start do not meet",
+  "coordinateReference": "EPSG:4326",
+  "legs": [
+    {
+      "legId": "through-leg:4edb4aa8f21915fa",
+      "sequence": 0,
+      "sourceKind": "planned",
+      "connectedPlanId": "plan:0ba95ad4e2dead9a",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "infrastructureOwnerId": null,
+      "segmentIds": [
+        "seg:271878de934de55c",
+        "seg:644f9e1e5fa5774c",
+        "seg:a444f2361976f6bc"
+      ],
+      "stationIds": [
+        "stn:1c7dc899c704388b",
+        "stn:366c6db4372e1252",
+        "stn:3c19e32f848edd19",
+        "stn:b5569be6e66d0adc"
+      ],
+      "alignment": [
+        [
+          0.04347,
+          0.01165
+        ],
+        [
+          0.03182,
+          0.03182
+        ],
+        [
+          0.01165,
+          0.04347
+        ],
+        [
+          -0.01165,
+          0.04347
+        ]
+      ],
+      "lengthMeters": 7770.8,
+      "unknown": [
+        "infrastructureOwnerId"
+      ],
+      "unknownReasons": {
+        "infrastructureOwnerId": "owner-not-in-source-data"
+      }
+    },
+    {
+      "legId": "through-leg:92071ed5a0725037",
+      "sequence": 1,
+      "sourceKind": "planned",
+      "connectedPlanId": "plan:92c8983ba0999f9d",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "infrastructureOwnerId": null,
+      "segmentIds": [
+        "seg:f1a5c5979278da51"
+      ],
+      "stationIds": [
+        "stn:40c9079e948a41dc",
+        "stn:ae68362f35f834a5"
+      ],
+      "alignment": [
+        [
+          0.003,
+          0.0012
+        ],
+        [
+          0.009,
+          0.004
+        ]
+      ],
+      "lengthMeters": 736.2,
+      "unknown": [
+        "infrastructureOwnerId"
+      ],
+      "unknownReasons": {
+        "infrastructureOwnerId": "owner-not-in-source-data"
+      }
+    }
+  ],
+  "handovers": [
+    {
+      "handoverId": "through-handover:2028738acc7f54cc",
+      "sequence": 0,
+      "stationId": null,
+      "location": null,
+      "fromLegId": "through-leg:4edb4aa8f21915fa",
+      "toLegId": "through-leg:92071ed5a0725037",
+      "fromStationId": "stn:b5569be6e66d0adc",
+      "toStationId": "stn:40c9079e948a41dc",
+      "physicalConnection": false,
+      "gapMeters": 4974.5,
+      "unknown": [
+        "stationId",
+        "location"
+      ],
+      "unknownReasons": {
+        "location": "legs-end-at-different-stations",
+        "stationId": "legs-end-at-different-stations"
+      }
+    }
+  ],
+  "totalLengthMeters": 8507,
+  "dataQuality": "low",
+  "unknown": [
+    "leg:through-leg:4edb4aa8f21915fa:infrastructureOwnerId",
+    "leg:through-leg:92071ed5a0725037:infrastructureOwnerId",
+    "handover:through-handover:2028738acc7f54cc:stationId",
+    "handover:through-handover:2028738acc7f54cc:location"
+  ],
+  "unknownReasons": {
+    "leg:through-leg:4edb4aa8f21915fa:infrastructureOwnerId": "owner-not-in-source-data",
+    "leg:through-leg:92071ed5a0725037:infrastructureOwnerId": "owner-not-in-source-data",
+    "handover:through-handover:2028738acc7f54cc:stationId": "legs-end-at-different-stations",
+    "handover:through-handover:2028738acc7f54cc:location": "legs-end-at-different-stations"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "plan-geometry",
+      "quality": "low",
+      "name": "PlanGeometry plan:0ba95ad4e2dead9a",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "plan-geometry",
+      "quality": "low",
+      "name": "PlanGeometry plan:92c8983ba0999f9d",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnRoute": {
+      "key": "example:radial:through-ring-stub",
+      "name": "Ring arc end and transfer stub start do not meet",
+      "legs": [
+        {
+          "sourceKind": "planned",
+          "planId": "plan:0ba95ad4e2dead9a"
+        },
+        {
+          "sourceKind": "planned",
+          "planId": "plan:92c8983ba0999f9d"
+        }
+      ]
+    },
+    "generatedBy": "scripts/build-through-route-examples.mjs"
+  }
+}
