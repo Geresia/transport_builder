@@ -1,0 +1,18 @@
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
+.claude-flow/policy/
+.claude-flow/swarm/
+.claude-flow/harness-active-policy.json
+.claude-flow/mods/
+.claude-flow/CAPABILITIES.md
+.swarm/
+
+# Codex local configuration
+.codex/
+# Claude Flow runtime data
+# Environment variables

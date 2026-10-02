@@ -68,6 +68,10 @@ transitline/data-raw/hotels/
 # Claude Code local settings
 .claude/
 
+# Ruflo runtime state and generated local report intermediates
+/.claude-flow/
+transitline/tmp/
+
 # mod build artifacts
 transitline/mods/*/node_modules/
 transitline/mods/*/dist/
