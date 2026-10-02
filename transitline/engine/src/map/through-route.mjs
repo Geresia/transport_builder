@@ -23,6 +23,11 @@ const text = (v) => (typeof v === "string" && v.trim() !== "" ? v : null);
 const refOf = (leg) => leg?.key ?? `${leg?.sourceKind ?? "?"}:${leg?.planId ?? leg?.externalLineId ?? "?"}`;
 const layerKey = (l) => JSON.stringify(l);
 const LEG_UNKNOWN_ORDER = ["infrastructureOwnerId", "segmentIds", "alignment", "lengthMeters"];
+const LEG_FIELDS_BY_KIND = Object.freeze({
+  planned: new Set(["sourceKind", "sequence", "key", "planId", "fromStationId", "toStationId", "infrastructureOwnerId"]),
+  existing: new Set(["sourceKind", "sequence", "key", "planId", "projectId", "fromStationId", "toStationId", "infrastructureOwnerId"]),
+  external: new Set(["sourceKind", "sequence", "key", "externalNetworkId", "externalLineId", "fromStationId", "toStationId", "infrastructureOwnerId"]),
+});
 
 // A route the player saved has a key; its id follows the key, not the legs, so editing the legs keeps it.
 export const keyedThroughRouteId = (packId, key) => stableId("through-route", packId, "key", key);
@@ -32,6 +37,8 @@ function resolveLeg(input, ctx) {
   const fail = (code, extra = {}) => ({ error: { code, leg: refOf(input), ...extra } });
   const kind = input?.sourceKind;
   if (!SOURCE_KINDS.includes(kind)) return fail("leg-source-kind-invalid", { value: kind ?? null });
+  const invalidFields = Object.keys(input).filter((field) => !LEG_FIELDS_BY_KIND[kind].has(field)).sort();
+  if (invalidFields.length) return fail("leg-fields-invalid", { sourceKind: kind, fields: invalidFields });
   const ownerInput = text(input.infrastructureOwnerId);
   let stations; // the whole target's stations in their own order
   let target;
@@ -109,7 +116,7 @@ function resolveLeg(input, ctx) {
     leg: {
       key: hasKey(input.key) ? input.key : null,
       kind, target, fromId, toId, plan, net, line,
-      projectId: plan ? text(input.projectId) : null,
+      projectId: kind === "existing" ? text(input.projectId) : null,
       infrastructureOwnerId, stations: run, segmentIds, alignment, lengthMeters,
       unknownReasons,
       quality: (plan ? plan.dataQuality : net.dataQuality) ?? null,
@@ -185,9 +192,10 @@ export function buildThroughRoute(drawn, ctx) {
     let physicalConnection = null;
     let gapMeters = null;
     if (resolved[sequence].plan && resolved[sequence + 1].plan) {
-      gapMeters = same ? 0 : roundTo(haversineMetres(last.location, first.location), 1);
-      if (gapMeters === 0) physicalConnection = true;
-      else if (gapMeters <= NEAR_ENDPOINT_METERS) unknownReasons.physicalConnection = "endpoints-near-not-joined";
+      const rawGapMeters = same ? 0 : haversineMetres(last.location, first.location);
+      gapMeters = roundTo(rawGapMeters, 1);
+      if (rawGapMeters === 0) physicalConnection = true;
+      else if (rawGapMeters <= NEAR_ENDPOINT_METERS) unknownReasons.physicalConnection = "endpoints-near-not-joined";
       else physicalConnection = false;
     } else {
       // An external leg only has station-level data: where its track really runs and meets other track is not in the source.
@@ -204,6 +212,7 @@ export function buildThroughRoute(drawn, ctx) {
       fromStationId: last.id,
       toStationId: first.id,
       physicalConnection,
+      connectionState: physicalConnection === true ? "joined" : physicalConnection === false ? "separated" : "unknown",
       gapMeters,
       unknown: ["stationId", "location", "physicalConnection", "gapMeters"].filter((f) => f in unknownReasons),
       unknownReasons,
@@ -218,6 +227,7 @@ export function buildThroughRoute(drawn, ctx) {
   const lengths = legs.map((l) => l.lengthMeters);
   const totalLengthMeters = lengths.every((v) => v !== null) ? roundTo(lengths.reduce((s, v) => s + v, 0), 1) : null;
   if (totalLengthMeters === null) mark("totalLengthMeters", "leg-length-unknown");
+  const geometryRevision = stableId("through-route-revision", throughRouteId, JSON.stringify({ legs, handovers, totalLengthMeters }));
 
   const layerMap = new Map();
   for (const l of resolved) for (const layer of l.layers) layerMap.set(layerKey(layer), layer);
@@ -228,6 +238,7 @@ export function buildThroughRoute(drawn, ctx) {
       schema: THROUGH_ROUTE_SCHEMA,
       contractVersion: 1,
       throughRouteId,
+      geometryRevision,
       key: hasKey(drawn.key) ? drawn.key : null,
       sourcePackId: packId,
       sourcePackVersion: ctx.pack.manifest?.version ?? null,

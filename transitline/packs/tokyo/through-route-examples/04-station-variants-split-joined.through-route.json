@@ -2,6 +2,7 @@
   "schema": "transitline.through-route-geometry/1",
   "contractVersion": 1,
   "throughRouteId": "through-route:a1932a564968024c",
+  "geometryRevision": "through-route-revision:735da1cccc010cd6",
   "key": "example:tokyo:through-station-variants-split",
   "sourcePackId": "tokyo",
   "sourcePackVersion": "0.1.0",
@@ -109,6 +110,7 @@
       "fromStationId": "stn:cdb36c5e86fd479c",
       "toStationId": "stn:cdb36c5e86fd479c",
       "physicalConnection": true,
+      "connectionState": "joined",
       "gapMeters": 0,
       "unknown": [],
       "unknownReasons": {}

@@ -1109,9 +1109,9 @@ export class ManagementGame {
     };
   }
 
-  settleTrackAccessForService(serviceId, throughDay) {
-    if (this._transactionDepth <= 0) throw new Error("Track access settlement requires an active game transaction");
-    return settleTrackAccessRevenue(this.trackAccessAgreements, serviceId, throughDay, this.competitors);
+  settleTrackAccessForService(serviceId, throughDay, operatingDays = null) {
+    if (!(this._transactionDepth > 0)) throw new Error("Track access settlement requires an active game transaction");
+    return settleTrackAccessRevenue(this.trackAccessAgreements, serviceId, throughDay, this.competitors, operatingDays);
   }
 
   createService(input) {
@@ -1210,7 +1210,7 @@ export class ManagementGame {
       const operatingDay = Math.floor(this.clock.minute / 1440);
       const resources = this.resolveOperatingResources(service.id);
       const accessImpact = this.trackAccessImpact(service.id);
-      const accessSettlement = this.settleTrackAccessForService(service.id, operatingDay - 1);
+      const accessSettlement = this.settleTrackAccessForService(service.id, operatingDay - 1, 1);
       const settlement = operateServiceDay({
         service,
         units: resources.units,

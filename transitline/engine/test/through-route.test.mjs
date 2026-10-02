@@ -82,6 +82,7 @@ test("a keyless route keeps its id when drawn in the opposite direction, and dif
   const forward = route({ legs: [leg("a"), leg("b")] });
   const reverse = route({ legs: [leg("b", { fromStationId: b2, toStationId: b1 }), leg("a", { fromStationId: a2, toStationId: a1 })] });
   assert.equal(reverse.throughRouteId, forward.throughRouteId);
+  assert.notEqual(reverse.geometryRevision, forward.geometryRevision, "the stable route identity does not hide direction/content changes");
   assert.deepEqual(reverse.legs.map((l) => l.legId).reverse(), forward.legs.map((l) => l.legId));
   assert.deepEqual(reverse.legs.map((l) => l.stationIds), [stations("b").slice().reverse(), stations("a").slice().reverse()], "the drawn direction is kept in the output");
   assert.notEqual(route({ legs: [leg("a"), leg("c")] }).throughRouteId, forward.throughRouteId);
@@ -91,6 +92,7 @@ test("a keyed route keeps its id after its legs are edited", () => {
   const before = route({ key: "keep", legs: [leg("a"), leg("b")] });
   const edited = route({ key: "keep", legs: [leg("a", { toStationId: stations("a")[1] }), leg("c")] });
   assert.equal(edited.throughRouteId, before.throughRouteId);
+  assert.notEqual(edited.geometryRevision, before.geometryRevision);
   assert.notDeepEqual(edited.legs.map((l) => l.legId), before.legs.map((l) => l.legId));
   assert.notEqual(route({ key: "other", legs: [leg("a"), leg("b")] }).throughRouteId, before.throughRouteId);
 });
@@ -116,6 +118,7 @@ test("a leg can run a sub-range or a plan backwards; ids, segments and the align
 test("physicalConnection keeps true, false and null apart, each with the facts it rests on", () => {
   const shared = route({ legs: [leg("a"), leg("b")] }).handovers[0];
   assert.equal(shared.physicalConnection, true);
+  assert.equal(shared.connectionState, "joined");
   assert.equal(shared.gapMeters, 0);
   assert.equal(shared.stationId, stations("a").at(-1));
   assert.equal(shared.stationId, stations("b")[0]);
@@ -124,6 +127,7 @@ test("physicalConnection keeps true, false and null apart, each with the facts i
   const apart = route({ legs: [leg("a"), leg("c")] });
   const h = apart.handovers[0];
   assert.equal(h.physicalConnection, false, "a boundary 10+ km apart is not connected");
+  assert.equal(h.connectionState, "separated");
   assert.ok(h.gapMeters > NEAR_ENDPOINT_METERS);
   assert.equal(h.stationId, null);
   assert.equal(h.location, null);
@@ -136,6 +140,7 @@ test("physicalConnection keeps true, false and null apart, each with the facts i
   const nearly = route({ legs: [leg("a"), leg("n")] });
   const n = nearly.handovers[0];
   assert.equal(n.physicalConnection, null, "a ~36 m gap is neither joined nor clearly apart");
+  assert.equal(n.connectionState, "unknown");
   assert.ok(n.gapMeters > 0 && n.gapMeters <= NEAR_ENDPOINT_METERS);
   assert.equal(n.unknownReasons.physicalConnection, "endpoints-near-not-joined");
   assert.ok(nearly.unknown.some((p) => p.endsWith(":physicalConnection")));
@@ -218,7 +223,19 @@ test("an existing (built) leg needs the opaque project id from the caller", () =
   assert.equal(built.legs[0].connectedProjectId, "project:1");
   assert.equal(built.legs[0].connectedPlanId, planId("a"));
   assert.equal(built.legs[1].connectedProjectId, null);
-  assert.equal(route({ legs: [leg("a", { projectId: "project:1" }), leg("b")] }).legs[0].connectedProjectId, "project:1");
+  rejected({ legs: [leg("a", { projectId: "project:1" }), leg("b")] }, "leg-fields-invalid");
+  rejected({ legs: [leg("a", { sourceKind: "existing", projectId: "project:1", externalLineId: "ignored-before" }), leg("b")] }, "leg-fields-invalid");
+  rejected({ legs: [{ ...EXT, planId: planId("a") }, leg("b")] }, "leg-fields-invalid");
+});
+
+test("a round trip may reuse the same physical leg when each occurrence has its own saved key", () => {
+  const all = stations("a");
+  const out = route({ legs: [
+    leg("a", { key: "outbound" }),
+    leg("a", { key: "inbound", fromStationId: all.at(-1), toStationId: all[0] }),
+  ] });
+  assert.notEqual(out.legs[0].legId, out.legs[1].legId);
+  assert.equal(out.handovers[0].connectionState, "joined");
 });
 
 // --- rejected input ---
@@ -262,16 +279,16 @@ test("the output has no management fields, and the module never imports the mana
     routes: [{ key: "x", legs: [leg("a"), EXT, leg("b"), leg("c")] }, { legs: [leg("a"), leg("n")] }],
   }));
   for (const key of found) assert.ok(!FORBIDDEN.test(key), `unexpected management field ${key}`);
-  assert.ok(found.has("physicalConnection") && found.has("unknownReasons") && found.has("sourceLayers") && found.has("license"));
+  assert.ok(found.has("physicalConnection") && found.has("connectionState") && found.has("geometryRevision") && found.has("unknownReasons") && found.has("sourceLayers") && found.has("license"));
   const source = fs.readFileSync(new URL("../src/map/through-route.mjs", import.meta.url), "utf8");
   assert.ok(!/from\s+["'][^"']*management/.test(source), "map layer imports nothing from management");
 });
 
 test("every required contract field is present on the route, its legs and its handovers", () => {
   const out = route({ key: "fields", name: "n", legs: [leg("a"), leg("b")] });
-  for (const f of ["schema", "contractVersion", "throughRouteId", "key", "sourcePackId", "sourcePackVersion", "name", "legs", "handovers", "totalLengthMeters", "dataQuality", "unknown", "unknownReasons", "sourceLayers", "license"]) assert.ok(f in out, f);
+  for (const f of ["schema", "contractVersion", "throughRouteId", "geometryRevision", "key", "sourcePackId", "sourcePackVersion", "name", "legs", "handovers", "totalLengthMeters", "dataQuality", "unknown", "unknownReasons", "sourceLayers", "license"]) assert.ok(f in out, f);
   for (const f of ["legId", "sequence", "sourceKind", "connectedPlanId", "connectedProjectId", "externalNetworkId", "infrastructureOwnerId", "segmentIds", "stationIds", "alignment", "lengthMeters", "unknown", "unknownReasons"]) assert.ok(f in out.legs[0], f);
-  for (const f of ["handoverId", "sequence", "stationId", "location", "fromLegId", "toLegId", "physicalConnection", "unknown", "unknownReasons"]) assert.ok(f in out.handovers[0], f);
+  for (const f of ["handoverId", "sequence", "stationId", "location", "fromLegId", "toLegId", "physicalConnection", "connectionState", "unknown", "unknownReasons"]) assert.ok(f in out.handovers[0], f);
   assert.equal(out.key, "fields");
   assert.equal(out.sourcePackId, "t");
   assert.equal(out.sourcePackVersion, "1");
@@ -360,6 +377,7 @@ test("every example points at plans and lines that exist in the same pack, and k
       }
       for (const h of r.handovers) {
         assert.ok([true, false, null].includes(h.physicalConnection));
+        assert.equal(h.connectionState, h.physicalConnection === true ? "joined" : h.physicalConnection === false ? "separated" : "unknown");
         for (const f of h.unknown) {
           assert.equal(h[f], null, `${file}: ${f}`);
           assert.ok(h.unknownReasons[f], `${file}: reason for ${f}`);

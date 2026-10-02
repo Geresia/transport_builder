@@ -2,6 +2,7 @@
   "schema": "transitline.through-route-geometry/1",
   "contractVersion": 1,
   "throughRouteId": "through-route:f7a00a8d3526aee7",
+  "geometryRevision": "through-route-revision:142ff3487a27198e",
   "key": "example:tokyo:through-bay-spine-east-river",
   "sourcePackId": "tokyo",
   "sourcePackVersion": "0.1.0",
@@ -106,6 +107,7 @@
       "fromStationId": "stn:d9f55d4b9cd86b71",
       "toStationId": "stn:b00d2c67f5415425",
       "physicalConnection": false,
+      "connectionState": "separated",
       "gapMeters": 5320.9,
       "unknown": [
         "stationId",

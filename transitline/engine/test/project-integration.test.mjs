@@ -257,6 +257,133 @@ test("scenario settlement aligns simulation days with the game calendar and roll
   assert.deepEqual(snapshotOperationalState(runtime.operationalState), operationsBefore, "map-side line state rolls back too");
 });
 
+test("manual calendar jumps do not freeze daily fleet dispatch or back-bill idle access days", () => {
+  const game = new ManagementGame({ seed: 109, openingCash: 1_000_000_000_000 });
+  const { project, service } = completeProjectAndFleet(game);
+  const state = createState(integrationPack(), { materializeDemandStations: false, seed: 109 });
+  commissionProject(game, state, { projectId: project.id, serviceId: service.id });
+  service.engineCursor = { day: 0, delivered: 0, trainKm: 0 };
+  service.operationsStartedAtSimMinute = 0;
+  service.operationsStartedAtGameMinute = game.clock.minute;
+  const startDay = Math.floor(game.clock.minute / 1440);
+  game.trackAccessAgreements.push({
+    id: "agreement:jump",
+    hostServiceId: service.id,
+    guestOperatorId: game.competitors[0].id,
+    trainsPerHour: 1,
+    hostCapacityTrainsPerHour: 12,
+    dailyTrainKm: 100,
+    dailyStationStops: 20,
+    accessFeeJPYPerTrainKm: 1_000,
+    stationFeeJPYPerStop: 10_000,
+    startDay,
+    endDay: startDay + 365,
+    lastSettledDay: startDay - 1,
+    status: "active",
+    totals: { settledDays: 0, accessRevenueJPY: 0 },
+  });
+  const runtime = Object.create(ScenarioRuntime.prototype);
+  Object.assign(runtime, {
+    pack: { manifest: { id: "integration", version: "1" } },
+    game,
+    operationalState: state,
+    bridge: createMapEngineBridge(game, state),
+  });
+  game.advanceMonth();
+  const operatingDays = [];
+  for (let day = 1; day <= 4; day += 1) {
+    state.simMinutes = day * 1440;
+    state.stats.deliveredByLine[String(state.lines[0].id)] = day * 10;
+    state.stats.trainKmByLine[String(state.lines[0].id)] = day * 100;
+    const [settlement] = runtime.settleOperatingDays();
+    const dispatchedDays = game.vehicleOrders.find((order) => order.id === service.vehicleOrderId).units
+      .filter((unit) => settlement.reliability.operatingUnitIds.includes(unit.id))
+      .map((unit) => unit.lastDispatchedDay);
+    operatingDays.push(Math.max(...dispatchedDays));
+    assert.equal(settlement.reliability.operatingSets, settlement.reliability.requestedSets, `day ${day} dispatches its requested fleet`);
+    assert.equal(settlement.trackAccess.settlement.settlements[0].days, 1, `day ${day} bills one actual operating day`);
+  }
+  assert.deepEqual(operatingDays, [1, 2, 3, 4], "dispatch uses the monotonic map-service day rather than the jumped calendar day");
+  assert.equal(game.trackAccessAgreements[0].totals.settledDays, 4);
+});
+
+test("zero dispatched sets produce zero map frequency", () => {
+  const game = new ManagementGame({ seed: 113, openingCash: 1_000_000_000_000 });
+  const { project, service } = completeProjectAndFleet(game);
+  const state = createState(integrationPack(), { materializeDemandStations: false, seed: 113 });
+  commissionProject(game, state, { projectId: project.id, serviceId: service.id });
+  for (const unit of game.vehicleOrders.find((order) => order.id === service.vehicleOrderId).units) unit.status = "withdrawn";
+  state.simMinutes = 1440;
+  const settlement = settleIntegratedServiceDay(game, state, service.id);
+  assert.equal(settlement.reliability.operatingSets, 0);
+  assert.ok(Object.values(state.lines[0].frequency).every((value) => value === 0));
+});
+
+test("no due settlement returns before copying a large management snapshot", () => {
+  const game = new ManagementGame({ seed: 127, openingCash: 1_000_000_000_000 });
+  const { project, service } = completeProjectAndFleet(game);
+  const state = createState(integrationPack(), { materializeDemandStations: false, seed: 127 });
+  commissionProject(game, state, { projectId: project.id, serviceId: service.id });
+  service.engineCursor = { day: 0, delivered: 0, trainKm: 0 };
+  service.operationsStartedAtSimMinute = 0;
+  service.operationsStartedAtGameMinute = game.clock.minute;
+  const runtime = Object.create(ScenarioRuntime.prototype);
+  Object.assign(runtime, {
+    pack: { manifest: { id: "integration", version: "1" } },
+    game,
+    operationalState: state,
+    bridge: createMapEngineBridge(game, state),
+  });
+  game.ledger.entries.push(...Array.from({ length: 3_000 }, (_, index) => ({ atMinute: index, amount: 0, category: "test", reference: `entry:${index}` })));
+  let snapshotCalls = 0;
+  const snapshot = game.snapshot.bind(game);
+  game.snapshot = () => { snapshotCalls += 1; return snapshot(); };
+  assert.deepEqual(runtime.settleOperatingDays(), []);
+  assert.equal(snapshotCalls, 0);
+});
+
+test("a failure in the second service rolls the entire settlement batch back", () => {
+  const game = new ManagementGame({ seed: 131, openingCash: 1_000_000_000_000 });
+  const { project, service } = completeProjectAndFleet(game);
+  const state = createState(integrationPack(), { materializeDemandStations: false, seed: 131 });
+  commissionProject(game, state, { projectId: project.id, serviceId: service.id });
+  service.engineCursor = { day: 0, delivered: 0, trainKm: 0 };
+  service.operationsStartedAtSimMinute = 0;
+  service.operationsStartedAtGameMinute = game.clock.minute;
+  const second = structuredClone(service);
+  second.id = "integrated-service:second";
+  second.operationalLineId = 2;
+  second.engineCursor = { day: 0, delivered: 0, trainKm: 0 };
+  game.services.push(second);
+  const secondLine = structuredClone(state.lines[0]);
+  secondLine.id = 2;
+  state.lines.push(secondLine);
+  state.simMinutes = 1440;
+  for (const line of state.lines) {
+    state.stats.deliveredByLine[String(line.id)] = 10;
+    state.stats.trainKmByLine[String(line.id)] = 100;
+  }
+  const runtime = Object.create(ScenarioRuntime.prototype);
+  Object.assign(runtime, {
+    pack: { manifest: { id: "integration", version: "1" } },
+    game,
+    operationalState: state,
+    bridge: createMapEngineBridge(game, state),
+  });
+  const managementBefore = game.snapshot();
+  const operationsBefore = snapshotOperationalState(state);
+  const apply = game.applyOperatingSettlement.bind(game);
+  let calls = 0;
+  game.applyOperatingSettlement = (...args) => {
+    calls += 1;
+    if (calls === 2) throw new Error("forced second-service failure");
+    return apply(...args);
+  };
+  assert.throws(() => runtime.settleOperatingDays(), /forced second-service failure/);
+  assert.deepEqual(runtime.game.snapshot(), managementBefore, "ledger, RNG, cursors, contracts and the first service settlement all roll back");
+  assert.deepEqual(snapshotOperationalState(runtime.operationalState), operationsBefore, "both map lines roll back with the batch");
+});
+
 test("map bridge exposes commands and read-only serialisable results", () => {
   const game = new ManagementGame({ openingCash: 1_000_000_000_000 });
   const state = createState(integrationPack(), { materializeDemandStations: false });

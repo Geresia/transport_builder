@@ -163,23 +163,31 @@ export function trackAccessImpact(agreements, serviceId, hostTrainsPerHour = 0) 
   };
 }
 
-export function settleTrackAccessRevenue(agreements, serviceId, throughDay, competitors = []) {
+export function settleTrackAccessRevenue(agreements, serviceId, throughDay, competitors = [], operatingDays = null) {
+  const boundedOperatingDays = operatingDays === null ? null : Math.max(0, Math.floor(operatingDays));
   const settlements = [];
   for (const agreement of agreements.filter((entry) => entry.hostServiceId === serviceId && entry.status === "active")) {
     const finalDay = Math.min(Math.floor(throughDay), agreement.endDay);
-    const firstDay = Math.max(agreement.startDay, (agreement.lastSettledDay ?? agreement.startDay - 1) + 1);
+    const operatingWindowStart = boundedOperatingDays === null ? -Infinity : Math.floor(throughDay) - boundedOperatingDays + 1;
+    const firstDay = Math.max(agreement.startDay, (agreement.lastSettledDay ?? agreement.startDay - 1) + 1, operatingWindowStart);
     const days = Math.max(0, finalDay - firstDay + 1);
-    if (!days) continue;
     const accessRevenueJPY = Math.round((agreement.dailyTrainKm * agreement.accessFeeJPYPerTrainKm + agreement.dailyStationStops * agreement.stationFeeJPYPerStop) * days);
-    agreement.lastSettledDay = finalDay;
-    agreement.totals.settledDays += days;
-    agreement.totals.accessRevenueJPY += accessRevenueJPY;
-    if (finalDay >= agreement.endDay) {
+    if (days) {
+      agreement.totals.settledDays += days;
+      agreement.totals.accessRevenueJPY += accessRevenueJPY;
+      settlements.push({ agreementId: agreement.id, hostServiceId: serviceId, guestOperatorId: agreement.guestOperatorId, fromDay: firstDay, throughDay: finalDay, days, accessRevenueJPY });
+    }
+    // When the caller supplies an operating window, calendar days with no actual service are deliberately
+    // skipped instead of being back-billed on the next run. The agreement is still advanced/expired on
+    // calendar time, because its start and end dates are contractual dates rather than service counters.
+    if (boundedOperatingDays !== null && throughDay >= agreement.startDay) {
+      agreement.lastSettledDay = Math.max(agreement.lastSettledDay ?? agreement.startDay - 1, Math.min(Math.floor(throughDay), agreement.endDay));
+    } else if (days) agreement.lastSettledDay = finalDay;
+    if (Math.floor(throughDay) >= agreement.endDay) {
       agreement.status = "expired";
       const company = competitors.find((entry) => entry.id === agreement.guestOperatorId);
       if (company) company.accessCommitments = Math.max(0, (company.accessCommitments ?? 1) - 1);
     }
-    settlements.push({ agreementId: agreement.id, hostServiceId: serviceId, guestOperatorId: agreement.guestOperatorId, fromDay: firstDay, throughDay: finalDay, days, accessRevenueJPY });
   }
   return { settlements, accessRevenueJPY: settlements.reduce((sum, entry) => sum + entry.accessRevenueJPY, 0) };
 }

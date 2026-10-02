@@ -104,6 +104,17 @@ test("daily access fees settle once and suspension days are not back-billed", ()
   assert.equal(competitors.find((entry) => entry.id === agreement.guestOperatorId).accessCommitments, 0);
 });
 
+test("an explicit operating window never back-bills idle calendar days", () => {
+  const { agreement } = deterministicAgreement();
+  const result = settleTrackAccessRevenue([agreement], agreement.hostServiceId, 32, [], 1);
+  assert.equal(result.settlements.length, 1);
+  assert.equal(result.settlements[0].fromDay, 32);
+  assert.equal(result.settlements[0].throughDay, 32);
+  assert.equal(result.settlements[0].days, 1);
+  assert.equal(agreement.lastSettledDay, 32);
+  assert.equal(agreement.totals.settledDays, 1);
+});
+
 test("contract expiry releases the competitor commitment", () => {
   const { agreement, competitors } = deterministicAgreement({ contractYears: 1 });
   agreement.endDay = agreement.startDay;
@@ -145,5 +156,7 @@ test("failed access transactions roll back opportunity, competitor, and agreemen
 test("game-level access settlement cannot mutate contract totals outside a transaction", () => {
   const game = gameFixture();
   assert.throws(() => game.settleTrackAccessForService("service:host", 0), /requires an active game transaction/);
+  delete game._transactionDepth;
+  assert.throws(() => game.settleTrackAccessForService("service:host", 0), /requires an active game transaction/, "a missing guard state must fail closed");
   assert.equal(game.trackAccessAgreements.length, 0);
 });

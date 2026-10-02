@@ -2,6 +2,7 @@
   "schema": "transitline.through-route-geometry/1",
   "contractVersion": 1,
   "throughRouteId": "through-route:b0e9da50ae416366",
+  "geometryRevision": "through-route-revision:717fd336956ddd1c",
   "key": "example:tokyo:through-east-river-koto",
   "sourcePackId": "tokyo",
   "sourcePackVersion": "0.1.0",
@@ -95,6 +96,7 @@
       "fromStationId": "stn:c247c3f5a3f53c4b",
       "toStationId": "kanto-12203",
       "physicalConnection": null,
+      "connectionState": "unknown",
       "gapMeters": null,
       "unknown": [
         "stationId",

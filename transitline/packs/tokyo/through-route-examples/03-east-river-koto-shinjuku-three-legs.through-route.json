@@ -2,6 +2,7 @@
   "schema": "transitline.through-route-geometry/1",
   "contractVersion": 1,
   "throughRouteId": "through-route:20b472b2ecebde64",
+  "geometryRevision": "through-route-revision:e6323ff3a260501d",
   "key": "example:tokyo:through-east-river-koto-shinjuku",
   "sourcePackId": "tokyo",
   "sourcePackVersion": "0.1.0",
@@ -139,6 +140,7 @@
       "fromStationId": "stn:c247c3f5a3f53c4b",
       "toStationId": "kanto-12203",
       "physicalConnection": null,
+      "connectionState": "unknown",
       "gapMeters": null,
       "unknown": [
         "stationId",
@@ -163,6 +165,7 @@
       "fromStationId": "ward-shinjuku",
       "toStationId": "stn:e64d5ed374ba5971",
       "physicalConnection": null,
+      "connectionState": "unknown",
       "gapMeters": null,
       "unknown": [
         "stationId",

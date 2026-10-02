@@ -19,7 +19,8 @@
 { key?, name?, legs: [{
     sourceKind: "planned" | "existing" | "external",
     sequence?, key?,
-    planId?, projectId?,                    // planned / existing
+    planId?,                                // planned / existing
+    projectId?,                             // existing only
     externalNetworkId?, externalLineId?,    // external
     fromStationId?, toStationId?,           // 생략하면 대상의 첫 역 → 마지막 역
     infrastructureOwnerId?                  // 호출하는 쪽이 게임 상태에서 아는 값만
@@ -46,6 +47,7 @@
 |---|---|
 | `schema`, `contractVersion` | 계약 식별 |
 | `throughRouteId` | 결정론적 ID(아래 ID 규칙) |
+| `geometryRevision` | 이름을 제외한 현재 구간·경계 내용의 결정론적 지문. 같은 `throughRouteId`의 내용이나 방향이 바뀌면 달라진다 |
 | `key` | 저장된 key. 없으면 `null` |
 | `sourcePackId`, `sourcePackVersion` | 원본 팩 |
 | `name` | 표시용. ID에 쓰이지 않는다 |
@@ -86,12 +88,14 @@
 | `fromLegId`, `toLegId` | 앞·뒤 구간 |
 | `fromStationId`, `toStationId` | 앞 구간의 끝 역 / 뒤 구간의 시작 역(항상 채워짐) |
 | `physicalConnection` | `true \| false \| null` |
+| `connectionState` | `joined\|separated\|unknown`. `physicalConnection`의 3값을 불리언 문맥에서 섞지 않기 위한 명시적 상태 |
 | `gapMeters` | 두 끝점 사이 거리(m). 구할 수 없으면 `null` |
 | `unknown[]`, `unknownReasons` | 미상 필드와 사유 |
 
 ## `physicalConnection`: 세 값을 섞지 않는다
 
 **`null`은 미상이며 `false`가 아니다.** `null`이면 `unknownReasons.physicalConnection`에 사유가 반드시 있다.
+경영 엔진은 가능하면 같은 뜻의 `connectionState`를 읽어야 하며, `!physicalConnection`처럼 `null`과 `false`를 합치면 안 된다.
 
 | 값 | 조건 | 사유 |
 |---|---|---|
@@ -131,16 +135,19 @@
 ## ID 규칙
 
 - `key`가 있으면 `throughRouteId`는 팩ID+`key`에서 나온다(`keyedThroughRouteId`). 구간을 고치거나 다른 계획선으로 바꾸거나 이름을 바꿔도 같고, 저장 후 다시 열어도 같다.
+- `geometryRevision`은 표시 이름을 제외한 `legs`, `handovers`, `totalLengthMeters`에서 나온다. E1은 저장한 `throughRouteId`뿐 아니라 이 값도 비교해 오래된 경로 참조를 감지한다.
 - `key`가 없으면 구간(대상 + 시작·끝 역)을 경로 순서로 이은 모양에서 나온다. **그린 방향이 반대여도 같은 ID**다(정방향·역방향 중 사전순으로 앞선 쪽을 쓴다). 배열 순서가 아니라 `sequence`(또는 배열 순서가 곧 경로 순서일 때의 그 순서)가 경로의 순서다.
 - `legId`는 `throughRouteId` + 구간의 `key`(있으면) 또는 대상과 역 범위에서 나온다. 방향과 무관하다. 이름·배열 순서는 쓰이지 않는다.
 - `handoverId`는 `throughRouteId`와 앞뒤 `legId`에서 나온다.
-- 같은 `legId`가 두 번 나오면 경로를 거절한다(`duplicate-leg`). 같은 `throughRouteId`가 두 번 나오면 하나만 내고 `duplicate-through-route` 경고를 남긴다.
+- 같은 `legId`가 두 번 나오면 경로를 거절한다(`duplicate-leg`). 같은 물리 구간을 왕복에 두 번 쓰려면 각 등장에 서로 다른 저장 `key`를 준다. 같은 `throughRouteId`가 두 번 나오면 하나만 내고 `duplicate-through-route` 경고를 남긴다.
 
 ## 거절과 경고
 
 경로를 만들 수 없으면 `route`는 `null`이고 사유를 돌려준다(`buildThroughRouteExport`는 `through-route-rejected`로 모은다). 구간 대상을 짐작해서 채우지 않는다.
 
-`route-too-short`(구간 2개 미만), `leg-sequence-mixed`, `leg-sequence-invalid`, `duplicate-leg`, `leg-source-kind-invalid`, `leg-plan-missing`, `leg-plan-other-pack`(다른 팩에서 만든 계획), `leg-project-missing`(`existing`에 `projectId` 없음), `leg-external-line-missing`, `leg-station-missing`, `leg-degenerate`(시작=끝), `leg-segment-missing`.
+`route-too-short`(구간 2개 미만), `leg-sequence-mixed`, `leg-sequence-invalid`, `duplicate-leg`, `leg-source-kind-invalid`, `leg-fields-invalid`(종류와 맞지 않는 필드), `leg-plan-missing`, `leg-plan-other-pack`(다른 팩에서 만든 계획), `leg-project-missing`(`existing`에 `projectId` 없음), `leg-external-line-missing`, `leg-station-missing`, `leg-degenerate`(시작=끝), `leg-segment-missing`.
+
+`planned`에는 `projectId`를 넣을 수 없다. `existing`만 `projectId`를 받으며, 계획/준공 상태 자체는 지도 계약이 아니라 호출하는 경영 엔진이 검증한다. `planned`/`existing`의 `externalLineId`, `external`의 `planId`처럼 종류와 맞지 않는 필드도 조용히 버리지 않고 거절한다.
 
 ## 저장 문서
 

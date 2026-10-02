@@ -2,6 +2,7 @@
   "schema": "transitline.through-route-geometry/1",
   "contractVersion": 1,
   "throughRouteId": "through-route:5d69d872afacce38",
+  "geometryRevision": "through-route-revision:98cd767b7dfac2fd",
   "key": "example:radial:through-spoke-ring",
   "sourcePackId": "example-radial",
   "sourcePackVersion": "0.1.0",
@@ -109,6 +110,7 @@
       "fromStationId": "stn:1c7dc899c704388b",
       "toStationId": "stn:1c7dc899c704388b",
       "physicalConnection": true,
+      "connectionState": "joined",
       "gapMeters": 0,
       "unknown": [],
       "unknownReasons": {}

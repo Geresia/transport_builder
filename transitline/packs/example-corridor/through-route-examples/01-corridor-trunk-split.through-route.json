@@ -2,6 +2,7 @@
   "schema": "transitline.through-route-geometry/1",
   "contractVersion": 1,
   "throughRouteId": "through-route:1ec0b464d02d3b46",
+  "geometryRevision": "through-route-revision:00b2d2f676449a8c",
   "key": "example:corridor:through-trunk-split",
   "sourcePackId": "example-corridor",
   "sourcePackVersion": "0.1.0",
@@ -97,6 +98,7 @@
       "fromStationId": "stn:681d3c2bc9c10e71",
       "toStationId": "stn:681d3c2bc9c10e71",
       "physicalConnection": true,
+      "connectionState": "joined",
       "gapMeters": 0,
       "unknown": [],
       "unknownReasons": {}

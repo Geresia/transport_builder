@@ -190,7 +190,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     const resources = game.resolveOperatingResources(serviceId);
     const depot = resources.depot;
     const accessImpact = game.trackAccessImpact(serviceId);
-    const accessSettlement = game.settleTrackAccessForService(serviceId, operatingDay - 1);
+    const accessSettlement = game.settleTrackAccessForService(serviceId, operatingDay - 1, days);
     const infrastructureMaintenance = game.infrastructureMaintenanceImpact(service.projectId);
     const infrastructureSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureMaintenance.capacityFactor));
     const requiredSets = Math.min(infrastructureSets, resources.maximumStaffedSets ?? infrastructureSets);
@@ -204,7 +204,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       clock: game.clock,
       serviceId: service.id,
       preferredUnitIds: resources.preferredUnitIds,
-      operatingDay,
+      operatingDay: simulationDay,
     });
     const scheduledSets = reliability.operatingSets;
     const punctuality = Math.max(0.5, Math.min(0.999, 0.985 - reliabilityPunctualityPenalty(reliability) - infrastructureMaintenance.punctualityPenalty - accessImpact.punctualityPenalty + staffingPunctualityAdjustment(service)));
@@ -245,13 +245,6 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     service.integratedTotals.cost += cost + vehicle.inspectionCostJPY + reliability.repairCostJPY;
     service.daysOperated = (service.daysOperated ?? 0) + days;
     const maintenanceProgress = game.advanceInfrastructureMaintenanceToCurrentDay();
-    if (line) {
-      const nextMaintenance = game.infrastructureMaintenanceImpact(service.projectId);
-      const nextRequiredSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * nextMaintenance.capacityFactor));
-      const nextAvailableSets = Math.min(nextRequiredSets, resources.units.filter((unit) => unit.status === "available").length, resources.maximumStaffedSets ?? nextRequiredSets);
-      const nextAvailabilityRatio = nextAvailableSets / Math.max(1, service.fleetRequirement.serviceSets);
-      for (const [bandId, nominal] of Object.entries(service.nominalLineFrequency)) line.frequency[bandId] = Math.max(0, Math.floor(nominal * nextAvailabilityRatio));
-    }
     const settlement = {
       day: simulationDay,
       operatingDay,
