@@ -50,7 +50,7 @@ Claude/Ruflo는 `engine/src/management/**`와 `scenario-runtime.mjs`를 수정�
 
 구현과 전체 필드는 [through-route-contract.md](through-route-contract.md)에 있다. 핵심 연결키는 `throughRouteId`, `legId`, `handoverId`다. 50m 임계값은 접속 가능 판정이 아니라, 두 계획선 끝점이 가깝지만 정확히 맞닿지 않아 배선 확인이 필요한 `unknown` 영역을 구분하는 값이다.
 
-## 남은 E1 결정
+## E1 직통 서비스 경영 상태
 
 `through-service/1`은 플레이어가 선로 소유자인 경우와 타사 선로의 게스트인 경우를 같은 구조로 표현한다. 최소 필드는 다음과 같다.
 
@@ -60,3 +60,5 @@ Claude/Ruflo는 `engine/src/management/**`와 `scenario-runtime.mjs`를 수정�
 - 판정: `assessment.verdict`, `violations[]`, `conditions[]`, `missingInputs[]`
 
 외부 철도회사의 전체 경영 상태는 B12-1에서 만들지 않는다. 팩의 `externalNetworkId`와 원천 `infrastructureOwnerId`를 읽기 전용 인프라 카탈로그로 사용한다. 실제 운행량 기반 사용료와 게스트 비용은 B12-3·B12-4에서 정산한다.
+
+구현 계약과 판정표는 [through-service-contract.md](through-service-contract.md)에 있다. 순수 E1 모듈은 완료됐으며 다음 단계 E2에서 `ManagementGame` 컬렉션·트랜잭션·저장/복원을 연결한다.
