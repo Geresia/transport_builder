@@ -773,6 +773,8 @@ async function main() {
         const reports = runtime.game.operatingMonthReport(service.id).sort((a, b) => b.month - a.month);
         const latest = reports[0] ?? null;
         const resources = runtime.game.resolveOperatingResources(service.id);
+        const trackAccess = runtime.trackAccessReport(service.id);
+        const accessImpact = trackAccess.impacts[service.id];
         const units = resources.units;
         const due = units.filter((unit) => unit.status === "inspection-due").length;
         const repairing = units.filter((unit) => unit.status === "repairing").length;
@@ -791,6 +793,7 @@ async function main() {
         const metrics = document.createElement("div");
         metrics.className = "operations-economy-metrics";
         const values = latest ? [
+          ["선로사용 수입", yen.format(latest.money.trackAccessRevenueJPY ?? 0)],
           ["운용 자원", resources.poolId ? `공동 풀 ${resources.poolId}` : "노선 전용"],
           ["운송수입", yen.format(latest.operatingIncomeJPY)],
           ["운영비", yen.format(latest.operatingCostJPY)],
@@ -903,6 +906,84 @@ async function main() {
           policy.append(leavePool);
         }
         card.append(policy);
+        const accessBox = document.createElement("div");
+        accessBox.className = "operations-track-access";
+        const accessSummary = document.createElement("span");
+        const currentAgreement = [...trackAccess.agreements].reverse().find((entry) => ["active", "suspended"].includes(entry.status));
+        const currentOpportunity = [...trackAccess.opportunities].reverse().find((entry) => ["announced", "offers-received"].includes(entry.status));
+        if (currentAgreement) {
+          const utilisation = accessImpact.hostCapacityTrainsPerHour
+            ? `${(accessImpact.utilisation * 100).toFixed(1)}%`
+            : "-";
+          accessSummary.textContent = `선로사용 계약 · ${currentAgreement.guestOperatorName} · 경쟁사 ${currentAgreement.trainsPerHour}회/시 · 용량 사용률 ${utilisation} · ${currentAgreement.status}`;
+          const statusButton = document.createElement("button");
+          statusButton.type = "button";
+          statusButton.textContent = currentAgreement.status === "active" ? "계약 일시중단" : "계약 재개";
+          statusButton.addEventListener("click", () => run(() => {
+            const nextStatus = currentAgreement.status === "active" ? "suspended" : "active";
+            const changed = runtime.setTrackAccessAgreementStatus(currentAgreement.id, nextStatus);
+            message(`선로사용 계약을 ${nextStatus === "active" ? "재개" : "일시중단"}했습니다.`);
+            return changed;
+          }));
+          const terminateButton = document.createElement("button");
+          terminateButton.type = "button";
+          terminateButton.textContent = "계약 해지";
+          terminateButton.addEventListener("click", () => run(() => {
+            const changed = runtime.setTrackAccessAgreementStatus(currentAgreement.id, "terminated");
+            message(`${currentAgreement.guestOperatorName} 선로사용 계약을 해지했습니다.`);
+            return changed;
+          }));
+          accessBox.append(accessSummary, statusButton, terminateButton);
+        } else if (!currentOpportunity) {
+          accessSummary.textContent = "남는 선로 용량을 경쟁사에 판매해 사용료 수입을 얻을 수 있습니다.";
+          const announceButton = document.createElement("button");
+          announceButton.type = "button";
+          announceButton.textContent = "선로사용권 공모";
+          announceButton.addEventListener("click", () => run(() => {
+            const capacity = Math.min(40, Math.max(Math.ceil(service.trainsPerHour + 2), Math.ceil(service.trainsPerHour * 1.5)));
+            const spare = Math.max(1, Math.floor(capacity - service.trainsPerHour));
+            const opportunity = runtime.announceTrackAccessOpportunity(service.id, {
+              name: `${service.name ?? service.id} 선로사용권`,
+              hostCapacityTrainsPerHour: capacity,
+              minimumGuestTrainsPerHour: 1,
+              maximumGuestTrainsPerHour: Math.min(4, spare),
+            });
+            message(`${opportunity.name} 공모를 발표했습니다.`);
+            return opportunity;
+          }));
+          accessBox.append(accessSummary, announceButton);
+        } else if (currentOpportunity.status === "announced") {
+          accessSummary.textContent = `선로사용권 공모 중 · 공급 가능 ${currentOpportunity.minimumGuestTrainsPerHour}~${currentOpportunity.maximumGuestTrainsPerHour}회/시`;
+          const solicitButton = document.createElement("button");
+          solicitButton.type = "button";
+          solicitButton.textContent = "경쟁사 제안 받기";
+          solicitButton.addEventListener("click", () => run(() => {
+            const offers = runtime.solicitTrackAccessOffers(currentOpportunity.id);
+            message(offers.length ? `${offers.length}개 경쟁사 제안을 받았습니다.` : "참여한 경쟁사가 없습니다. 새 조건으로 다시 공모할 수 있습니다.", !offers.length);
+            return offers;
+          }));
+          accessBox.append(accessSummary, solicitButton);
+        } else {
+          accessSummary.textContent = `경쟁사 제안 ${currentOpportunity.ranking.length}건 · 기술점수와 사용료 수입을 함께 비교하세요.`;
+          accessBox.append(accessSummary);
+          for (const offer of currentOpportunity.ranking) {
+            const offerRow = document.createElement("div");
+            offerRow.className = "operations-track-access-offer";
+            const details = document.createElement("span");
+            details.textContent = `${offer.bidderName} · ${offer.trainsPerHour}회/시 · 기술 ${offer.technicalScore.toFixed(1)} · 연 ${yen.format(offer.projectedAnnualHostRevenueJPY)}`;
+            const awardButton = document.createElement("button");
+            awardButton.type = "button";
+            awardButton.textContent = "낙찰";
+            awardButton.addEventListener("click", () => run(() => {
+              const agreement = runtime.awardTrackAccessOffer(currentOpportunity.id, offer.id);
+              message(`${agreement.guestOperatorName}에 선로사용권을 낙찰했습니다.`);
+              return agreement;
+            }));
+            offerRow.append(details, awardButton);
+            accessBox.append(offerRow);
+          }
+        }
+        card.append(accessBox);
         if (reports.length) {
           const table = document.createElement("table");
           table.className = "operations-economy-history";

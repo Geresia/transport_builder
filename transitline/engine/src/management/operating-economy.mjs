@@ -12,6 +12,7 @@ function emptyMoney() {
     publicPaymentJPY: 0,
     advertisingJPY: 0,
     ancillaryRevenueJPY: 0,
+    trackAccessRevenueJPY: 0,
     energyJPY: 0,
     staffJPY: 0,
     vehicleMaintenanceJPY: 0,
@@ -20,6 +21,7 @@ function emptyMoney() {
     deadheadJPY: 0,
     infrastructureJPY: 0,
     depotJPY: 0,
+    trackAccessCostJPY: 0,
     debtServiceJPY: 0,
     equityReturnJPY: 0,
     infrastructureRenewalJPY: 0,
@@ -175,8 +177,8 @@ export function recordOperatingPeriod(reports, { service, atMinute, days, passen
   report.denied += denied;
   report.trainKm += trainKm;
   for (const key of Object.keys(report.money)) report.money[key] += roundMoney(money[key]);
-  report.operatingIncomeJPY = report.money.fareRevenueJPY + report.money.publicPaymentJPY + report.money.advertisingJPY + report.money.ancillaryRevenueJPY;
-  report.operatingCostJPY = report.money.energyJPY + report.money.staffJPY + report.money.vehicleMaintenanceJPY + report.money.vehicleInspectionJPY + report.money.vehicleRepairJPY + report.money.deadheadJPY + report.money.infrastructureJPY + report.money.depotJPY;
+  report.operatingIncomeJPY = report.money.fareRevenueJPY + report.money.publicPaymentJPY + report.money.advertisingJPY + report.money.ancillaryRevenueJPY + report.money.trackAccessRevenueJPY;
+  report.operatingCostJPY = report.money.energyJPY + report.money.staffJPY + report.money.vehicleMaintenanceJPY + report.money.vehicleInspectionJPY + report.money.vehicleRepairJPY + report.money.deadheadJPY + report.money.infrastructureJPY + report.money.depotJPY + report.money.trackAccessCostJPY;
   report.operatingProfitJPY = report.operatingIncomeJPY - report.operatingCostJPY;
   report.financeCostJPY = report.money.debtServiceJPY + report.money.equityReturnJPY;
   report.capitalCostJPY = report.money.infrastructureRenewalJPY;

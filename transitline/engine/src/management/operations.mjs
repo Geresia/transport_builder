@@ -56,7 +56,8 @@ export function operateServiceDay(input, ledger, clock, rng) {
   const effectiveFrequency = service.trainsPerHour * supplyRatio;
   const waitMinutes = effectiveFrequency > 0 ? 30 / effectiveFrequency : 120;
   const demandNoise = 0.96 + rng.next() * 0.08;
-  const provisionalPunctuality = Math.max(0.5, Math.min(0.999, 0.985 - depot.deadheadKm * 0.0003 - reliabilityPunctualityPenalty(reliability) - infrastructureImpact.punctualityPenalty + staffingPunctualityAdjustment(service)));
+  const trackAccessImpact = input.trackAccessImpact ?? { punctualityPenalty: 0, agreementIds: [], guestTrainsPerHour: 0 };
+  const provisionalPunctuality = Math.max(0.5, Math.min(0.999, 0.985 - depot.deadheadKm * 0.0003 - reliabilityPunctualityPenalty(reliability) - infrastructureImpact.punctualityPenalty - trackAccessImpact.punctualityPenalty + staffingPunctualityAdjustment(service)));
   const addressableDemand = Math.round((service.baseDailyDemand ?? service.dailyDemand) * serviceDemandMultiplier(service, effectiveFrequency) * demandNoise);
   const market = settleOperatingMarketDay({ service, competitors: service.operatingCompetitors ?? [], addressableDemand, playerPunctuality: provisionalPunctuality, routeKm: service.routeKm });
   const demand = Math.round(addressableDemand * market.playerShare);
@@ -82,8 +83,10 @@ export function operateServiceDay(input, ledger, clock, rng) {
     ? publicPayment * (contract?.kpi?.bonusRate ?? 0.01)
     : -publicPayment * Math.min(maxDeductionRate, (target - punctuality) * 2);
   const depotAncillaryRevenue = (depot.annualAncillaryRevenue ?? 0) / 365;
-  const income = fareRevenue + publicPayment + kpiAdjustment + service.dailyAdvertisingRevenue + depotAncillaryRevenue;
-  const cost = energyCost + staffCost + maintenanceCost + deadheadCost + infrastructureCost + depot.annualLeaseCost / 365;
+  const trackAccessRevenueJPY = input.trackAccessSettlement?.accessRevenueJPY ?? 0;
+  const trackAccessCostJPY = input.trackAccessSettlement?.accessCostJPY ?? 0;
+  const income = fareRevenue + publicPayment + kpiAdjustment + service.dailyAdvertisingRevenue + depotAncillaryRevenue + trackAccessRevenueJPY;
+  const cost = energyCost + staffCost + maintenanceCost + deadheadCost + infrastructureCost + depot.annualLeaseCost / 365 + trackAccessCostJPY;
   if (income > 0) ledger.post({ atMinute: clock.minute, amount: income, category: "operating-income", reference: service.id });
   if (cost > 0) ledger.post({ atMinute: clock.minute, amount: -cost, category: "operating-cost", reference: service.id });
   const vehicle = applyVehicleOperatingWear({ units, modelId: service.modelId, trainKm, days: 1, depot, ledger, clock, maxUsedSets: scheduledSets, usedUnitIds: reliability.operatingUnitIds });
@@ -110,6 +113,7 @@ export function operateServiceDay(input, ledger, clock, rng) {
       publicPaymentJPY: publicPayment + kpiAdjustment,
       advertisingJPY: service.dailyAdvertisingRevenue,
       ancillaryRevenueJPY: depotAncillaryRevenue,
+      trackAccessRevenueJPY,
       energyJPY: energyCost,
       staffJPY: staffCost,
       vehicleMaintenanceJPY: maintenanceCost,
@@ -118,10 +122,12 @@ export function operateServiceDay(input, ledger, clock, rng) {
       deadheadJPY: deadheadCost,
       infrastructureJPY: infrastructureCost,
       depotJPY: depot.annualLeaseCost / 365,
+      trackAccessCostJPY,
     },
     vehicle,
     reliability,
     infrastructureMaintenance: infrastructureImpact,
+    trackAccess: { impact: trackAccessImpact, settlement: input.trackAccessSettlement ?? { settlements: [], accessRevenueJPY: 0, accessCostJPY: 0 } },
     electricityYenPerKwh,
     market,
     resourcePoolId: input.resourcePoolId ?? null,

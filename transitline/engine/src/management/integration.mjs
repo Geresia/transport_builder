@@ -182,6 +182,8 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     const fixedCost = days * service.dailyInfrastructureCost;
     const resources = game.resolveOperatingResources(serviceId);
     const depot = resources.depot;
+    const accessImpact = game.trackAccessImpact(serviceId);
+    const accessSettlement = game.settleTrackAccessForService(serviceId, day - 1);
     const infrastructureMaintenance = game.infrastructureMaintenanceImpact(service.projectId);
     const infrastructureSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureMaintenance.capacityFactor));
     const requiredSets = Math.min(infrastructureSets, resources.maximumStaffedSets ?? infrastructureSets);
@@ -198,7 +200,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       operatingDay: day,
     });
     const scheduledSets = reliability.operatingSets;
-    const punctuality = Math.max(0.5, Math.min(0.999, 0.985 - reliabilityPunctualityPenalty(reliability) - infrastructureMaintenance.punctualityPenalty + staffingPunctualityAdjustment(service)));
+    const punctuality = Math.max(0.5, Math.min(0.999, 0.985 - reliabilityPunctualityPenalty(reliability) - infrastructureMaintenance.punctualityPenalty - accessImpact.punctualityPenalty + staffingPunctualityAdjustment(service)));
     const line = operationalState.lines.find((entry) => String(entry.id) === lineId);
     if (line) {
       service.nominalLineFrequency ??= structuredClone(line.frequency);
@@ -221,8 +223,10 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     const publicPayment = basePublicPayment + kpiAdjustment;
     const advertising = service.dailyAdvertisingRevenue * days;
     const ancillaryRevenue = (depot.annualAncillaryRevenue ?? 0) / 365 * days;
-    const income = fareRevenue + publicPayment + advertising + ancillaryRevenue;
-    const cost = energyCost + maintenanceCost + staffCost + fixedCost + deadheadCost + depotCost;
+    const trackAccessRevenueJPY = accessSettlement.accessRevenueJPY ?? 0;
+    const trackAccessCostJPY = accessSettlement.accessCostJPY ?? 0;
+    const income = fareRevenue + publicPayment + advertising + ancillaryRevenue + trackAccessRevenueJPY;
+    const cost = energyCost + maintenanceCost + staffCost + fixedCost + deadheadCost + depotCost + trackAccessCostJPY;
     if (income > 0) game.ledger.post({ atMinute: game.clock.minute, amount: income, category: "integrated-operating-income", reference: service.id });
     if (cost > 0) game.ledger.post({ atMinute: game.clock.minute, amount: -cost, category: "integrated-operating-cost", reference: service.id });
     const vehicle = applyVehicleOperatingWear({ units: resources.units, modelId: service.modelId, trainKm, days, depot, ledger: game.ledger, clock: game.clock, maxUsedSets: scheduledSets, usedUnitIds: reliability.operatingUnitIds });
@@ -257,6 +261,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
         publicPaymentJPY: publicPayment,
         advertisingJPY: advertising,
         ancillaryRevenueJPY: ancillaryRevenue,
+        trackAccessRevenueJPY,
         energyJPY: energyCost,
         staffJPY: staffCost,
         vehicleMaintenanceJPY: maintenanceCost,
@@ -265,11 +270,13 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
         deadheadJPY: deadheadCost,
         infrastructureJPY: fixedCost,
         depotJPY: depotCost,
+        trackAccessCostJPY,
       },
       vehicle,
       reliability,
       resourcePoolId: resources.poolId,
       resourceWarnings: resources.warnings,
+      trackAccess: { impact: accessImpact, settlement: accessSettlement },
       infrastructureMaintenance,
       maintenanceProgress,
     };

@@ -224,6 +224,11 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .operations-policy-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding-top: 4px; border-top: 1px solid var(--panel-line); }
 .operations-policy-actions span { grid-column: 1 / -1; color: var(--muted); font: 9px var(--mono); }
 .operations-policy-actions input, .operations-policy-actions select, .operations-policy-actions button { min-width: 0; padding: 3px 5px; font-size: 9px; }
+.operations-track-access { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; border: 1px solid color-mix(in srgb, #9f8cff 45%, var(--chip-line)); border-radius: 5px; background: color-mix(in srgb, #9f8cff 5%, var(--chip)); }
+.operations-track-access > span { flex: 1 1 100%; color: var(--muted); font: 9px/1.45 var(--mono); }
+.operations-track-access button { padding: 3px 6px; font-size: 9px; }
+.operations-track-access-offer { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 5px; width: 100%; padding-top: 4px; border-top: 1px solid var(--panel-line); }
+.operations-track-access-offer span { color: var(--text); font: 9px/1.4 var(--mono); }
 .operations-economy-history { width: 100%; border-collapse: collapse; font: 9px var(--mono); }
 .operations-economy-history th, .operations-economy-history td { padding: 3px 2px; border-bottom: 1px solid var(--panel-line); text-align: right; }
 .operations-economy-history th:first-child, .operations-economy-history td:first-child { text-align: left; }

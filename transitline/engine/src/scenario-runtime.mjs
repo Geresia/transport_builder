@@ -178,6 +178,7 @@ export class ScenarioRuntime {
       services: this.game.services,
       operatingMonths: this.game.operatingMonthReport(),
       operatingResourcePools: this.game.operatingResourcePoolReport(),
+      trackAccess: this.game.trackAccessReport(),
       corporateFinance: this.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(this.game.clock.minute / (30 * 1440)) - 11) }),
       assessments,
     });
@@ -786,6 +787,26 @@ export class ScenarioRuntime {
 
   operatingResourcePoolReport(poolId = null) {
     return this.game.operatingResourcePoolReport(poolId);
+  }
+
+  announceTrackAccessOpportunity(serviceId, input = {}) {
+    return this.game.announceTrackAccessOpportunity(serviceId, input);
+  }
+
+  solicitTrackAccessOffers(opportunityId) {
+    return this.game.solicitTrackAccessOffers(opportunityId);
+  }
+
+  awardTrackAccessOffer(opportunityId, offerId) {
+    return this.game.awardTrackAccessOffer(opportunityId, offerId);
+  }
+
+  setTrackAccessAgreementStatus(agreementId, status) {
+    return this.game.setTrackAccessAgreementStatus(agreementId, status);
+  }
+
+  trackAccessReport(serviceId = null) {
+    return this.game.trackAccessReport(serviceId);
   }
 
   evaluate() {

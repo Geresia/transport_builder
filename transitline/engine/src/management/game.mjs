@@ -21,6 +21,7 @@ import { advanceInfrastructureMaintenancePrograms, infrastructureMaintenanceImpa
 import { applyServicePolicy, createOperatingCompetitor, ELECTRICITY_CONTRACTS } from "./service-policy.mjs";
 import { corporateFinancialStatements } from "./corporate-finance.mjs";
 import { assignServiceToOperatingResourcePool as assignPoolService, createOperatingResourcePool as buildOperatingResourcePool, operatingResourcePoolReport as buildOperatingResourcePoolReport, rebalanceOperatingResourcePool as rebalancePool, removeServiceFromOperatingResourcePool as removePoolService, resolveOperatingResourcePoolService as resolvePoolService } from "./operating-resource-pool.mjs";
+import { awardTrackAccessOffer as buildTrackAccessAgreement, createTrackAccessOpportunity as buildTrackAccessOpportunity, generateTrackAccessOffers as buildTrackAccessOffers, setTrackAccessAgreementStatus as changeTrackAccessStatus, settleTrackAccessRevenue, trackAccessImpact as calculateTrackAccessImpact } from "./track-access.mjs";
 
 export class ManagementGame {
   constructor({ countryId = "JP", seed = 1, openingCash = 500_000_000_000, playerName = "Player Transit" } = {}) {
@@ -51,12 +52,15 @@ export class ManagementGame {
     this.operatingMonthReports = [];
     this.infrastructureMaintenancePrograms = [];
     this.operatingResourcePools = [];
+    this.trackAccessOpportunities = [];
+    this.trackAccessAgreements = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
     this.nextConstructionFundingCaseSequence = 1;
     this.nextConstructionFinanceSequence = 1;
     this.nextInfrastructureMaintenanceSequence = 1;
+    this.nextTrackAccessSequence = 1;
     this.services = [];
     this.plans = [];
   }
@@ -90,12 +94,15 @@ export class ManagementGame {
       operatingMonthReports: structuredClone(this.operatingMonthReports),
       infrastructureMaintenancePrograms: structuredClone(this.infrastructureMaintenancePrograms),
       operatingResourcePools: structuredClone(this.operatingResourcePools),
+      trackAccessOpportunities: structuredClone(this.trackAccessOpportunities),
+      trackAccessAgreements: structuredClone(this.trackAccessAgreements),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
       nextConstructionFundingCaseSequence: this.nextConstructionFundingCaseSequence,
       nextConstructionFinanceSequence: this.nextConstructionFinanceSequence,
       nextInfrastructureMaintenanceSequence: this.nextInfrastructureMaintenanceSequence,
+      nextTrackAccessSequence: this.nextTrackAccessSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -113,7 +120,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -145,6 +152,8 @@ export class ManagementGame {
       ?? this.constructionFinancing.reduce((max, finance) => Math.max(max, Number(finance.id?.match(/^construction-finance:(\d+)$/)?.[1]) || 0), 0) + 1;
     this.nextInfrastructureMaintenanceSequence = snapshot.nextInfrastructureMaintenanceSequence
       ?? this.infrastructureMaintenancePrograms.reduce((max, program) => Math.max(max, Number(program.id?.match(/^infrastructure-maintenance:(\d+)$/)?.[1]) || 0), 0) + 1;
+    this.nextTrackAccessSequence = snapshot.nextTrackAccessSequence
+      ?? this.trackAccessOpportunities.reduce((max, opportunity) => Math.max(max, Number(opportunity.id?.match(/^track-access:(\d+)$/)?.[1]) || 0), 0) + 1;
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
     this.scenario = structuredClone(snapshot.scenario ?? null);
@@ -1038,6 +1047,68 @@ export class ManagementGame {
     return { poolId: null, assignment: null, units: order?.units ?? [], depot, preferredUnitIds: null, maximumStaffedSets: Infinity, warnings: [] };
   }
 
+  announceTrackAccessOpportunity(serviceId, input = {}) {
+    return this.transact("track-access-opportunity-announced", () => {
+      const service = this.services.find((entry) => entry.id === serviceId);
+      if (!service) throw new Error(`Unknown service ${serviceId}`);
+      const project = this.requireProject(service.projectId);
+      const id = input.id ?? `track-access:${this.nextTrackAccessSequence++}`;
+      if (this.trackAccessOpportunities.some((entry) => entry.id === id)) throw new Error(`Duplicate track access opportunity ${id}`);
+      const opportunity = buildTrackAccessOpportunity({ ...input, id }, { hostService: service, hostProject: project, atMinute: this.clock.minute });
+      this.trackAccessOpportunities.push(opportunity);
+      return structuredClone(opportunity);
+    });
+  }
+
+  solicitTrackAccessOffers(opportunityId) {
+    return this.transact("track-access-offers-received", () => {
+      const opportunity = this.trackAccessOpportunities.find((entry) => entry.id === opportunityId);
+      if (!opportunity) throw new Error(`Unknown track access opportunity ${opportunityId}`);
+      return buildTrackAccessOffers(opportunity, this.competitors, this.rng);
+    });
+  }
+
+  awardTrackAccessOffer(opportunityId, offerId) {
+    return this.transact("track-access-agreement-awarded", () => {
+      const opportunity = this.trackAccessOpportunities.find((entry) => entry.id === opportunityId);
+      if (!opportunity) throw new Error(`Unknown track access opportunity ${opportunityId}`);
+      const agreement = buildTrackAccessAgreement(opportunity, offerId, {
+        agreements: this.trackAccessAgreements,
+        competitors: this.competitors,
+        startDay: Math.floor(this.clock.minute / 1440),
+        hostTrainsPerHour: this.services.find((entry) => entry.id === opportunity.hostServiceId)?.trainsPerHour,
+      });
+      this.trackAccessAgreements.push(agreement);
+      return structuredClone(agreement);
+    });
+  }
+
+  setTrackAccessAgreementStatus(agreementId, status) {
+    return this.transact(`track-access-agreement-${status}`, () => {
+      const agreement = this.trackAccessAgreements.find((entry) => entry.id === agreementId);
+      if (!agreement) throw new Error(`Unknown track access agreement ${agreementId}`);
+      return changeTrackAccessStatus(agreement, status, this.competitors, Math.floor(this.clock.minute / 1440));
+    });
+  }
+
+  trackAccessImpact(serviceId) {
+    const service = this.services.find((entry) => entry.id === serviceId);
+    if (!service) throw new Error(`Unknown service ${serviceId}`);
+    return calculateTrackAccessImpact(this.trackAccessAgreements, serviceId, service.trainsPerHour);
+  }
+
+  trackAccessReport(serviceId = null) {
+    return {
+      opportunities: structuredClone(this.trackAccessOpportunities.filter((entry) => serviceId === null || entry.hostServiceId === serviceId)),
+      agreements: structuredClone(this.trackAccessAgreements.filter((entry) => serviceId === null || entry.hostServiceId === serviceId)),
+      impacts: Object.fromEntries(this.services.filter((entry) => serviceId === null || entry.id === serviceId).map((service) => [service.id, this.trackAccessImpact(service.id)])),
+    };
+  }
+
+  settleTrackAccessForService(serviceId, throughDay) {
+    return settleTrackAccessRevenue(this.trackAccessAgreements, serviceId, throughDay, this.competitors);
+  }
+
   createService(input) {
     return this.transact("service-created", () => {
       const project = this.requireProject(input.projectId);
@@ -1097,6 +1168,7 @@ export class ManagementGame {
         if (electricity.reputationDelta) this.player.reputation = Math.min(100, this.player.reputation + electricity.reputationDelta);
       }
       const resources = this.resolveOperatingResources(service.id);
+      const accessImpact = this.trackAccessImpact(service.id);
       const availableSets = resources.units.filter((unit) => unit.status === "available").length;
       return {
         policy,
@@ -1104,6 +1176,7 @@ export class ManagementGame {
         warnings: [
           availableSets < service.fleetRequirement.minimumFleet ? "fleet-shortfall" : null,
           resources.poolId === null && resources.depot.capacitySets < service.fleetRequirement.minimumFleet ? "depot-capacity-shortfall" : null,
+          accessImpact.capacityExceeded ? "track-access-capacity-exceeded" : null,
           ...resources.warnings,
         ].filter(Boolean),
       };
@@ -1129,7 +1202,10 @@ export class ManagementGame {
       const contract = this.contracts.find((item) => item.id === service.contractId);
       const infrastructureImpact = this.infrastructureMaintenanceImpact(service.projectId);
       this.clock.advance(1440);
+      const operatingDay = Math.floor(this.clock.minute / 1440);
       const resources = this.resolveOperatingResources(service.id);
+      const accessImpact = this.trackAccessImpact(service.id);
+      const accessSettlement = this.settleTrackAccessForService(service.id, operatingDay - 1);
       const settlement = operateServiceDay({
         service,
         units: resources.units,
@@ -1140,7 +1216,9 @@ export class ManagementGame {
         resourceWarnings: resources.warnings,
         preferredUnitIds: resources.preferredUnitIds,
         maximumStaffedSets: resources.maximumStaffedSets,
-        operatingDay: Math.floor(this.clock.minute / 1440),
+        operatingDay,
+        trackAccessImpact: accessImpact,
+        trackAccessSettlement: accessSettlement,
       }, this.ledger, this.clock, this.rng);
       const maintenanceProgress = this.advanceInfrastructureMaintenanceToCurrentDay();
       return { ...settlement, maintenanceProgress, ...this.applyOperatingSettlement(service, settlement) };
