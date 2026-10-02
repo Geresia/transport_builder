@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createThroughService, reassessThroughService, THROUGH_SERVICE_SCHEMA } from "../src/management/index.mjs";
+import { createThroughService, ManagementGame, reassessThroughService, THROUGH_SERVICE_SCHEMA } from "../src/management/index.mjs";
 
 const handover = (state = "joined", id = "handover:1") => ({
   handoverId: id,
@@ -148,4 +148,78 @@ test("invalid schemas, ids and lifecycle states are rejected at the boundary", (
   assert.throws(() => createThroughService(input(), { route: { schema: "wrong", contractVersion: 1 } }), /ThroughRouteGeometry/);
   assert.throws(() => createThroughService({ ...input(), throughServiceId: "" }, { route: route([existingLeg("a"), existingLeg("b")]) }), /throughServiceId/);
   assert.throws(() => createThroughService(input({ status: "running" }), { route: route([existingLeg("a"), existingLeg("b")]) }), /Invalid through service status/);
+});
+
+test("ManagementGame creates, approves and save-loads a through service without consuming RNG", () => {
+  const game = new ManagementGame({ seed: 211 });
+  const legs = [existingLeg("leg:1"), existingLeg("leg:2")];
+  game.projects.push(...legs.map((leg) => project(leg.connectedProjectId)));
+  const rngBefore = game.rng.snapshot();
+  const created = game.createThroughService(route(legs), { operatorId: "player", guestModelId: "medium_4car", trainsPerHour: 4 }, legs.map((leg) => catalog(leg)));
+  assert.equal(created.throughServiceId, "through-service:1");
+  assert.equal(created.status, "assessed");
+  assert.equal(created.assessment.verdict, "possible");
+  assert.equal(game.rng.snapshot(), rngBefore, "assessment is deterministic and consumes no game randomness");
+  const approved = game.approveThroughService(created.throughServiceId);
+  assert.equal(approved.status, "approved");
+  const restored = ManagementGame.load(game.save());
+  assert.deepEqual(restored.throughServiceReport(), game.throughServiceReport());
+  assert.equal(restored.nextThroughServiceSequence, 2);
+  const second = restored.createThroughService(route(legs), { operatorId: "player", guestModelId: "medium_4car", trainsPerHour: 2 }, legs.map((leg) => catalog(leg)));
+  assert.equal(second.throughServiceId, "through-service:2");
+});
+
+test("old snapshots load an empty through-service collection without changing the save schema", () => {
+  const original = new ManagementGame({ seed: 223 });
+  const oldSnapshot = original.snapshot();
+  delete oldSnapshot.throughServices;
+  delete oldSnapshot.nextThroughServiceSequence;
+  const restored = new ManagementGame().restore(oldSnapshot);
+  assert.deepEqual(restored.throughServiceReport(), []);
+  assert.equal(restored.nextThroughServiceSequence, 1);
+  const encoded = JSON.parse(original.save());
+  const roundTrip = JSON.parse(new ManagementGame().restore(oldSnapshot).save());
+  assert.equal(roundTrip.schemaVersion, encoded.schemaVersion);
+});
+
+test("custom numeric ids advance the monotonic allocator and are never reused", () => {
+  const game = new ManagementGame({ seed: 225 });
+  const legs = [existingLeg("leg:1"), existingLeg("leg:2")];
+  game.projects.push(...legs.map((leg) => project(leg.connectedProjectId)));
+  const context = legs.map((leg) => catalog(leg));
+  game.createThroughService(route(legs), input({ throughServiceId: "through-service:7" }), context);
+  assert.equal(game.nextThroughServiceSequence, 8);
+  assert.equal(game.createThroughService(route(legs), { operatorId: "player", guestModelId: "medium_4car", trainsPerHour: 3 }, context).throughServiceId, "through-service:8");
+});
+
+test("failed game creation and approval roll back collection, sequence, events and RNG", () => {
+  const game = new ManagementGame({ seed: 227 });
+  const before = game.snapshot();
+  assert.throws(() => game.createThroughService({ schema: "wrong" }, input()), /ThroughRouteGeometry/);
+  assert.deepEqual(game.snapshot(), before);
+  const legs = [externalLeg("leg:1"), externalLeg("leg:2")];
+  const conditional = game.createThroughService(route(legs), input(), legs.map((leg) => catalog(leg)));
+  const afterCreate = game.snapshot();
+  assert.equal(conditional.assessment.verdict, "conditional");
+  assert.throws(() => game.approveThroughService(conditional.throughServiceId), /assessment is conditional/);
+  assert.deepEqual(game.snapshot(), afterCreate);
+});
+
+test("game reassessment preserves identity, detects revisions and revokes stale approval", () => {
+  const game = new ManagementGame({ seed: 229 });
+  const legs = [existingLeg("leg:1"), existingLeg("leg:2")];
+  game.projects.push(...legs.map((leg) => project(leg.connectedProjectId)));
+  const catalogEntries = legs.map((leg) => catalog(leg));
+  const originalRoute = route(legs);
+  const created = game.createThroughService(originalRoute, input(), catalogEntries);
+  game.approveThroughService(created.throughServiceId);
+  const revisedRoute = structuredClone(originalRoute);
+  revisedRoute.geometryRevision = "through-route-revision:changed";
+  revisedRoute.handovers[0] = handover("separated");
+  const revised = game.reassessThroughService(created.throughServiceId, revisedRoute, catalogEntries);
+  assert.equal(revised.throughServiceId, created.throughServiceId);
+  assert.equal(revised.routeGeometryRevision, "through-route-revision:changed");
+  assert.equal(revised.status, "assessed");
+  assert.equal(revised.assessment.verdict, "impossible");
+  assert.throws(() => game.reassessThroughService(created.throughServiceId, { ...revisedRoute, throughRouteId: "other" }, catalogEntries), /identity does not match/);
 });

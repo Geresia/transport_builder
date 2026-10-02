@@ -22,6 +22,7 @@ import { applyServicePolicy, createOperatingCompetitor, ELECTRICITY_CONTRACTS } 
 import { corporateFinancialStatements } from "./corporate-finance.mjs";
 import { assignServiceToOperatingResourcePool as assignPoolService, createOperatingResourcePool as buildOperatingResourcePool, operatingResourcePoolReport as buildOperatingResourcePoolReport, rebalanceOperatingResourcePool as rebalancePool, removeServiceFromOperatingResourcePool as removePoolService, resolveOperatingResourcePoolService as resolvePoolService } from "./operating-resource-pool.mjs";
 import { awardTrackAccessOffer as buildTrackAccessAgreement, createTrackAccessOpportunity as buildTrackAccessOpportunity, generateTrackAccessOffers as buildTrackAccessOffers, setTrackAccessAgreementStatus as changeTrackAccessStatus, settleTrackAccessRevenue, trackAccessImpact as calculateTrackAccessImpact } from "./track-access.mjs";
+import { createThroughService as buildThroughService } from "./through-service.mjs";
 
 export class ManagementGame {
   constructor({ countryId = "JP", seed = 1, openingCash = 500_000_000_000, playerName = "Player Transit" } = {}) {
@@ -54,6 +55,7 @@ export class ManagementGame {
     this.operatingResourcePools = [];
     this.trackAccessOpportunities = [];
     this.trackAccessAgreements = [];
+    this.throughServices = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -61,6 +63,7 @@ export class ManagementGame {
     this.nextConstructionFinanceSequence = 1;
     this.nextInfrastructureMaintenanceSequence = 1;
     this.nextTrackAccessSequence = 1;
+    this.nextThroughServiceSequence = 1;
     this.services = [];
     this.plans = [];
     this._transactionDepth = 0;
@@ -97,6 +100,7 @@ export class ManagementGame {
       operatingResourcePools: structuredClone(this.operatingResourcePools),
       trackAccessOpportunities: structuredClone(this.trackAccessOpportunities),
       trackAccessAgreements: structuredClone(this.trackAccessAgreements),
+      throughServices: structuredClone(this.throughServices),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -104,6 +108,7 @@ export class ManagementGame {
       nextConstructionFinanceSequence: this.nextConstructionFinanceSequence,
       nextInfrastructureMaintenanceSequence: this.nextInfrastructureMaintenanceSequence,
       nextTrackAccessSequence: this.nextTrackAccessSequence,
+      nextThroughServiceSequence: this.nextThroughServiceSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -121,7 +126,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -155,6 +160,10 @@ export class ManagementGame {
       ?? this.infrastructureMaintenancePrograms.reduce((max, program) => Math.max(max, Number(program.id?.match(/^infrastructure-maintenance:(\d+)$/)?.[1]) || 0), 0) + 1;
     this.nextTrackAccessSequence = snapshot.nextTrackAccessSequence
       ?? this.trackAccessOpportunities.reduce((max, opportunity) => Math.max(max, Number(opportunity.id?.match(/^track-access:(\d+)$/)?.[1]) || 0), 0) + 1;
+    this.nextThroughServiceSequence = Math.max(
+      snapshot.nextThroughServiceSequence ?? 1,
+      this.throughServices.reduce((max, service) => Math.max(max, Number(service.throughServiceId?.match(/^through-service:(\d+)$/)?.[1]) || 0), 0) + 1,
+    );
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
     this.scenario = structuredClone(snapshot.scenario ?? null);
@@ -1114,6 +1123,69 @@ export class ManagementGame {
     return settleTrackAccessRevenue(this.trackAccessAgreements, serviceId, throughDay, this.competitors, operatingDays);
   }
 
+  createThroughService(route, input = {}, infrastructureCatalog = []) {
+    return this.transact("through-service-created", () => {
+      const generated = !input.throughServiceId;
+      if (generated) while (this.throughServices.some((entry) => entry.throughServiceId === `through-service:${this.nextThroughServiceSequence}`)) this.nextThroughServiceSequence += 1;
+      const throughServiceId = input.throughServiceId ?? `through-service:${this.nextThroughServiceSequence}`;
+      if (this.throughServices.some((entry) => entry.throughServiceId === throughServiceId)) throw new Error(`Duplicate through service ${throughServiceId}`);
+      const service = buildThroughService({ ...input, throughServiceId, status: "assessed" }, {
+        route,
+        projects: this.projects,
+        infrastructureCatalog,
+        trackAccessAgreements: this.trackAccessAgreements,
+        playerOperatorId: this.player.id,
+      });
+      if (generated) this.nextThroughServiceSequence += 1;
+      else {
+        const numericId = Number(throughServiceId.match(/^through-service:(\d+)$/)?.[1]);
+        if (Number.isInteger(numericId)) this.nextThroughServiceSequence = Math.max(this.nextThroughServiceSequence, numericId + 1);
+      }
+      this.throughServices.push(service);
+      return structuredClone(service);
+    });
+  }
+
+  reassessThroughService(throughServiceId, route, infrastructureCatalog = []) {
+    return this.transact("through-service-reassessed", () => {
+      const current = this.requireThroughService(throughServiceId);
+      if (route?.throughRouteId !== current.throughRouteId) throw new Error("Through service route identity does not match");
+      const sameRevision = route.geometryRevision === current.routeGeometryRevision;
+      const reassessed = buildThroughService({
+        throughServiceId,
+        status: sameRevision ? current.status : "assessed",
+        operatorId: current.operatorId,
+        guestModelId: current.guestModelId,
+        trainsPerHour: current.trainsPerHour,
+        trackAccessAgreementIds: current.trackAccessAgreementIds,
+      }, {
+        route,
+        projects: this.projects,
+        infrastructureCatalog,
+        trackAccessAgreements: this.trackAccessAgreements,
+        playerOperatorId: this.player.id,
+      });
+      if (reassessed.status === "approved" && reassessed.assessment.verdict !== "possible") reassessed.status = "assessed";
+      this.throughServices[this.throughServices.indexOf(current)] = reassessed;
+      return structuredClone(reassessed);
+    });
+  }
+
+  approveThroughService(throughServiceId) {
+    return this.transact("through-service-approved", () => {
+      const service = this.requireThroughService(throughServiceId);
+      if (service.status !== "assessed") throw new Error(`Through service cannot be approved from ${service.status}`);
+      if (service.assessment.verdict !== "possible") throw new Error(`Through service assessment is ${service.assessment.verdict}`);
+      service.status = "approved";
+      service.approvedAtMinute = this.clock.minute;
+      return structuredClone(service);
+    });
+  }
+
+  throughServiceReport(throughServiceId = null) {
+    return structuredClone(this.throughServices.filter((entry) => throughServiceId === null || entry.throughServiceId === throughServiceId));
+  }
+
   createService(input) {
     return this.transact("service-created", () => {
       const project = this.requireProject(input.projectId);
@@ -1334,6 +1406,12 @@ export class ManagementGame {
     const item = this.constructionEvents.find((event) => event.id === id);
     if (!item) throw new Error(`Unknown construction event ${id}`);
     return item;
+  }
+
+  requireThroughService(id) {
+    const service = this.throughServices.find((entry) => entry.throughServiceId === id);
+    if (!service) throw new Error(`Unknown through service ${id}`);
+    return service;
   }
 
   allocateConstructionEventId() {

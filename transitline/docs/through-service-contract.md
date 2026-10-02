@@ -71,3 +71,12 @@ context = {
 ## 범위 밖
 
 비용, 사용료 단가, 현금, 수입, 점수는 이 계약에 없다. 실제 운행 정산, 계약 생성·해지, 게임 저장 컬렉션, 런타임 UI는 E2~R1에서 연결한다.
+
+## ManagementGame 연결(E2)
+
+- `createThroughService(route, input, infrastructureCatalog)`: 트랜잭션 안에서 판정하고 `throughServices[]`에 추가한다. ID를 생략하면 `through-service:<순번>`을 발급한다.
+- `reassessThroughService(id, route, infrastructureCatalog)`: 같은 경로 ID만 허용한다. 리비전이 바뀌면 상태를 `assessed`로 되돌리며, 기존 리비전이라도 판정이 악화되면 승인을 해제한다.
+- `approveThroughService(id)`: `assessment.verdict === "possible"`인 `assessed` 상태만 승인한다.
+- `throughServiceReport(id?)`: 복제된 읽기 전용 보고를 돌려준다.
+
+컬렉션과 다음 ID 순번은 기존 게임 스냅샷에 추가됐다. 해당 키가 없는 구저장본은 빈 배열·순번 1로 복원된다. 저장 스키마 버전은 그대로이며 이 API는 RNG, 원장, 현금과 선로사용 누계를 바꾸지 않는다.

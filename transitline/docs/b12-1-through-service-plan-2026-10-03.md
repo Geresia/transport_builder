@@ -61,4 +61,4 @@ Claude/Ruflo는 `engine/src/management/**`와 `scenario-runtime.mjs`를 수정�
 
 외부 철도회사의 전체 경영 상태는 B12-1에서 만들지 않는다. 팩의 `externalNetworkId`와 원천 `infrastructureOwnerId`를 읽기 전용 인프라 카탈로그로 사용한다. 실제 운행량 기반 사용료와 게스트 비용은 B12-3·B12-4에서 정산한다.
 
-구현 계약과 판정표는 [through-service-contract.md](through-service-contract.md)에 있다. 순수 E1 모듈은 완료됐으며 다음 단계 E2에서 `ManagementGame` 컬렉션·트랜잭션·저장/복원을 연결한다.
+구현 계약과 판정표는 [through-service-contract.md](through-service-contract.md)에 있다. 순수 E1 모듈과 E2의 `ManagementGame` 컬렉션·트랜잭션·재심사·승인·저장/복원 연결까지 완료됐다. 구저장본은 빈 컬렉션으로 로드하고 저장 스키마 버전은 올리지 않으며, 판정은 RNG를 소비하지 않는다. 다음 단계 E3은 B11-3 계약 상태와 직통 서비스 상태를 ID로 연결한다.
