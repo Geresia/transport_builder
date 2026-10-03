@@ -1,0 +1,195 @@
+{
+  "schema": "transitline.external-rail-technical-specification/1",
+  "contractVersion": 1,
+  "specificationId": "external-rail-spec:e11554ec6173b526",
+  "specificationRevision": "external-rail-spec-revision:817634473e1e0cd1",
+  "externalNetworkId": "external:example-corridor",
+  "externalLineId": "ext-line:809d9005908c4a57",
+  "sourcePackId": "example-corridor",
+  "sourcePackVersion": "0.1.0",
+  "name": "Straddle monorail: gauge not applicable, owner not stated",
+  "infrastructureOwnerId": null,
+  "technicalProfileId": null,
+  "technicalSpecification": {
+    "runningSystemId": "straddle-monorail",
+    "gaugeMm": null,
+    "carWidthM": 3,
+    "maxAxleLoadTonnes": 13,
+    "collectionSystemId": "beam-contact",
+    "currentSystem": "dc",
+    "voltageV": 1500,
+    "minimumCurveRadiusMeters": 70,
+    "maxGradientPermille": 60,
+    "signalSystemIds": [
+      "monorail-atc"
+    ],
+    "platformHeightMm": 1000,
+    "doorLayoutId": "2-door-15m",
+    "minCars": 4,
+    "maxCars": 8,
+    "maintenanceSystemId": "monorail"
+  },
+  "status": null,
+  "capacityTrainsPerHour": null,
+  "notApplicable": [
+    "gaugeMm"
+  ],
+  "fieldSources": {
+    "runningSystemId": [
+      "fixture:corridor-c2"
+    ],
+    "gaugeMm": [
+      "fixture:corridor-c2"
+    ],
+    "carWidthM": [
+      "fixture:corridor-c2"
+    ],
+    "maxAxleLoadTonnes": [
+      "fixture:corridor-c2"
+    ],
+    "collectionSystemId": [
+      "fixture:corridor-c2"
+    ],
+    "currentSystem": [
+      "fixture:corridor-c2"
+    ],
+    "voltageV": [
+      "fixture:corridor-c2"
+    ],
+    "minimumCurveRadiusMeters": [
+      "fixture:corridor-c2"
+    ],
+    "maxGradientPermille": [
+      "fixture:corridor-c2"
+    ],
+    "signalSystemIds": [
+      "fixture:corridor-c2"
+    ],
+    "platformHeightMm": [
+      "fixture:corridor-c2"
+    ],
+    "doorLayoutId": [
+      "fixture:corridor-c2"
+    ],
+    "minCars": [
+      "fixture:corridor-c2"
+    ],
+    "maxCars": [
+      "fixture:corridor-c2"
+    ],
+    "maintenanceSystemId": [
+      "fixture:corridor-c2"
+    ]
+  },
+  "conflicts": [],
+  "dataQuality": "low",
+  "unknown": [
+    "infrastructureOwnerId",
+    "technicalProfileId",
+    "status",
+    "capacityTrainsPerHour"
+  ],
+  "unknownReasons": {
+    "infrastructureOwnerId": "no-attribute",
+    "technicalProfileId": "no-attribute",
+    "status": "no-attribute",
+    "capacityTrainsPerHour": "no-attribute"
+  },
+  "warnings": [],
+  "sources": [
+    {
+      "sourceId": "fixture:corridor-c2",
+      "kind": "synthetic-fixture",
+      "name": "Synthetic fixture for contract examples (not real rail data)",
+      "license": "CC0-1.0",
+      "attribution": null,
+      "reference": "scripts/build-external-rail-technical-examples.mjs",
+      "note": "Invented values that exercise the contract. Do not use them as facts about any real railway.",
+      "quality": "low",
+      "facts": [
+        "runningSystemId",
+        "carWidthM",
+        "maxAxleLoadTonnes",
+        "collectionSystemId",
+        "currentSystem",
+        "voltageV",
+        "minimumCurveRadiusMeters",
+        "maxGradientPermille",
+        "signalSystemIds",
+        "platformHeightMm",
+        "doorLayoutId",
+        "minCars",
+        "maxCars",
+        "maintenanceSystemId"
+      ],
+      "notApplicable": [
+        "gaugeMm"
+      ]
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnSpecification": {
+      "externalNetworkId": "external:example-corridor",
+      "externalLineId": "ext-line:809d9005908c4a57",
+      "name": "Straddle monorail: gauge not applicable, owner not stated",
+      "sources": [
+        {
+          "sourceId": "fixture:corridor-c2",
+          "kind": "synthetic-fixture",
+          "name": "Synthetic fixture for contract examples (not real rail data)",
+          "license": "CC0-1.0",
+          "reference": "scripts/build-external-rail-technical-examples.mjs",
+          "note": "Invented values that exercise the contract. Do not use them as facts about any real railway.",
+          "facts": {
+            "runningSystemId": "straddle-monorail",
+            "collectionSystemId": "beam-contact",
+            "currentSystem": "dc",
+            "voltageV": 1500,
+            "carWidthM": 3,
+            "maxAxleLoadTonnes": 13,
+            "minimumCurveRadiusMeters": 70,
+            "maxGradientPermille": 60,
+            "signalSystemIds": [
+              "monorail-atc"
+            ],
+            "platformHeightMm": 1000,
+            "doorLayoutId": "2-door-15m",
+            "minCars": 4,
+            "maxCars": 8,
+            "maintenanceSystemId": "monorail"
+          },
+          "notApplicable": [
+            "gaugeMm"
+          ]
+        }
+      ]
+    },
+    "fixtureExistingNetwork": {
+      "formatVersion": 1,
+      "note": "Synthetic fixture network for external-rail-technical-examples; not real data.",
+      "lines": [
+        {
+          "name": "Fixture C1 no technical data",
+          "stationIds": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        },
+        {
+          "name": "Fixture C2 monorail, gauge not applicable",
+          "stationIds": [
+            "s3",
+            "s4",
+            "s5"
+          ]
+        }
+      ]
+    },
+    "generatedBy": "scripts/build-external-rail-technical-examples.mjs"
+  }
+}

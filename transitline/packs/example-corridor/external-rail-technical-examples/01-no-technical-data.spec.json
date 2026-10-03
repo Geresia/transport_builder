@@ -1,0 +1,115 @@
+{
+  "schema": "transitline.external-rail-technical-specification/1",
+  "contractVersion": 1,
+  "specificationId": "external-rail-spec:c41da22240c69d10",
+  "specificationRevision": "external-rail-spec-revision:02c26548f63f7a3a",
+  "externalNetworkId": "external:example-corridor",
+  "externalLineId": "ext-line:05ff025e50432100",
+  "sourcePackId": "example-corridor",
+  "sourcePackVersion": "0.1.0",
+  "name": "No source states anything",
+  "infrastructureOwnerId": null,
+  "technicalProfileId": null,
+  "technicalSpecification": {
+    "runningSystemId": null,
+    "gaugeMm": null,
+    "carWidthM": null,
+    "maxAxleLoadTonnes": null,
+    "collectionSystemId": null,
+    "currentSystem": null,
+    "voltageV": null,
+    "minimumCurveRadiusMeters": null,
+    "maxGradientPermille": null,
+    "signalSystemIds": null,
+    "platformHeightMm": null,
+    "doorLayoutId": null,
+    "minCars": null,
+    "maxCars": null,
+    "maintenanceSystemId": null
+  },
+  "status": null,
+  "capacityTrainsPerHour": null,
+  "notApplicable": [],
+  "fieldSources": {},
+  "conflicts": [],
+  "dataQuality": "low",
+  "unknown": [
+    "runningSystemId",
+    "gaugeMm",
+    "carWidthM",
+    "maxAxleLoadTonnes",
+    "collectionSystemId",
+    "currentSystem",
+    "voltageV",
+    "minimumCurveRadiusMeters",
+    "maxGradientPermille",
+    "signalSystemIds",
+    "platformHeightMm",
+    "doorLayoutId",
+    "minCars",
+    "maxCars",
+    "maintenanceSystemId",
+    "infrastructureOwnerId",
+    "technicalProfileId",
+    "status",
+    "capacityTrainsPerHour"
+  ],
+  "unknownReasons": {
+    "runningSystemId": "no-source",
+    "gaugeMm": "no-source",
+    "carWidthM": "no-source",
+    "maxAxleLoadTonnes": "no-source",
+    "collectionSystemId": "no-source",
+    "currentSystem": "no-source",
+    "voltageV": "no-source",
+    "minimumCurveRadiusMeters": "no-source",
+    "maxGradientPermille": "no-source",
+    "signalSystemIds": "no-source",
+    "platformHeightMm": "no-source",
+    "doorLayoutId": "no-source",
+    "minCars": "no-source",
+    "maxCars": "no-source",
+    "maintenanceSystemId": "no-source",
+    "infrastructureOwnerId": "no-source",
+    "technicalProfileId": "no-source",
+    "status": "no-source",
+    "capacityTrainsPerHour": "no-source"
+  },
+  "warnings": [],
+  "sources": [],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnSpecification": {
+      "externalNetworkId": "external:example-corridor",
+      "externalLineId": "ext-line:05ff025e50432100",
+      "name": "No source states anything",
+      "sources": []
+    },
+    "fixtureExistingNetwork": {
+      "formatVersion": 1,
+      "note": "Synthetic fixture network for external-rail-technical-examples; not real data.",
+      "lines": [
+        {
+          "name": "Fixture C1 no technical data",
+          "stationIds": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        },
+        {
+          "name": "Fixture C2 monorail, gauge not applicable",
+          "stationIds": [
+            "s3",
+            "s4",
+            "s5"
+          ]
+        }
+      ]
+    },
+    "generatedBy": "scripts/build-external-rail-technical-examples.mjs"
+  }
+}

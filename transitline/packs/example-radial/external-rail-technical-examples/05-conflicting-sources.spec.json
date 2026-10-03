@@ -1,0 +1,262 @@
+{
+  "schema": "transitline.external-rail-technical-specification/1",
+  "contractVersion": 1,
+  "specificationId": "external-rail-spec:8c3f5dd711c4a0cd",
+  "specificationRevision": "external-rail-spec-revision:f7bef6de65643a30",
+  "externalNetworkId": "external:example-radial",
+  "externalLineId": "ext-line:88589ee8208c0c4e",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "name": "Two sources disagree on gauge and signalling",
+  "infrastructureOwnerId": null,
+  "technicalProfileId": null,
+  "technicalSpecification": {
+    "runningSystemId": null,
+    "gaugeMm": null,
+    "carWidthM": null,
+    "maxAxleLoadTonnes": null,
+    "collectionSystemId": "overhead",
+    "currentSystem": null,
+    "voltageV": null,
+    "minimumCurveRadiusMeters": null,
+    "maxGradientPermille": null,
+    "signalSystemIds": null,
+    "platformHeightMm": null,
+    "doorLayoutId": null,
+    "minCars": null,
+    "maxCars": null,
+    "maintenanceSystemId": null
+  },
+  "status": null,
+  "capacityTrainsPerHour": null,
+  "notApplicable": [],
+  "fieldSources": {
+    "collectionSystemId": [
+      "fixture:radial-r5-a",
+      "fixture:radial-r5-b"
+    ]
+  },
+  "conflicts": [
+    {
+      "field": "gaugeMm",
+      "values": [
+        {
+          "sourceId": "fixture:radial-r5-a",
+          "value": 1067
+        },
+        {
+          "sourceId": "fixture:radial-r5-b",
+          "value": 1435
+        }
+      ]
+    },
+    {
+      "field": "signalSystemIds",
+      "values": [
+        {
+          "sourceId": "fixture:radial-r5-a",
+          "value": [
+            "ats-p"
+          ]
+        },
+        {
+          "sourceId": "fixture:radial-r5-b",
+          "value": [
+            "small-cbtc"
+          ]
+        }
+      ]
+    }
+  ],
+  "dataQuality": "low",
+  "unknown": [
+    "runningSystemId",
+    "gaugeMm",
+    "carWidthM",
+    "maxAxleLoadTonnes",
+    "currentSystem",
+    "voltageV",
+    "minimumCurveRadiusMeters",
+    "maxGradientPermille",
+    "signalSystemIds",
+    "platformHeightMm",
+    "doorLayoutId",
+    "minCars",
+    "maxCars",
+    "maintenanceSystemId",
+    "infrastructureOwnerId",
+    "technicalProfileId",
+    "status",
+    "capacityTrainsPerHour"
+  ],
+  "unknownReasons": {
+    "runningSystemId": "no-attribute",
+    "gaugeMm": "conflicting-sources",
+    "carWidthM": "no-attribute",
+    "maxAxleLoadTonnes": "no-attribute",
+    "currentSystem": "no-attribute",
+    "voltageV": "no-attribute",
+    "minimumCurveRadiusMeters": "no-attribute",
+    "maxGradientPermille": "no-attribute",
+    "signalSystemIds": "conflicting-sources",
+    "platformHeightMm": "no-attribute",
+    "doorLayoutId": "no-attribute",
+    "minCars": "no-attribute",
+    "maxCars": "no-attribute",
+    "maintenanceSystemId": "no-attribute",
+    "infrastructureOwnerId": "no-attribute",
+    "technicalProfileId": "no-attribute",
+    "status": "no-attribute",
+    "capacityTrainsPerHour": "no-attribute"
+  },
+  "warnings": [
+    {
+      "code": "source-values-conflict",
+      "field": "gaugeMm",
+      "sourceIds": [
+        "fixture:radial-r5-a",
+        "fixture:radial-r5-b"
+      ]
+    },
+    {
+      "code": "source-values-conflict",
+      "field": "signalSystemIds",
+      "sourceIds": [
+        "fixture:radial-r5-a",
+        "fixture:radial-r5-b"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "sourceId": "fixture:radial-r5-a",
+      "kind": "synthetic-fixture",
+      "name": "Synthetic fixture for contract examples (not real rail data)",
+      "license": "CC0-1.0",
+      "attribution": null,
+      "reference": "scripts/build-external-rail-technical-examples.mjs",
+      "note": "Invented values that exercise the contract. Do not use them as facts about any real railway.",
+      "quality": "low",
+      "facts": [
+        "gaugeMm",
+        "collectionSystemId",
+        "signalSystemIds"
+      ],
+      "notApplicable": []
+    },
+    {
+      "sourceId": "fixture:radial-r5-b",
+      "kind": "synthetic-fixture",
+      "name": "Synthetic fixture for contract examples (not real rail data)",
+      "license": "CC0-1.0",
+      "attribution": null,
+      "reference": "scripts/build-external-rail-technical-examples.mjs",
+      "note": "Invented values that exercise the contract. Do not use them as facts about any real railway.",
+      "quality": "low",
+      "facts": [
+        "gaugeMm",
+        "collectionSystemId",
+        "signalSystemIds"
+      ],
+      "notApplicable": []
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnSpecification": {
+      "externalNetworkId": "external:example-radial",
+      "externalLineId": "ext-line:88589ee8208c0c4e",
+      "name": "Two sources disagree on gauge and signalling",
+      "sources": [
+        {
+          "sourceId": "fixture:radial-r5-a",
+          "kind": "synthetic-fixture",
+          "name": "Synthetic fixture for contract examples (not real rail data)",
+          "license": "CC0-1.0",
+          "reference": "scripts/build-external-rail-technical-examples.mjs",
+          "note": "Invented values that exercise the contract. Do not use them as facts about any real railway.",
+          "facts": {
+            "gaugeMm": 1067,
+            "signalSystemIds": [
+              "ats-p"
+            ],
+            "collectionSystemId": "overhead"
+          }
+        },
+        {
+          "sourceId": "fixture:radial-r5-b",
+          "kind": "synthetic-fixture",
+          "name": "Synthetic fixture for contract examples (not real rail data)",
+          "license": "CC0-1.0",
+          "reference": "scripts/build-external-rail-technical-examples.mjs",
+          "note": "Invented values that exercise the contract. Do not use them as facts about any real railway.",
+          "facts": {
+            "gaugeMm": 1435,
+            "signalSystemIds": [
+              "small-cbtc"
+            ],
+            "collectionSystemId": "overhead"
+          }
+        }
+      ]
+    },
+    "fixtureExistingNetwork": {
+      "formatVersion": 1,
+      "note": "Synthetic fixture network for external-rail-technical-examples; not real data.",
+      "lines": [
+        {
+          "name": "Fixture R1 fully verified steel wheel",
+          "stationIds": [
+            "cbd",
+            "inner-1",
+            "mid-1"
+          ]
+        },
+        {
+          "name": "Fixture R2 gauge only",
+          "stationIds": [
+            "cbd",
+            "inner-2",
+            "mid-2"
+          ]
+        },
+        {
+          "name": "Fixture R3 multiple signalling systems",
+          "stationIds": [
+            "cbd",
+            "inner-3",
+            "mid-3"
+          ]
+        },
+        {
+          "name": "Fixture R4 third rail",
+          "stationIds": [
+            "cbd",
+            "inner-4",
+            "mid-4"
+          ]
+        },
+        {
+          "name": "Fixture R5 conflicting sources",
+          "stationIds": [
+            "cbd",
+            "inner-5",
+            "mid-5"
+          ]
+        },
+        {
+          "name": "Fixture R6 AGT, gauge not applicable",
+          "stationIds": [
+            "cbd",
+            "inner-6",
+            "mid-6"
+          ]
+        }
+      ]
+    },
+    "generatedBy": "scripts/build-external-rail-technical-examples.mjs"
+  }
+}
