@@ -58,6 +58,9 @@ export function assessThroughService(input, {
   }
   const operatorId = text(input?.operatorId);
   const model = VEHICLE_MODELS[input?.guestModelId] ?? null;
+  const vehicleTechnicalOverrides = input?.vehicleTechnicalOverrides && typeof input.vehicleTechnicalOverrides === "object"
+    ? copy(input.vehicleTechnicalOverrides)
+    : {};
   const trainsPerHour = Number(input?.trainsPerHour);
   const requestedAgreementIds = [...new Set((input?.trackAccessAgreementIds ?? []).map(String))].sort();
   const catalogEntries = catalogEntriesOf(infrastructureCatalog, route);
@@ -114,6 +117,7 @@ export function assessThroughService(input, {
         technicalProfileId,
         vehicleModelId: model.id,
         infrastructureOverrides: suppliedTechnicalSpecification ?? {},
+        vehicleOverrides: vehicleTechnicalOverrides,
         notApplicable: catalog?.notApplicable ?? project?.notApplicable,
       })
       : null;
@@ -186,6 +190,8 @@ export function assessThroughService(input, {
     legs: legStates,
     handoverIds: (route.handovers ?? []).map((entry) => entry.handoverId),
     trackAccessAgreementIds: [...usedAgreementIds].sort(),
+    vehicleTechnicalOverrides,
+    approvedRetrofitProgramIds: [...new Set((input?.approvedRetrofitProgramIds ?? []).map(String))].sort(),
     assessment,
   };
 }
@@ -217,6 +223,8 @@ export function reassessThroughService(service, context = {}) {
     guestModelId: service.guestModelId,
     trainsPerHour: service.trainsPerHour,
     trackAccessAgreementIds: service.trackAccessAgreementIds,
+    vehicleTechnicalOverrides: service.vehicleTechnicalOverrides,
+    approvedRetrofitProgramIds: service.approvedRetrofitProgramIds,
   }, context);
 }
 

@@ -243,7 +243,7 @@ test("the contract is deterministic and contains no money, fee, score or mutable
   const first = createThroughService(input(), context);
   const second = createThroughService(structuredClone(input()), structuredClone(context));
   assert.equal(JSON.stringify(first), JSON.stringify(second));
-  assert.deepEqual(Object.keys(first), ["schema", "contractVersion", "throughServiceId", "throughRouteId", "routeGeometryRevision", "status", "guestModelId", "trainsPerHour", "operatorId", "payerOperatorId", "payeeOwnerId", "legs", "handoverIds", "trackAccessAgreementIds", "assessment"]);
+  assert.deepEqual(Object.keys(first), ["schema", "contractVersion", "throughServiceId", "throughRouteId", "routeGeometryRevision", "status", "guestModelId", "trainsPerHour", "operatorId", "payerOperatorId", "payeeOwnerId", "legs", "handoverIds", "trackAccessAgreementIds", "vehicleTechnicalOverrides", "approvedRetrofitProgramIds", "assessment"]);
   const keys = [];
   const visit = (value) => {
     if (Array.isArray(value)) value.forEach(visit);

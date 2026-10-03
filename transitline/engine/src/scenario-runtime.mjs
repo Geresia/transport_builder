@@ -180,6 +180,7 @@ export class ScenarioRuntime {
       operatingResourcePools: this.game.operatingResourcePoolReport(),
       trackAccess: this.game.trackAccessReport(),
       throughServices: this.game.throughServiceReport(),
+      vehicleRetrofits: this.game.vehicleRetrofitReport(),
       corporateFinance: this.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(this.game.clock.minute / (30 * 1440)) - 11) }),
       assessments,
     });
@@ -845,6 +846,22 @@ export class ScenarioRuntime {
 
   throughServiceReport(throughServiceId = null) {
     return this.game.throughServiceReport(throughServiceId);
+  }
+
+  proposeVehicleRetrofit(throughServiceId, input = {}) {
+    return this.game.proposeVehicleRetrofit(throughServiceId, input);
+  }
+
+  startVehicleRetrofit(programId) {
+    return this.game.startVehicleRetrofit(programId);
+  }
+
+  authorizeVehicleRetrofitRetest(programId) {
+    return this.game.authorizeVehicleRetrofitRetest(programId);
+  }
+
+  vehicleRetrofitReport(throughServiceId = null) {
+    return this.game.vehicleRetrofitReport(throughServiceId);
   }
 
   evaluate() {

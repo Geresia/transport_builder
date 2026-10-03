@@ -13,7 +13,9 @@ input = {
   operatorId,
   guestModelId,
   trainsPerHour,
-  trackAccessAgreementIds?
+  trackAccessAgreementIds?,
+  vehicleTechnicalOverrides?,    // 승인된 개조 능력, 게임 내부 연결용
+  approvedRetrofitProgramIds?    // 감사 가능한 개조 프로그램 ID
 }
 
 context = {
@@ -33,9 +35,10 @@ context = {
 - 상태·운행: `status`, `guestModelId`, `trainsPerHour`, `operatorId`
 - 역할: `payerOperatorId`, `payeeOwnerId`
 - 연결: `legs[]`, `handoverIds[]`, `trackAccessAgreementIds[]`
+- 차량 개조 연결: `vehicleTechnicalOverrides`, `approvedRetrofitProgramIds[]`
 - 판정: `assessment.verdict`, `violations[]`, `conditions[]`, `missingInputs[]`
 
-각 `legs[]`에는 지도 연결 ID와 함께 `infrastructureOwnerId`, `operatorId`, `payerOperatorId`, `payeeOwnerId`, `technicalProfileId`, `vehicleProfileId`, `compatibility`, `infrastructureStatus`, `capacityTrainsPerHour`, `trackAccessAgreementId`가 들어간다.
+각 `legs[]`에는 지도 연결 ID와 함께 `externalSpecificationId`, `externalSpecificationRevision`, `infrastructureOwnerId`, `operatorId`, `payerOperatorId`, `payeeOwnerId`, `technicalProfileId`, `vehicleProfileId`, `compatibility`, `technicalCompatibility`, `infrastructureStatus`, `capacityTrainsPerHour`, `trackAccessAgreementId`가 들어간다.
 
 `routeGeometryRevision`은 같은 `throughRouteId`의 내용이 바뀐 경우를 검출하기 위한 값이다. E2에서 저장된 서비스와 현재 지도 경로의 리비전을 비교한다.
 
@@ -62,7 +65,9 @@ context = {
 
 ## 기술·상태 규칙
 
-- 차량의 `VEHICLE_MODELS[guestModelId].profileId`와 각 인프라의 `TECHNICAL_PROFILES` ID가 같아야 한다.
+- 차량과 인프라는 주행방식·궤간·급전·전압·차량한계·축중·곡선·경사·신호·승강장·문 배열·편성·정비체계를 각각 검사한다.
+- `technicalProfileId`는 기본 규격 묶음이며 필수값이 아니다. 외부 원천 사양 15개가 있으면 프로필 없이 직접 판정한다.
+- 승인된 차량 개조 능력은 해당 서비스의 차량 기술 오버라이드에만 합친다.
 - `planned` 구간은 아직 지어진 선로가 아니므로 운행 불가다.
 - `existing` 구간은 연결 사업이 실제로 존재하고 `available`이어야 한다. 프로젝트 상태와 기술 프로필은 게임 상태가 권위 원천이다.
 - `external` 구간은 읽기 전용 카탈로그가 소유자와 기술 프로필을 제공해야 한다.
@@ -70,7 +75,7 @@ context = {
 
 ## 범위 밖
 
-비용, 사용료 단가, 현금, 수입, 점수는 이 계약에 없다. 실제 운행 정산, 계약 생성·해지, 게임 저장 컬렉션, 런타임 UI는 E2~R1에서 연결한다.
+비용, 사용료 단가, 현금, 수입, 점수는 이 계약 자체에 없다. 차량 개조의 비용·기간·승인시험은 별도 `transitline.vehicle-retrofit-program/1` 계약에서 관리한다.
 
 ## ManagementGame 연결(E2)
 

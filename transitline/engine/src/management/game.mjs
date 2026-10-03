@@ -4,7 +4,7 @@ import { assessPlan, cancelConstruction, createConstructionProject, contractCons
 import { estimateStationConstruction } from "./station-construction.mjs";
 import { awardStationDelivery, createStationContractors, createStationDeliveryPackage, integrateStationDeliveryPackages, resolveStationDeliveryConditions, tenderStationDelivery } from "./station-delivery.mjs";
 import { createCompetitors, createOpportunity, evaluateTender, generateCompetitorBids, negotiateAward, reannounceOpportunity, researchOpportunity, reviewSingleBid, submitPlayerBid } from "./procurement.mjs";
-import { createDepot, createManufacturers, placeVehicleOrder, advanceVehicleOrderMonth } from "./rolling-stock.mjs";
+import { createDepot, createManufacturers, placeVehicleOrder, advanceVehicleOrderMonth, VEHICLE_MODELS } from "./rolling-stock.mjs";
 import { advanceDepotDevelopmentMonth, compareDepotCandidates, contractDepotDevelopment, createDepotDevelopment, negotiateDepotDevelopment, reviseDepotDevelopment, assessDepotCandidate } from "./depot-planning.mjs";
 import { calculateFleetRequirement, checkOpenReady, operateServiceDay } from "./operations.mjs";
 import { createPlanRecord } from "./domain.mjs";
@@ -23,6 +23,7 @@ import { corporateFinancialStatements } from "./corporate-finance.mjs";
 import { assignServiceToOperatingResourcePool as assignPoolService, createOperatingResourcePool as buildOperatingResourcePool, operatingResourcePoolReport as buildOperatingResourcePoolReport, rebalanceOperatingResourcePool as rebalancePool, removeServiceFromOperatingResourcePool as removePoolService, resolveOperatingResourcePoolService as resolvePoolService } from "./operating-resource-pool.mjs";
 import { awardTrackAccessOffer as buildTrackAccessAgreement, createTrackAccessOpportunity as buildTrackAccessOpportunity, generateTrackAccessOffers as buildTrackAccessOffers, setTrackAccessAgreementStatus as changeTrackAccessStatus, settleTrackAccessRevenue, trackAccessImpact as calculateTrackAccessImpact } from "./track-access.mjs";
 import { createThroughService as buildThroughService } from "./through-service.mjs";
+import { advanceVehicleRetrofitMonth, authorizeVehicleRetrofitRetest as buildVehicleRetrofitRetest, createVehicleRetrofitProgram, mergeVehicleTechnicalOverrides, startVehicleRetrofitProgram } from "./vehicle-retrofit.mjs";
 
 export class ManagementGame {
   constructor({ countryId = "JP", seed = 1, openingCash = 500_000_000_000, playerName = "Player Transit" } = {}) {
@@ -56,6 +57,7 @@ export class ManagementGame {
     this.trackAccessOpportunities = [];
     this.trackAccessAgreements = [];
     this.throughServices = [];
+    this.vehicleRetrofitPrograms = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -64,6 +66,7 @@ export class ManagementGame {
     this.nextInfrastructureMaintenanceSequence = 1;
     this.nextTrackAccessSequence = 1;
     this.nextThroughServiceSequence = 1;
+    this.nextVehicleRetrofitSequence = 1;
     this.services = [];
     this.plans = [];
     this._transactionDepth = 0;
@@ -101,6 +104,7 @@ export class ManagementGame {
       trackAccessOpportunities: structuredClone(this.trackAccessOpportunities),
       trackAccessAgreements: structuredClone(this.trackAccessAgreements),
       throughServices: structuredClone(this.throughServices),
+      vehicleRetrofitPrograms: structuredClone(this.vehicleRetrofitPrograms),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -109,6 +113,7 @@ export class ManagementGame {
       nextInfrastructureMaintenanceSequence: this.nextInfrastructureMaintenanceSequence,
       nextTrackAccessSequence: this.nextTrackAccessSequence,
       nextThroughServiceSequence: this.nextThroughServiceSequence,
+      nextVehicleRetrofitSequence: this.nextVehicleRetrofitSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -126,7 +131,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "vehicleRetrofitPrograms", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -163,6 +168,10 @@ export class ManagementGame {
     this.nextThroughServiceSequence = Math.max(
       snapshot.nextThroughServiceSequence ?? 1,
       this.throughServices.reduce((max, service) => Math.max(max, Number(service.throughServiceId?.match(/^through-service:(\d+)$/)?.[1]) || 0), 0) + 1,
+    );
+    this.nextVehicleRetrofitSequence = Math.max(
+      snapshot.nextVehicleRetrofitSequence ?? 1,
+      this.vehicleRetrofitPrograms.reduce((max, program) => Math.max(max, Number(program.id?.match(/^vehicle-retrofit:(\d+)$/)?.[1]) || 0), 0) + 1,
     );
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
@@ -893,6 +902,13 @@ export class ManagementGame {
         const manufacturer = this.manufacturers.find((item) => item.id === order.manufacturerId);
         return { orderId: order.id, ...advanceVehicleOrderMonth(order, manufacturer, this.ledger, this.clock, this.rng) };
       });
+      const vehicleRetrofits = this.vehicleRetrofitPrograms
+        .filter((program) => ["engineering", "installation", "approval-testing", "retesting"].includes(program.status))
+        .map((program) => {
+          const result = advanceVehicleRetrofitMonth(program, { ledger: this.ledger, clock: this.clock, rng: this.rng });
+          if (result.completed) this.applyApprovedVehicleRetrofit(program.id);
+          return { programId: program.id, ...result };
+        });
       const depots = this.depots.filter((depot) => depot.status === "underConstruction")
         .map((depot) => ({ depotId: depot.id, ...advanceDepotDevelopmentMonth(depot, this.ledger, this.clock, this.rng, this.country) }));
       for (const pool of this.operatingResourcePools) rebalancePool(pool, this.operatingResourceContext());
@@ -942,7 +958,7 @@ export class ManagementGame {
         operatingFinanceSettlements,
       });
       this.constructionCycleReports.push(cycleReport);
-      return { construction, vehicles, depots, schedules, generatedEvents, autoResolvedEvents, normalPriceChange, priceShocks, priceSettlements, operatingFinanceSettlements, infrastructureMaintenance, cycleReport: structuredClone(cycleReport) };
+      return { construction, vehicles, vehicleRetrofits, depots, schedules, generatedEvents, autoResolvedEvents, normalPriceChange, priceShocks, priceSettlements, operatingFinanceSettlements, infrastructureMaintenance, cycleReport: structuredClone(cycleReport) };
     });
   }
 
@@ -1159,7 +1175,7 @@ export class ManagementGame {
       if (generated) while (this.throughServices.some((entry) => entry.throughServiceId === `through-service:${this.nextThroughServiceSequence}`)) this.nextThroughServiceSequence += 1;
       const throughServiceId = input.throughServiceId ?? `through-service:${this.nextThroughServiceSequence}`;
       if (this.throughServices.some((entry) => entry.throughServiceId === throughServiceId)) throw new Error(`Duplicate through service ${throughServiceId}`);
-      const service = buildThroughService({ ...input, throughServiceId, status: "assessed" }, {
+      const service = buildThroughService({ ...input, throughServiceId, status: "assessed", vehicleTechnicalOverrides: {}, approvedRetrofitProgramIds: [] }, {
         route,
         projects: this.projects,
         infrastructureCatalog,
@@ -1188,6 +1204,8 @@ export class ManagementGame {
         guestModelId: current.guestModelId,
         trainsPerHour: current.trainsPerHour,
         trackAccessAgreementIds: current.trackAccessAgreementIds,
+        vehicleTechnicalOverrides: current.vehicleTechnicalOverrides,
+        approvedRetrofitProgramIds: current.approvedRetrofitProgramIds,
       }, {
         route,
         projects: this.projects,
@@ -1199,6 +1217,7 @@ export class ManagementGame {
       const sameSpecificationRevisions = revisionSignature(reassessed) === revisionSignature(current);
       if (!sameRevision || !sameSpecificationRevisions) reassessed.status = "assessed";
       if (reassessed.status === "approved" && reassessed.assessment.verdict !== "possible") reassessed.status = "assessed";
+      if (reassessed.assessment.verdict === "possible") delete reassessed.retrofitReassessmentRequired;
       this.throughServices[this.throughServices.indexOf(current)] = reassessed;
       return structuredClone(reassessed);
     });
@@ -1254,6 +1273,60 @@ export class ManagementGame {
 
   throughServiceReport(throughServiceId = null) {
     return structuredClone(this.throughServices.filter((entry) => throughServiceId === null || entry.throughServiceId === throughServiceId));
+  }
+
+  proposeVehicleRetrofit(throughServiceId, input = {}) {
+    return this.transact("vehicle-retrofit-proposed", () => {
+      const service = this.requireThroughService(throughServiceId);
+      if (service.operatorId !== this.player.id) throw new Error("Only a player-operated through service can use player retrofit funds");
+      if (service.status === "terminated") throw new Error("A terminated through service cannot be retrofitted");
+      if (this.vehicleRetrofitPrograms.some((entry) => entry.throughServiceId === throughServiceId && !["approved", "cancelled"].includes(entry.status))) {
+        throw new Error("Through service already has an active vehicle retrofit program");
+      }
+      while (this.vehicleRetrofitPrograms.some((entry) => entry.id === `vehicle-retrofit:${this.nextVehicleRetrofitSequence}`)) this.nextVehicleRetrofitSequence += 1;
+      const id = input.id ?? `vehicle-retrofit:${this.nextVehicleRetrofitSequence++}`;
+      if (this.vehicleRetrofitPrograms.some((entry) => entry.id === id)) throw new Error(`Duplicate vehicle retrofit ${id}`);
+      const numericId = Number(String(id).match(/^vehicle-retrofit:(\d+)$/)?.[1]);
+      if (Number.isInteger(numericId)) this.nextVehicleRetrofitSequence = Math.max(this.nextVehicleRetrofitSequence, numericId + 1);
+      const program = createVehicleRetrofitProgram({ ...input, id, throughService: service, atMinute: this.clock.minute });
+      this.vehicleRetrofitPrograms.push(program);
+      return structuredClone(program);
+    });
+  }
+
+  startVehicleRetrofit(programId) {
+    return this.transact("vehicle-retrofit-started", () => {
+      const program = this.requireVehicleRetrofit(programId);
+      return startVehicleRetrofitProgram(program, { ledger: this.ledger, clock: this.clock });
+    });
+  }
+
+  authorizeVehicleRetrofitRetest(programId) {
+    return this.transact("vehicle-retrofit-retest-authorized", () => {
+      const program = this.requireVehicleRetrofit(programId);
+      return buildVehicleRetrofitRetest(program, { ledger: this.ledger, clock: this.clock });
+    });
+  }
+
+  applyApprovedVehicleRetrofit(programId) {
+    if (!(this._transactionDepth > 0)) throw new Error("Vehicle retrofit application requires an active game transaction");
+    const program = this.requireVehicleRetrofit(programId);
+    if (program.status !== "approved") throw new Error(`Vehicle retrofit ${program.id} is not approved`);
+    const service = this.requireThroughService(program.throughServiceId);
+    const model = VEHICLE_MODELS[service.guestModelId];
+    if (!model) throw new Error(`Unknown vehicle model ${service.guestModelId}`);
+    const current = Object.keys(service.vehicleTechnicalOverrides ?? {}).length
+      ? service.vehicleTechnicalOverrides
+      : { supportedPowerSystems: model.supportedPowerSystems, supportedSignalSystemIds: model.supportedSignalSystemIds };
+    service.vehicleTechnicalOverrides = mergeVehicleTechnicalOverrides(current, program.capabilityAdditions);
+    service.approvedRetrofitProgramIds = [...new Set([...(service.approvedRetrofitProgramIds ?? []), program.id])].sort();
+    service.status = "assessed";
+    service.retrofitReassessmentRequired = true;
+    return structuredClone(service);
+  }
+
+  vehicleRetrofitReport(throughServiceId = null) {
+    return structuredClone(this.vehicleRetrofitPrograms.filter((entry) => throughServiceId === null || entry.throughServiceId === throughServiceId));
   }
 
   createService(input) {
@@ -1482,6 +1555,12 @@ export class ManagementGame {
     const service = this.throughServices.find((entry) => entry.throughServiceId === id);
     if (!service) throw new Error(`Unknown through service ${id}`);
     return service;
+  }
+
+  requireVehicleRetrofit(id) {
+    const program = this.vehicleRetrofitPrograms.find((entry) => entry.id === id);
+    if (!program) throw new Error(`Unknown vehicle retrofit ${id}`);
+    return program;
   }
 
   allocateConstructionEventId() {
