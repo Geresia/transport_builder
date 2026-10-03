@@ -5,6 +5,7 @@ import { haversineMetres } from "./projection.mjs";
 import { TRAIN_SPEED_MPS, DWELL_SECONDS } from "./network.mjs";
 import { handleStop } from "./passengers.mjs";
 import { bandAt } from "./state.mjs";
+import { recordThroughStationStop, recordThroughTrainMovement } from "./through-operation-integration.mjs";
 
 export function lineRoundTripMinutes(state, line) {
   let metres = 0;
@@ -33,6 +34,7 @@ export function dispatchTrains(state) {
     line.lastDispatch = state.simMinutes;
     const train = { id: state.nextTrainId++, lineId: line.id, segIndex: 0, t: 0, dir: 1, dwell: DWELL_SECONDS };
     state.trains.push(train);
+    recordThroughStationStop(state, line, line.stationIds[0]);
     handleStop(state, train, line.stationIds[0]); // let waiting origin passengers board
   }
 }
@@ -69,6 +71,7 @@ export function stepTrains(state, dtSeconds) {
         const movedMetres = TRAIN_SPEED_MPS * remaining;
         train.t += movedMetres / segLength;
         state.stats.trainKmByLine[String(line.id)] = (state.stats.trainKmByLine[String(line.id)] ?? 0) + movedMetres / 1000;
+        recordThroughTrainMovement(state, line, Math.min(train.segIndex, nextIndex), movedMetres);
         remaining = 0;
         break;
       }
@@ -76,9 +79,11 @@ export function stepTrains(state, dtSeconds) {
       remaining -= secondsToArrival;
       const movedMetres = (1 - train.t) * segLength;
       state.stats.trainKmByLine[String(line.id)] = (state.stats.trainKmByLine[String(line.id)] ?? 0) + movedMetres / 1000;
+      recordThroughTrainMovement(state, line, Math.min(train.segIndex, nextIndex), movedMetres);
       train.t = 0;
       train.segIndex = nextIndex;
       const finished = train.segIndex === 0 && train.dir === -1;
+      recordThroughStationStop(state, line, ids[train.segIndex]);
       handleStop(state, train, ids[train.segIndex], !finished);
       if (finished) {
         train.done = true;

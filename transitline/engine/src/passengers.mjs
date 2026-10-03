@@ -4,6 +4,7 @@ import { findRoute } from "./routing.mjs";
 import { chooseMode } from "./mode-choice.mjs";
 import { hourOfDay, trainCapacity } from "./state.mjs";
 import { randomFrom } from "./rng.mjs";
+import { recordThroughPassengerDelivery } from "./through-operation-integration.mjs";
 
 // Commuters do not give up on a crowded platform (user decision 2026-09-26; the reference game has no wait limit
 // either). Only a passenger stuck for a whole 12 h - e.g. stranded by a deleted line - is swept away, like the game's
@@ -91,6 +92,7 @@ export function handleStop(state, train, stationId, allowBoarding = true) {
           state.stats.delivered++;
           state.stats.deliveredByHour[hourOfDay(state)]++;
           state.stats.deliveredByLine[String(train.lineId)] = (state.stats.deliveredByLine[String(train.lineId)] ?? 0) + 1;
+          recordThroughPassengerDelivery(state, line, p);
           continue; // drop: delivered
         }
         p.hopIndex++;

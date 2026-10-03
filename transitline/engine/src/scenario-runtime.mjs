@@ -15,6 +15,16 @@ import {
   stationDeliveryReadiness,
 } from "./management/index.mjs";
 import { stableId } from "./map/ids.mjs";
+import { addLine } from "./state.mjs";
+import {
+  bindThroughServiceToLine,
+  clearThroughOperationDay,
+  setThroughOperationSuspended,
+  throughOperationActualsForDay,
+  throughOperationBinding,
+  throughOperationReport,
+  unbindThroughServiceFromLine,
+} from "./through-operation-integration.mjs";
 
 const VEHICLE_BY_PROFILE = Object.freeze({
   medium_steel: "medium_4car",
@@ -183,6 +193,7 @@ export class ScenarioRuntime {
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
       throughFareAgreements: this.game.throughFareAgreementReport(),
       throughOperatingSettlements: this.game.throughOperatingSettlementReport(null, 24),
+      throughOperationBindings: throughOperationReport(this.operationalState),
       corporateFinance: this.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(this.game.clock.minute / (30 * 1440)) - 11) }),
       assessments,
     });
@@ -526,6 +537,7 @@ export class ScenarioRuntime {
     if (!Number.isInteger(months) || months < 1) throw new Error("진행 개월은 양의 정수여야 합니다.");
     const results = [];
     for (let index = 0; index < months; index++) results.push(this.game.advanceMonth());
+    for (const binding of throughOperationReport(this.operationalState)) this.syncThroughOperationLine(binding.throughServiceId);
     return results;
   }
 
@@ -742,10 +754,24 @@ export class ScenarioRuntime {
       && currentDay > (item.engineCursor?.day ?? currentDay));
     const maximumDueDays = dueServices.reduce((maximum, service) => Math.max(maximum,
       currentDay - (service.engineCursor?.day ?? currentDay)), 0);
-    const calendarTarget = dueServices.length
+    const throughBindings = throughOperationReport(this.operationalState);
+    const dueThrough = [];
+    for (const binding of throughBindings) {
+      const service = this.game.throughServices.find((entry) => entry.throughServiceId === binding.throughServiceId);
+      const hasActiveFare = this.game.throughFareAgreements.some((agreement) => agreement.throughServiceId === binding.throughServiceId && agreement.status === "active");
+      if (!service || service.status !== "approved" || !hasActiveFare) continue;
+      const firstDay = Math.max(binding.startDay, (service.lastThroughOperatingDay ?? binding.startDay - 1) + 1);
+      for (let day = firstDay; day < currentDay; day += 1) dueThrough.push({ binding, service, day });
+    }
+    const throughCalendarTargets = throughBindings
+      .filter((binding) => dueThrough.some((entry) => entry.binding.throughServiceId === binding.throughServiceId))
+      .map((binding) => (binding.startedAtGameMinute ?? this.game.clock.minute)
+        + Math.max(0, this.operationalState.simMinutes - binding.startedAtSimMinute));
+    const calendarTarget = dueServices.length || dueThrough.length
       ? Math.max(
         this.game.clock.minute + maximumDueDays * 1440,
         ...commissioned.map((service) => service.operationsStartedAtGameMinute + Math.max(0, this.operationalState.simMinutes - service.operationsStartedAtSimMinute)),
+        ...throughCalendarTargets,
       )
       : this.game.clock.minute;
     const targetMonth = Math.floor(calendarTarget / (30 * 1440));
@@ -753,7 +779,7 @@ export class ScenarioRuntime {
       && entry.firstDueMonth !== undefined
       && (entry.lastServicedMonth ?? entry.firstDueMonth - 1) < targetMonth
       && !["repaid", "closed"].includes(entry.status))).map((service) => service.projectId));
-    if (!dueServices.length && !projectsWithFinanceDue.size) return [];
+    if (!dueServices.length && !dueThrough.length && !projectsWithFinanceDue.size) return [];
 
     const managementCheckpoint = this.game.snapshot();
     const operationalCheckpoint = snapshotOperationalState(this.operationalState);
@@ -762,6 +788,11 @@ export class ScenarioRuntime {
       if (calendarTarget > this.game.clock.minute) this.game.clock.advance(calendarTarget - this.game.clock.minute);
       for (const service of dueServices) {
         settlements.push(settleIntegratedServiceDay(this.game, this.operationalState, service.id));
+      }
+      for (const { service, day } of dueThrough) {
+        const actuals = throughOperationActualsForDay(this.operationalState, service.throughServiceId, day);
+        settlements.push(this.game.settleThroughServiceOperatingDay(service.throughServiceId, actuals));
+        clearThroughOperationDay(this.operationalState, service.throughServiceId, day);
       }
       const seenProjects = new Set();
       for (const service of commissioned) {
@@ -823,7 +854,9 @@ export class ScenarioRuntime {
   }
 
   setTrackAccessAgreementStatus(agreementId, status) {
-    return this.game.setTrackAccessAgreementStatus(agreementId, status);
+    const result = this.game.setTrackAccessAgreementStatus(agreementId, status);
+    for (const binding of throughOperationReport(this.operationalState)) this.syncThroughOperationLine(binding.throughServiceId);
+    return result;
   }
 
   trackAccessReport(serviceId = null) {
@@ -835,15 +868,21 @@ export class ScenarioRuntime {
   }
 
   reassessThroughService(throughServiceId, route, infrastructureCatalog = []) {
-    return this.game.reassessThroughService(throughServiceId, route, infrastructureCatalog);
+    const result = this.game.reassessThroughService(throughServiceId, route, infrastructureCatalog);
+    this.syncThroughOperationLine(throughServiceId);
+    return result;
   }
 
   approveThroughService(throughServiceId) {
-    return this.game.approveThroughService(throughServiceId);
+    const result = this.game.approveThroughService(throughServiceId);
+    this.syncThroughOperationLine(throughServiceId);
+    return result;
   }
 
   setThroughServiceStatus(throughServiceId, status) {
-    return this.game.setThroughServiceStatus(throughServiceId, status);
+    const result = this.game.setThroughServiceStatus(throughServiceId, status);
+    this.syncThroughOperationLine(throughServiceId);
+    return result;
   }
 
   throughServiceReport(throughServiceId = null) {
@@ -879,11 +918,15 @@ export class ScenarioRuntime {
   }
 
   activateThroughFareAgreement(agreementId) {
-    return this.game.activateThroughFareAgreement(agreementId);
+    const result = this.game.activateThroughFareAgreement(agreementId);
+    this.syncThroughOperationLine(result.throughServiceId);
+    return result;
   }
 
   setThroughFareAgreementStatus(agreementId, status) {
-    return this.game.setThroughFareAgreementStatus(agreementId, status);
+    const result = this.game.setThroughFareAgreementStatus(agreementId, status);
+    this.syncThroughOperationLine(result.throughServiceId);
+    return result;
   }
 
   throughFareAgreementReport(throughServiceId = null) {
@@ -891,11 +934,65 @@ export class ScenarioRuntime {
   }
 
   settleThroughServiceOperatingDay(throughServiceId, actuals = {}) {
-    return this.game.settleThroughServiceOperatingDay(throughServiceId, actuals);
+    const result = this.game.settleThroughServiceOperatingDay(throughServiceId, actuals);
+    if (throughOperationBinding(this.operationalState, throughServiceId)) clearThroughOperationDay(this.operationalState, throughServiceId, actuals.operatingDay);
+    return result;
   }
 
   throughOperatingSettlementReport(throughServiceId = null, limit = null) {
     return this.game.throughOperatingSettlementReport(throughServiceId, limit);
+  }
+
+  syncThroughOperationLine(throughServiceId) {
+    const service = this.game.throughServices.find((entry) => entry.throughServiceId === throughServiceId);
+    const activeFare = this.game.throughFareAgreements.some((agreement) => agreement.throughServiceId === throughServiceId && agreement.status === "active");
+    return setThroughOperationSuspended(this.operationalState, throughServiceId, service?.status !== "approved" || !activeFare);
+  }
+
+  commissionThroughServiceOperation(throughServiceId, input = {}) {
+    const service = this.game.requireThroughService(throughServiceId);
+    if (service.status !== "approved") throw new Error("직통 서비스 승인이 필요합니다.");
+    if (!this.game.throughFareAgreements.some((agreement) => agreement.throughServiceId === throughServiceId && agreement.status === "active")) throw new Error("활성 연락운임 협정이 필요합니다.");
+    if (throughOperationBinding(this.operationalState, throughServiceId)) throw new Error("이미 운행선에 연결된 직통 서비스입니다.");
+    const model = VEHICLE_MODELS[service.guestModelId];
+    if (!model) throw new Error(`Unknown through-service vehicle model ${service.guestModelId}`);
+    const checkpoint = snapshotOperationalState(this.operationalState);
+    try {
+      const trainsPerHour = Math.max(1, Math.round(service.trainsPerHour));
+      const line = addLine(this.operationalState, input.stationIds, {
+        name: input.name ?? `직통 ${throughServiceId}`,
+        color: input.color,
+        carsPerTrain: model.cars,
+        frequency: input.frequency ?? { high: trainsPerHour, medium: trainsPerHour, low: trainsPerHour, veryLow: trainsPerHour },
+      });
+      line.throughOperation = true;
+      const binding = bindThroughServiceToLine(this.operationalState, service, {
+        ...input,
+        operationalLineId: line.id,
+        startedAtGameMinute: this.game.clock.minute,
+      });
+      return { line: structuredClone(line), binding };
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(checkpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
+  }
+
+  bindThroughServiceOperation(throughServiceId, input = {}) {
+    const service = this.game.requireThroughService(throughServiceId);
+    if (!this.game.throughFareAgreements.some((agreement) => agreement.throughServiceId === throughServiceId && agreement.status === "active")) throw new Error("활성 연락운임 협정이 필요합니다.");
+    const lineId = String(input.operationalLineId);
+    if (this.game.services.some((entry) => String(entry.operationalLineId) === lineId)) throw new Error("일반 노선 정산에 연결된 운행선은 직통 정산에 중복 연결할 수 없습니다.");
+    return bindThroughServiceToLine(this.operationalState, service, { ...input, startedAtGameMinute: this.game.clock.minute });
+  }
+
+  unbindThroughServiceOperation(throughServiceId) {
+    return unbindThroughServiceFromLine(this.operationalState, throughServiceId);
+  }
+
+  throughOperationReport() {
+    return throughOperationReport(this.operationalState);
   }
 
   evaluate() {
@@ -916,6 +1013,7 @@ export class ScenarioRuntime {
     this.game = restored.game;
     replaceState(this.operationalState, restored.operationalState);
     this.bridge = createMapEngineBridge(this.game, this.operationalState);
+    for (const binding of throughOperationReport(this.operationalState)) this.syncThroughOperationLine(binding.throughServiceId);
     return this;
   }
 }

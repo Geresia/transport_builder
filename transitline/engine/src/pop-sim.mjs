@@ -14,6 +14,7 @@ import { dispatchTrains, stepTrains } from "./trains.mjs";
 import { buildTimetable, routeJourney, WALK_MPS } from "./router-raptor.mjs";
 import { patternsFromState, popTrains, terminalGhost, networkFootprint } from "./pop-adapter.mjs";
 import { stepMovements, movementFor, popsToStart, dropRemovedTrains, sweepStuck, waitingByStation, waitingWarningLevel, riders } from "./pop-journey.mjs";
+import { recordThroughJourneyDelivery } from "./through-operation-integration.mjs";
 import { modeSplit, perceivedTransitTime, drivingTimeMultiplier } from "./mode-choice-pop.mjs";
 import { computeJourneyFare } from "./fares.mjs";
 import { journeyRevenue, trainOperatingCost, maintenanceCost, issueBond, bondHour } from "./economy.mjs";
@@ -175,6 +176,8 @@ export function popSimStep(sim, state, seconds = 1) {
       state.stats.deliveredByHour[Math.floor(nowS / 3600) % 24] += n;
       const key = String(lastRide.routeId);
       state.stats.deliveredByLine[key] = (state.stats.deliveredByLine[key] ?? 0) + n;
+      const line = state.lines.find((entry) => String(entry.id) === key);
+      if (line?.throughServiceId) recordThroughJourneyDelivery(state, line, pop.journey.segments.filter((segment) => segment.kind === "transit"), n);
     }
     pop.journey = null;
   }
