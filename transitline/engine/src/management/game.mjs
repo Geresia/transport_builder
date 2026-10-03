@@ -24,6 +24,7 @@ import { assignServiceToOperatingResourcePool as assignPoolService, createOperat
 import { awardTrackAccessOffer as buildTrackAccessAgreement, createTrackAccessOpportunity as buildTrackAccessOpportunity, generateTrackAccessOffers as buildTrackAccessOffers, setTrackAccessAgreementStatus as changeTrackAccessStatus, settleTrackAccessRevenue, trackAccessImpact as calculateTrackAccessImpact } from "./track-access.mjs";
 import { createThroughService as buildThroughService } from "./through-service.mjs";
 import { advanceVehicleRetrofitMonth, authorizeVehicleRetrofitRetest as buildVehicleRetrofitRetest, createVehicleRetrofitProgram, mergeVehicleTechnicalOverrides, startVehicleRetrofitProgram } from "./vehicle-retrofit.mjs";
+import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 
 export class ManagementGame {
   constructor({ countryId = "JP", seed = 1, openingCash = 500_000_000_000, playerName = "Player Transit" } = {}) {
@@ -58,6 +59,7 @@ export class ManagementGame {
     this.trackAccessAgreements = [];
     this.throughServices = [];
     this.vehicleRetrofitPrograms = [];
+    this.throughFareAgreements = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -67,6 +69,7 @@ export class ManagementGame {
     this.nextTrackAccessSequence = 1;
     this.nextThroughServiceSequence = 1;
     this.nextVehicleRetrofitSequence = 1;
+    this.nextThroughFareSequence = 1;
     this.services = [];
     this.plans = [];
     this._transactionDepth = 0;
@@ -105,6 +108,7 @@ export class ManagementGame {
       trackAccessAgreements: structuredClone(this.trackAccessAgreements),
       throughServices: structuredClone(this.throughServices),
       vehicleRetrofitPrograms: structuredClone(this.vehicleRetrofitPrograms),
+      throughFareAgreements: structuredClone(this.throughFareAgreements),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -114,6 +118,7 @@ export class ManagementGame {
       nextTrackAccessSequence: this.nextTrackAccessSequence,
       nextThroughServiceSequence: this.nextThroughServiceSequence,
       nextVehicleRetrofitSequence: this.nextVehicleRetrofitSequence,
+      nextThroughFareSequence: this.nextThroughFareSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -131,7 +136,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "vehicleRetrofitPrograms", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "vehicleRetrofitPrograms", "throughFareAgreements", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -172,6 +177,10 @@ export class ManagementGame {
     this.nextVehicleRetrofitSequence = Math.max(
       snapshot.nextVehicleRetrofitSequence ?? 1,
       this.vehicleRetrofitPrograms.reduce((max, program) => Math.max(max, Number(program.id?.match(/^vehicle-retrofit:(\d+)$/)?.[1]) || 0), 0) + 1,
+    );
+    this.nextThroughFareSequence = Math.max(
+      snapshot.nextThroughFareSequence ?? 1,
+      this.throughFareAgreements.reduce((max, agreement) => Math.max(max, Number(agreement.id?.match(/^through-fare:(\d+)$/)?.[1]) || 0), 0) + 1,
     );
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
@@ -1219,6 +1228,12 @@ export class ManagementGame {
       if (reassessed.status === "approved" && reassessed.assessment.verdict !== "possible") reassessed.status = "assessed";
       if (reassessed.assessment.verdict === "possible") delete reassessed.retrofitReassessmentRequired;
       this.throughServices[this.throughServices.indexOf(current)] = reassessed;
+      if (reassessed.status !== "approved") {
+        for (const agreement of this.throughFareAgreements.filter((entry) => entry.throughServiceId === throughServiceId && entry.status === "active")) {
+          changeThroughFareStatus(agreement, "suspended", this.clock.minute);
+          agreement.suspendedByThroughService = true;
+        }
+      }
       return structuredClone(reassessed);
     });
   }
@@ -1267,12 +1282,68 @@ export class ManagementGame {
       if (status === "suspended") service.suspendedByTrackAccess = agreements.length > 0;
       else delete service.suspendedByTrackAccess;
       if (status === "terminated") service.terminatedAtMinute = this.clock.minute;
+      for (const fareAgreement of this.throughFareAgreements.filter((entry) => entry.throughServiceId === throughServiceId)) {
+        if (status === "suspended" && fareAgreement.status === "active") {
+          changeThroughFareStatus(fareAgreement, "suspended", this.clock.minute);
+          fareAgreement.suspendedByThroughService = true;
+        }
+        if (status === "approved" && fareAgreement.status === "suspended" && fareAgreement.suspendedByThroughService) {
+          activateFareAgreement(fareAgreement, service, this.clock.minute);
+          delete fareAgreement.suspendedByThroughService;
+        }
+        if (status === "terminated" && fareAgreement.status !== "terminated") changeThroughFareStatus(fareAgreement, "terminated", this.clock.minute);
+      }
       return structuredClone(service);
     });
   }
 
   throughServiceReport(throughServiceId = null) {
     return structuredClone(this.throughServices.filter((entry) => throughServiceId === null || entry.throughServiceId === throughServiceId));
+  }
+
+  proposeThroughFareAgreement(throughServiceId, input = {}) {
+    return this.transact("through-fare-proposed", () => {
+      const service = this.requireThroughService(throughServiceId);
+      if (service.operatorId !== this.player.id) throw new Error("Only a player-operated through service can negotiate a player fare agreement");
+      if (service.status === "terminated") throw new Error("A terminated through service cannot have a fare agreement");
+      if (this.throughFareAgreements.some((entry) => entry.throughServiceId === throughServiceId && entry.status !== "terminated")) {
+        throw new Error("Through service already has an open fare agreement");
+      }
+      while (this.throughFareAgreements.some((entry) => entry.id === `through-fare:${this.nextThroughFareSequence}`)) this.nextThroughFareSequence += 1;
+      const id = input.id ?? `through-fare:${this.nextThroughFareSequence++}`;
+      if (this.throughFareAgreements.some((entry) => entry.id === id)) throw new Error(`Duplicate through fare agreement ${id}`);
+      const numericId = Number(String(id).match(/^through-fare:(\d+)$/)?.[1]);
+      if (Number.isInteger(numericId)) this.nextThroughFareSequence = Math.max(this.nextThroughFareSequence, numericId + 1);
+      const agreement = createThroughFareAgreement({ ...input, id, throughService: service, atMinute: this.clock.minute });
+      if (!agreement.participants.some((entry) => entry.operatorId === this.player.id)) throw new Error("Player must be a fare agreement participant");
+      this.throughFareAgreements.push(agreement);
+      return structuredClone(agreement);
+    });
+  }
+
+  acceptThroughFareAgreement(agreementId, operatorId) {
+    return this.transact("through-fare-party-accepted", () => acceptFareAgreement(this.requireThroughFareAgreement(agreementId), operatorId, this.clock.minute));
+  }
+
+  fileThroughFareAgreement(agreementId) {
+    return this.transact("through-fare-filed", () => fileFareAgreement(this.requireThroughFareAgreement(agreementId), this.clock.minute));
+  }
+
+  activateThroughFareAgreement(agreementId) {
+    return this.transact("through-fare-activated", () => {
+      const agreement = this.requireThroughFareAgreement(agreementId);
+      activateFareAgreement(agreement, this.requireThroughService(agreement.throughServiceId), this.clock.minute);
+      delete agreement.suspendedByThroughService;
+      return structuredClone(agreement);
+    });
+  }
+
+  setThroughFareAgreementStatus(agreementId, status) {
+    return this.transact(`through-fare-${status}`, () => changeThroughFareStatus(this.requireThroughFareAgreement(agreementId), status, this.clock.minute));
+  }
+
+  throughFareAgreementReport(throughServiceId = null) {
+    return structuredClone(this.throughFareAgreements.filter((entry) => throughServiceId === null || entry.throughServiceId === throughServiceId));
   }
 
   proposeVehicleRetrofit(throughServiceId, input = {}) {
@@ -1322,6 +1393,10 @@ export class ManagementGame {
     service.approvedRetrofitProgramIds = [...new Set([...(service.approvedRetrofitProgramIds ?? []), program.id])].sort();
     service.status = "assessed";
     service.retrofitReassessmentRequired = true;
+    for (const agreement of this.throughFareAgreements.filter((entry) => entry.throughServiceId === service.throughServiceId && entry.status === "active")) {
+      changeThroughFareStatus(agreement, "suspended", this.clock.minute);
+      agreement.suspendedByThroughService = true;
+    }
     return structuredClone(service);
   }
 
@@ -1561,6 +1636,12 @@ export class ManagementGame {
     const program = this.vehicleRetrofitPrograms.find((entry) => entry.id === id);
     if (!program) throw new Error(`Unknown vehicle retrofit ${id}`);
     return program;
+  }
+
+  requireThroughFareAgreement(id) {
+    const agreement = this.throughFareAgreements.find((entry) => entry.id === id);
+    if (!agreement) throw new Error(`Unknown through fare agreement ${id}`);
+    return agreement;
   }
 
   allocateConstructionEventId() {

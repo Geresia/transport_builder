@@ -181,6 +181,7 @@ export class ScenarioRuntime {
       trackAccess: this.game.trackAccessReport(),
       throughServices: this.game.throughServiceReport(),
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
+      throughFareAgreements: this.game.throughFareAgreementReport(),
       corporateFinance: this.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(this.game.clock.minute / (30 * 1440)) - 11) }),
       assessments,
     });
@@ -862,6 +863,30 @@ export class ScenarioRuntime {
 
   vehicleRetrofitReport(throughServiceId = null) {
     return this.game.vehicleRetrofitReport(throughServiceId);
+  }
+
+  proposeThroughFareAgreement(throughServiceId, input = {}) {
+    return this.game.proposeThroughFareAgreement(throughServiceId, input);
+  }
+
+  acceptThroughFareAgreement(agreementId, operatorId) {
+    return this.game.acceptThroughFareAgreement(agreementId, operatorId);
+  }
+
+  fileThroughFareAgreement(agreementId) {
+    return this.game.fileThroughFareAgreement(agreementId);
+  }
+
+  activateThroughFareAgreement(agreementId) {
+    return this.game.activateThroughFareAgreement(agreementId);
+  }
+
+  setThroughFareAgreementStatus(agreementId, status) {
+    return this.game.setThroughFareAgreementStatus(agreementId, status);
+  }
+
+  throughFareAgreementReport(throughServiceId = null) {
+    return this.game.throughFareAgreementReport(throughServiceId);
   }
 
   evaluate() {
