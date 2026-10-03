@@ -223,3 +223,81 @@ test("game reassessment preserves identity, detects revisions and revokes stale 
   assert.equal(revised.assessment.verdict, "impossible");
   assert.throws(() => game.reassessThroughService(created.throughServiceId, { ...revisedRoute, throughRouteId: "other" }, catalogEntries), /identity does not match/);
 });
+
+function linkedGameFixture() {
+  const game = new ManagementGame({ seed: 233 });
+  const operatorId = game.competitors[0].id;
+  const legs = [existingLeg("leg:host:1", "player", "project:host"), existingLeg("leg:host:2", "player", "project:host")];
+  game.projects.push(project("project:host"));
+  const agreement = {
+    schema: "transitline.track-access-agreement/1",
+    contractVersion: 1,
+    id: "agreement:linked",
+    hostServiceId: "service:host",
+    hostProjectId: "project:host",
+    infrastructureOwnerId: "player",
+    guestOperatorId: operatorId,
+    trainsPerHour: 4,
+    dailyTrainKm: 640,
+    dailyStationStops: 120,
+    accessFeeJPYPerTrainKm: 1_000,
+    stationFeeJPYPerStop: 10_000,
+    hostCapacityTrainsPerHour: 20,
+    startDay: 0,
+    endDay: 365,
+    lastSettledDay: -1,
+    status: "active",
+    totals: { settledDays: 0, accessRevenueJPY: 0 },
+  };
+  game.trackAccessAgreements.push(agreement);
+  game.competitors[0].accessCommitments = 1;
+  const service = game.createThroughService(route(legs), {
+    operatorId,
+    guestModelId: "medium_4car",
+    trainsPerHour: 4,
+    trackAccessAgreementIds: [agreement.id],
+  }, legs.map((leg) => catalog(leg)));
+  game.approveThroughService(service.throughServiceId);
+  return { game, serviceId: service.throughServiceId, agreement, operatorId };
+}
+
+test("through-service suspension, resume and termination update one linked B11 agreement exactly once", () => {
+  const { game, serviceId, agreement, operatorId } = linkedGameFixture();
+  const agreementId = agreement.id;
+  const currentAgreement = () => game.trackAccessAgreements.find((entry) => entry.id === agreementId);
+  const currentCompany = () => game.competitors.find((entry) => entry.id === operatorId);
+  const ledgerBefore = structuredClone(game.ledger.entries);
+  const fixedTrainKm = agreement.dailyTrainKm;
+  const fixedFrequency = agreement.trainsPerHour;
+  const suspended = game.setThroughServiceStatus(serviceId, "suspended");
+  assert.equal(suspended.status, "suspended");
+  assert.equal(currentAgreement().status, "suspended");
+  assert.equal(currentCompany().accessCommitments, 1, "suspension keeps the reserved commitment");
+  assert.equal(currentAgreement().dailyTrainKm, fixedTrainKm);
+  assert.equal(currentAgreement().trainsPerHour, fixedFrequency);
+  const afterSuspend = game.snapshot();
+  assert.throws(() => game.setThroughServiceStatus(serviceId, "suspended"), /cannot change/);
+  assert.deepEqual(game.snapshot(), afterSuspend, "repeated suspension has no second effect");
+  assert.equal(game.setThroughServiceStatus(serviceId, "approved").status, "approved");
+  assert.equal(currentAgreement().status, "active");
+  assert.equal(currentCompany().accessCommitments, 1, "resume does not reserve capacity twice");
+  assert.equal(game.setThroughServiceStatus(serviceId, "terminated").status, "terminated");
+  assert.equal(currentAgreement().status, "terminated");
+  assert.equal(currentCompany().accessCommitments, 0, "termination releases the commitment once");
+  const afterTerminate = game.snapshot();
+  assert.throws(() => game.setThroughServiceStatus(serviceId, "terminated"), /cannot change/);
+  assert.deepEqual(game.snapshot(), afterTerminate);
+  assert.deepEqual(game.ledger.entries, ledgerBefore, "ID/status linkage posts no duplicate money");
+});
+
+test("a B11 agreement status change propagates to its linked through service", () => {
+  const { game, serviceId, agreement } = linkedGameFixture();
+  game.setTrackAccessAgreementStatus(agreement.id, "suspended");
+  assert.equal(game.requireThroughService(serviceId).status, "suspended");
+  game.setTrackAccessAgreementStatus(agreement.id, "active");
+  assert.equal(game.requireThroughService(serviceId).status, "approved");
+  game.setTrackAccessAgreementStatus(agreement.id, "terminated");
+  const terminated = game.requireThroughService(serviceId);
+  assert.equal(terminated.status, "terminated");
+  assert.equal(terminated.terminatedByTrackAccessAgreementId, agreement.id);
+});

@@ -1100,8 +1100,34 @@ export class ManagementGame {
     return this.transact(`track-access-agreement-${status}`, () => {
       const agreement = this.trackAccessAgreements.find((entry) => entry.id === agreementId);
       if (!agreement) throw new Error(`Unknown track access agreement ${agreementId}`);
-      return changeTrackAccessStatus(agreement, status, this.competitors, Math.floor(this.clock.minute / 1440));
+      const changed = changeTrackAccessStatus(agreement, status, this.competitors, Math.floor(this.clock.minute / 1440));
+      this.synchronizeThroughServicesForTrackAccess(agreement);
+      return changed;
     });
+  }
+
+  synchronizeThroughServicesForTrackAccess(agreement) {
+    const linked = this.throughServices.filter((service) => (service.trackAccessAgreementIds ?? []).includes(agreement.id));
+    for (const service of linked) {
+      if (agreement.status === "suspended" && service.status === "approved") {
+        service.status = "suspended";
+        service.suspendedByTrackAccess = true;
+        service.statusChangedAtMinute = this.clock.minute;
+      } else if (agreement.status === "active" && service.status === "suspended" && service.suspendedByTrackAccess === true) {
+        const everyAgreementActive = service.trackAccessAgreementIds.every((id) => this.trackAccessAgreements.find((entry) => entry.id === id)?.status === "active");
+        if (everyAgreementActive) {
+          service.status = "approved";
+          delete service.suspendedByTrackAccess;
+          service.statusChangedAtMinute = this.clock.minute;
+        }
+      } else if (["terminated", "expired"].includes(agreement.status) && service.status !== "terminated") {
+        service.status = "terminated";
+        service.terminatedByTrackAccessAgreementId = agreement.id;
+        service.statusChangedAtMinute = this.clock.minute;
+        service.terminatedAtMinute = this.clock.minute;
+        delete service.suspendedByTrackAccess;
+      }
+    }
   }
 
   trackAccessImpact(serviceId) {
@@ -1120,7 +1146,11 @@ export class ManagementGame {
 
   settleTrackAccessForService(serviceId, throughDay, operatingDays = null) {
     if (!(this._transactionDepth > 0)) throw new Error("Track access settlement requires an active game transaction");
-    return settleTrackAccessRevenue(this.trackAccessAgreements, serviceId, throughDay, this.competitors, operatingDays);
+    const settlement = settleTrackAccessRevenue(this.trackAccessAgreements, serviceId, throughDay, this.competitors, operatingDays);
+    for (const agreement of this.trackAccessAgreements.filter((entry) => entry.hostServiceId === serviceId && entry.status === "expired")) {
+      this.synchronizeThroughServicesForTrackAccess(agreement);
+    }
+    return settlement;
   }
 
   createThroughService(route, input = {}, infrastructureCatalog = []) {
@@ -1178,6 +1208,43 @@ export class ManagementGame {
       if (service.assessment.verdict !== "possible") throw new Error(`Through service assessment is ${service.assessment.verdict}`);
       service.status = "approved";
       service.approvedAtMinute = this.clock.minute;
+      return structuredClone(service);
+    });
+  }
+
+  setThroughServiceStatus(throughServiceId, status) {
+    return this.transact(`through-service-${status}`, () => {
+      const service = this.requireThroughService(throughServiceId);
+      const allowed = service.status === "approved"
+        ? ["suspended", "terminated"]
+        : service.status === "suspended"
+          ? ["approved", "terminated"]
+          : [];
+      if (!allowed.includes(status)) throw new Error(`Through service cannot change from ${service.status} to ${status}`);
+      const agreements = service.trackAccessAgreementIds.map((id) => {
+        const agreement = this.trackAccessAgreements.find((entry) => entry.id === id);
+        if (!agreement) throw new Error(`Unknown linked track access agreement ${id}`);
+        return agreement;
+      });
+      const atDay = Math.floor(this.clock.minute / 1440);
+      for (const agreement of agreements) {
+        if (status === "suspended") {
+          if (agreement.status !== "active") throw new Error(`Track access agreement ${agreement.id} cannot suspend from ${agreement.status}`);
+          changeTrackAccessStatus(agreement, "suspended", this.competitors, atDay);
+        } else if (status === "approved") {
+          if (agreement.status !== "suspended") throw new Error(`Track access agreement ${agreement.id} cannot resume from ${agreement.status}`);
+          changeTrackAccessStatus(agreement, "active", this.competitors, atDay);
+        } else if (status === "terminated") {
+          if (!["active", "suspended"].includes(agreement.status)) throw new Error(`Track access agreement ${agreement.id} cannot terminate from ${agreement.status}`);
+          changeTrackAccessStatus(agreement, "terminated", this.competitors, atDay);
+        }
+        this.synchronizeThroughServicesForTrackAccess(agreement);
+      }
+      service.status = status;
+      service.statusChangedAtMinute = this.clock.minute;
+      if (status === "suspended") service.suspendedByTrackAccess = agreements.length > 0;
+      else delete service.suspendedByTrackAccess;
+      if (status === "terminated") service.terminatedAtMinute = this.clock.minute;
       return structuredClone(service);
     });
   }
