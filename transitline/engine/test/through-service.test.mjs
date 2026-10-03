@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createThroughService, ManagementGame, reassessThroughService, THROUGH_SERVICE_SCHEMA } from "../src/management/index.mjs";
+import { ScenarioRuntime } from "../src/scenario-runtime.mjs";
 
 const handover = (state = "joined", id = "handover:1") => ({
   handoverId: id,
@@ -300,4 +301,33 @@ test("a B11 agreement status change propagates to its linked through service", (
   const terminated = game.requireThroughService(serviceId);
   assert.equal(terminated.status, "terminated");
   assert.equal(terminated.terminatedByTrackAccessAgreementId, agreement.id);
+});
+
+test("ScenarioRuntime delegates the through-service lifecycle and reports a read-only copy", () => {
+  const game = new ManagementGame({ seed: 239 });
+  const runtime = Object.assign(Object.create(ScenarioRuntime.prototype), { game });
+  const legs = [existingLeg("leg:runtime:1", "player", "project:runtime"), existingLeg("leg:runtime:2", "player", "project:runtime")];
+  game.projects.push(project("project:runtime"));
+  const geometry = route(legs);
+  const infrastructure = legs.map((leg) => catalog(leg));
+
+  const created = runtime.createThroughService(geometry, {
+    operatorId: "player",
+    guestModelId: "medium_4car",
+    trainsPerHour: 4,
+  }, infrastructure);
+  assert.equal(runtime.approveThroughService(created.throughServiceId).status, "approved");
+  assert.equal(runtime.setThroughServiceStatus(created.throughServiceId, "suspended").status, "suspended");
+  assert.equal(runtime.setThroughServiceStatus(created.throughServiceId, "approved").status, "approved");
+
+  const directReport = runtime.throughServiceReport(created.throughServiceId);
+  const aggregateReport = runtime.report().throughServices;
+  assert.deepEqual(aggregateReport, directReport);
+  directReport[0].status = "tampered";
+  aggregateReport[0].assessment.verdict = "tampered";
+  assert.equal(game.requireThroughService(created.throughServiceId).status, "approved");
+  assert.equal(game.requireThroughService(created.throughServiceId).assessment.verdict, "possible");
+
+  const revisedGeometry = { ...geometry, geometryRevision: "through-route-revision:2" };
+  assert.equal(runtime.reassessThroughService(created.throughServiceId, revisedGeometry, infrastructure).routeGeometryRevision, "through-route-revision:2");
 });

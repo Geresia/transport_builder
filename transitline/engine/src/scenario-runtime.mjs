@@ -179,6 +179,7 @@ export class ScenarioRuntime {
       operatingMonths: this.game.operatingMonthReport(),
       operatingResourcePools: this.game.operatingResourcePoolReport(),
       trackAccess: this.game.trackAccessReport(),
+      throughServices: this.game.throughServiceReport(),
       corporateFinance: this.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(this.game.clock.minute / (30 * 1440)) - 11) }),
       assessments,
     });
@@ -824,6 +825,26 @@ export class ScenarioRuntime {
 
   trackAccessReport(serviceId = null) {
     return this.game.trackAccessReport(serviceId);
+  }
+
+  createThroughService(route, input = {}, infrastructureCatalog = []) {
+    return this.game.createThroughService(route, input, infrastructureCatalog);
+  }
+
+  reassessThroughService(throughServiceId, route, infrastructureCatalog = []) {
+    return this.game.reassessThroughService(throughServiceId, route, infrastructureCatalog);
+  }
+
+  approveThroughService(throughServiceId) {
+    return this.game.approveThroughService(throughServiceId);
+  }
+
+  setThroughServiceStatus(throughServiceId, status) {
+    return this.game.setThroughServiceStatus(throughServiceId, status);
+  }
+
+  throughServiceReport(throughServiceId = null) {
+    return this.game.throughServiceReport(throughServiceId);
   }
 
   evaluate() {
