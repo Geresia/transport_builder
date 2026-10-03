@@ -10,7 +10,7 @@ import { attachInput } from "./input.mjs";
 import { startLoop } from "./loop.mjs";
 import { startPopLoop } from "./pop-loop.mjs";
 import { withStationAccess } from "./access-demand.mjs";
-import { buildMapExport, drawnLinesFromState, withRailLayer } from "./map/plan-geometry.mjs";
+import { buildMapExport, drawnLinesFromState, existingNetworkToExternal, withRailLayer } from "./map/plan-geometry.mjs";
 import { spatialContextFromPack } from "./map/pack-spatial.mjs";
 import { buildOverlayModel, defineViewSlots, renderDiagnosticsPanel, renderPhaseLegend } from "./map/overlay.mjs";
 import { attachDepotEditor } from "./map/depot-ui.mjs";
@@ -278,12 +278,18 @@ function updateAnalysis(state, depBars, arrBars) {
 // this flag only controls what's on the map when the pack first loads.
 function seedExistingNetwork(state, pack) {
   if (!pack.existingNetwork || params.get("network") === "scratch") return;
+  const external = existingNetworkToExternal(pack);
   for (const line of pack.existingNetwork.lines) {
     const stationIds = line.stationIds.filter((id) => state.stations.has(id));
     // dedupe consecutive repeats defensively (e.g. two source stops that map to the same station)
     const path = stationIds.filter((id, i) => id !== stationIds[i - 1]);
     if (path.length < 2) continue;
-    addLine(state, path, { name: line.name, color: line.color ?? undefined, external: true });
+    const operationalLine = addLine(state, path, { name: line.name, color: line.color ?? undefined, external: true });
+    const externalLine = line.osmRelationId !== undefined
+      ? external.lines.find((candidate) => candidate.osmRelationId === line.osmRelationId)
+      : external.lines.find((candidate) => candidate.name === line.name && candidate.stationIds.join("\u0000") === path.join("\u0000"));
+    operationalLine.externalNetworkId = external.id;
+    operationalLine.externalLineId = externalLine?.id ?? null;
   }
 }
 
@@ -1379,6 +1385,7 @@ async function main() {
     throughServiceManagement = mountThroughServiceManagementPanel({
       container: $("scenario-through-services"),
       runtime,
+      getMapExport: () => currentMapExport,
       // The map-side through-route editor/view is being delivered separately. Until it supplies a validated
       // station/access mapping, operation stays visibly blocked instead of inventing one in the management UI.
       getOperationDraft: () => null,

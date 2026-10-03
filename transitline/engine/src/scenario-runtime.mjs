@@ -25,6 +25,12 @@ import {
   throughOperationReport,
   unbindThroughServiceFromLine,
 } from "./through-operation-integration.mjs";
+import {
+  buildThroughRouteFromSelection,
+  removeThroughRouteSelection,
+  saveThroughRouteSelection,
+  throughRoutePlanningReport,
+} from "./through-route-planning-integration.mjs";
 
 const VEHICLE_BY_PROFILE = Object.freeze({
   medium_steel: "medium_4car",
@@ -194,6 +200,7 @@ export class ScenarioRuntime {
       throughFareAgreements: this.game.throughFareAgreementReport(),
       throughOperatingSettlements: this.game.throughOperatingSettlementReport(null, 24),
       throughOperationBindings: throughOperationReport(this.operationalState),
+      throughRoutes: structuredClone(this.operationalState?.throughRoutePlans ?? []),
       corporateFinance: this.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(this.game.clock.minute / (30 * 1440)) - 11) }),
       assessments,
     });
@@ -861,6 +868,44 @@ export class ScenarioRuntime {
 
   trackAccessReport(serviceId = null) {
     return this.game.trackAccessReport(serviceId);
+  }
+
+  throughRoutePlanningReport(mapExport) {
+    return throughRoutePlanningReport(this.operationalState, {
+      pack: this.pack,
+      mapExport,
+      projects: this.game.projects,
+      operationalState: this.operationalState,
+      playerOperatorId: this.game.player.id,
+    });
+  }
+
+  saveThroughRouteSelection(selection, mapExport) {
+    return saveThroughRouteSelection(this.operationalState, selection, {
+      pack: this.pack,
+      mapExport,
+      projects: this.game.projects,
+      operationalState: this.operationalState,
+      playerOperatorId: this.game.player.id,
+    });
+  }
+
+  removeThroughRouteSelection(key) {
+    return removeThroughRouteSelection(this.operationalState, key, this.game.throughServices);
+  }
+
+  createThroughServiceFromSelection(selection, mapExport, input = {}, infrastructureCatalog = []) {
+    const options = {
+      pack: this.pack,
+      mapExport,
+      projects: this.game.projects,
+      operationalState: this.operationalState,
+      playerOperatorId: this.game.player.id,
+    };
+    const built = buildThroughRouteFromSelection(selection, options);
+    const service = this.game.createThroughService(built.route, input, infrastructureCatalog);
+    saveThroughRouteSelection(this.operationalState, selection, options);
+    return { route: structuredClone(built.route), service };
   }
 
   createThroughService(route, input = {}, infrastructureCatalog = []) {

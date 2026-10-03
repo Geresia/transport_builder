@@ -235,6 +235,17 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .through-services { margin-top: 7px; border-top: 1px solid var(--panel-line); padding-top: 5px; }
 .through-services summary { cursor: pointer; color: #8bc4ff; font-weight: 600; }
 #scenario-through-services { display: grid; gap: 7px; margin-top: 7px; }
+.through-route-planner { display: grid; gap: 6px; padding: 7px; border: 1px solid color-mix(in srgb, #67d7c4 42%, var(--chip-line)); border-radius: 6px; background: color-mix(in srgb, #67d7c4 4%, var(--chip)); }
+.through-route-planner > strong { color: #8ee7d8; }
+.through-route-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.through-route-fields label { display: grid; gap: 2px; color: var(--muted); font-size: 8px; }
+.through-route-fields input, .through-route-fields select, .through-route-leg-row select { min-width: 0; padding: 4px; color: var(--text); background: var(--chip); border: 1px solid var(--chip-line); border-radius: 4px; font: 9px var(--mono); }
+.through-route-legs, .through-route-saved { display: grid; gap: 4px; }
+.through-route-leg-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px auto; gap: 4px; }
+.through-route-leg-row button, .through-route-saved button { padding: 3px 5px; }
+.through-route-saved > div { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 4px; background: var(--chip); }
+.through-route-saved span { min-width: 0; overflow-wrap: anywhere; }
+.through-route-saved small { color: var(--ok); white-space: nowrap; }
 .through-service-card { display: grid; gap: 6px; padding: 7px; border: 1px solid color-mix(in srgb, #8bc4ff 38%, var(--chip-line)); border-radius: 6px; background: color-mix(in srgb, #8bc4ff 4%, var(--chip)); }
 .through-head { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
 .through-head strong { overflow-wrap: anywhere; }

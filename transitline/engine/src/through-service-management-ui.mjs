@@ -1,4 +1,4 @@
-import { vehicleRetrofitRequirements } from "./management/index.mjs";
+import { VEHICLE_MODELS, vehicleRetrofitRequirements } from "./management/index.mjs";
 
 const yen = new Intl.NumberFormat("ko-KR", { notation: "compact", style: "currency", currency: "JPY", maximumFractionDigits: 1 });
 const STATUS = Object.freeze({ draft: "초안", assessed: "심사 완료", approved: "승인·운행 가능", suspended: "운행 중단", terminated: "종료" });
@@ -83,7 +83,7 @@ function fareParticipantGroups(service) {
   return [...groups.values()].sort((a, b) => a.operatorId.localeCompare(b.operatorId));
 }
 
-export function mountThroughServiceManagementPanel({ container, runtime, getOperationDraft = () => null, onChange = () => {} }) {
+export function mountThroughServiceManagementPanel({ container, runtime, getMapExport = () => null, getOperationDraft = () => null, onChange = () => {} }) {
   let notice = "지도 직통 경로와 경영 계약을 연결하면 실제 운행정산이 시작됩니다.";
   let noticeError = false;
 
@@ -102,6 +102,81 @@ export function mountThroughServiceManagementPanel({ container, runtime, getOper
       return null;
     }
   };
+
+  function renderRoutePlanner() {
+    const section = el("section", "through-route-planner");
+    section.append(el("strong", "", "직통 경로 계획"));
+    let planning;
+    try { planning = runtime.throughRoutePlanningReport(getMapExport()); }
+    catch (error) {
+      section.append(el("div", "through-error", error.message));
+      return section;
+    }
+    const sources = planning.catalog.sources;
+    const routes = planning.routes;
+    if (routes.length) {
+      const saved = el("div", "through-route-saved");
+      for (const entry of routes) {
+        const linked = (runtime.report().throughServices ?? []).some((service) => service.throughRouteId === entry.route.throughRouteId);
+        const row = el("div");
+        row.append(el("span", "", `${entry.route.name ?? entry.key} · ${entry.route.legs.length}구간 · ${entry.route.dataQuality}`));
+        if (!linked) row.append(button("삭제", () => run(() => runtime.removeThroughRouteSelection(entry.key), "직통 경로 초안을 삭제했습니다."), false, "danger"));
+        else row.append(el("small", "", "서비스 연결됨"));
+        saved.append(row);
+      }
+      section.append(saved);
+    }
+    if (sources.length < 2) {
+      section.append(el("div", "through-note", "선택할 노선이 2개 이상 필요합니다. 계획선을 그리거나 노선을 개통하세요."));
+      return section;
+    }
+    const name = el("input"); name.placeholder = "경로 이름";
+    const key = el("input");
+    let sequence = routes.length + 1;
+    while (routes.some((entry) => entry.key === `through-route-${sequence}`)) sequence += 1;
+    key.value = `through-route-${sequence}`;
+    const model = el("select");
+    for (const vehicle of Object.values(VEHICLE_MODELS)) model.append(new Option(`${vehicle.id} · ${vehicle.cars}량`, vehicle.id));
+    const frequency = el("input"); frequency.type = "number"; frequency.min = "0.1"; frequency.step = "0.5"; frequency.value = "4";
+    const head = el("div", "through-route-fields");
+    for (const [label, control] of [["이름", name], ["저장 키", key], ["차량", model], ["시간당 편성", frequency]]) {
+      const wrap = el("label"); wrap.append(el("span", "", label), control); head.append(wrap);
+    }
+    section.append(head);
+    const legsBox = el("div", "through-route-legs");
+    const sourceLabel = (source) => {
+      const kind = source.sourceKind === "existing" ? "개통" : source.sourceKind === "external" ? "외부" : "계획";
+      const readiness = source.operationReady ? "운행연결" : source.sourceKind === "planned" ? "미건설" : "연결미완";
+      return `[${kind}/${readiness}] ${source.name}`;
+    };
+    const addLeg = (preferred = null) => {
+      const row = el("div", "through-route-leg-row");
+      const sourceSelect = el("select");
+      for (const source of sources) sourceSelect.append(new Option(sourceLabel(source), source.sourceId));
+      if (preferred) sourceSelect.value = preferred;
+      const direction = el("select");
+      direction.append(new Option("정방향", "forward"), new Option("역방향", "reverse"));
+      const remove = button("빼기", () => row.remove(), false, "danger");
+      row.append(sourceSelect, direction, remove);
+      legsBox.append(row);
+    };
+    addLeg(sources[0].sourceId);
+    addLeg(sources[1].sourceId);
+    const controls = el("div", "through-actions");
+    controls.append(
+      button("구간 추가", () => addLeg()),
+      button("경로 심사 생성", () => {
+        const legs = [...legsBox.children].map((row) => ({ sourceId: row.children[0].value, direction: row.children[1].value }));
+        return run(() => runtime.createThroughServiceFromSelection({ key: key.value, name: name.value || key.value, legs }, getMapExport(), {
+          operatorId: runtime.game.player.id,
+          guestModelId: model.value,
+          trainsPerHour: Number(frequency.value),
+        }), (result) => `직통 경로 ${result.route.throughRouteId}의 기술·권리 심사를 생성했습니다.`);
+      }),
+    );
+    section.append(legsBox, controls, el("div", "through-note", "외부선의 선로 접속·소유자·기술자료가 없으면 안전으로 가정하지 않고 자료 미상으로 심사됩니다."));
+    return section;
+  }
 
   function renderFare(card, row) {
     const { service, fare } = row;
@@ -236,6 +311,7 @@ export function mountThroughServiceManagementPanel({ container, runtime, getOper
     container.replaceChildren();
     const view = buildThroughServiceManagementView(runtime.report());
     container.append(el("div", noticeError ? "through-error" : "through-notice", notice));
+    container.append(renderRoutePlanner());
     if (!view.length) {
       container.append(el("div", "through-empty", "아직 직통 경로에서 생성된 경영 서비스가 없습니다."));
       return;
