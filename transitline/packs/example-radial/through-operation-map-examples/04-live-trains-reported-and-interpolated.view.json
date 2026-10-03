@@ -1,0 +1,315 @@
+{
+  "schema": "transitline.through-operation-map-view/1",
+  "contractVersion": 1,
+  "throughServiceId": "through-service:synthetic-radial-live",
+  "throughRouteId": "through-route:5d69d872afacce38",
+  "routeGeometryRevision": "through-route-revision:98cd767b7dfac2fd",
+  "serviceRouteGeometryRevision": "through-route-revision:98cd767b7dfac2fd",
+  "stale": false,
+  "name": "Spoke to its third station, then the ring arc from that station",
+  "status": "approved",
+  "statusLabel": "승인",
+  "assessmentVerdict": "possible",
+  "assessmentVerdictLabel": "가능",
+  "assessment": {
+    "violations": [],
+    "conditions": [],
+    "missingInputs": []
+  },
+  "operatorId": "player",
+  "playerOperatorId": "player",
+  "trainsPerHour": 4,
+  "retrofitProgramIds": [],
+  "legs": [
+    {
+      "legId": "through-leg:697824ad44dd5ebf",
+      "sequence": 0,
+      "sourceKind": "planned",
+      "sourceKindLabel": "계획선",
+      "connectedPlanId": "plan:0ecd95b1d71018d3",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "stationIds": [
+        "stn:cbcf9940f43b2516",
+        "stn:350dbe3a0551f15c",
+        "stn:1c7dc899c704388b"
+      ],
+      "alignment": [
+        [
+          0,
+          0
+        ],
+        [
+          0.02,
+          0
+        ],
+        [
+          0.04347,
+          0.01165
+        ]
+      ],
+      "lengthMeters": 5137.5,
+      "infrastructureOwnerId": "player",
+      "operatorId": "player",
+      "role": "player-owned-player-operated",
+      "compatibility": "compatible",
+      "technicalVerdict": "possible",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "player-owned-player-operated",
+      "display": "line",
+      "style": {
+        "key": "player-owned-player-operated",
+        "label": "자기 선로 · 자기 운행",
+        "color": "#2fbf71",
+        "dash": [],
+        "width": 5
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "legId": "through-leg:5e57c38d721d0407",
+      "sequence": 1,
+      "sourceKind": "planned",
+      "sourceKindLabel": "계획선",
+      "connectedPlanId": "plan:0ba95ad4e2dead9a",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "stationIds": [
+        "stn:1c7dc899c704388b",
+        "stn:366c6db4372e1252",
+        "stn:3c19e32f848edd19",
+        "stn:b5569be6e66d0adc"
+      ],
+      "alignment": [
+        [
+          0.04347,
+          0.01165
+        ],
+        [
+          0.03182,
+          0.03182
+        ],
+        [
+          0.01165,
+          0.04347
+        ],
+        [
+          -0.01165,
+          0.04347
+        ]
+      ],
+      "lengthMeters": 7770.8,
+      "infrastructureOwnerId": "player",
+      "operatorId": "player",
+      "role": "player-owned-player-operated",
+      "compatibility": "compatible",
+      "technicalVerdict": "possible",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "player-owned-player-operated",
+      "display": "line",
+      "style": {
+        "key": "player-owned-player-operated",
+        "label": "자기 선로 · 자기 운행",
+        "color": "#2fbf71",
+        "dash": [],
+        "width": 5
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "handovers": [
+    {
+      "handoverId": "through-handover:e13b696329fcd2a1",
+      "sequence": 0,
+      "fromLegId": "through-leg:697824ad44dd5ebf",
+      "toLegId": "through-leg:5e57c38d721d0407",
+      "stationId": "stn:1c7dc899c704388b",
+      "physicalConnection": true,
+      "connectionState": "joined",
+      "gapMeters": 0,
+      "at": [
+        0.04347,
+        0.01165
+      ],
+      "atBasis": "handover-location",
+      "fromEnd": [
+        0.04347,
+        0.01165
+      ],
+      "toStart": [
+        0.04347,
+        0.01165
+      ],
+      "issues": [],
+      "style": {
+        "key": "joined",
+        "label": "접속 확인",
+        "color": "#2fbf71",
+        "glyph": "●"
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "trainMarkers": [
+    {
+      "trainRunId": "run:a",
+      "throughServiceId": "through-service:synthetic-radial-live",
+      "legId": "through-leg:697824ad44dd5ebf",
+      "progress": null,
+      "direction": "forward",
+      "delayMinutes": 0,
+      "location": [
+        0,
+        0
+      ],
+      "locationBasis": "reported",
+      "drawable": true,
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "trainRunId": "run:b",
+      "throughServiceId": "through-service:synthetic-radial-live",
+      "legId": "through-leg:5e57c38d721d0407",
+      "progress": 0.25,
+      "direction": "reverse",
+      "delayMinutes": 4,
+      "location": [
+        0.005821,
+        0.04347
+      ],
+      "locationBasis": "interpolated",
+      "drawable": true,
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "latestSettlement": null,
+  "operatingTotals": null,
+  "live": {
+    "operatingDay": 5,
+    "serviceMinute": 540,
+    "passengers": 1200,
+    "trainKm": 96,
+    "trackAccessUsage": []
+  },
+  "warnings": [],
+  "unknown": [
+    "latestSettlement",
+    "operatingTotals"
+  ],
+  "unknownReasons": {
+    "latestSettlement": "no-settlement-for-service",
+    "operatingTotals": "service-has-no-operating-totals"
+  },
+  "source": {
+    "case": [
+      "approved-normal",
+      "live-train-reported",
+      "live-train-interpolated"
+    ],
+    "synthetic": true,
+    "note": "Synthetic management report written by hand for this example. It was not produced by the management engine, and the through route it runs over is a real through-route example of this pack.",
+    "throughRouteExample": "01-spoke-to-ring-joined",
+    "input": {
+      "service": {
+        "schema": "transitline.through-service/1",
+        "contractVersion": 1,
+        "throughServiceId": "through-service:synthetic-radial-live",
+        "throughRouteId": "through-route:5d69d872afacce38",
+        "routeGeometryRevision": "through-route-revision:98cd767b7dfac2fd",
+        "status": "approved",
+        "guestModelId": "medium_4car",
+        "trainsPerHour": 4,
+        "operatorId": "player",
+        "legs": [
+          {
+            "legId": "through-leg:697824ad44dd5ebf",
+            "sourceKind": "planned",
+            "infrastructureOwnerId": "player",
+            "operatorId": "player",
+            "compatibility": "compatible",
+            "technicalCompatibility": {
+              "verdict": "possible"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          },
+          {
+            "legId": "through-leg:5e57c38d721d0407",
+            "sourceKind": "planned",
+            "infrastructureOwnerId": "player",
+            "operatorId": "player",
+            "compatibility": "compatible",
+            "technicalCompatibility": {
+              "verdict": "possible"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          }
+        ],
+        "handoverIds": [
+          "through-handover:e13b696329fcd2a1"
+        ],
+        "trackAccessAgreementIds": [],
+        "approvedRetrofitProgramIds": [],
+        "assessment": {
+          "verdict": "possible",
+          "violations": [],
+          "conditions": [],
+          "missingInputs": []
+        }
+      },
+      "settlements": [],
+      "liveActuals": {
+        "operatingDay": 5,
+        "serviceMinute": 540,
+        "passengers": 1200,
+        "trainKm": 96,
+        "trackAccessUsage": [],
+        "trains": [
+          {
+            "trainRunId": "run:a",
+            "throughServiceId": "through-service:synthetic-radial-live",
+            "legId": "through-leg:697824ad44dd5ebf",
+            "progress": null,
+            "location": [
+              0,
+              0
+            ],
+            "direction": "forward",
+            "delayMinutes": 0
+          },
+          {
+            "trainRunId": "run:b",
+            "throughServiceId": "through-service:synthetic-radial-live",
+            "legId": "through-leg:5e57c38d721d0407",
+            "progress": 0.25,
+            "location": null,
+            "direction": "reverse",
+            "delayMinutes": 4
+          }
+        ]
+      },
+      "playerOperatorId": "player"
+    },
+    "generatedBy": "scripts/build-through-operation-map-examples.mjs"
+  }
+}

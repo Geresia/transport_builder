@@ -1,0 +1,434 @@
+{
+  "schema": "transitline.through-operation-map-view/1",
+  "contractVersion": 1,
+  "throughServiceId": "through-service:synthetic-tokyo-three-legs",
+  "throughRouteId": "through-route:20b472b2ecebde64",
+  "routeGeometryRevision": "through-route-revision:e6323ff3a260501d",
+  "serviceRouteGeometryRevision": "through-route-revision:e6323ff3a260501d",
+  "stale": false,
+  "name": "Planned, existing, planned (legs listed out of order, sequence is explicit)",
+  "status": "assessed",
+  "statusLabel": "판정됨",
+  "assessmentVerdict": "unknown",
+  "assessmentVerdictLabel": "미상",
+  "assessment": {
+    "violations": [],
+    "conditions": [],
+    "missingInputs": [
+      "handover:through-handover:009c24059a5ee183:physicalConnection",
+      "handover:through-handover:19210f94c228817e:physicalConnection"
+    ]
+  },
+  "operatorId": "player",
+  "playerOperatorId": "player",
+  "trainsPerHour": 4,
+  "retrofitProgramIds": [],
+  "legs": [
+    {
+      "legId": "through-leg:559e4076e230e7fc",
+      "sequence": 0,
+      "sourceKind": "planned",
+      "sourceKindLabel": "계획선",
+      "connectedPlanId": "plan:b9b153e3df14331d",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "stationIds": [
+        "stn:b00d2c67f5415425",
+        "stn:b811921b26eaebbd",
+        "stn:c247c3f5a3f53c4b"
+      ],
+      "alignment": [
+        [
+          139.81276,
+          35.67399
+        ],
+        [
+          139.81254,
+          35.70474
+        ],
+        [
+          139.87118,
+          35.7136
+        ]
+      ],
+      "lengthMeters": 8804.7,
+      "infrastructureOwnerId": "player",
+      "operatorId": "player",
+      "role": "player-owned-player-operated",
+      "compatibility": "compatible",
+      "technicalVerdict": "possible",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "player-owned-player-operated",
+      "display": "line",
+      "style": {
+        "key": "player-owned-player-operated",
+        "label": "자기 선로 · 자기 운행",
+        "color": "#2fbf71",
+        "dash": [],
+        "width": 5
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "legId": "through-leg:aecf361ecf87b520",
+      "sequence": 1,
+      "sourceKind": "external",
+      "sourceKindLabel": "외부 철도",
+      "connectedPlanId": null,
+      "connectedProjectId": null,
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "stationIds": [
+        "kanto-12203",
+        "ward-edogawa",
+        "ward-koto",
+        "ward-sumida",
+        "ward-koto",
+        "ward-chuo",
+        "ward-chiyoda",
+        "ward-shinjuku"
+      ],
+      "alignment": null,
+      "lengthMeters": null,
+      "infrastructureOwnerId": "operator:synthetic-external",
+      "operatorId": "player",
+      "role": "external-owned-player-operated",
+      "compatibility": "unknown",
+      "technicalVerdict": "unknown",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "unknown",
+      "display": "none",
+      "style": {
+        "key": "no-alignment",
+        "label": "선형 없음 (경계 마커로 표시)",
+        "color": "#8c93a4",
+        "dash": [],
+        "width": 0
+      },
+      "unknown": [
+        "alignment"
+      ],
+      "unknownReasons": {
+        "alignment": "external-location-basis:demand-node"
+      }
+    },
+    {
+      "legId": "through-leg:c8640bdca936cfc2",
+      "sequence": 2,
+      "sourceKind": "planned",
+      "sourceKindLabel": "계획선",
+      "connectedPlanId": "plan:fecf90025bb0baa8",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "stationIds": [
+        "stn:e64d5ed374ba5971",
+        "stn:f2c1d30755698c75",
+        "stn:2dc10901f79065b3"
+      ],
+      "alignment": [
+        [
+          139.692896,
+          35.687146
+        ],
+        [
+          139.698786,
+          35.688025
+        ],
+        [
+          139.697945,
+          35.695943
+        ],
+        [
+          139.703835,
+          35.693303
+        ]
+      ],
+      "lengthMeters": 2032.1,
+      "infrastructureOwnerId": "player",
+      "operatorId": "player",
+      "role": "player-owned-player-operated",
+      "compatibility": "unknown",
+      "technicalVerdict": "unknown",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "unknown",
+      "display": "line",
+      "style": {
+        "key": "unknown",
+        "label": "판정 미상",
+        "color": "#c3c9d6",
+        "dash": [
+          2,
+          4
+        ],
+        "width": 4
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "handovers": [
+    {
+      "handoverId": "through-handover:19210f94c228817e",
+      "sequence": 0,
+      "fromLegId": "through-leg:559e4076e230e7fc",
+      "toLegId": "through-leg:aecf361ecf87b520",
+      "stationId": null,
+      "physicalConnection": null,
+      "connectionState": "unknown",
+      "gapMeters": null,
+      "at": [
+        139.87118,
+        35.7136
+      ],
+      "atBasis": "from-leg-end",
+      "fromEnd": [
+        139.87118,
+        35.7136
+      ],
+      "toStart": null,
+      "issues": [
+        {
+          "kind": "missing",
+          "code": "physicalConnection"
+        }
+      ],
+      "style": {
+        "key": "unknown",
+        "label": "접속 미상",
+        "color": "#ffb703",
+        "glyph": "?"
+      },
+      "unknown": [
+        "physicalConnection"
+      ],
+      "unknownReasons": {
+        "physicalConnection": "external-topology-not-in-source"
+      }
+    },
+    {
+      "handoverId": "through-handover:009c24059a5ee183",
+      "sequence": 1,
+      "fromLegId": "through-leg:aecf361ecf87b520",
+      "toLegId": "through-leg:c8640bdca936cfc2",
+      "stationId": null,
+      "physicalConnection": null,
+      "connectionState": "unknown",
+      "gapMeters": null,
+      "at": [
+        139.692896,
+        35.687146
+      ],
+      "atBasis": "to-leg-start",
+      "fromEnd": null,
+      "toStart": [
+        139.692896,
+        35.687146
+      ],
+      "issues": [
+        {
+          "kind": "missing",
+          "code": "physicalConnection"
+        }
+      ],
+      "style": {
+        "key": "unknown",
+        "label": "접속 미상",
+        "color": "#ffb703",
+        "glyph": "?"
+      },
+      "unknown": [
+        "physicalConnection"
+      ],
+      "unknownReasons": {
+        "physicalConnection": "external-topology-not-in-source"
+      }
+    }
+  ],
+  "trainMarkers": [
+    {
+      "trainRunId": "run:ext",
+      "throughServiceId": "through-service:synthetic-tokyo-three-legs",
+      "legId": "through-leg:aecf361ecf87b520",
+      "progress": null,
+      "direction": "forward",
+      "delayMinutes": null,
+      "location": null,
+      "locationBasis": null,
+      "drawable": false,
+      "unknown": [
+        "location"
+      ],
+      "unknownReasons": {
+        "location": "leg-has-no-alignment"
+      }
+    },
+    {
+      "trainRunId": "run:planned",
+      "throughServiceId": "through-service:synthetic-tokyo-three-legs",
+      "legId": "through-leg:559e4076e230e7fc",
+      "progress": 0.5,
+      "direction": "forward",
+      "delayMinutes": 2,
+      "location": [
+        139.823244,
+        35.706357
+      ],
+      "locationBasis": "interpolated",
+      "drawable": true,
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "latestSettlement": null,
+  "operatingTotals": null,
+  "live": {
+    "operatingDay": 7,
+    "serviceMinute": 480,
+    "passengers": null,
+    "trainKm": null,
+    "trackAccessUsage": []
+  },
+  "warnings": [
+    {
+      "code": "leg-not-drawable",
+      "legId": "through-leg:aecf361ecf87b520",
+      "reason": "external-location-basis:demand-node"
+    }
+  ],
+  "unknown": [
+    "latestSettlement",
+    "operatingTotals"
+  ],
+  "unknownReasons": {
+    "latestSettlement": "no-settlement-for-service",
+    "operatingTotals": "service-has-no-operating-totals"
+  },
+  "source": {
+    "case": [
+      "external-included",
+      "connection-unknown",
+      "external-no-alignment-and-no-train-position",
+      "live-train-interpolated"
+    ],
+    "synthetic": true,
+    "note": "Synthetic management report written by hand for this example. It was not produced by the management engine, and the through route it runs over is a real through-route example of this pack.",
+    "throughRouteExample": "03-east-river-koto-shinjuku-three-legs",
+    "input": {
+      "service": {
+        "schema": "transitline.through-service/1",
+        "contractVersion": 1,
+        "throughServiceId": "through-service:synthetic-tokyo-three-legs",
+        "throughRouteId": "through-route:20b472b2ecebde64",
+        "routeGeometryRevision": "through-route-revision:e6323ff3a260501d",
+        "status": "assessed",
+        "guestModelId": "medium_4car",
+        "trainsPerHour": 4,
+        "operatorId": "player",
+        "legs": [
+          {
+            "legId": "through-leg:559e4076e230e7fc",
+            "sourceKind": "planned",
+            "infrastructureOwnerId": "player",
+            "operatorId": "player",
+            "compatibility": "compatible",
+            "technicalCompatibility": {
+              "verdict": "possible"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          },
+          {
+            "legId": "through-leg:aecf361ecf87b520",
+            "sourceKind": "external",
+            "infrastructureOwnerId": "operator:synthetic-external",
+            "operatorId": "player",
+            "compatibility": "unknown",
+            "technicalCompatibility": {
+              "verdict": "unknown"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          },
+          {
+            "legId": "through-leg:c8640bdca936cfc2",
+            "sourceKind": "planned",
+            "infrastructureOwnerId": "player",
+            "operatorId": "player",
+            "compatibility": "unknown",
+            "technicalCompatibility": {
+              "verdict": "unknown"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          }
+        ],
+        "handoverIds": [
+          "through-handover:19210f94c228817e",
+          "through-handover:009c24059a5ee183"
+        ],
+        "trackAccessAgreementIds": [],
+        "approvedRetrofitProgramIds": [],
+        "assessment": {
+          "verdict": "unknown",
+          "violations": [],
+          "conditions": [],
+          "missingInputs": [
+            "handover:through-handover:19210f94c228817e:physicalConnection",
+            "handover:through-handover:009c24059a5ee183:physicalConnection"
+          ]
+        }
+      },
+      "settlements": [],
+      "liveActuals": {
+        "operatingDay": 7,
+        "serviceMinute": 480,
+        "passengers": null,
+        "trainKm": null,
+        "trackAccessUsage": [],
+        "trains": [
+          {
+            "trainRunId": "run:ext",
+            "throughServiceId": "through-service:synthetic-tokyo-three-legs",
+            "legId": "through-leg:aecf361ecf87b520",
+            "progress": null,
+            "location": null,
+            "direction": "forward",
+            "delayMinutes": null
+          },
+          {
+            "trainRunId": "run:planned",
+            "throughServiceId": "through-service:synthetic-tokyo-three-legs",
+            "legId": "through-leg:559e4076e230e7fc",
+            "progress": 0.5,
+            "location": null,
+            "direction": "forward",
+            "delayMinutes": 2
+          }
+        ]
+      },
+      "playerOperatorId": "player"
+    },
+    "generatedBy": "scripts/build-through-operation-map-examples.mjs"
+  }
+}

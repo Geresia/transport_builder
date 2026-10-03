@@ -1,0 +1,250 @@
+{
+  "schema": "transitline.through-operation-map-view/1",
+  "contractVersion": 1,
+  "throughServiceId": "through-service:synthetic-corridor-suspended",
+  "throughRouteId": "through-route:1ec0b464d02d3b46",
+  "routeGeometryRevision": "through-route-revision:00b2d2f676449a8c",
+  "serviceRouteGeometryRevision": "through-route-revision:00b2d2f676449a8c",
+  "stale": false,
+  "name": "Corridor trunk run as two legs",
+  "status": "suspended",
+  "statusLabel": "운행 중단",
+  "assessmentVerdict": "possible",
+  "assessmentVerdictLabel": "가능",
+  "assessment": {
+    "violations": [],
+    "conditions": [],
+    "missingInputs": []
+  },
+  "operatorId": "player",
+  "playerOperatorId": "player",
+  "trainsPerHour": 4,
+  "retrofitProgramIds": [],
+  "legs": [
+    {
+      "legId": "through-leg:4aaff69660f8ea84",
+      "sequence": 0,
+      "sourceKind": "planned",
+      "sourceKindLabel": "계획선",
+      "connectedPlanId": "plan:6c4c613145a2a1b3",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "stationIds": [
+        "stn:8442bc4fe5e68e95",
+        "stn:76a46fe9f1760313",
+        "stn:681d3c2bc9c10e71"
+      ],
+      "alignment": [
+        [
+          -0.05,
+          0
+        ],
+        [
+          -0.03,
+          0
+        ],
+        [
+          -0.01,
+          0
+        ]
+      ],
+      "lengthMeters": 4447.8,
+      "infrastructureOwnerId": "player",
+      "operatorId": "player",
+      "role": "player-owned-player-operated",
+      "compatibility": "compatible",
+      "technicalVerdict": "possible",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "suspended",
+      "display": "line",
+      "style": {
+        "key": "suspended",
+        "label": "운행 중단",
+        "color": "#ff9f1c",
+        "dash": [
+          3,
+          3
+        ],
+        "width": 5
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "legId": "through-leg:8517197e67cee160",
+      "sequence": 1,
+      "sourceKind": "planned",
+      "sourceKindLabel": "계획선",
+      "connectedPlanId": "plan:6c4c613145a2a1b3",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "stationIds": [
+        "stn:681d3c2bc9c10e71",
+        "stn:da06a0704e508dea"
+      ],
+      "alignment": [
+        [
+          -0.01,
+          0
+        ],
+        [
+          0.01,
+          0
+        ]
+      ],
+      "lengthMeters": 2223.9,
+      "infrastructureOwnerId": "player",
+      "operatorId": "player",
+      "role": "player-owned-player-operated",
+      "compatibility": "compatible",
+      "technicalVerdict": "possible",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "suspended",
+      "display": "line",
+      "style": {
+        "key": "suspended",
+        "label": "운행 중단",
+        "color": "#ff9f1c",
+        "dash": [
+          3,
+          3
+        ],
+        "width": 5
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "handovers": [
+    {
+      "handoverId": "through-handover:651b0ae3e0dbf5dd",
+      "sequence": 0,
+      "fromLegId": "through-leg:4aaff69660f8ea84",
+      "toLegId": "through-leg:8517197e67cee160",
+      "stationId": "stn:681d3c2bc9c10e71",
+      "physicalConnection": true,
+      "connectionState": "joined",
+      "gapMeters": 0,
+      "at": [
+        -0.01,
+        0
+      ],
+      "atBasis": "handover-location",
+      "fromEnd": [
+        -0.01,
+        0
+      ],
+      "toStart": [
+        -0.01,
+        0
+      ],
+      "issues": [],
+      "style": {
+        "key": "joined",
+        "label": "접속 확인",
+        "color": "#2fbf71",
+        "glyph": "●"
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "trainMarkers": [],
+  "latestSettlement": null,
+  "operatingTotals": {
+    "days": 2,
+    "passengers": 4000,
+    "trainKm": 400,
+    "lastOperatingDay": 8
+  },
+  "live": null,
+  "warnings": [],
+  "unknown": [
+    "latestSettlement"
+  ],
+  "unknownReasons": {
+    "latestSettlement": "no-settlement-for-service"
+  },
+  "source": {
+    "case": [
+      "suspended"
+    ],
+    "synthetic": true,
+    "note": "Synthetic management report written by hand for this example. It was not produced by the management engine, and the through route it runs over is a real through-route example of this pack.",
+    "throughRouteExample": "01-corridor-trunk-split",
+    "input": {
+      "service": {
+        "schema": "transitline.through-service/1",
+        "contractVersion": 1,
+        "throughServiceId": "through-service:synthetic-corridor-suspended",
+        "throughRouteId": "through-route:1ec0b464d02d3b46",
+        "routeGeometryRevision": "through-route-revision:00b2d2f676449a8c",
+        "status": "suspended",
+        "guestModelId": "medium_4car",
+        "trainsPerHour": 4,
+        "operatorId": "player",
+        "legs": [
+          {
+            "legId": "through-leg:4aaff69660f8ea84",
+            "sourceKind": "planned",
+            "infrastructureOwnerId": "player",
+            "operatorId": "player",
+            "compatibility": "compatible",
+            "technicalCompatibility": {
+              "verdict": "possible"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          },
+          {
+            "legId": "through-leg:8517197e67cee160",
+            "sourceKind": "planned",
+            "infrastructureOwnerId": "player",
+            "operatorId": "player",
+            "compatibility": "compatible",
+            "technicalCompatibility": {
+              "verdict": "possible"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          }
+        ],
+        "handoverIds": [
+          "through-handover:651b0ae3e0dbf5dd"
+        ],
+        "trackAccessAgreementIds": [],
+        "approvedRetrofitProgramIds": [],
+        "assessment": {
+          "verdict": "possible",
+          "violations": [],
+          "conditions": [],
+          "missingInputs": []
+        },
+        "throughOperatingTotals": {
+          "days": 2,
+          "passengers": 4000,
+          "trainKm": 400
+        },
+        "lastThroughOperatingDay": 8
+      },
+      "settlements": [],
+      "liveActuals": null,
+      "playerOperatorId": "player"
+    },
+    "generatedBy": "scripts/build-through-operation-map-examples.mjs"
+  }
+}

@@ -15,6 +15,7 @@
     "construction-workfront-examples": "node --max-old-space-size=6144 scripts/build-construction-workfront-examples.mjs",
     "through-route-examples": "node scripts/build-through-route-examples.mjs",
     "external-rail-technical-examples": "node scripts/build-external-rail-technical-examples.mjs",
+    "through-operation-map-examples": "node scripts/build-through-operation-map-examples.mjs",
     "regen": "node packs/example-radial/generate.mjs && node packs/example-corridor/generate.mjs"
   }
 }

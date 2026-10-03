@@ -1,0 +1,254 @@
+{
+  "schema": "transitline.through-operation-map-view/1",
+  "contractVersion": 1,
+  "throughServiceId": "through-service:synthetic-tokyo-separated",
+  "throughRouteId": "through-route:f7a00a8d3526aee7",
+  "routeGeometryRevision": "through-route-revision:142ff3487a27198e",
+  "serviceRouteGeometryRevision": "through-route-revision:142ff3487a27198e",
+  "stale": false,
+  "name": "Bay ward spine, then East river crossing (ends far apart)",
+  "status": "assessed",
+  "statusLabel": "판정됨",
+  "assessmentVerdict": "impossible",
+  "assessmentVerdictLabel": "불가능",
+  "assessment": {
+    "violations": [
+      "handover:through-handover:79c8e6b0cb953332:physically-separated"
+    ],
+    "conditions": [],
+    "missingInputs": []
+  },
+  "operatorId": "player",
+  "playerOperatorId": "player",
+  "trainsPerHour": 4,
+  "retrofitProgramIds": [],
+  "legs": [
+    {
+      "legId": "through-leg:861695fac8869704",
+      "sequence": 0,
+      "sourceKind": "planned",
+      "sourceKindLabel": "계획선",
+      "connectedPlanId": "plan:476450d54beaa4db",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "stationIds": [
+        "stn:3001c2e7fe7042e5",
+        "stn:e6af0a6ac3c14818",
+        "stn:f6cfe8dc76919186",
+        "stn:d9f55d4b9cd86b71"
+      ],
+      "alignment": [
+        [
+          139.72365,
+          35.58202
+        ],
+        [
+          139.72055,
+          35.61546
+        ],
+        [
+          139.72971,
+          35.65381
+        ],
+        [
+          139.75764,
+          35.69088
+        ]
+      ],
+      "lengthMeters": 12905.6,
+      "infrastructureOwnerId": "player",
+      "operatorId": "player",
+      "role": "player-owned-player-operated",
+      "compatibility": "compatible",
+      "technicalVerdict": "possible",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "player-owned-player-operated",
+      "display": "line",
+      "style": {
+        "key": "player-owned-player-operated",
+        "label": "자기 선로 · 자기 운행",
+        "color": "#2fbf71",
+        "dash": [],
+        "width": 5
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "legId": "through-leg:ebb8249642a3d200",
+      "sequence": 1,
+      "sourceKind": "planned",
+      "sourceKindLabel": "계획선",
+      "connectedPlanId": "plan:b9b153e3df14331d",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "stationIds": [
+        "stn:b00d2c67f5415425",
+        "stn:b811921b26eaebbd",
+        "stn:c247c3f5a3f53c4b"
+      ],
+      "alignment": [
+        [
+          139.81276,
+          35.67399
+        ],
+        [
+          139.81254,
+          35.70474
+        ],
+        [
+          139.87118,
+          35.7136
+        ]
+      ],
+      "lengthMeters": 8804.7,
+      "infrastructureOwnerId": "player",
+      "operatorId": "player",
+      "role": "player-owned-player-operated",
+      "compatibility": "compatible",
+      "technicalVerdict": "possible",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "player-owned-player-operated",
+      "display": "line",
+      "style": {
+        "key": "player-owned-player-operated",
+        "label": "자기 선로 · 자기 운행",
+        "color": "#2fbf71",
+        "dash": [],
+        "width": 5
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "handovers": [
+    {
+      "handoverId": "through-handover:79c8e6b0cb953332",
+      "sequence": 0,
+      "fromLegId": "through-leg:861695fac8869704",
+      "toLegId": "through-leg:ebb8249642a3d200",
+      "stationId": null,
+      "physicalConnection": false,
+      "connectionState": "separated",
+      "gapMeters": 5320.9,
+      "at": [
+        139.75764,
+        35.69088
+      ],
+      "atBasis": "from-leg-end",
+      "fromEnd": [
+        139.75764,
+        35.69088
+      ],
+      "toStart": [
+        139.81276,
+        35.67399
+      ],
+      "issues": [
+        {
+          "kind": "violation",
+          "code": "physically-separated"
+        }
+      ],
+      "style": {
+        "key": "separated",
+        "label": "분리됨",
+        "color": "#e5484d",
+        "glyph": "✕"
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "trainMarkers": [],
+  "latestSettlement": null,
+  "operatingTotals": null,
+  "live": null,
+  "warnings": [],
+  "unknown": [
+    "latestSettlement",
+    "operatingTotals"
+  ],
+  "unknownReasons": {
+    "latestSettlement": "no-settlement-for-service",
+    "operatingTotals": "service-has-no-operating-totals"
+  },
+  "source": {
+    "case": [
+      "physically-separated"
+    ],
+    "synthetic": true,
+    "note": "Synthetic management report written by hand for this example. It was not produced by the management engine, and the through route it runs over is a real through-route example of this pack.",
+    "throughRouteExample": "01-bay-spine-east-river-separated",
+    "input": {
+      "service": {
+        "schema": "transitline.through-service/1",
+        "contractVersion": 1,
+        "throughServiceId": "through-service:synthetic-tokyo-separated",
+        "throughRouteId": "through-route:f7a00a8d3526aee7",
+        "routeGeometryRevision": "through-route-revision:142ff3487a27198e",
+        "status": "assessed",
+        "guestModelId": "medium_4car",
+        "trainsPerHour": 4,
+        "operatorId": "player",
+        "legs": [
+          {
+            "legId": "through-leg:861695fac8869704",
+            "sourceKind": "planned",
+            "infrastructureOwnerId": "player",
+            "operatorId": "player",
+            "compatibility": "compatible",
+            "technicalCompatibility": {
+              "verdict": "possible"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          },
+          {
+            "legId": "through-leg:ebb8249642a3d200",
+            "sourceKind": "planned",
+            "infrastructureOwnerId": "player",
+            "operatorId": "player",
+            "compatibility": "compatible",
+            "technicalCompatibility": {
+              "verdict": "possible"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          }
+        ],
+        "handoverIds": [
+          "through-handover:79c8e6b0cb953332"
+        ],
+        "trackAccessAgreementIds": [],
+        "approvedRetrofitProgramIds": [],
+        "assessment": {
+          "verdict": "impossible",
+          "violations": [
+            "handover:through-handover:79c8e6b0cb953332:physically-separated"
+          ],
+          "conditions": [],
+          "missingInputs": []
+        }
+      },
+      "settlements": [],
+      "liveActuals": null,
+      "playerOperatorId": "player"
+    },
+    "generatedBy": "scripts/build-through-operation-map-examples.mjs"
+  }
+}

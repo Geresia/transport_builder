@@ -1,0 +1,340 @@
+{
+  "schema": "transitline.through-operation-map-view/1",
+  "contractVersion": 1,
+  "throughServiceId": "through-service:synthetic-tokyo-approved",
+  "throughRouteId": "through-route:a1932a564968024c",
+  "routeGeometryRevision": "through-route-revision:735da1cccc010cd6",
+  "serviceRouteGeometryRevision": "through-route-revision:735da1cccc010cd6",
+  "stale": false,
+  "name": "One plan run as two legs that meet at a shared station",
+  "status": "approved",
+  "statusLabel": "승인",
+  "assessmentVerdict": "possible",
+  "assessmentVerdictLabel": "가능",
+  "assessment": {
+    "violations": [],
+    "conditions": [],
+    "missingInputs": []
+  },
+  "operatorId": "player",
+  "playerOperatorId": "player",
+  "trainsPerHour": 4,
+  "retrofitProgramIds": [],
+  "legs": [
+    {
+      "legId": "through-leg:3be7ab0a0aa4ea24",
+      "sequence": 0,
+      "sourceKind": "planned",
+      "sourceKindLabel": "계획선",
+      "connectedPlanId": "plan:d085337f3df72aa5",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "stationIds": [
+        "stn:57ff38745a8ebf96",
+        "stn:aebbed68ee24b09a",
+        "stn:3b61b41b43cf91e5",
+        "stn:cdb36c5e86fd479c"
+      ],
+      "alignment": [
+        [
+          139.63564,
+          35.63909
+        ],
+        [
+          139.68704,
+          35.62925
+        ],
+        [
+          139.69432,
+          35.66918
+        ],
+        [
+          139.70422,
+          35.70441
+        ]
+      ],
+      "lengthMeters": 13278.9,
+      "infrastructureOwnerId": "player",
+      "operatorId": "player",
+      "role": "player-owned-player-operated",
+      "compatibility": "compatible",
+      "technicalVerdict": "possible",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "player-owned-player-operated",
+      "display": "line",
+      "style": {
+        "key": "player-owned-player-operated",
+        "label": "자기 선로 · 자기 운행",
+        "color": "#2fbf71",
+        "dash": [],
+        "width": 5
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "legId": "through-leg:3abdf83efc7d4bb0",
+      "sequence": 1,
+      "sourceKind": "planned",
+      "sourceKindLabel": "계획선",
+      "connectedPlanId": "plan:d085337f3df72aa5",
+      "connectedProjectId": null,
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "stationIds": [
+        "stn:cdb36c5e86fd479c",
+        "stn:abbc17363a4d4580",
+        "stn:87aaf5a5cdb7fd2b"
+      ],
+      "alignment": [
+        [
+          139.70422,
+          35.70441
+        ],
+        [
+          139.74508,
+          35.71883
+        ],
+        [
+          139.77784,
+          35.71696
+        ]
+      ],
+      "lengthMeters": 6987.4,
+      "infrastructureOwnerId": "player",
+      "operatorId": "player",
+      "role": "player-owned-player-operated",
+      "compatibility": "compatible",
+      "technicalVerdict": "possible",
+      "infrastructureStatus": "available",
+      "capacityTrainsPerHour": 12,
+      "trackAccessAgreementId": null,
+      "agreementUsage": null,
+      "issues": [],
+      "conditional": false,
+      "stateKey": "player-owned-player-operated",
+      "display": "line",
+      "style": {
+        "key": "player-owned-player-operated",
+        "label": "자기 선로 · 자기 운행",
+        "color": "#2fbf71",
+        "dash": [],
+        "width": 5
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "handovers": [
+    {
+      "handoverId": "through-handover:8ae4ddcf89db8755",
+      "sequence": 0,
+      "fromLegId": "through-leg:3be7ab0a0aa4ea24",
+      "toLegId": "through-leg:3abdf83efc7d4bb0",
+      "stationId": "stn:cdb36c5e86fd479c",
+      "physicalConnection": true,
+      "connectionState": "joined",
+      "gapMeters": 0,
+      "at": [
+        139.70422,
+        35.70441
+      ],
+      "atBasis": "handover-location",
+      "fromEnd": [
+        139.70422,
+        35.70441
+      ],
+      "toStart": [
+        139.70422,
+        35.70441
+      ],
+      "issues": [],
+      "style": {
+        "key": "joined",
+        "label": "접속 확인",
+        "color": "#2fbf71",
+        "glyph": "●"
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "trainMarkers": [
+    {
+      "trainRunId": "run:1",
+      "throughServiceId": "through-service:synthetic-tokyo-approved",
+      "legId": "through-leg:3be7ab0a0aa4ea24",
+      "progress": 0.4,
+      "direction": "forward",
+      "delayMinutes": 0,
+      "location": [
+        139.68704,
+        35.62925
+      ],
+      "locationBasis": "reported",
+      "drawable": true,
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "latestSettlement": {
+    "settlementId": "through-operation:through-service:synthetic-tokyo-approved:42",
+    "operatingDay": 42,
+    "settledAtMinute": 61920,
+    "passengers": 12400,
+    "trainKm": 492,
+    "carKm": 1968,
+    "trackAccessUsage": []
+  },
+  "operatingTotals": {
+    "days": 3,
+    "passengers": 36000,
+    "trainKm": 1460,
+    "lastOperatingDay": 42
+  },
+  "live": {
+    "operatingDay": 43,
+    "serviceMinute": 615,
+    "passengers": 3100,
+    "trainKm": 121.5,
+    "trackAccessUsage": []
+  },
+  "warnings": [],
+  "unknown": [],
+  "unknownReasons": {},
+  "source": {
+    "case": [
+      "approved-normal",
+      "recent-settlement",
+      "live-train-reported"
+    ],
+    "synthetic": true,
+    "note": "Synthetic management report written by hand for this example. It was not produced by the management engine, and the through route it runs over is a real through-route example of this pack.",
+    "throughRouteExample": "04-station-variants-split-joined",
+    "input": {
+      "service": {
+        "schema": "transitline.through-service/1",
+        "contractVersion": 1,
+        "throughServiceId": "through-service:synthetic-tokyo-approved",
+        "throughRouteId": "through-route:a1932a564968024c",
+        "routeGeometryRevision": "through-route-revision:735da1cccc010cd6",
+        "status": "approved",
+        "guestModelId": "medium_4car",
+        "trainsPerHour": 4,
+        "operatorId": "player",
+        "legs": [
+          {
+            "legId": "through-leg:3be7ab0a0aa4ea24",
+            "sourceKind": "planned",
+            "infrastructureOwnerId": "player",
+            "operatorId": "player",
+            "compatibility": "compatible",
+            "technicalCompatibility": {
+              "verdict": "possible"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          },
+          {
+            "legId": "through-leg:3abdf83efc7d4bb0",
+            "sourceKind": "planned",
+            "infrastructureOwnerId": "player",
+            "operatorId": "player",
+            "compatibility": "compatible",
+            "technicalCompatibility": {
+              "verdict": "possible"
+            },
+            "infrastructureStatus": "available",
+            "capacityTrainsPerHour": 12,
+            "trackAccessAgreementId": null
+          }
+        ],
+        "handoverIds": [
+          "through-handover:8ae4ddcf89db8755"
+        ],
+        "trackAccessAgreementIds": [],
+        "approvedRetrofitProgramIds": [],
+        "assessment": {
+          "verdict": "possible",
+          "violations": [],
+          "conditions": [],
+          "missingInputs": []
+        },
+        "throughOperatingTotals": {
+          "days": 3,
+          "passengers": 36000,
+          "trainKm": 1460
+        },
+        "lastThroughOperatingDay": 42
+      },
+      "settlements": [
+        {
+          "schema": "transitline.through-operating-settlement/1",
+          "contractVersion": 1,
+          "settlementId": "through-operation:through-service:synthetic-tokyo-approved:40",
+          "throughServiceId": "through-service:synthetic-tokyo-approved",
+          "settledAtMinute": 59040,
+          "operatingDay": 40,
+          "passengers": 11800,
+          "trainKm": 480,
+          "carKm": 1920,
+          "trackAccessUsage": []
+        },
+        {
+          "schema": "transitline.through-operating-settlement/1",
+          "contractVersion": 1,
+          "settlementId": "through-operation:through-service:synthetic-tokyo-approved:42",
+          "throughServiceId": "through-service:synthetic-tokyo-approved",
+          "settledAtMinute": 61920,
+          "operatingDay": 42,
+          "passengers": 12400,
+          "trainKm": 492,
+          "carKm": 1968,
+          "trackAccessUsage": []
+        },
+        {
+          "schema": "transitline.through-operating-settlement/1",
+          "contractVersion": 1,
+          "settlementId": "through-operation:through-service:synthetic-tokyo-approved:41",
+          "throughServiceId": "through-service:synthetic-tokyo-approved",
+          "settledAtMinute": 60480,
+          "operatingDay": 41,
+          "passengers": 12000,
+          "trainKm": 488,
+          "carKm": 1952,
+          "trackAccessUsage": []
+        }
+      ],
+      "liveActuals": {
+        "operatingDay": 43,
+        "serviceMinute": 615,
+        "passengers": 3100,
+        "trainKm": 121.5,
+        "trackAccessUsage": [],
+        "trains": [
+          {
+            "trainRunId": "run:1",
+            "throughServiceId": "through-service:synthetic-tokyo-approved",
+            "legId": "through-leg:3be7ab0a0aa4ea24",
+            "progress": 0.4,
+            "location": [
+              139.68704,
+              35.62925
+            ],
+            "direction": "forward",
+            "delayMinutes": 0
+          }
+        ]
+      },
+      "playerOperatorId": "player"
+    },
+    "generatedBy": "scripts/build-through-operation-map-examples.mjs"
+  }
+}
