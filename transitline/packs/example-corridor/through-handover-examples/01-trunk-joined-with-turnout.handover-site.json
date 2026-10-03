@@ -1,0 +1,235 @@
+{
+  "schema": "transitline.through-handover-site-geometry/1",
+  "contractVersion": 1,
+  "handoverSiteId": "through-handover-site:0826094c9d6d025e",
+  "siteRevision": "through-handover-site-revision:f8047765aef2736f",
+  "key": "example:corridor:handover-joined",
+  "sourcePackId": "example-corridor",
+  "sourcePackVersion": "0.1.0",
+  "name": "Trunk split at its middle station",
+  "throughRouteId": "through-route:1ec0b464d02d3b46",
+  "routeGeometryRevision": "through-route-revision:00b2d2f676449a8c",
+  "designedRouteGeometryRevision": "through-route-revision:00b2d2f676449a8c",
+  "handoverId": "through-handover:651b0ae3e0dbf5dd",
+  "fromLegId": "through-leg:4aaff69660f8ea84",
+  "toLegId": "through-leg:8517197e67cee160",
+  "fromConnectionPoint": {
+    "legId": "through-leg:4aaff69660f8ea84",
+    "sourceKind": "planned",
+    "location": [
+      -0.01,
+      0
+    ],
+    "legAlignmentKnown": true,
+    "legAlignmentKind": "plan-alignment",
+    "onLegAlignment": true,
+    "distanceToLegAlignmentMeters": 0,
+    "planSegmentId": "seg:eb4da0e7656e2861",
+    "alongLegMeters": 4452.8,
+    "distanceToHandoverEndMeters": 0,
+    "unknown": [],
+    "unknownReasons": {}
+  },
+  "toConnectionPoint": {
+    "legId": "through-leg:8517197e67cee160",
+    "sourceKind": "planned",
+    "location": [
+      -0.01,
+      0
+    ],
+    "legAlignmentKnown": true,
+    "legAlignmentKind": "plan-alignment",
+    "onLegAlignment": true,
+    "distanceToLegAlignmentMeters": 0,
+    "planSegmentId": "seg:a3ad0d61ab3ad4d7",
+    "alongLegMeters": 0,
+    "distanceToHandoverEndMeters": 0,
+    "unknown": [],
+    "unknownReasons": {}
+  },
+  "connectionAlignment": [
+    [
+      -0.01,
+      0
+    ]
+  ],
+  "connectionLengthMeters": 0,
+  "minimumCurveRadiusMeters": null,
+  "structureHint": null,
+  "structureHintBasis": null,
+  "endpointGapMeters": 0,
+  "turnoutCandidates": [
+    {
+      "turnoutId": "through-turnout:9ebe08a5642644ab",
+      "key": "turnout-1",
+      "location": [
+        -0.01,
+        0
+      ],
+      "selected": true
+    }
+  ],
+  "selectedTurnoutPoints": [
+    {
+      "turnoutId": "through-turnout:9ebe08a5642644ab",
+      "key": "turnout-1",
+      "location": [
+        -0.01,
+        0
+      ],
+      "nearestLegId": "through-leg:4aaff69660f8ea84",
+      "distanceToFromLegMeters": 0,
+      "distanceToToLegMeters": 0,
+      "distanceToConnectionAlignmentMeters": 0,
+      "distanceToFromPointMeters": 0,
+      "distanceToToPointMeters": 0,
+      "onTrack": true
+    }
+  ],
+  "connectedPlanSegmentIds": [
+    "seg:a3ad0d61ab3ad4d7",
+    "seg:eb4da0e7656e2861"
+  ],
+  "externalNetworkId": null,
+  "externalLineId": null,
+  "externalSides": [],
+  "buildingIntersectionCount": 0,
+  "waterCrossingCount": 0,
+  "roadCrossingCount": 0,
+  "roadCrossingsByClass": {
+    "highway": 0,
+    "major": 0,
+    "minor": 0
+  },
+  "existingRailwayCrossingCount": null,
+  "averageSlopePercent": 1.45,
+  "maximumSlopePercent": 1.45,
+  "workAreaCandidates": [],
+  "spatialFlags": [],
+  "physicalConnectionEvidence": {
+    "connected": true,
+    "basis": "drawn-connection-vs-leg-alignments",
+    "reason": null,
+    "toleranceMeters": 1,
+    "nearDistanceMeters": 50,
+    "designedAgainstCurrentRoute": true,
+    "sides": [
+      {
+        "side": "from",
+        "legId": "through-leg:4aaff69660f8ea84",
+        "legAlignmentKind": "plan-alignment",
+        "connectionEndToPointMeters": 0,
+        "pointToLegAlignmentMeters": 0,
+        "gapMeters": 0,
+        "joined": true,
+        "reason": null
+      },
+      {
+        "side": "to",
+        "legId": "through-leg:8517197e67cee160",
+        "legAlignmentKind": "plan-alignment",
+        "connectionEndToPointMeters": 0,
+        "pointToLegAlignmentMeters": 0,
+        "gapMeters": 0,
+        "joined": true,
+        "reason": null
+      }
+    ]
+  },
+  "dataQuality": "low",
+  "unknown": [
+    "minimumCurveRadiusMeters",
+    "structureHint",
+    "existingRailwayCrossingCount"
+  ],
+  "unknownReasons": {
+    "minimumCurveRadiusMeters": "zero-length-connection",
+    "structureHint": "structure-not-stated",
+    "existingRailwayCrossingCount": "no-layer"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "through-route-geometry",
+      "quality": "low",
+      "name": "ThroughRouteGeometry through-route:1ec0b464d02d3b46",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "player-legs-joined"
+    ],
+    "routeExample": "01-corridor-trunk-split",
+    "layers": {
+      "kind": "synthetic-fixture",
+      "generator": "scripts/lib/synthetic-layers.mjs",
+      "center": [
+        -0.01,
+        0
+      ]
+    },
+    "existingRail": false,
+    "drawnSite": {
+      "key": "example:corridor:handover-joined",
+      "name": "Trunk split at its middle station",
+      "throughRouteId": "through-route:1ec0b464d02d3b46",
+      "handoverId": "through-handover:651b0ae3e0dbf5dd",
+      "fromLegId": "through-leg:4aaff69660f8ea84",
+      "toLegId": "through-leg:8517197e67cee160",
+      "routeGeometryRevision": "through-route-revision:00b2d2f676449a8c",
+      "fromConnectionPoint": [
+        -0.01,
+        0
+      ],
+      "toConnectionPoint": [
+        -0.01,
+        0
+      ],
+      "connectionAlignment": [
+        [
+          -0.01,
+          0
+        ]
+      ],
+      "turnoutCandidates": [
+        {
+          "key": "turnout-1",
+          "location": [
+            -0.01,
+            0
+          ]
+        }
+      ]
+    },
+    "generatedBy": "scripts/build-through-handover-examples.mjs"
+  }
+}

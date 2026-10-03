@@ -41,7 +41,7 @@ export function canonicalRing(points) {
   r.forEach((p, i) => { if (p[0] < r[k][0] || (p[0] === r[k][0] && p[1] < r[k][1])) k = i; });
   return [...r.slice(k), ...r.slice(0, k)];
 }
-function selfIntersects(ring) {
+export function selfIntersects(ring) {
   const n = ring.length;
   for (let i = 0; i < n; i++) for (let j = i + 2; j < n; j++) {
     if (i === 0 && j === n - 1) continue;

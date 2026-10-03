@@ -1,0 +1,201 @@
+{
+  "schema": "transitline.through-handover-site-geometry/1",
+  "contractVersion": 1,
+  "handoverSiteId": "through-handover-site:740bcdd9facbd76b",
+  "siteRevision": "through-handover-site-revision:e2d240cc40d5fad6",
+  "key": "example:radial:handover-partial-layers",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "name": "Bypass with only building and terrain layers available",
+  "throughRouteId": "through-route:5d69d872afacce38",
+  "routeGeometryRevision": "through-route-revision:98cd767b7dfac2fd",
+  "designedRouteGeometryRevision": "through-route-revision:98cd767b7dfac2fd",
+  "handoverId": "through-handover:e13b696329fcd2a1",
+  "fromLegId": "through-leg:697824ad44dd5ebf",
+  "toLegId": "through-leg:5e57c38d721d0407",
+  "fromConnectionPoint": {
+    "legId": "through-leg:697824ad44dd5ebf",
+    "sourceKind": "planned",
+    "location": [
+      0.042504,
+      0.011171
+    ],
+    "legAlignmentKnown": true,
+    "legAlignmentKind": "plan-alignment",
+    "onLegAlignment": true,
+    "distanceToLegAlignmentMeters": 0.1,
+    "planSegmentId": "seg:9756d646c00e7a0c",
+    "alongLegMeters": 5023.2,
+    "distanceToHandoverEndMeters": 120,
+    "unknown": [],
+    "unknownReasons": {}
+  },
+  "toConnectionPoint": {
+    "legId": "through-leg:5e57c38d721d0407",
+    "sourceKind": "planned",
+    "location": [
+      0.042931,
+      0.012583
+    ],
+    "legAlignmentKnown": true,
+    "legAlignmentKind": "plan-alignment",
+    "onLegAlignment": true,
+    "distanceToLegAlignmentMeters": 0,
+    "planSegmentId": "seg:271878de934de55c",
+    "alongLegMeters": 119.9,
+    "distanceToHandoverEndMeters": 119.9,
+    "unknown": [],
+    "unknownReasons": {}
+  },
+  "connectionAlignment": [
+    [
+      0.042504,
+      0.011171
+    ],
+    [
+      0.042931,
+      0.012583
+    ]
+  ],
+  "connectionLengthMeters": 164.2,
+  "minimumCurveRadiusMeters": 100000,
+  "structureHint": null,
+  "structureHintBasis": null,
+  "endpointGapMeters": 0.1,
+  "turnoutCandidates": [],
+  "selectedTurnoutPoints": [],
+  "connectedPlanSegmentIds": [
+    "seg:271878de934de55c",
+    "seg:9756d646c00e7a0c"
+  ],
+  "externalNetworkId": null,
+  "externalLineId": null,
+  "externalSides": [],
+  "buildingIntersectionCount": 0,
+  "waterCrossingCount": null,
+  "roadCrossingCount": null,
+  "roadCrossingsByClass": null,
+  "existingRailwayCrossingCount": null,
+  "averageSlopePercent": 1.45,
+  "maximumSlopePercent": 1.45,
+  "workAreaCandidates": [],
+  "spatialFlags": [
+    "connection-point-away-from-leg-end",
+    "no-turnout-selected"
+  ],
+  "physicalConnectionEvidence": {
+    "connected": true,
+    "basis": "drawn-connection-vs-leg-alignments",
+    "reason": null,
+    "toleranceMeters": 1,
+    "nearDistanceMeters": 50,
+    "designedAgainstCurrentRoute": true,
+    "sides": [
+      {
+        "side": "from",
+        "legId": "through-leg:697824ad44dd5ebf",
+        "legAlignmentKind": "plan-alignment",
+        "connectionEndToPointMeters": 0,
+        "pointToLegAlignmentMeters": 0.1,
+        "gapMeters": 0.1,
+        "joined": true,
+        "reason": null
+      },
+      {
+        "side": "to",
+        "legId": "through-leg:5e57c38d721d0407",
+        "legAlignmentKind": "plan-alignment",
+        "connectionEndToPointMeters": 0,
+        "pointToLegAlignmentMeters": 0,
+        "gapMeters": 0,
+        "joined": true,
+        "reason": null
+      }
+    ]
+  },
+  "dataQuality": "low",
+  "unknown": [
+    "structureHint",
+    "waterCrossingCount",
+    "roadCrossingCount",
+    "existingRailwayCrossingCount"
+  ],
+  "unknownReasons": {
+    "structureHint": "structure-not-stated",
+    "waterCrossingCount": "no-layer",
+    "roadCrossingCount": "no-layer",
+    "existingRailwayCrossingCount": "no-layer"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "through-route-geometry",
+      "quality": "low",
+      "name": "ThroughRouteGeometry through-route:5d69d872afacce38",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "some-layers-missing"
+    ],
+    "routeExample": "01-spoke-to-ring-joined",
+    "layers": {
+      "kind": "synthetic-fixture",
+      "generator": "scripts/lib/synthetic-layers.mjs",
+      "center": [
+        0.04347,
+        0.01165
+      ],
+      "only": [
+        "buildings",
+        "dem"
+      ]
+    },
+    "existingRail": false,
+    "drawnSite": {
+      "key": "example:radial:handover-partial-layers",
+      "name": "Bypass with only building and terrain layers available",
+      "throughRouteId": "through-route:5d69d872afacce38",
+      "handoverId": "through-handover:e13b696329fcd2a1",
+      "fromLegId": "through-leg:697824ad44dd5ebf",
+      "toLegId": "through-leg:5e57c38d721d0407",
+      "routeGeometryRevision": "through-route-revision:98cd767b7dfac2fd",
+      "fromConnectionPoint": [
+        0.042504,
+        0.011171
+      ],
+      "toConnectionPoint": [
+        0.042931,
+        0.012583
+      ],
+      "connectionAlignment": [
+        [
+          0.042504,
+          0.011171
+        ],
+        [
+          0.042931,
+          0.012583
+        ]
+      ]
+    },
+    "generatedBy": "scripts/build-through-handover-examples.mjs"
+  }
+}
