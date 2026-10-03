@@ -51,6 +51,7 @@ export function assessThroughService(input, {
   projects = [],
   infrastructureCatalog = [],
   trackAccessAgreements = [],
+  throughHandoverConfirmations = [],
   playerOperatorId = "player",
 } = {}) {
   if (route?.schema !== "transitline.through-route-geometry/1" || route.contractVersion !== 1 || !route.throughRouteId) {
@@ -164,8 +165,12 @@ export function assessThroughService(input, {
   }
 
   for (const handover of route.handovers ?? []) {
-    const connectionState = handover.connectionState
-      ?? (handover.physicalConnection === true ? "joined" : handover.physicalConnection === false ? "separated" : "unknown");
+    const completedConnection = throughHandoverConfirmations.find((entry) => entry.throughRouteId === route.throughRouteId
+      && entry.routeGeometryRevision === route.geometryRevision
+      && entry.handoverId === handover.handoverId);
+    const connectionState = completedConnection
+      ? "joined"
+      : handover.connectionState ?? (handover.physicalConnection === true ? "joined" : handover.physicalConnection === false ? "separated" : "unknown");
     if (connectionState === "separated") violations.push(`handover:${handover.handoverId}:physically-separated`);
     else if (connectionState !== "joined") missingInputs.push(`handover:${handover.handoverId}:physicalConnection`);
   }

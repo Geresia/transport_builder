@@ -198,6 +198,7 @@ export class ScenarioRuntime {
       operatingResourcePools: this.game.operatingResourcePoolReport(),
       trackAccess: this.game.trackAccessReport(),
       throughServices: this.game.throughServiceReport(),
+      throughHandoverProjects: this.game.throughHandoverProjectReport(),
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
       throughFareAgreements: this.game.throughFareAgreementReport(),
       throughOperatingSettlements: this.game.throughOperatingSettlementReport(null, 24),
@@ -950,6 +951,30 @@ export class ScenarioRuntime {
 
   throughServiceReport(throughServiceId = null) {
     return this.game.throughServiceReport(throughServiceId);
+  }
+
+  proposeThroughHandoverProject(site, input = {}) {
+    return this.game.proposeThroughHandoverProject(site, input);
+  }
+
+  grantThroughHandoverPermission(projectId, ownerId) {
+    return this.game.grantThroughHandoverPermission(projectId, ownerId);
+  }
+
+  tenderThroughHandoverProject(projectId, options = {}) {
+    return this.game.tenderThroughHandoverProject(projectId, options);
+  }
+
+  awardThroughHandoverProject(projectId, bidId = null) {
+    return this.game.awardThroughHandoverProject(projectId, bidId);
+  }
+
+  cancelThroughHandoverProject(projectId) {
+    return this.game.cancelThroughHandoverProject(projectId);
+  }
+
+  throughHandoverProjectReport(throughRouteId = null) {
+    return this.game.throughHandoverProjectReport(throughRouteId);
   }
 
   proposeVehicleRetrofit(throughServiceId, input = {}) {

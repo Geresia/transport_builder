@@ -24,6 +24,7 @@ import { assignServiceToOperatingResourcePool as assignPoolService, createOperat
 import { awardTrackAccessOffer as buildTrackAccessAgreement, createTrackAccessOpportunity as buildTrackAccessOpportunity, generateTrackAccessOffers as buildTrackAccessOffers, setTrackAccessAgreementStatus as changeTrackAccessStatus, settleTrackAccessRevenue, trackAccessImpact as calculateTrackAccessImpact } from "./track-access.mjs";
 import { createThroughService as buildThroughService } from "./through-service.mjs";
 import { advanceVehicleRetrofitMonth, authorizeVehicleRetrofitRetest as buildVehicleRetrofitRetest, createVehicleRetrofitProgram, mergeVehicleTechnicalOverrides, startVehicleRetrofitProgram } from "./vehicle-retrofit.mjs";
+import { activeThroughHandoverConfirmations, advanceThroughHandoverProjectMonth, awardThroughHandoverProject, cancelThroughHandoverProject, createThroughHandoverProject, grantThroughHandoverPermission, tenderThroughHandoverProject } from "./through-handover-project.mjs";
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
@@ -59,6 +60,7 @@ export class ManagementGame {
     this.trackAccessOpportunities = [];
     this.trackAccessAgreements = [];
     this.throughServices = [];
+    this.throughHandoverProjects = [];
     this.vehicleRetrofitPrograms = [];
     this.throughFareAgreements = [];
     this.throughOperatingSettlements = [];
@@ -70,6 +72,7 @@ export class ManagementGame {
     this.nextInfrastructureMaintenanceSequence = 1;
     this.nextTrackAccessSequence = 1;
     this.nextThroughServiceSequence = 1;
+    this.nextThroughHandoverProjectSequence = 1;
     this.nextVehicleRetrofitSequence = 1;
     this.nextThroughFareSequence = 1;
     this.services = [];
@@ -109,6 +112,7 @@ export class ManagementGame {
       trackAccessOpportunities: structuredClone(this.trackAccessOpportunities),
       trackAccessAgreements: structuredClone(this.trackAccessAgreements),
       throughServices: structuredClone(this.throughServices),
+      throughHandoverProjects: structuredClone(this.throughHandoverProjects),
       vehicleRetrofitPrograms: structuredClone(this.vehicleRetrofitPrograms),
       throughFareAgreements: structuredClone(this.throughFareAgreements),
       throughOperatingSettlements: structuredClone(this.throughOperatingSettlements),
@@ -120,6 +124,7 @@ export class ManagementGame {
       nextInfrastructureMaintenanceSequence: this.nextInfrastructureMaintenanceSequence,
       nextTrackAccessSequence: this.nextTrackAccessSequence,
       nextThroughServiceSequence: this.nextThroughServiceSequence,
+      nextThroughHandoverProjectSequence: this.nextThroughHandoverProjectSequence,
       nextVehicleRetrofitSequence: this.nextVehicleRetrofitSequence,
       nextThroughFareSequence: this.nextThroughFareSequence,
       services: structuredClone(this.services),
@@ -139,7 +144,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -176,6 +181,10 @@ export class ManagementGame {
     this.nextThroughServiceSequence = Math.max(
       snapshot.nextThroughServiceSequence ?? 1,
       this.throughServices.reduce((max, service) => Math.max(max, Number(service.throughServiceId?.match(/^through-service:(\d+)$/)?.[1]) || 0), 0) + 1,
+    );
+    this.nextThroughHandoverProjectSequence = Math.max(
+      snapshot.nextThroughHandoverProjectSequence ?? 1,
+      this.throughHandoverProjects.reduce((max, project) => Math.max(max, Number(project.id?.match(/^through-handover-project:(\d+)$/)?.[1]) || 0), 0) + 1,
     );
     this.nextVehicleRetrofitSequence = Math.max(
       snapshot.nextVehicleRetrofitSequence ?? 1,
@@ -921,6 +930,17 @@ export class ManagementGame {
           if (result.completed) this.applyApprovedVehicleRetrofit(program.id);
           return { programId: program.id, ...result };
         });
+      const throughHandovers = this.throughHandoverProjects
+        .filter((project) => ["contracted", "under-construction", "inspection"].includes(project.status))
+        .map((project) => ({
+          projectId: project.id,
+          ...advanceThroughHandoverProjectMonth(project, {
+            ledger: this.ledger,
+            clock: this.clock,
+            rng: this.rng,
+            contractors: this.constructionContractors,
+          }),
+        }));
       const depots = this.depots.filter((depot) => depot.status === "underConstruction")
         .map((depot) => ({ depotId: depot.id, ...advanceDepotDevelopmentMonth(depot, this.ledger, this.clock, this.rng, this.country) }));
       for (const pool of this.operatingResourcePools) rebalancePool(pool, this.operatingResourceContext());
@@ -970,7 +990,7 @@ export class ManagementGame {
         operatingFinanceSettlements,
       });
       this.constructionCycleReports.push(cycleReport);
-      return { construction, vehicles, vehicleRetrofits, depots, schedules, generatedEvents, autoResolvedEvents, normalPriceChange, priceShocks, priceSettlements, operatingFinanceSettlements, infrastructureMaintenance, cycleReport: structuredClone(cycleReport) };
+      return { construction, vehicles, vehicleRetrofits, throughHandovers, depots, schedules, generatedEvents, autoResolvedEvents, normalPriceChange, priceShocks, priceSettlements, operatingFinanceSettlements, infrastructureMaintenance, cycleReport: structuredClone(cycleReport) };
     });
   }
 
@@ -1181,6 +1201,50 @@ export class ManagementGame {
     return settlement;
   }
 
+  proposeThroughHandoverProject(site, input = {}) {
+    return this.transact("through-handover-project-proposed", () => {
+      const duplicate = this.throughHandoverProjects.find((entry) => entry.throughRouteId === site?.throughRouteId
+        && entry.routeGeometryRevision === site?.routeGeometryRevision
+        && entry.handoverId === site?.handoverId
+        && !["cancelled"].includes(entry.status));
+      if (duplicate) throw new Error(`Through handover ${site.handoverId} already has project ${duplicate.id}`);
+      while (this.throughHandoverProjects.some((entry) => entry.id === `through-handover-project:${this.nextThroughHandoverProjectSequence}`)) this.nextThroughHandoverProjectSequence += 1;
+      const id = input.id ?? `through-handover-project:${this.nextThroughHandoverProjectSequence++}`;
+      if (this.throughHandoverProjects.some((entry) => entry.id === id)) throw new Error(`Duplicate through handover project ${id}`);
+      const numericId = Number(String(id).match(/^through-handover-project:(\d+)$/)?.[1]);
+      if (Number.isInteger(numericId)) this.nextThroughHandoverProjectSequence = Math.max(this.nextThroughHandoverProjectSequence, numericId + 1);
+      const project = createThroughHandoverProject({ ...input, id, site, countryProfile: this.country, atMinute: this.clock.minute });
+      this.throughHandoverProjects.push(project);
+      return structuredClone(project);
+    });
+  }
+
+  grantThroughHandoverPermission(projectId, ownerId) {
+    return this.transact("through-handover-permission-granted", () => grantThroughHandoverPermission(this.requireThroughHandoverProject(projectId), ownerId, this.clock.minute));
+  }
+
+  tenderThroughHandoverProject(projectId, options = {}) {
+    return this.transact("through-handover-project-tendered", () => tenderThroughHandoverProject(
+      this.requireThroughHandoverProject(projectId), this.constructionContractors, this.rng, options, this.clock.minute,
+    ));
+  }
+
+  awardThroughHandoverProject(projectId, bidId = null) {
+    return this.transact("through-handover-project-awarded", () => awardThroughHandoverProject(
+      this.requireThroughHandoverProject(projectId), this.constructionContractors, bidId, { ledger: this.ledger, clock: this.clock },
+    ));
+  }
+
+  cancelThroughHandoverProject(projectId) {
+    return this.transact("through-handover-project-cancelled", () => cancelThroughHandoverProject(
+      this.requireThroughHandoverProject(projectId), { ledger: this.ledger, clock: this.clock, contractors: this.constructionContractors },
+    ));
+  }
+
+  throughHandoverProjectReport(throughRouteId = null) {
+    return structuredClone(this.throughHandoverProjects.filter((entry) => throughRouteId === null || entry.throughRouteId === throughRouteId));
+  }
+
   createThroughService(route, input = {}, infrastructureCatalog = []) {
     return this.transact("through-service-created", () => {
       const generated = !input.throughServiceId;
@@ -1192,6 +1256,7 @@ export class ManagementGame {
         projects: this.projects,
         infrastructureCatalog,
         trackAccessAgreements: this.trackAccessAgreements,
+        throughHandoverConfirmations: activeThroughHandoverConfirmations(this.throughHandoverProjects),
         playerOperatorId: this.player.id,
       });
       if (generated) this.nextThroughServiceSequence += 1;
@@ -1223,6 +1288,7 @@ export class ManagementGame {
         projects: this.projects,
         infrastructureCatalog,
         trackAccessAgreements: this.trackAccessAgreements,
+        throughHandoverConfirmations: activeThroughHandoverConfirmations(this.throughHandoverProjects),
         playerOperatorId: this.player.id,
       });
       const revisionSignature = (service) => JSON.stringify(service.legs.map((leg) => [leg.legId, leg.externalSpecificationId ?? null, leg.externalSpecificationRevision ?? null]));
@@ -1687,6 +1753,12 @@ export class ManagementGame {
     const service = this.throughServices.find((entry) => entry.throughServiceId === id);
     if (!service) throw new Error(`Unknown through service ${id}`);
     return service;
+  }
+
+  requireThroughHandoverProject(id) {
+    const project = this.throughHandoverProjects.find((entry) => entry.id === id);
+    if (!project) throw new Error(`Unknown through handover project ${id}`);
+    return project;
   }
 
   requireVehicleRetrofit(id) {
