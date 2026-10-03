@@ -28,8 +28,13 @@ B12-1 직통 서비스가 차량의 `profileId` 한 개만 비교하던 판정�
 - `ThroughService.legs[].technicalCompatibility`에 구간별 상세 판정을 저장한다.
 - 상세 위반·조건·결측 사유는 직통 서비스 전체 판정으로 전달한다.
 - B11-3 선로사용 공모도 같은 판정기를 사용한다. `conditional`과 `unknown`은 기술 적합으로 통과시키지 않는다.
+- 지도 계약 `transitline.external-infrastructure-catalog/1` 전체 객체를 `createThroughService()`와 `reassessThroughService()`에 그대로 전달할 수 있다.
+- 외부 노선의 `specificationId`와 `specificationRevision`을 구간 상태에 보존한다. 사양 revision이 달라지면 경로 형상이 같아도 기존 승인을 해제하고 재심사한다.
+- `technicalProfileId`는 편의용 기본 규격 묶음이지 필수 사실이 아니다. 프로필이 없어도 원천 `technicalSpecification` 15개 필드로 직접 판정한다.
 - 영업 자력운행은 모든 필수 기술조건을 검사한다.
 - `towed-transfer`는 전원·신호 불일치만 견인차와 별도 승인 필요 조건으로 낮춘다. 궤간·차량한계·축중 등 물리 불일치는 그대로 불가능이다.
+
+외부 기술사양의 지도 계약과 출처·결측 규칙은 [external-rail-technical-specification-contract.md](external-rail-technical-specification-contract.md)에 있다. 궤간 적용 제외는 주행방식으로 추정하지 않고 `notApplicable: ["gaugeMm"]`가 명시된 경우에만 인정한다.
 
 ## 기준값의 성격
 
@@ -38,7 +43,7 @@ B12-1 직통 서비스가 차량의 `profileId` 한 개만 비교하던 판정�
 ## 제외 및 다음 단계
 
 - 차량 개조비·추가 제작기간·승인시험비는 계산하지 않는다.
-- 실제 구간별 곡선·경사 최댓값을 지도 선형에서 집계하는 작업은 별도 지도 계약이 필요하다.
+- 실제 구간별 곡선·경사 최댓값을 지도 선형에서 집계하는 작업은 별도 지도 계약이 필요하다. 현재 외부 사양은 노선 단위다.
 - 승강장 간격·곡선 편위·홈도어 정위치 정차는 기존 `StationPlan` 상세 판정을 유지한다.
 - 차량기지 입출고선의 실제 연속 경로와 정비설비 용량은 기존 차량기지 시스템과 후속 연결한다.
 - B12-2 다음 단계에서는 지도/팩이 외부 노선의 세부 기술사양을 공급하는 계약과 차량 개조·승인 경제성을 붙인다.

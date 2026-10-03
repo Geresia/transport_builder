@@ -117,6 +117,92 @@ test("through-service legs expose detailed technical failures and preserve missi
   assert.ok(unknownSignal.assessment.missingInputs.includes("leg:leg:detailed:1:technical:signal-system-data-missing"));
 });
 
+test("external sourced facts are assessed even when no technical profile was published", () => {
+  const legs = [externalLeg("leg:raw:1"), externalLeg("leg:raw:2")];
+  const rawSpecification = {
+    runningSystemId: "steel-wheel",
+    gaugeMm: 1372,
+    carWidthM: 2.8,
+    maxAxleLoadTonnes: 16,
+    collectionSystemId: "overhead",
+    currentSystem: "dc",
+    voltageV: 1500,
+    minimumCurveRadiusMeters: 160,
+    maxGradientPermille: 35,
+    signalSystemIds: ["ats-p"],
+    platformHeightMm: 1100,
+    doorLayoutId: "4-door-20m",
+    minCars: 4,
+    maxCars: 10,
+    maintenanceSystemId: "medium_steel",
+  };
+  const infrastructureCatalog = legs.map((leg) => ({ ...catalog(leg), technicalProfileId: null, technicalSpecification: rawSpecification, notApplicable: [] }));
+  const result = createThroughService(input(), {
+    route: route(legs),
+    infrastructureCatalog,
+    trackAccessAgreements: [{ id: "agreement:raw", status: "active", guestOperatorId: "player", infrastructureOwnerId: "owner:external", hostProjectId: null }],
+  });
+  assert.equal(result.assessment.verdict, "impossible");
+  assert.equal(result.legs[0].technicalCompatibility.technicalProfileId, null);
+  assert.equal(result.legs[0].technicalCompatibility.checks.find((entry) => entry.checkId === "gauge").reason, "gauge-not-supported");
+  assert.ok(!result.assessment.missingInputs.includes("leg:leg:raw:1:technicalProfileId"));
+});
+
+test("the map catalog object is accepted directly and a specification revision revokes stale approval", () => {
+  const game = new ManagementGame({ seed: 241 });
+  const legs = [externalLeg("leg:catalog:1"), externalLeg("leg:catalog:2")];
+  const geometry = { ...route(legs), sourcePackId: "test" };
+  const operatorId = game.competitors[0].id;
+  const agreement = { id: "agreement:catalog", status: "active", guestOperatorId: operatorId, infrastructureOwnerId: "owner:external", hostProjectId: null };
+  game.trackAccessAgreements.push(agreement);
+  const technicalSpecification = {
+    runningSystemId: "steel-wheel", gaugeMm: 1435, carWidthM: 2.8, maxAxleLoadTonnes: 16,
+    collectionSystemId: "overhead", currentSystem: "dc", voltageV: 1500, minimumCurveRadiusMeters: 160,
+    maxGradientPermille: 35, signalSystemIds: ["ats-p"], platformHeightMm: 1100, doorLayoutId: "4-door-20m",
+    minCars: 4, maxCars: 10, maintenanceSystemId: "medium_steel",
+  };
+  const mapCatalog = (revision) => ({
+    schema: "transitline.external-infrastructure-catalog/1",
+    packId: "test",
+    packVersion: "1",
+    entries: legs.map((leg) => ({
+      legId: leg.legId,
+      throughRouteId: geometry.throughRouteId,
+      routeGeometryRevision: geometry.geometryRevision,
+      externalNetworkId: leg.externalNetworkId,
+      externalLineId: leg.externalLineId,
+      specificationId: `specification:${leg.legId}`,
+      specificationRevision: revision,
+      infrastructureOwnerId: "owner:external",
+      technicalProfileId: null,
+      technicalSpecification,
+      notApplicable: [],
+      status: "available",
+      capacityTrainsPerHour: 20,
+    })),
+  });
+  const created = game.createThroughService(geometry, {
+    operatorId,
+    guestModelId: "medium_4car",
+    trainsPerHour: 4,
+    trackAccessAgreementIds: [agreement.id],
+  }, mapCatalog("specification-revision:1"));
+  assert.equal(created.assessment.verdict, "possible");
+  assert.equal(created.legs[0].externalSpecificationRevision, "specification-revision:1");
+  game.approveThroughService(created.throughServiceId);
+  const unchanged = game.reassessThroughService(created.throughServiceId, geometry, mapCatalog("specification-revision:1"));
+  assert.equal(unchanged.status, "approved");
+  const revised = game.reassessThroughService(created.throughServiceId, geometry, mapCatalog("specification-revision:2"));
+  assert.equal(revised.status, "assessed");
+  assert.throws(() => game.reassessThroughService(created.throughServiceId, geometry, {
+    ...mapCatalog("specification-revision:3"),
+    packId: "other-pack",
+  }), /another pack/);
+  const staleCatalog = mapCatalog("specification-revision:3");
+  staleCatalog.entries[0].routeGeometryRevision = "through-route-revision:stale";
+  assert.throws(() => game.reassessThroughService(created.throughServiceId, geometry, staleCatalog), /route revision is stale/);
+});
+
 test("missing owner, profile, project, model or route revision produces unknown", () => {
   const leg = externalLeg("leg:missing", null);
   const withoutRevision = route([leg, { ...leg, legId: "leg:missing:2", externalLineId: "line:2" }]);

@@ -17,6 +17,19 @@ function catalogEntryFor(leg, catalog) {
     ?? null;
 }
 
+function catalogEntriesOf(catalog, route) {
+  if (Array.isArray(catalog)) return catalog;
+  if (catalog?.schema === "transitline.external-infrastructure-catalog/1" && Array.isArray(catalog.entries)) {
+    if (route.sourcePackId && catalog.packId !== route.sourcePackId) throw new Error("External infrastructure catalog belongs to another pack");
+    const entries = catalog.entries.filter((entry) => entry.throughRouteId === route.throughRouteId);
+    if (entries.some((entry) => entry.routeGeometryRevision && entry.routeGeometryRevision !== route.geometryRevision)) {
+      throw new Error("External infrastructure catalog route revision is stale");
+    }
+    return entries;
+  }
+  throw new Error("Infrastructure catalog must be an entry list or ExternalInfrastructureCatalog v1");
+}
+
 function agreementFor({ ownerId, operatorId, leg, requestedIds, agreements }) {
   const candidates = agreements.filter((agreement) => agreement.guestOperatorId === operatorId
     && agreement.infrastructureOwnerId === ownerId
@@ -47,6 +60,7 @@ export function assessThroughService(input, {
   const model = VEHICLE_MODELS[input?.guestModelId] ?? null;
   const trainsPerHour = Number(input?.trainsPerHour);
   const requestedAgreementIds = [...new Set((input?.trackAccessAgreementIds ?? []).map(String))].sort();
+  const catalogEntries = catalogEntriesOf(infrastructureCatalog, route);
   const violations = [];
   const conditions = [];
   const missingInputs = [];
@@ -59,7 +73,7 @@ export function assessThroughService(input, {
   const legStates = [];
   const usedAgreementIds = new Set();
   for (const leg of route.legs ?? []) {
-    const catalog = catalogEntryFor(leg, infrastructureCatalog);
+    const catalog = catalogEntryFor(leg, catalogEntries);
     const project = leg.connectedProjectId === null || leg.connectedProjectId === undefined
       ? null
       : projects.find((entry) => entry.id === leg.connectedProjectId) ?? null;
@@ -89,13 +103,18 @@ export function assessThroughService(input, {
     } else violations.push(`leg:${leg.legId}:source-kind-invalid`);
 
     if (!ownerId) missingInputs.push(`leg:${leg.legId}:infrastructureOwnerId`);
-    if (!technicalProfileId || !TECHNICAL_PROFILES[technicalProfileId]) missingInputs.push(`leg:${leg.legId}:technicalProfileId`);
-    const technicalCompatibility = model && TECHNICAL_PROFILES[technicalProfileId]
+    const suppliedTechnicalSpecification = catalog?.technicalSpecification ?? project?.technicalSpecification ?? null;
+    const knownTechnicalProfile = technicalProfileId ? TECHNICAL_PROFILES[technicalProfileId] ?? null : null;
+    if ((!technicalProfileId && !suppliedTechnicalSpecification) || (technicalProfileId && !knownTechnicalProfile)) {
+      missingInputs.push(`leg:${leg.legId}:technicalProfileId`);
+    }
+    const technicalCompatibility = model && (knownTechnicalProfile || suppliedTechnicalSpecification)
       ? assessTechnicalCompatibility({
         legId: leg.legId,
         technicalProfileId,
         vehicleModelId: model.id,
-        infrastructureOverrides: catalog?.technicalSpecification ?? project?.technicalSpecification ?? {},
+        infrastructureOverrides: suppliedTechnicalSpecification ?? {},
+        notApplicable: catalog?.notApplicable ?? project?.notApplicable,
       })
       : null;
     const compatibility = technicalCompatibility?.verdict === "possible"
@@ -124,6 +143,8 @@ export function assessThroughService(input, {
       connectedProjectId: leg.connectedProjectId ?? null,
       externalNetworkId: leg.externalNetworkId ?? null,
       externalLineId: leg.externalLineId ?? null,
+      externalSpecificationId: text(catalog?.specificationId),
+      externalSpecificationRevision: text(catalog?.specificationRevision),
       infrastructureOwnerId: ownerId,
       operatorId,
       payerOperatorId: foreignOwner ? operatorId : null,

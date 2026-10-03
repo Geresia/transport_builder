@@ -114,10 +114,50 @@ test("non-rail guideways explicitly treat gauge as not applicable", () => {
   assert.equal(gauge.reason, "gauge-not-applicable");
 });
 
+test("a sourced specification can be assessed without a convenience profile", () => {
+  const rawSpecification = {
+    runningSystemId: "steel-wheel",
+    gaugeMm: 1435,
+    carWidthM: 2.8,
+    maxAxleLoadTonnes: 16,
+    collectionSystemId: "overhead",
+    currentSystem: "dc",
+    voltageV: 1500,
+    minimumCurveRadiusMeters: 160,
+    maxGradientPermille: 35,
+    signalSystemIds: ["ats-p"],
+    platformHeightMm: 1100,
+    doorLayoutId: "4-door-20m",
+    minCars: 4,
+    maxCars: 10,
+    maintenanceSystemId: "medium_steel",
+  };
+  const possible = assessTechnicalCompatibility({ technicalProfileId: null, vehicleModelId: "medium_4car", infrastructureOverrides: rawSpecification });
+  assert.equal(possible.verdict, "possible");
+  assert.equal(possible.technicalProfileId, null);
+  const wrongGauge = assessTechnicalCompatibility({ technicalProfileId: null, vehicleModelId: "medium_4car", infrastructureOverrides: { ...rawSpecification, gaugeMm: 1372 } });
+  assert.equal(wrongGauge.verdict, "impossible");
+  assert.equal(wrongGauge.checks.find((entry) => entry.checkId === "gauge").reason, "gauge-not-supported");
+});
+
+test("unknown gauge is unknown unless the source explicitly marks it not applicable", () => {
+  const emptySpecification = Object.fromEntries([
+    "runningSystemId", "gaugeMm", "carWidthM", "maxAxleLoadTonnes", "collectionSystemId", "currentSystem", "voltageV",
+    "minimumCurveRadiusMeters", "maxGradientPermille", "signalSystemIds", "platformHeightMm", "doorLayoutId", "minCars", "maxCars", "maintenanceSystemId",
+  ].map((field) => [field, null]));
+  const unknown = assessTechnicalCompatibility({ technicalProfileId: null, vehicleModelId: "medium_4car", infrastructureOverrides: emptySpecification });
+  assert.equal(unknown.verdict, "unknown");
+  assert.equal(unknown.checks.find((entry) => entry.checkId === "gauge").status, "unknown");
+  const explicit = assessTechnicalCompatibility({ technicalProfileId: null, vehicleModelId: "agt_3car", infrastructureOverrides: emptySpecification, notApplicable: ["gaugeMm"] });
+  assert.equal(explicit.checks.find((entry) => entry.checkId === "gauge").reason, "gauge-not-applicable");
+  assert.ok(explicit.missingInputs.includes("running-system-data-missing"));
+});
+
 test("unknown catalog ids and invalid operating modes fail at the boundary", () => {
   assert.throws(() => assessTechnicalCompatibility({ technicalProfileId: "none", vehicleModelId: "medium_4car" }), /Unknown technical profile/);
   assert.throws(() => assessTechnicalCompatibility({ technicalProfileId: "medium_steel", vehicleModelId: "none" }), /Unknown vehicle model/);
   assert.throws(() => assess({ operatingMode: "teleport" }), /Invalid operating mode/);
+  assert.throws(() => assess({ notApplicable: "gaugeMm" }), /must be a list/);
 });
 
 test("assessment is deterministic, does not mutate catalogs, and contains no economic fields", () => {

@@ -1183,7 +1183,7 @@ export class ManagementGame {
       const sameRevision = route.geometryRevision === current.routeGeometryRevision;
       const reassessed = buildThroughService({
         throughServiceId,
-        status: sameRevision ? current.status : "assessed",
+        status: current.status,
         operatorId: current.operatorId,
         guestModelId: current.guestModelId,
         trainsPerHour: current.trainsPerHour,
@@ -1195,6 +1195,9 @@ export class ManagementGame {
         trackAccessAgreements: this.trackAccessAgreements,
         playerOperatorId: this.player.id,
       });
+      const revisionSignature = (service) => JSON.stringify(service.legs.map((leg) => [leg.legId, leg.externalSpecificationId ?? null, leg.externalSpecificationRevision ?? null]));
+      const sameSpecificationRevisions = revisionSignature(reassessed) === revisionSignature(current);
+      if (!sameRevision || !sameSpecificationRevisions) reassessed.status = "assessed";
       if (reassessed.status === "approved" && reassessed.assessment.verdict !== "possible") reassessed.status = "assessed";
       this.throughServices[this.throughServices.indexOf(current)] = reassessed;
       return structuredClone(reassessed);

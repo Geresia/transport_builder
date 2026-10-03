@@ -82,8 +82,8 @@ function powerCheck(infrastructure, vehicle) {
     : check("power-system", "incompatible", required, supported, "power-system-not-supported");
 }
 
-function gaugeCheck(infrastructure, vehicle) {
-  if (infrastructure.gaugeMm === null && !["steel-wheel", "linear-motor-steel-wheel"].includes(infrastructure.runningSystemId)) {
+function gaugeCheck(infrastructure, vehicle, notApplicable) {
+  if (notApplicable.includes("gaugeMm")) {
     return check("gauge", "compatible", null, vehicle.supportedGaugeMm ?? null, "gauge-not-applicable");
   }
   const required = finite(infrastructure.gaugeMm);
@@ -137,17 +137,26 @@ export function assessTechnicalCompatibility({
   operatingMode = "revenue-self-propelled",
   infrastructureOverrides = {},
   vehicleOverrides = {},
+  notApplicable = undefined,
 } = {}) {
   if (!["revenue-self-propelled", "towed-transfer"].includes(operatingMode)) throw new Error(`Invalid operating mode ${operatingMode}`);
-  const baseInfrastructure = TECHNICAL_PROFILES[technicalProfileId] ?? null;
+  const baseInfrastructure = technicalProfileId === null || technicalProfileId === undefined
+    ? null
+    : TECHNICAL_PROFILES[technicalProfileId] ?? null;
   const baseVehicle = VEHICLE_MODELS[vehicleModelId] ?? null;
-  if (!baseInfrastructure) throw new Error(`Unknown technical profile ${technicalProfileId}`);
+  if (technicalProfileId !== null && technicalProfileId !== undefined && !baseInfrastructure) throw new Error(`Unknown technical profile ${technicalProfileId}`);
   if (!baseVehicle) throw new Error(`Unknown vehicle model ${vehicleModelId}`);
-  const infrastructure = { ...baseInfrastructure, ...structuredClone(infrastructureOverrides) };
+  if (!baseInfrastructure && (!infrastructureOverrides || typeof infrastructureOverrides !== "object" || Array.isArray(infrastructureOverrides))) {
+    throw new Error("Infrastructure technical specification is required when no profile is supplied");
+  }
+  const infrastructure = { ...(baseInfrastructure ?? {}), ...structuredClone(infrastructureOverrides) };
   const vehicle = { ...baseVehicle, ...structuredClone(vehicleOverrides) };
+  const declaredNotApplicable = notApplicable ?? infrastructure.notApplicable ?? [];
+  if (!Array.isArray(declaredNotApplicable)) throw new Error("notApplicable must be a list");
+  const notApplicableFields = [...new Set(declaredNotApplicable)].filter((field) => field === "gaugeMm").sort();
   const checks = operatingModeAdjust([
     exactCheck("running-system", infrastructure.runningSystemId, vehicle.supportedRunningSystemIds),
-    gaugeCheck(infrastructure, vehicle),
+    gaugeCheck(infrastructure, vehicle, notApplicableFields),
     powerCheck(infrastructure, vehicle),
     upperLimitCheck("loading-gauge-width", infrastructure.carWidthM, vehicle.carWidthM),
     upperLimitCheck("axle-load", infrastructure.maxAxleLoadTonnes, vehicle.axleLoadTonnes),
@@ -166,9 +175,10 @@ export function assessTechnicalCompatibility({
     schema: TECHNICAL_COMPATIBILITY_SCHEMA,
     contractVersion: 1,
     legId: text(legId),
-    technicalProfileId,
+    technicalProfileId: technicalProfileId ?? null,
     vehicleModelId,
     operatingMode,
+    notApplicable: notApplicableFields,
     verdict: verdictOf(checks),
     checks,
     violations,
