@@ -1386,9 +1386,9 @@ async function main() {
       container: $("scenario-through-services"),
       runtime,
       getMapExport: () => currentMapExport,
-      // The map-side through-route editor/view is being delivered separately. Until it supplies a validated
-      // station/access mapping, operation stays visibly blocked instead of inventing one in the management UI.
-      getOperationDraft: () => null,
+      // Only a saved route whose every source has a commissioned operational line and whose handovers are
+      // physically confirmed can become a simulator line. Unknown external topology stays blocked.
+      getOperationDraft: (service) => runtime.throughOperationDraft(service.throughServiceId, currentMapExport),
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
     canvas.addEventListener("pointerup", () => queueMicrotask(() => stationManagement?.refresh()), true);

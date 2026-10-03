@@ -1,6 +1,7 @@
 import { buildThroughRoute } from "./map/through-route.mjs";
 
 export const THROUGH_ROUTE_SOURCE_CATALOG_SCHEMA = "transitline.through-route-source-catalog/1";
+export const THROUGH_OPERATION_DRAFT_SCHEMA = "transitline.through-operation-draft/1";
 
 const clone = (value) => structuredClone(value);
 const text = (value) => (typeof value === "string" && value.trim() ? value.trim() : null);
@@ -13,13 +14,16 @@ function requireMapExport(pack, mapExport) {
   if (mapExport.packId !== packId) throw new Error(`Map export belongs to pack ${mapExport.packId}, not ${packId}`);
 }
 
-function projectSource(project, playerOperatorId) {
+function projectSource(project, playerOperatorId, operationalState) {
   const plan = project?.planGeometry;
   if (plan?.schema !== "transitline.plan-geometry/1" || !plan.planId) return null;
   const stationAssets = new Map((project.assets ?? [])
     .filter((asset) => asset.kind === "station" && asset.sourceId)
     .map((asset) => [asset.sourceId, asset.id]));
   const ownerId = text(project.infrastructureOwnerId) ?? text(playerOperatorId);
+  const operationalLineId = project.commissionedLineId === undefined ? null : String(project.commissionedLineId);
+  const operationalLine = operationalLineId === null ? null : (operationalState?.lines ?? [])
+    .find((line) => String(line.id) === operationalLineId && line.projectId === project.id);
   return {
     sourceId: `project:${project.id}`,
     sourceKind: "existing",
@@ -30,12 +34,12 @@ function projectSource(project, playerOperatorId) {
     externalLineId: null,
     infrastructureOwnerId: ownerId,
     infrastructureStatus: project.status ?? null,
-    operationalLineId: project.commissionedLineId === undefined ? null : String(project.commissionedLineId),
+    operationalLineId: operationalLine ? operationalLineId : null,
     selectable: true,
-    operationReady: project.status === "available" && project.commissionedLineId !== undefined,
+    operationReady: project.status === "available" && Boolean(operationalLine),
     stations: plan.stationCandidates.map((station) => ({
       stationId: station.id,
-      operationalStationId: stationAssets.get(station.id) ?? null,
+      operationalStationId: operationalLine?.stationIds.includes(stationAssets.get(station.id)) ? stationAssets.get(station.id) : null,
       name: station.name ?? station.id,
       location: clone(station.location),
     })),
@@ -135,7 +139,7 @@ export function buildThroughRouteSourceCatalog({
   const builtPlanIds = new Set();
   const sources = [];
   for (const project of projects) {
-    const source = projectSource(project, playerOperatorId);
+    const source = projectSource(project, playerOperatorId, operationalState);
     if (!source) continue;
     sources.push(source);
     builtPlanIds.add(source.connectedPlanId);
@@ -187,6 +191,92 @@ export function buildThroughRouteFromSelection(selection, options = {}) {
     throw new Error(`Through route was rejected${codes ? `: ${codes}` : ""}`);
   }
   return { selection: clone(selection), route: result.route, warnings: result.warnings, catalog };
+}
+
+function sourceForLeg(leg, catalog) {
+  if (leg.sourceKind === "existing") return catalog.sources.find((source) => source.sourceKind === "existing"
+    && source.connectedProjectId === leg.connectedProjectId && source.connectedPlanId === leg.connectedPlanId) ?? null;
+  if (leg.sourceKind === "external") return catalog.sources.find((source) => source.sourceKind === "external"
+    && source.externalNetworkId === leg.externalNetworkId && source.externalLineId === leg.externalLineId) ?? null;
+  return null;
+}
+
+function serviceLegFor(routeLeg, service) {
+  return (service.legs ?? []).find((leg) => leg.legId === routeLeg.legId) ?? null;
+}
+
+function unionIds(left, right) {
+  return [...new Set([...left, ...right])].sort();
+}
+
+// Turns an approved route's spatial sequence into the existing simulator's station/access arrays. A handover
+// may collapse two asset ids onto one stop only when ThroughRouteGeometry already proves that their track
+// endpoints are at the exact same point. Unknown or separated handovers fail closed.
+export function buildThroughOperationDraft({ route, throughService, sourceCatalog, operationalState, name = null } = {}) {
+  if (route?.schema !== "transitline.through-route-geometry/1" || route.contractVersion !== 1) throw new Error("ThroughRouteGeometry v1 is required");
+  if (throughService?.schema !== "transitline.through-service/1" || throughService.contractVersion !== 1) throw new Error("ThroughService v1 is required");
+  if (throughService.throughRouteId !== route.throughRouteId) throw new Error("Through service is linked to another route");
+  if (throughService.routeGeometryRevision !== route.geometryRevision) throw new Error("Through service route revision is stale");
+  if (sourceCatalog?.schema !== THROUGH_ROUTE_SOURCE_CATALOG_SCHEMA || sourceCatalog.packId !== route.sourcePackId) throw new Error("Matching through-route source catalog is required");
+  const stationIds = [];
+  const segmentAccessAgreementIds = [];
+  const stationAccessAgreementIds = [];
+  const legRanges = [];
+  for (let index = 0; index < route.legs.length; index += 1) {
+    const routeLeg = route.legs[index];
+    if (routeLeg.sourceKind === "planned") throw new Error(`Leg ${routeLeg.legId} is not built`);
+    const source = sourceForLeg(routeLeg, sourceCatalog);
+    if (!source?.operationReady || !source.operationalLineId) throw new Error(`Leg ${routeLeg.legId} has no commissioned operational source`);
+    const sourceStations = new Map(source.stations.map((station) => [station.stationId, station]));
+    const operationalIds = routeLeg.stationIds.map((stationId) => sourceStations.get(stationId)?.operationalStationId ?? null);
+    if (operationalIds.some((id) => !id || !operationalState?.stations?.has(id))) throw new Error(`Leg ${routeLeg.legId} has an unresolved operational station`);
+    const serviceLeg = serviceLegFor(routeLeg, throughService);
+    if (!serviceLeg) throw new Error(`Through service has no assessment for leg ${routeLeg.legId}`);
+    const agreementId = serviceLeg.trackAccessAgreementId ?? null;
+    const stopAccess = agreementId ? [agreementId] : [];
+    const startIndex = stationIds.length === 0 ? 0 : stationIds.length - 1;
+    if (index === 0) {
+      for (let stationIndex = 0; stationIndex < operationalIds.length; stationIndex += 1) {
+        if (stationIndex > 0) segmentAccessAgreementIds.push(agreementId);
+        stationIds.push(operationalIds[stationIndex]);
+        stationAccessAgreementIds.push([...stopAccess]);
+      }
+    } else {
+      const handover = route.handovers[index - 1];
+      if (!handover || handover.fromLegId !== route.legs[index - 1].legId || handover.toLegId !== routeLeg.legId) throw new Error("Through route handover order is invalid");
+      if (handover.physicalConnection !== true && handover.connectionState !== "joined") throw new Error(`Handover ${handover.handoverId} is not physically confirmed`);
+      // The route fact proves these are the same physical point. Keep the preceding asset as the simulator's
+      // canonical stop and merge both owners' station-access obligations onto it.
+      stationAccessAgreementIds[stationAccessAgreementIds.length - 1] = unionIds(stationAccessAgreementIds.at(-1), stopAccess);
+      for (let stationIndex = 1; stationIndex < operationalIds.length; stationIndex += 1) {
+        segmentAccessAgreementIds.push(agreementId);
+        stationIds.push(operationalIds[stationIndex]);
+        stationAccessAgreementIds.push([...stopAccess]);
+      }
+    }
+    legRanges.push({
+      legId: routeLeg.legId,
+      operationalLineId: source.operationalLineId,
+      fromStationIndex: startIndex,
+      toStationIndex: stationIds.length - 1,
+      trackAccessAgreementId: agreementId,
+    });
+  }
+  if (stationIds.length < 2 || segmentAccessAgreementIds.length !== stationIds.length - 1 || stationAccessAgreementIds.length !== stationIds.length) {
+    throw new Error("Through operation draft has inconsistent station and segment mappings");
+  }
+  return {
+    schema: THROUGH_OPERATION_DRAFT_SCHEMA,
+    contractVersion: 1,
+    throughServiceId: throughService.throughServiceId,
+    throughRouteId: route.throughRouteId,
+    routeGeometryRevision: route.geometryRevision,
+    name: name ?? route.name ?? `Through ${throughService.throughServiceId}`,
+    stationIds,
+    segmentAccessAgreementIds,
+    stationAccessAgreementIds,
+    legRanges,
+  };
 }
 
 function routeStore(state) {

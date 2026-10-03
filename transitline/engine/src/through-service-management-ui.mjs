@@ -275,9 +275,12 @@ export function mountThroughServiceManagementPanel({ container, runtime, getMapE
       ]));
       if (row.latestSettlement) section.append(el("div", "through-note", `최근 ${row.latestSettlement.operatingDay}일 · 승객 ${row.latestSettlement.passengers.toLocaleString("ko-KR")}명 · ${yen.format(row.latestSettlement.money.operatingProfitJPY)}`));
     } else {
-      const draft = getOperationDraft(row.service);
+      let draft = null;
+      let draftError = null;
+      try { draft = getOperationDraft(row.service); }
+      catch (error) { draftError = error.message; }
       if (draft && row.actions.commission) section.append(button("직통 운행 개시", () => run(() => runtime.commissionThroughServiceOperation(row.service.throughServiceId, draft), "직통열차가 실제 지도 운행을 시작했습니다.")));
-      else section.append(el("div", "through-note", row.operationBlockers.join(" · ")));
+      else section.append(el("div", draftError ? "through-warning" : "through-note", [...row.operationBlockers, draftError].filter(Boolean).join(" · ")));
     }
     card.append(section);
   }

@@ -4,6 +4,7 @@ import { ManagementGame } from "../src/management/index.mjs";
 import { ScenarioRuntime } from "../src/scenario-runtime.mjs";
 import { createState } from "../src/state.mjs";
 import {
+  buildThroughOperationDraft,
   buildThroughRouteFromSelection,
   buildThroughRouteSourceCatalog,
   removeThroughRouteSelection,
@@ -60,7 +61,18 @@ const mapExport = {
   plans: [draftPlan], externalNetworks: [externalNetwork], demandNodes: [], warnings: [],
 };
 
-const options = (extra = {}) => ({ pack, mapExport, projects, playerOperatorId: "player", ...extra });
+function projectOperationalState() {
+  const stations = new Map(projects.flatMap((entry) => entry.assets.map((asset) => [asset.id, { id: asset.id }])));
+  return {
+    stations,
+    lines: projects.map((entry) => ({
+      id: entry.commissionedLineId, projectId: entry.id,
+      stationIds: entry.planGeometry.stationCandidates.map((station) => entry.assets.find((asset) => asset.sourceId === station.id).id),
+    })),
+  };
+}
+
+const options = (extra = {}) => ({ pack, mapExport, projects, playerOperatorId: "player", operationalState: projectOperationalState(), ...extra });
 const selection = {
   key: "route-one", name: "Route One",
   legs: [
@@ -148,6 +160,55 @@ test("planning reports are detached read-only values", () => {
   assert.notEqual(throughRoutePlanningReport(state, options()).catalog.sources[0].name, "tampered");
 });
 
+function serviceForRoute(route, agreementByLeg = {}) {
+  return {
+    schema: "transitline.through-service/1", contractVersion: 1,
+    throughServiceId: "through-service:draft", throughRouteId: route.throughRouteId,
+    routeGeometryRevision: route.geometryRevision, status: "approved",
+    legs: route.legs.map((leg) => ({ legId: leg.legId, trackAccessAgreementId: agreementByLeg[leg.legId] ?? null })),
+  };
+}
+
+test("a confirmed handover becomes one canonical simulator stop with exact access mappings", () => {
+  const operationalState = projectOperationalState();
+  const built = buildThroughRouteFromSelection(selection, options({ operationalState }));
+  const secondLegId = built.route.legs[1].legId;
+  const draft = buildThroughOperationDraft({
+    route: built.route,
+    throughService: serviceForRoute(built.route, { [secondLegId]: "access:b" }),
+    sourceCatalog: built.catalog,
+    operationalState,
+  });
+  assert.equal(draft.schema, "transitline.through-operation-draft/1");
+  assert.deepEqual(draft.stationIds, [
+    `asset:project:a:${planA.stationCandidates[0].id}`,
+    `asset:project:a:${planA.stationCandidates[1].id}`,
+    `asset:project:b:${planB.stationCandidates[1].id}`,
+  ]);
+  assert.deepEqual(draft.segmentAccessAgreementIds, [null, "access:b"]);
+  assert.deepEqual(draft.stationAccessAgreementIds, [[], ["access:b"], ["access:b"]]);
+  assert.deepEqual(draft.legRanges.map((range) => [range.fromStationIndex, range.toStationIndex]), [[0, 1], [1, 2]]);
+});
+
+test("unknown external topology and unresolved operational assets fail closed", () => {
+  const externalSelection = {
+    key: "external-route", legs: [
+      { sourceId: "project:project:b", direction: "forward" },
+      { sourceId: `external:${externalNetwork.id}/ext-line:1`, direction: "forward" },
+    ],
+  };
+  const operationalState = projectOperationalState();
+  operationalState.stations.set("e1", { id: "e1" });
+  operationalState.stations.set("e2", { id: "e2" });
+  operationalState.lines.push({ id: 20, external: true, externalNetworkId: externalNetwork.id, externalLineId: "ext-line:1", stationIds: ["e1", "e2"] });
+  const built = buildThroughRouteFromSelection(externalSelection, options({ operationalState }));
+  assert.throws(() => buildThroughOperationDraft({ route: built.route, throughService: serviceForRoute(built.route), sourceCatalog: built.catalog, operationalState }), /not physically confirmed/);
+  const missingState = projectOperationalState();
+  missingState.stations.delete(`asset:project:a:${planA.stationCandidates[0].id}`);
+  const local = buildThroughRouteFromSelection(selection, options({ operationalState: missingState }));
+  assert.throws(() => buildThroughOperationDraft({ route: local.route, throughService: serviceForRoute(local.route), sourceCatalog: local.catalog, operationalState: missingState }), /no commissioned operational source|unresolved operational station/);
+});
+
 test("ScenarioRuntime creates an assessed service from a selection and saves its route plan", () => {
   const game = new ManagementGame({ seed: 12 });
   game.projects.push(...structuredClone(projects));
@@ -163,6 +224,20 @@ test("ScenarioRuntime creates an assessed service from a selection and saves its
   runtime.load(saved);
   assert.equal(runtime.report().throughRoutes[0].route.throughRouteId, result.route.throughRouteId);
   assert.equal(runtime.throughRoutePlanningReport(mapExport).routes.length, 1);
+});
+
+test("ScenarioRuntime derives a commission input from its saved route and live assets", () => {
+  const game = new ManagementGame({ seed: 14 });
+  game.projects.push(...structuredClone(projects));
+  const operationalState = projectOperationalState();
+  const runtime = Object.assign(Object.create(ScenarioRuntime.prototype), { pack, game, operationalState });
+  const created = runtime.createThroughServiceFromSelection(selection, mapExport, {
+    operatorId: "player", guestModelId: "medium_4car", trainsPerHour: 4,
+  }, resultCatalog());
+  const draft = runtime.throughOperationDraft(created.service.throughServiceId, mapExport);
+  assert.equal(draft.throughServiceId, created.service.throughServiceId);
+  assert.equal(draft.stationIds.length, 3);
+  assert.deepEqual(draft.segmentAccessAgreementIds, [null, null]);
 });
 
 function resultCatalog() {

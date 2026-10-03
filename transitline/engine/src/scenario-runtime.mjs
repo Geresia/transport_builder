@@ -26,6 +26,7 @@ import {
   unbindThroughServiceFromLine,
 } from "./through-operation-integration.mjs";
 import {
+  buildThroughOperationDraft,
   buildThroughRouteFromSelection,
   removeThroughRouteSelection,
   saveThroughRouteSelection,
@@ -906,6 +907,19 @@ export class ScenarioRuntime {
     const service = this.game.createThroughService(built.route, input, infrastructureCatalog);
     saveThroughRouteSelection(this.operationalState, selection, options);
     return { route: structuredClone(built.route), service };
+  }
+
+  throughOperationDraft(throughServiceId, mapExport) {
+    const service = this.game.requireThroughService(throughServiceId);
+    const stored = (this.operationalState.throughRoutePlans ?? []).find((entry) => entry.route.throughRouteId === service.throughRouteId);
+    if (!stored) throw new Error(`No saved route geometry for through service ${throughServiceId}`);
+    const planning = this.throughRoutePlanningReport(mapExport);
+    return buildThroughOperationDraft({
+      route: stored.route,
+      throughService: service,
+      sourceCatalog: planning.catalog,
+      operationalState: this.operationalState,
+    });
   }
 
   createThroughService(route, input = {}, infrastructureCatalog = []) {
