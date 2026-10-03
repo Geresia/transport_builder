@@ -1,0 +1,225 @@
+{
+  "schema": "transitline.external-rail-technical-specification/1",
+  "contractVersion": 1,
+  "specificationId": "external-rail-spec:c5814738faa6f84e",
+  "specificationRevision": "external-rail-spec-revision:9b23922fb8c2b88d",
+  "externalNetworkId": "external:example-radial",
+  "externalLineId": "ext-line:6b2ac750dc84ac0a",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "name": "Every technical fact stated by one source",
+  "infrastructureOwnerId": "owner:fixture-railway-a",
+  "technicalProfileId": null,
+  "technicalSpecification": {
+    "runningSystemId": "steel-wheel",
+    "gaugeMm": 1435,
+    "carWidthM": 2.8,
+    "maxAxleLoadTonnes": 16,
+    "collectionSystemId": "overhead",
+    "currentSystem": "dc",
+    "voltageV": 1500,
+    "minimumCurveRadiusMeters": 160,
+    "maxGradientPermille": 35,
+    "signalSystemIds": [
+      "ats-p"
+    ],
+    "platformHeightMm": 1100,
+    "doorLayoutId": "4-door-20m",
+    "minCars": 4,
+    "maxCars": 10,
+    "maintenanceSystemId": "medium_steel"
+  },
+  "status": null,
+  "capacityTrainsPerHour": null,
+  "notApplicable": [],
+  "fieldSources": {
+    "runningSystemId": [
+      "fixture:radial-r1"
+    ],
+    "gaugeMm": [
+      "fixture:radial-r1"
+    ],
+    "carWidthM": [
+      "fixture:radial-r1"
+    ],
+    "maxAxleLoadTonnes": [
+      "fixture:radial-r1"
+    ],
+    "collectionSystemId": [
+      "fixture:radial-r1"
+    ],
+    "currentSystem": [
+      "fixture:radial-r1"
+    ],
+    "voltageV": [
+      "fixture:radial-r1"
+    ],
+    "minimumCurveRadiusMeters": [
+      "fixture:radial-r1"
+    ],
+    "maxGradientPermille": [
+      "fixture:radial-r1"
+    ],
+    "signalSystemIds": [
+      "fixture:radial-r1"
+    ],
+    "platformHeightMm": [
+      "fixture:radial-r1"
+    ],
+    "doorLayoutId": [
+      "fixture:radial-r1"
+    ],
+    "minCars": [
+      "fixture:radial-r1"
+    ],
+    "maxCars": [
+      "fixture:radial-r1"
+    ],
+    "maintenanceSystemId": [
+      "fixture:radial-r1"
+    ],
+    "infrastructureOwnerId": [
+      "fixture:radial-r1"
+    ]
+  },
+  "conflicts": [],
+  "dataQuality": "low",
+  "unknown": [
+    "technicalProfileId",
+    "status",
+    "capacityTrainsPerHour"
+  ],
+  "unknownReasons": {
+    "technicalProfileId": "no-attribute",
+    "status": "no-attribute",
+    "capacityTrainsPerHour": "no-attribute"
+  },
+  "warnings": [],
+  "sources": [
+    {
+      "sourceId": "fixture:radial-r1",
+      "kind": "synthetic-fixture",
+      "name": "Synthetic fixture for contract examples (not real rail data)",
+      "license": "CC0-1.0",
+      "attribution": null,
+      "reference": "scripts/build-external-rail-technical-examples.mjs",
+      "note": "Invented values that exercise the contract. Do not use them as facts about any real railway.",
+      "quality": "low",
+      "facts": [
+        "runningSystemId",
+        "gaugeMm",
+        "carWidthM",
+        "maxAxleLoadTonnes",
+        "collectionSystemId",
+        "currentSystem",
+        "voltageV",
+        "minimumCurveRadiusMeters",
+        "maxGradientPermille",
+        "signalSystemIds",
+        "platformHeightMm",
+        "doorLayoutId",
+        "minCars",
+        "maxCars",
+        "maintenanceSystemId",
+        "infrastructureOwnerId"
+      ],
+      "notApplicable": []
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "drawnSpecification": {
+      "externalNetworkId": "external:example-radial",
+      "externalLineId": "ext-line:6b2ac750dc84ac0a",
+      "name": "Every technical fact stated by one source",
+      "sources": [
+        {
+          "sourceId": "fixture:radial-r1",
+          "kind": "synthetic-fixture",
+          "name": "Synthetic fixture for contract examples (not real rail data)",
+          "license": "CC0-1.0",
+          "reference": "scripts/build-external-rail-technical-examples.mjs",
+          "note": "Invented values that exercise the contract. Do not use them as facts about any real railway.",
+          "facts": {
+            "runningSystemId": "steel-wheel",
+            "gaugeMm": 1435,
+            "carWidthM": 2.8,
+            "maxAxleLoadTonnes": 16,
+            "collectionSystemId": "overhead",
+            "currentSystem": "dc",
+            "voltageV": 1500,
+            "minimumCurveRadiusMeters": 160,
+            "maxGradientPermille": 35,
+            "signalSystemIds": [
+              "ats-p"
+            ],
+            "platformHeightMm": 1100,
+            "doorLayoutId": "4-door-20m",
+            "minCars": 4,
+            "maxCars": 10,
+            "maintenanceSystemId": "medium_steel",
+            "infrastructureOwnerId": "owner:fixture-railway-a"
+          }
+        }
+      ]
+    },
+    "fixtureExistingNetwork": {
+      "formatVersion": 1,
+      "note": "Synthetic fixture network for external-rail-technical-examples; not real data.",
+      "lines": [
+        {
+          "name": "Fixture R1 fully verified steel wheel",
+          "stationIds": [
+            "cbd",
+            "inner-1",
+            "mid-1"
+          ]
+        },
+        {
+          "name": "Fixture R2 gauge only",
+          "stationIds": [
+            "cbd",
+            "inner-2",
+            "mid-2"
+          ]
+        },
+        {
+          "name": "Fixture R3 multiple signalling systems",
+          "stationIds": [
+            "cbd",
+            "inner-3",
+            "mid-3"
+          ]
+        },
+        {
+          "name": "Fixture R4 third rail",
+          "stationIds": [
+            "cbd",
+            "inner-4",
+            "mid-4"
+          ]
+        },
+        {
+          "name": "Fixture R5 conflicting sources",
+          "stationIds": [
+            "cbd",
+            "inner-5",
+            "mid-5"
+          ]
+        },
+        {
+          "name": "Fixture R6 AGT, gauge not applicable",
+          "stationIds": [
+            "cbd",
+            "inner-6",
+            "mid-6"
+          ]
+        }
+      ]
+    },
+    "generatedBy": "scripts/build-external-rail-technical-examples.mjs"
+  }
+}
