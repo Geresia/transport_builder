@@ -129,6 +129,10 @@
           "type": "string",
           "description": "Real-world rail/subway/tram lines, pre-collapsed onto demand.json's points, that the engine can preload as the starting network."
         },
+        "externalRailTechnicalSpecifications": {
+          "type": "string",
+          "description": "Sourced ExternalRailTechnicalSpecification v1 facts for real external lines; missing attributes remain unknown."
+        },
         "bathymetry": {
           "type": "string",
           "description": "Water depth grid (real sourced data)."

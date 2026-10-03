@@ -135,6 +135,7 @@
     "bridgeTiles": "bridges-3d.pmtiles",
     "barriers": "barriers.json",
     "existingNetwork": "existing-network.json",
+    "externalRailTechnicalSpecifications": "external-rail-technical-examples/01-toei-shinjuku-wikidata-partial.spec.json",
     "buildingLabels": "building-labels.pmtiles",
     "buildingTilesRegional": [
       "saitama-buildings.pmtiles",

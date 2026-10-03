@@ -71,5 +71,20 @@ export async function loadPack(packPath) {
     catch (e) { console.warn("barriers.json not loaded; water collisions remain unknown:", e.message); }
   }
 
-  return { manifest, demand, od, odSchool, existingNetwork, obstacles, barriers };
+  // Optional sourced technical facts for real external rail lines. This is not a convenience profile:
+  // every absent attribute remains null when the through-service compatibility check consumes it.
+  let externalRailTechnicalSpecifications = [];
+  if (manifest.files?.externalRailTechnicalSpecifications) {
+    try {
+      const loaded = await fetchJson(new URL(manifest.files.externalRailTechnicalSpecifications, new URL(base, document.baseURI)), manifest.compressed);
+      externalRailTechnicalSpecifications = loaded?.schema === "transitline.external-rail-technical-specification/1"
+        ? [loaded]
+        : loaded?.schema === "transitline.external-rail-technical-specification-export/1" && Array.isArray(loaded.specifications)
+          ? loaded.specifications
+          : [];
+      if (!externalRailTechnicalSpecifications.length) console.warn("external rail technical file has no recognized v1 specifications");
+    } catch (e) { console.warn("external rail technical specifications not loaded; compatibility remains unknown:", e.message); }
+  }
+
+  return { manifest, demand, od, odSchool, existingNetwork, obstacles, barriers, externalRailTechnicalSpecifications };
 }

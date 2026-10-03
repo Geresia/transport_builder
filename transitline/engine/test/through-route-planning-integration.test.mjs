@@ -7,6 +7,7 @@ import {
   buildThroughOperationDraft,
   buildThroughRouteFromSelection,
   buildThroughRouteSourceCatalog,
+  externalInfrastructureCatalogForRoute,
   removeThroughRouteSelection,
   saveThroughRouteSelection,
   throughRoutePlanningReport,
@@ -209,6 +210,33 @@ test("unknown external topology and unresolved operational assets fail closed", 
   assert.throws(() => buildThroughOperationDraft({ route: local.route, throughService: serviceForRoute(local.route), sourceCatalog: local.catalog, operationalState: missingState }), /no commissioned operational source|unresolved operational station/);
 });
 
+function externalSpecification(overrides = {}) {
+  return {
+    schema: "transitline.external-rail-technical-specification/1", contractVersion: 1,
+    specificationId: "spec:external:1", specificationRevision: "spec-revision:1",
+    externalNetworkId: externalNetwork.id, externalLineId: "ext-line:1",
+    sourcePackId: pack.manifest.id, sourcePackVersion: pack.manifest.version,
+    infrastructureOwnerId: null, technicalProfileId: null,
+    technicalSpecification: { gaugeMm: 1067 }, notApplicable: [], status: null, capacityTrainsPerHour: null,
+    unknown: [], unknownReasons: {},
+    ...overrides,
+  };
+}
+
+test("sourced pack specifications join any newly drawn external route by stable line ids", () => {
+  const route = buildThroughRouteFromSelection({
+    key: "external-spec-route", legs: [selection.legs[1], { sourceId: `external:${externalNetwork.id}/ext-line:1` }],
+  }, options()).route;
+  const sourcedPack = { ...pack, externalRailTechnicalSpecifications: [externalSpecification()] };
+  const catalog = externalInfrastructureCatalogForRoute(sourcedPack, route);
+  assert.equal(catalog.entries.length, 1);
+  assert.equal(catalog.entries[0].legId, route.legs[1].legId);
+  assert.equal(catalog.entries[0].technicalSpecification.gaugeMm, 1067);
+  const wrongVersion = externalInfrastructureCatalogForRoute({ ...sourcedPack, externalRailTechnicalSpecifications: [externalSpecification({ sourcePackVersion: "old" })] }, route);
+  assert.deepEqual(wrongVersion.entries, []);
+  assert.deepEqual(wrongVersion.unmatchedLegIds, [route.legs[1].legId]);
+});
+
 test("ScenarioRuntime creates an assessed service from a selection and saves its route plan", () => {
   const game = new ManagementGame({ seed: 12 });
   game.projects.push(...structuredClone(projects));
@@ -238,6 +266,24 @@ test("ScenarioRuntime derives a commission input from its saved route and live a
   assert.equal(draft.throughServiceId, created.service.throughServiceId);
   assert.equal(draft.stationIds.length, 3);
   assert.deepEqual(draft.segmentAccessAgreementIds, [null, null]);
+});
+
+test("ScenarioRuntime automatically feeds sourced external specifications into assessment", () => {
+  const sourcedPack = { ...pack, externalRailTechnicalSpecifications: [externalSpecification()] };
+  const game = new ManagementGame({ seed: 15 });
+  game.projects.push(...structuredClone(projects));
+  const operationalState = projectOperationalState();
+  const runtime = Object.assign(Object.create(ScenarioRuntime.prototype), { pack: sourcedPack, game, operationalState });
+  const externalSelection = {
+    key: "runtime-external", legs: [selection.legs[1], { sourceId: `external:${externalNetwork.id}/ext-line:1` }],
+  };
+  const created = runtime.createThroughServiceFromSelection(externalSelection, mapExport, {
+    operatorId: "player", guestModelId: "medium_4car", trainsPerHour: 4,
+  });
+  const externalLeg = created.service.legs.find((leg) => leg.sourceKind === "external");
+  assert.equal(externalLeg.externalSpecificationId, "spec:external:1");
+  assert.equal(externalLeg.technicalCompatibility.checks.find((check) => check.checkId === "gauge").status, "incompatible");
+  assert.equal(created.service.assessment.verdict, "impossible");
 });
 
 function resultCatalog() {

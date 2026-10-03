@@ -1,4 +1,5 @@
 import { buildThroughRoute } from "./map/through-route.mjs";
+import { buildExternalInfrastructureCatalog } from "./map/external-rail-technical-specification.mjs";
 
 export const THROUGH_ROUTE_SOURCE_CATALOG_SCHEMA = "transitline.through-route-source-catalog/1";
 export const THROUGH_OPERATION_DRAFT_SCHEMA = "transitline.through-operation-draft/1";
@@ -277,6 +278,26 @@ export function buildThroughOperationDraft({ route, throughService, sourceCatalo
     stationAccessAgreementIds,
     legRanges,
   };
+}
+
+export function externalInfrastructureCatalogForRoute(pack, route) {
+  if (!pack?.manifest?.id) throw new Error("A city pack is required for external infrastructure facts");
+  if (route?.schema !== "transitline.through-route-geometry/1" || route.contractVersion !== 1) throw new Error("ThroughRouteGeometry v1 is required");
+  const specifications = (pack.externalRailTechnicalSpecifications ?? []).filter((specification) => {
+    if (specification?.schema !== "transitline.external-rail-technical-specification/1" || specification.contractVersion !== 1) return false;
+    if (specification.sourcePackId !== pack.manifest.id) return false;
+    return specification.sourcePackVersion === null || specification.sourcePackVersion === undefined || specification.sourcePackVersion === pack.manifest.version;
+  });
+  return buildExternalInfrastructureCatalog({
+    specificationExport: {
+      schema: "transitline.external-rail-technical-specification-export/1",
+      packId: pack.manifest.id,
+      packVersion: pack.manifest.version ?? null,
+      specifications: clone(specifications),
+      warnings: [],
+    },
+    routeExport: { routes: [route] },
+  });
 }
 
 function routeStore(state) {

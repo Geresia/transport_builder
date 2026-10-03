@@ -21,6 +21,7 @@ packs/<pack-id>/
   manifest.json      required   identity, extent, licensing, file map
   demand.json        required   who travels, and where
   obstacles.json     optional   footprints for placement collision
+  external-rail-technical.json optional sourced facts for real external lines
   basemap.pmtiles    optional   visual basemap
   ATTRIBUTION.md     required when data.license != CC0-1.0
   LICENSE-DATA       required when data.license == ODbL-1.0
@@ -63,6 +64,14 @@ Distances are metres, durations seconds.
 | `data.attribution` | Strings the engine must display. Empty only for CC0 |
 | `data.sources` | `{name, url, license}` — provenance for the pack, per source |
 | `files` | Relative paths. Absent key = that layer is not present |
+
+`files.externalRailTechnicalSpecifications` may point to one
+`transitline.external-rail-technical-specification/1` object or a
+`transitline.external-rail-technical-specification-export/1`. The loader never
+fills missing attributes from a typical railway profile; missing gauge,
+electrification, signal, platform, capacity or ownership facts remain `null`
+and block a definitive through-service approval. See
+[`external-rail-technical-specification-contract.md`](external-rail-technical-specification-contract.md).
 
 `data.license` is the field Rule 3 rests on. An OSM-derived pack sets
 `ODbL-1.0` and ships `LICENSE-DATA`; a synthetic pack sets `CC0-1.0` and carries

@@ -39,6 +39,8 @@
 
 외부선은 현재 팩에 선로 선형이 없으므로 인계부의 `physicalConnection`이 `null`이다. 따라서 별도 접속 설계 자료가 들어오기 전에는 승인 가능한 것으로 간주하지 않는다.
 
+팩의 `files.externalRailTechnicalSpecifications`가 있으면 새로 만든 경로의 외부 leg를 `externalNetworkId + externalLineId`로 해당 사양에 연결한다. 도쿄 팩은 현재 도에이 신주쿠선의 출처가 있는 일부 사실(궤간 1,372 mm, 직류 1,500 V, 가공전차선)만 제공한다. 나머지 값과 다른 외부 노선은 계속 미상이다. 예제 경로에 고정된 catalog ID를 재사용하지 않고, 플레이어가 방금 만든 route/leg ID로 catalog를 다시 만든다.
+
 ## 운영선 연결
 
 기존망을 시뮬레이션 상태에 심을 때 각 노선에 다음 ID를 함께 기록한다.
@@ -63,7 +65,6 @@
 
 ## 남은 일
 
-- 외부 기술사양 export를 패널에 연결해 실제 외부 노선의 기술 심사 입력을 제공한다.
 - 물리 접속이 미상인 외부 인계부에 대해 분기기·연락선 설계 계약을 추가한다.
 - Claude의 B12-5 M3 지도 오버레이와 `throughRouteId`/`legId`로 결합한다.
 

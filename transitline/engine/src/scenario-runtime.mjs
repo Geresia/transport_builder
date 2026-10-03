@@ -28,6 +28,7 @@ import {
 import {
   buildThroughOperationDraft,
   buildThroughRouteFromSelection,
+  externalInfrastructureCatalogForRoute,
   removeThroughRouteSelection,
   saveThroughRouteSelection,
   throughRoutePlanningReport,
@@ -895,7 +896,7 @@ export class ScenarioRuntime {
     return removeThroughRouteSelection(this.operationalState, key, this.game.throughServices);
   }
 
-  createThroughServiceFromSelection(selection, mapExport, input = {}, infrastructureCatalog = []) {
+  createThroughServiceFromSelection(selection, mapExport, input = {}, infrastructureCatalog = null) {
     const options = {
       pack: this.pack,
       mapExport,
@@ -904,7 +905,8 @@ export class ScenarioRuntime {
       playerOperatorId: this.game.player.id,
     };
     const built = buildThroughRouteFromSelection(selection, options);
-    const service = this.game.createThroughService(built.route, input, infrastructureCatalog);
+    const effectiveCatalog = infrastructureCatalog ?? externalInfrastructureCatalogForRoute(this.pack, built.route);
+    const service = this.game.createThroughService(built.route, input, effectiveCatalog);
     saveThroughRouteSelection(this.operationalState, selection, options);
     return { route: structuredClone(built.route), service };
   }
@@ -922,12 +924,14 @@ export class ScenarioRuntime {
     });
   }
 
-  createThroughService(route, input = {}, infrastructureCatalog = []) {
-    return this.game.createThroughService(route, input, infrastructureCatalog);
+  createThroughService(route, input = {}, infrastructureCatalog = null) {
+    const effectiveCatalog = infrastructureCatalog ?? (this.pack ? externalInfrastructureCatalogForRoute(this.pack, route) : []);
+    return this.game.createThroughService(route, input, effectiveCatalog);
   }
 
-  reassessThroughService(throughServiceId, route, infrastructureCatalog = []) {
-    const result = this.game.reassessThroughService(throughServiceId, route, infrastructureCatalog);
+  reassessThroughService(throughServiceId, route, infrastructureCatalog = null) {
+    const effectiveCatalog = infrastructureCatalog ?? (this.pack ? externalInfrastructureCatalogForRoute(this.pack, route) : []);
+    const result = this.game.reassessThroughService(throughServiceId, route, effectiveCatalog);
     this.syncThroughOperationLine(throughServiceId);
     return result;
   }
