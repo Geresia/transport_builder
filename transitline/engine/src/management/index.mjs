@@ -13,6 +13,7 @@ export * from "./corporate-finance.mjs";
 export * from "./operating-resource-pool.mjs";
 export * from "./track-access.mjs";
 export * from "./through-service.mjs";
+export * from "./technical-compatibility.mjs";
 export * from "./station-planning.mjs";
 export * from "./station-flow.mjs";
 export * from "./station-construction.mjs";

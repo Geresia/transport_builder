@@ -1,5 +1,6 @@
 import { TECHNICAL_PROFILES } from "./construction.mjs";
 import { VEHICLE_MODELS } from "./rolling-stock.mjs";
+import { assessTechnicalCompatibility } from "./technical-compatibility.mjs";
 
 export const THROUGH_SERVICE_SCHEMA = "transitline.through-service/1";
 export const THROUGH_SERVICE_VERDICTS = Object.freeze(["possible", "conditional", "impossible", "unknown"]);
@@ -89,10 +90,25 @@ export function assessThroughService(input, {
 
     if (!ownerId) missingInputs.push(`leg:${leg.legId}:infrastructureOwnerId`);
     if (!technicalProfileId || !TECHNICAL_PROFILES[technicalProfileId]) missingInputs.push(`leg:${leg.legId}:technicalProfileId`);
-    const compatible = model && TECHNICAL_PROFILES[technicalProfileId]
-      ? model.profileId === technicalProfileId
+    const technicalCompatibility = model && TECHNICAL_PROFILES[technicalProfileId]
+      ? assessTechnicalCompatibility({
+        legId: leg.legId,
+        technicalProfileId,
+        vehicleModelId: model.id,
+        infrastructureOverrides: catalog?.technicalSpecification ?? project?.technicalSpecification ?? {},
+      })
       : null;
-    if (compatible === false) violations.push(`leg:${leg.legId}:running-system-incompatible`);
+    const compatibility = technicalCompatibility?.verdict === "possible"
+      ? "compatible"
+      : technicalCompatibility?.verdict === "impossible"
+        ? "incompatible"
+        : technicalCompatibility?.verdict ?? "unknown";
+    if (technicalCompatibility?.verdict === "impossible") {
+      violations.push(`leg:${leg.legId}:running-system-incompatible`);
+      for (const reason of technicalCompatibility.violations) violations.push(`leg:${leg.legId}:technical:${reason}`);
+    }
+    for (const reason of technicalCompatibility?.conditions ?? []) conditions.push(`leg:${leg.legId}:technical:${reason}`);
+    for (const reason of technicalCompatibility?.missingInputs ?? []) missingInputs.push(`leg:${leg.legId}:technical:${reason}`);
     if (capacityTrainsPerHour === null) conditions.push(`leg:${leg.legId}:capacity-verification-required`);
     else if (trainsPerHour > capacityTrainsPerHour) violations.push(`leg:${leg.legId}:capacity-exceeded`);
 
@@ -114,7 +130,8 @@ export function assessThroughService(input, {
       payeeOwnerId: foreignOwner ? ownerId : null,
       technicalProfileId,
       vehicleProfileId: model?.profileId ?? null,
-      compatibility: compatible === true ? "compatible" : compatible === false ? "incompatible" : "unknown",
+      compatibility,
+      technicalCompatibility,
       infrastructureStatus,
       capacityTrainsPerHour,
       trackAccessAgreementId: agreement?.id ?? null,

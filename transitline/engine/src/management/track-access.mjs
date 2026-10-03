@@ -1,5 +1,6 @@
 import { TECHNICAL_PROFILES } from "./construction.mjs";
 import { VEHICLE_MODELS } from "./rolling-stock.mjs";
+import { assessTechnicalCompatibility } from "./technical-compatibility.mjs";
 
 export const TRACK_ACCESS_OPPORTUNITY_SCHEMA = "transitline.track-access-opportunity/1";
 export const TRACK_ACCESS_AGREEMENT_SCHEMA = "transitline.track-access-agreement/1";
@@ -13,8 +14,23 @@ function technicalCompatibility(hostProject, guestModelId) {
   const reasons = [];
   if (!vehicle) reasons.push(`Unknown guest vehicle model ${guestModelId}`);
   if (!profile) reasons.push("Host infrastructure profile is unknown");
-  if (vehicle && hostProject && vehicle.profileId !== hostProject.technicalProfileId) reasons.push("Guest running system does not match host infrastructure");
-  return { compatible: reasons.length === 0, reasons, hostProfileId: hostProject?.technicalProfileId ?? null, guestProfileId: vehicle?.profileId ?? null };
+  const assessment = vehicle && profile
+    ? assessTechnicalCompatibility({
+      technicalProfileId: hostProject.technicalProfileId,
+      vehicleModelId: guestModelId,
+      infrastructureOverrides: hostProject.technicalSpecification ?? {},
+    })
+    : null;
+  if (assessment?.verdict === "impossible") reasons.push(`Guest running system does not match host infrastructure: ${assessment.violations.join(", ")}`);
+  else if (assessment?.verdict === "conditional") reasons.push(`Guest technical compatibility is conditional: ${assessment.conditions.join(", ")}`);
+  else if (assessment?.verdict === "unknown") reasons.push(`Guest technical compatibility is unknown: ${assessment.missingInputs.join(", ")}`);
+  return {
+    compatible: reasons.length === 0 && assessment?.verdict === "possible",
+    reasons,
+    hostProfileId: hostProject?.technicalProfileId ?? null,
+    guestProfileId: vehicle?.profileId ?? null,
+    assessment,
+  };
 }
 
 export function createTrackAccessOpportunity(input, { hostService, hostProject, atMinute = 0 } = {}) {

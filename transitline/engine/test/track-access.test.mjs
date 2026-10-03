@@ -47,6 +47,15 @@ test("opportunity validates host capacity and the guest running system", () => {
   const created = opportunity();
   assert.equal(created.compatibility.compatible, true);
   assert.equal(created.maximumGuestTrainsPerHour, 4);
+  assert.equal(created.compatibility.assessment.verdict, "possible");
+});
+
+test("track access rejects a detailed signal mismatch and does not treat missing data as safe", () => {
+  const { hostProject, hostService } = hostFixture();
+  hostProject.technicalSpecification = { signalSystemIds: ["other-atc"] };
+  assert.throws(() => createTrackAccessOpportunity({ id: "signal-mismatch" }, { hostProject, hostService }), /signal-system-not-supported/);
+  hostProject.technicalSpecification = { signalSystemIds: null };
+  assert.throws(() => createTrackAccessOpportunity({ id: "signal-unknown" }, { hostProject, hostService }), /compatibility is unknown/);
 });
 
 test("competitor AI produces deterministic commercial and technical offers", () => {

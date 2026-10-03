@@ -95,6 +95,28 @@ test("planned, unfinished, incompatible and over-capacity legs are impossible fo
   assert.ok(capacity.assessment.violations.includes("leg:leg:built:capacity-exceeded"));
 });
 
+test("through-service legs expose detailed technical failures and preserve missing facts", () => {
+  const legs = [externalLeg("leg:detailed:1"), externalLeg("leg:detailed:2")];
+  const baseCatalog = legs.map((leg) => catalog(leg));
+  const wrongSignal = createThroughService(input(), {
+    route: route(legs),
+    infrastructureCatalog: baseCatalog.map((entry) => ({ ...entry, technicalSpecification: { signalSystemIds: ["other-atc"] } })),
+    trackAccessAgreements: [{ id: "agreement:detail", status: "active", guestOperatorId: "player", infrastructureOwnerId: "owner:external", hostProjectId: null }],
+  });
+  assert.equal(wrongSignal.assessment.verdict, "impossible");
+  assert.equal(wrongSignal.legs[0].technicalCompatibility.verdict, "impossible");
+  assert.ok(wrongSignal.assessment.violations.includes("leg:leg:detailed:1:technical:signal-system-not-supported"));
+
+  const unknownSignal = createThroughService(input(), {
+    route: route(legs),
+    infrastructureCatalog: baseCatalog.map((entry) => ({ ...entry, technicalSpecification: { signalSystemIds: null } })),
+    trackAccessAgreements: [{ id: "agreement:detail", status: "active", guestOperatorId: "player", infrastructureOwnerId: "owner:external", hostProjectId: null }],
+  });
+  assert.equal(unknownSignal.assessment.verdict, "unknown");
+  assert.equal(unknownSignal.legs[0].compatibility, "unknown");
+  assert.ok(unknownSignal.assessment.missingInputs.includes("leg:leg:detailed:1:technical:signal-system-data-missing"));
+});
+
 test("missing owner, profile, project, model or route revision produces unknown", () => {
   const leg = externalLeg("leg:missing", null);
   const withoutRevision = route([leg, { ...leg, legId: "leg:missing:2", externalLineId: "line:2" }]);
