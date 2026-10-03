@@ -182,6 +182,7 @@ export class ScenarioRuntime {
       throughServices: this.game.throughServiceReport(),
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
       throughFareAgreements: this.game.throughFareAgreementReport(),
+      throughOperatingSettlements: this.game.throughOperatingSettlementReport(null, 24),
       corporateFinance: this.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(this.game.clock.minute / (30 * 1440)) - 11) }),
       assessments,
     });
@@ -887,6 +888,14 @@ export class ScenarioRuntime {
 
   throughFareAgreementReport(throughServiceId = null) {
     return this.game.throughFareAgreementReport(throughServiceId);
+  }
+
+  settleThroughServiceOperatingDay(throughServiceId, actuals = {}) {
+    return this.game.settleThroughServiceOperatingDay(throughServiceId, actuals);
+  }
+
+  throughOperatingSettlementReport(throughServiceId = null, limit = null) {
+    return this.game.throughOperatingSettlementReport(throughServiceId, limit);
   }
 
   evaluate() {

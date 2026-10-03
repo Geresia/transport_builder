@@ -20,7 +20,7 @@ function cashFlowForMonth(ledger, month) {
   for (const entry of entries) {
     if (financingCategories.has(entry.category) || entry.category.includes("equity")) result.financingJPY += entry.amount;
     else if (investingCategories.has(entry.category)) result.investingJPY += entry.amount;
-    else if (entry.category.startsWith("operating") || entry.category.startsWith("integrated-operating") || entry.category.startsWith("vehicle-") || entry.category === "electricity-contract-change") result.operatingJPY += entry.amount;
+    else if (entry.category.startsWith("operating") || entry.category.startsWith("integrated-operating") || entry.category.startsWith("through-") || entry.category.startsWith("vehicle-") || entry.category === "electricity-contract-change") result.operatingJPY += entry.amount;
     else result.otherJPY += entry.amount;
     result.netChangeJPY += entry.amount;
   }
@@ -76,8 +76,9 @@ export function corporateBalanceSheet(game) {
 
 export function corporateMonthlyStatement(game, month) {
   const operating = game.operatingMonthReports.filter((entry) => entry.month === month);
-  const revenueJPY = round(sum(operating.map((entry) => entry.operatingIncomeJPY)));
-  const operatingCostJPY = round(sum(operating.map((entry) => entry.operatingCostJPY)));
+  const throughOperating = (game.throughOperatingSettlements ?? []).filter((entry) => Math.floor((entry.settledAtMinute ?? 0) / MONTH_MINUTES) === month);
+  const revenueJPY = round(sum(operating.map((entry) => entry.operatingIncomeJPY)) + sum(throughOperating.map((entry) => entry.money?.playerFareRevenueJPY)));
+  const operatingCostJPY = round(sum(operating.map((entry) => entry.operatingCostJPY)) + sum(throughOperating.map((entry) => entry.money?.operatingCostJPY)));
   const ebitdaJPY = revenueJPY - operatingCostJPY;
   const depreciationJPY = monthlyDepreciation(game);
   const ebitJPY = ebitdaJPY - depreciationJPY;

@@ -322,6 +322,8 @@ test("game reassessment preserves identity, detects revisions and revokes stale 
   const originalRoute = route(legs);
   const created = game.createThroughService(originalRoute, input(), catalogEntries);
   game.approveThroughService(created.throughServiceId);
+  game.requireThroughService(created.throughServiceId).throughOperatingTotals = { days: 2, passengers: 400 };
+  game.requireThroughService(created.throughServiceId).lastThroughOperatingDay = 9;
   const revisedRoute = structuredClone(originalRoute);
   revisedRoute.geometryRevision = "through-route-revision:changed";
   revisedRoute.handovers[0] = handover("separated");
@@ -330,6 +332,8 @@ test("game reassessment preserves identity, detects revisions and revokes stale 
   assert.equal(revised.routeGeometryRevision, "through-route-revision:changed");
   assert.equal(revised.status, "assessed");
   assert.equal(revised.assessment.verdict, "impossible");
+  assert.deepEqual(revised.throughOperatingTotals, { days: 2, passengers: 400 });
+  assert.equal(revised.lastThroughOperatingDay, 9);
   assert.throws(() => game.reassessThroughService(created.throughServiceId, { ...revisedRoute, throughRouteId: "other" }, catalogEntries), /identity does not match/);
 });
 

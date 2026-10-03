@@ -16,6 +16,7 @@ export * from "./through-service.mjs";
 export * from "./technical-compatibility.mjs";
 export * from "./vehicle-retrofit.mjs";
 export * from "./through-fare.mjs";
+export * from "./through-operation.mjs";
 export * from "./station-planning.mjs";
 export * from "./station-flow.mjs";
 export * from "./station-construction.mjs";

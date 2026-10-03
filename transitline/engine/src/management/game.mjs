@@ -25,6 +25,7 @@ import { awardTrackAccessOffer as buildTrackAccessAgreement, createTrackAccessOp
 import { createThroughService as buildThroughService } from "./through-service.mjs";
 import { advanceVehicleRetrofitMonth, authorizeVehicleRetrofitRetest as buildVehicleRetrofitRetest, createVehicleRetrofitProgram, mergeVehicleTechnicalOverrides, startVehicleRetrofitProgram } from "./vehicle-retrofit.mjs";
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
+import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
 export class ManagementGame {
   constructor({ countryId = "JP", seed = 1, openingCash = 500_000_000_000, playerName = "Player Transit" } = {}) {
@@ -60,6 +61,7 @@ export class ManagementGame {
     this.throughServices = [];
     this.vehicleRetrofitPrograms = [];
     this.throughFareAgreements = [];
+    this.throughOperatingSettlements = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -109,6 +111,7 @@ export class ManagementGame {
       throughServices: structuredClone(this.throughServices),
       vehicleRetrofitPrograms: structuredClone(this.vehicleRetrofitPrograms),
       throughFareAgreements: structuredClone(this.throughFareAgreements),
+      throughOperatingSettlements: structuredClone(this.throughOperatingSettlements),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -136,7 +139,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "vehicleRetrofitPrograms", "throughFareAgreements", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -1224,6 +1227,8 @@ export class ManagementGame {
       });
       const revisionSignature = (service) => JSON.stringify(service.legs.map((leg) => [leg.legId, leg.externalSpecificationId ?? null, leg.externalSpecificationRevision ?? null]));
       const sameSpecificationRevisions = revisionSignature(reassessed) === revisionSignature(current);
+      if (current.throughOperatingTotals) reassessed.throughOperatingTotals = structuredClone(current.throughOperatingTotals);
+      if (current.lastThroughOperatingDay !== undefined) reassessed.lastThroughOperatingDay = current.lastThroughOperatingDay;
       if (!sameRevision || !sameSpecificationRevisions) reassessed.status = "assessed";
       if (reassessed.status === "approved" && reassessed.assessment.verdict !== "possible") reassessed.status = "assessed";
       if (reassessed.assessment.verdict === "possible") delete reassessed.retrofitReassessmentRequired;
@@ -1344,6 +1349,58 @@ export class ManagementGame {
 
   throughFareAgreementReport(throughServiceId = null) {
     return structuredClone(this.throughFareAgreements.filter((entry) => throughServiceId === null || entry.throughServiceId === throughServiceId));
+  }
+
+  settleThroughServiceOperatingDay(throughServiceId, actuals = {}) {
+    return this.transact("through-service-operating-day-settled", () => {
+      const service = this.requireThroughService(throughServiceId);
+      const operatingDay = Number(actuals.operatingDay);
+      const previous = this.throughOperatingSettlements.filter((entry) => entry.throughServiceId === throughServiceId)
+        .reduce((maximum, entry) => Math.max(maximum, entry.operatingDay), -1);
+      if (operatingDay <= previous) throw new Error(`Through service operating day must be later than ${previous}`);
+      const fareAgreement = this.throughFareAgreements.find((entry) => entry.throughServiceId === throughServiceId && entry.status === "active");
+      if (!fareAgreement) throw new Error("Through service has no active fare agreement");
+      const settlement = calculateThroughOperatingSettlement({
+        throughService: service,
+        fareAgreement,
+        trackAccessAgreements: this.trackAccessAgreements,
+        actuals,
+        playerOperatorId: this.player.id,
+      });
+      const atMinute = this.clock.minute;
+      settlement.settledAtMinute = atMinute;
+      if (settlement.money.playerFareRevenueJPY > 0) this.ledger.post({ atMinute, amount: settlement.money.playerFareRevenueJPY, category: "through-fare-income", reference: throughServiceId });
+      for (const [category, amount] of [
+        ["through-energy-cost", settlement.money.energyJPY],
+        ["through-staff-cost", settlement.money.staffJPY],
+        ["through-vehicle-maintenance", settlement.money.vehicleMaintenanceJPY],
+        ["through-track-access-cost", settlement.money.trackAccessCostJPY],
+        ["through-other-operating-cost", settlement.money.otherOperatingCostJPY],
+      ]) {
+        if (amount > 0) this.ledger.post({ atMinute, amount: -amount, category, reference: throughServiceId });
+      }
+      for (const usage of settlement.trackAccessUsage) {
+        const agreement = this.trackAccessAgreements.find((entry) => entry.id === usage.agreementId);
+        agreement.totals ??= { settledDays: 0, accessRevenueJPY: 0 };
+        agreement.totals.guestSettledDays = (agreement.totals.guestSettledDays ?? 0) + 1;
+        agreement.totals.guestAccessCostJPY = (agreement.totals.guestAccessCostJPY ?? 0) + usage.accessCostJPY;
+      }
+      service.throughOperatingTotals ??= { days: 0, passengers: 0, trainKm: 0, fareRevenueJPY: 0, operatingCostJPY: 0, operatingProfitJPY: 0 };
+      service.throughOperatingTotals.days += 1;
+      service.throughOperatingTotals.passengers += settlement.passengers;
+      service.throughOperatingTotals.trainKm += settlement.trainKm;
+      service.throughOperatingTotals.fareRevenueJPY += settlement.money.playerFareRevenueJPY;
+      service.throughOperatingTotals.operatingCostJPY += settlement.money.operatingCostJPY;
+      service.throughOperatingTotals.operatingProfitJPY += settlement.money.operatingProfitJPY;
+      service.lastThroughOperatingDay = settlement.operatingDay;
+      this.throughOperatingSettlements.push(settlement);
+      return structuredClone(settlement);
+    });
+  }
+
+  throughOperatingSettlementReport(throughServiceId = null, limit = null) {
+    const rows = this.throughOperatingSettlements.filter((entry) => throughServiceId === null || entry.throughServiceId === throughServiceId);
+    return structuredClone(Number.isInteger(limit) && limit >= 0 ? (limit === 0 ? [] : rows.slice(-limit)) : rows);
   }
 
   proposeVehicleRetrofit(throughServiceId, input = {}) {
