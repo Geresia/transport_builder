@@ -232,6 +232,31 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .operations-economy-history { width: 100%; border-collapse: collapse; font: 9px var(--mono); }
 .operations-economy-history th, .operations-economy-history td { padding: 3px 2px; border-bottom: 1px solid var(--panel-line); text-align: right; }
 .operations-economy-history th:first-child, .operations-economy-history td:first-child { text-align: left; }
+.through-services { margin-top: 7px; border-top: 1px solid var(--panel-line); padding-top: 5px; }
+.through-services summary { cursor: pointer; color: #8bc4ff; font-weight: 600; }
+#scenario-through-services { display: grid; gap: 7px; margin-top: 7px; }
+.through-service-card { display: grid; gap: 6px; padding: 7px; border: 1px solid color-mix(in srgb, #8bc4ff 38%, var(--chip-line)); border-radius: 6px; background: color-mix(in srgb, #8bc4ff 4%, var(--chip)); }
+.through-head { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+.through-head strong { overflow-wrap: anywhere; }
+.through-status { padding: 2px 4px; border: 1px solid var(--chip-line); border-radius: 999px; color: var(--muted); font: 8px var(--mono); white-space: nowrap; }
+.through-status.approved { color: var(--ok); }
+.through-status.suspended, .through-status.terminated { color: var(--danger); }
+.through-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; }
+.through-metrics div { min-width: 0; padding: 4px; background: var(--chip); }
+.through-metrics span, .through-metrics b { display: block; overflow-wrap: anywhere; }
+.through-metrics span { color: var(--muted); font-size: 8px; }
+.through-metrics b { margin-top: 1px; font: 9px var(--mono); }
+.through-subcard { display: grid; gap: 5px; padding-top: 5px; border-top: 1px solid var(--panel-line); }
+.through-subcard > strong { color: #b8d9ff; font-size: 10px; }
+.through-actions, .through-inline-controls { display: flex; flex-wrap: wrap; gap: 4px; }
+.through-actions button, .through-inline-controls button, .through-subcard > button { padding: 4px 6px; }
+.through-actions .danger { color: var(--danger); border-color: var(--danger); }
+.through-inline-controls input, .through-inline-controls select, .through-fare-row input { min-width: 0; padding: 4px; color: var(--text); background: var(--chip); border: 1px solid var(--chip-line); border-radius: 4px; font: 9px var(--mono); }
+.through-inline-controls input { width: 48px; }
+#scenario-panel .through-fare-row { grid-template-columns: minmax(0, 1fr) 70px; margin-top: 2px; }
+.through-note, .through-notice, .through-empty { color: var(--muted); overflow-wrap: anywhere; }
+.through-warning { color: var(--warn); overflow-wrap: anywhere; }
+.through-error { color: var(--danger); overflow-wrap: anywhere; }
 .construction-contractors { margin-top: 7px; border-top: 1px solid var(--panel-line); padding-top: 5px; }
 .construction-contractors summary { cursor: pointer; color: #ffd166; font-weight: 600; }
 #scenario-construction-contractors { display: grid; gap: 7px; margin-top: 7px; }

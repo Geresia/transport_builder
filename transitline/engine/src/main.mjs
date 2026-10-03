@@ -24,6 +24,7 @@ import { mountSiteDesignBridge } from "./map/site-design-bridge.mjs";
 import { planIdForKey, planningDefaults, ScenarioRuntime, stablePlanKey } from "./scenario-runtime.mjs";
 import { mountStationManagementPanel } from "./station-management-ui.mjs";
 import { mountConstructionContractorPanel } from "./construction-contractor-ui.mjs";
+import { mountThroughServiceManagementPanel } from "./through-service-management-ui.mjs";
 
 const params = new URLSearchParams(location.search);
 const packPath = params.get("pack") ?? "../packs/example-radial";
@@ -613,6 +614,7 @@ async function main() {
   if (runtime) {
     let stationManagement = null;
     let constructionContractorManagement = null;
+    let throughServiceManagement = null;
     const scenarioPanel = $("scenario-panel");
     const profile = $("scenario-profile");
     const structure = $("scenario-structure");
@@ -1357,6 +1359,7 @@ async function main() {
       renderConstructionEvents(plan, project);
       stationManagement?.refresh();
       constructionContractorManagement?.refresh();
+      throughServiceManagement?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1371,6 +1374,14 @@ async function main() {
       container: $("scenario-construction-contractors"),
       runtime,
       getPlanId: () => selectedPlan()?.planId ?? null,
+      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+    });
+    throughServiceManagement = mountThroughServiceManagementPanel({
+      container: $("scenario-through-services"),
+      runtime,
+      // The map-side through-route editor/view is being delivered separately. Until it supplies a validated
+      // station/access mapping, operation stays visibly blocked instead of inventing one in the management UI.
+      getOperationDraft: () => null,
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
     canvas.addEventListener("pointerup", () => queueMicrotask(() => stationManagement?.refresh()), true);
