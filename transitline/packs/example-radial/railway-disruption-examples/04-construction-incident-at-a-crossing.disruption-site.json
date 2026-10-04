@@ -1,0 +1,300 @@
+{
+  "schema": "transitline.railway-disruption-site-geometry/1",
+  "contractVersion": 1,
+  "disruptionSiteId": "railway-disruption-site:cbd28489490700b7",
+  "siteRevision": "railway-disruption-site-revision:5ef808c602612528",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "eventId": "railway-disruption:4",
+  "railGeometryId": "rail-geometry:409ef0ba4a595690",
+  "railGeometryRevision": "rail-geometry-revision:dee22b5c66c44386",
+  "designedRailGeometryRevision": "rail-geometry-revision:dee22b5c66c44386",
+  "lineId": "line:1",
+  "trackSegmentId": "track-segment:2",
+  "railCapacitySectionId": "rail-section:3cc81b36217d71c4",
+  "sectionLinkBasis": "application",
+  "blockId": null,
+  "trainId": null,
+  "kind": "construction-incident",
+  "status": "active",
+  "scope": "section",
+  "effect": {
+    "closed": true,
+    "speedLimitMps": 0
+  },
+  "location": [
+    0.018,
+    0
+  ],
+  "locationBasis": "player",
+  "locationAttach": {
+    "sectionId": "rail-section:3cc81b36217d71c4",
+    "alongMeters": 2001.5,
+    "distanceToSectionMeters": 0,
+    "onSection": true,
+    "withinAffectedExtent": true,
+    "unknown": [],
+    "unknownReasons": {}
+  },
+  "alignment": [
+    [
+      0,
+      0
+    ],
+    [
+      0.02,
+      0
+    ]
+  ],
+  "affectedExtent": {
+    "startLocation": [
+      0,
+      0
+    ],
+    "endLocation": [
+      0.02,
+      0
+    ],
+    "lengthMeters": 2223.9,
+    "unknown": [],
+    "unknownReasons": {}
+  },
+  "affectedPolygon": [
+    [
+      0.016,
+      -0.003
+    ],
+    [
+      0.024,
+      -0.003
+    ],
+    [
+      0.024,
+      0.003
+    ],
+    [
+      0.016,
+      0.003
+    ]
+  ],
+  "polygonFacts": {
+    "sectionIdsCrossed": [
+      "rail-section:3cc81b36217d71c4",
+      "rail-section:cff66de0afa6ac5e"
+    ],
+    "sectionIdsNotMeasured": [],
+    "stationIdsInside": [
+      "stn:350dbe3a0551f15c"
+    ],
+    "junctionResourceIdsInside": [],
+    "signalCandidateIdsInside": null,
+    "coversLocation": true,
+    "unknown": [
+      "signalCandidateIdsInside"
+    ],
+    "unknownReasons": {
+      "signalCandidateIdsInside": "no-block-data"
+    }
+  },
+  "affectedSectionIds": [
+    "rail-section:3cc81b36217d71c4"
+  ],
+  "affectedBlockIds": null,
+  "affectedSignalCandidateIds": null,
+  "affectedJunctionResourceIds": [
+    "rail-junction:30fca22ad7598d90"
+  ],
+  "affectedStationIds": [
+    "stn:350dbe3a0551f15c",
+    "stn:cbcf9940f43b2516"
+  ],
+  "affectedTerminalResourceIds": null,
+  "alternativeAccessCandidates": [
+    {
+      "candidateId": "railway-disruption-access:30f498b407f3fb9e",
+      "kind": "joined-section",
+      "refId": "rail-section:fcb6ae7da49710ab",
+      "relation": "joined-at-start",
+      "distanceMeters": 2001.5,
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "candidateId": "railway-disruption-access:37db63ac8a94d88e",
+      "kind": "joined-section",
+      "refId": "rail-section:cff66de0afa6ac5e",
+      "relation": "joined-at-end",
+      "distanceMeters": 222.4,
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "candidateId": "railway-disruption-access:439c9f055c1b74cb",
+      "kind": "station",
+      "refId": "stn:350dbe3a0551f15c",
+      "relation": "section-end",
+      "distanceMeters": 222.4,
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "candidateId": "railway-disruption-access:77b0e21b11feaa25",
+      "kind": "joined-section",
+      "refId": "rail-section:7b290a634d732341",
+      "relation": "joined-at-start",
+      "distanceMeters": 2001.5,
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "candidateId": "railway-disruption-access:7e55dba48c2b70f2",
+      "kind": "joined-section",
+      "refId": "rail-section:f6515cca28999468",
+      "relation": "joined-at-start",
+      "distanceMeters": 2001.5,
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "candidateId": "railway-disruption-access:c7a246ae54b37a38",
+      "kind": "station",
+      "refId": "stn:cbcf9940f43b2516",
+      "relation": "section-start",
+      "distanceMeters": 2001.5,
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "spatialFlags": [
+    "block-data-missing",
+    "junction-affected",
+    "station-affected",
+    "whole-section-affected"
+  ],
+  "dataQuality": "low",
+  "unknown": [
+    "affectedBlockIds",
+    "affectedSignalCandidateIds",
+    "affectedTerminalResourceIds",
+    "polygonFacts:signalCandidateIdsInside"
+  ],
+  "unknownReasons": {
+    "affectedBlockIds": "no-block-data",
+    "affectedSignalCandidateIds": "no-block-data",
+    "affectedTerminalResourceIds": "no-terminal-data",
+    "polygonFacts:signalCandidateIdsInside": "no-block-data"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "rail-capacity-geometry",
+      "quality": "low",
+      "name": "RailCapacityGeometry rail-geometry:409ef0ba4a595690",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "construction-incident",
+      "whole-section"
+    ],
+    "synthetic": true,
+    "note": "Synthetic event and application written by hand for this example in the shape of transitline.railway-disruption/1 and transitline.rail-capacity-application/1. They were not produced by the running engine; the geometry is a real rail capacity example of this pack.",
+    "railCapacityExample": "05-flat-crossing",
+    "input": {
+      "event": {
+        "schema": "transitline.railway-disruption/1",
+        "contractVersion": 1,
+        "id": "railway-disruption:4",
+        "kind": "construction-incident",
+        "status": "active",
+        "lineId": "line:1",
+        "trackSegmentId": "track-segment:2",
+        "blockId": null,
+        "trainId": null,
+        "startedAtMinute": 600,
+        "expectedEndMinute": 660,
+        "resolvedAtMinute": null,
+        "resolutionReason": null,
+        "severity": "major",
+        "effect": {
+          "closed": true,
+          "speedLimitMps": 0
+        },
+        "infrastructureOwnerId": null,
+        "operatorId": null,
+        "responsibility": "unknown",
+        "source": "example-fixture"
+      },
+      "application": {
+        "schema": "transitline.rail-capacity-application/1",
+        "contractVersion": 1,
+        "operationalLineId": "line:1",
+        "railGeometryId": "rail-geometry:409ef0ba4a595690",
+        "railGeometryRevision": "rail-geometry-revision:dee22b5c66c44386",
+        "sections": [
+          {
+            "trackSegmentId": "track-segment:1",
+            "railCapacitySectionId": "rail-section:2d4d302dc23862f3"
+          },
+          {
+            "trackSegmentId": "track-segment:2",
+            "railCapacitySectionId": "rail-section:3cc81b36217d71c4"
+          },
+          {
+            "trackSegmentId": "track-segment:3",
+            "railCapacitySectionId": "rail-section:7b290a634d732341"
+          },
+          {
+            "trackSegmentId": "track-segment:4",
+            "railCapacitySectionId": "rail-section:cff66de0afa6ac5e"
+          },
+          {
+            "trackSegmentId": "track-segment:5",
+            "railCapacitySectionId": "rail-section:f1cfb9ba28b4a470"
+          },
+          {
+            "trackSegmentId": "track-segment:6",
+            "railCapacitySectionId": "rail-section:f6515cca28999468"
+          },
+          {
+            "trackSegmentId": "track-segment:7",
+            "railCapacitySectionId": "rail-section:fcb6ae7da49710ab"
+          }
+        ]
+      },
+      "drawn": {
+        "eventId": "railway-disruption:4",
+        "location": [
+          0.018,
+          0
+        ],
+        "locationBasis": "player",
+        "affectedPolygon": [
+          [
+            0.016,
+            -0.003
+          ],
+          [
+            0.024,
+            -0.003
+          ],
+          [
+            0.024,
+            0.003
+          ],
+          [
+            0.016,
+            0.003
+          ]
+        ],
+        "designedRailGeometryRevision": "rail-geometry-revision:dee22b5c66c44386"
+      }
+    },
+    "generatedBy": "scripts/build-railway-disruption-site-examples.mjs"
+  }
+}
