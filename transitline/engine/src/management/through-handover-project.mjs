@@ -34,7 +34,7 @@ function normalizedFacts(site) {
   const lengthMeters = finiteOrNull(site.connectionLengthMeters ?? site.lengthMeters ?? site.connectionAlignment?.lengthMeters);
   const minimumCurveRadiusMeters = finiteOrNull(site.minimumCurveRadiusMeters ?? site.minCurveRadiusMeters);
   const maximumGradientPermille = finiteOrNull(site.maximumGradientPermille ?? site.maxGradientPermille);
-  const intersectedBuildingCount = countOrNull(site.intersectedBuildingCount ?? site.spatialFacts?.intersectedBuildingCount);
+  const intersectedBuildingCount = countOrNull(site.buildingIntersectionCount ?? site.intersectedBuildingCount ?? site.spatialFacts?.buildingIntersectionCount ?? site.spatialFacts?.intersectedBuildingCount);
   const waterCrossingCount = countOrNull(site.waterCrossingCount ?? crossing.water ?? crossing.waterCount);
   const roadCrossingCount = countOrNull(site.roadCrossingCount ?? crossing.road ?? crossing.roadCount);
   const existingRailwayCrossingCount = countOrNull(site.existingRailwayCrossingCount ?? crossing.existingRailway ?? crossing.railwayCount);
@@ -65,7 +65,9 @@ function normalizedFacts(site) {
     roadCrossingCount,
     existingRailwayCrossingCount,
     workAreaCandidateId: site.selectedWorkAreaCandidateId ?? site.workAreaCandidateId ?? null,
-    externalTopologyVerified: site.externalTopologyVerified === true ? true : site.externalTopologyVerified === false ? false : null,
+    externalTopologyVerified: site.physicalConnectionEvidence?.connected === true ? true
+      : site.physicalConnectionEvidence?.connected === false ? false
+        : site.externalTopologyVerified === true ? true : site.externalTopologyVerified === false ? false : null,
     unknown,
     unknownReasons,
     dataQuality: site.dataQuality ?? "unknown",
@@ -87,10 +89,11 @@ function technicalReview(facts, profile) {
   return { violations: uniqueText(violations), conditions: uniqueText(conditions) };
 }
 
-export function estimateThroughHandoverProject({ site, technicalProfileId, structureType = "at-grade", turnoutCount = 2, countryProfile } = {}) {
+export function estimateThroughHandoverProject({ site, technicalProfileId, structureType, turnoutCount = 2, countryProfile } = {}) {
   const facts = normalizedFacts(site);
-  const structure = STRUCTURES[structureType];
-  if (!structure) throw new Error(`Unknown through handover structure ${structureType}`);
+  const selectedStructureType = structureType ?? site.structureType ?? "at-grade";
+  const structure = STRUCTURES[selectedStructureType];
+  if (!structure) throw new Error(`Unknown through handover structure ${selectedStructureType}`);
   if (!Number.isInteger(turnoutCount) || turnoutCount < 1 || turnoutCount > 8) throw new Error("Through handover turnoutCount must be an integer from 1 to 8");
   if (!countryProfile?.id) throw new Error("Country profile is required");
   const profile = TECHNICAL_PROFILES[technicalProfileId];
@@ -98,7 +101,7 @@ export function estimateThroughHandoverProject({ site, technicalProfileId, struc
   const criticalMissing = facts.lengthMeters === null;
   if (criticalMissing) {
     return {
-      currency: "JPY", priceBaseYear: THROUGH_HANDOVER_PRICE_BASE_YEAR, technicalProfileId, structureType, turnoutCount,
+      currency: "JPY", priceBaseYear: THROUGH_HANDOVER_PRICE_BASE_YEAR, technicalProfileId, structureType: selectedStructureType, turnoutCount,
       spatialFacts: facts, review, estimateAssumptions: null, costBreakdownJPY: null, totalP50JPY: null, totalP90JPY: null,
       phasesMonths: null, durationMonths: null, riskProbability: null,
     };
@@ -132,7 +135,7 @@ export function estimateThroughHandoverProject({ site, technicalProfileId, struc
   const durationMonths = designMonths + permissionMonths + constructionMonths + integrationTestingMonths;
   const riskProbability = Math.min(0.35, 0.04 * countryProfile.disputeDelayModifier + knownUnknowns * 0.012 + (facts.intersectedBuildingCount ?? 0) * 0.008);
   return {
-    currency: "JPY", priceBaseYear: THROUGH_HANDOVER_PRICE_BASE_YEAR, technicalProfileId, structureType, turnoutCount,
+    currency: "JPY", priceBaseYear: THROUGH_HANDOVER_PRICE_BASE_YEAR, technicalProfileId, structureType: selectedStructureType, turnoutCount,
     spatialFacts: facts, review,
     estimateAssumptions,
     costBreakdownJPY: { civilJPY, turnoutJPY, systemsJPY, crossingsJPY, relocationJPY, externalInterfaceJPY, designAndApprovalJPY, contingencyJPY },

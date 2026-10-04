@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   ManagementGame,
   activeThroughHandoverConfirmations,
@@ -7,6 +10,16 @@ import {
   estimateThroughHandoverProject,
   getCountryProfile,
 } from "../src/management/index.mjs";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+
+function shippedHandoverSites() {
+  return ["tokyo", "example-radial", "example-corridor"].flatMap((packId) => {
+    const directory = path.join(ROOT, "packs", packId, "through-handover-examples");
+    return fs.readdirSync(directory).filter((name) => name.endsWith(".handover-site.json")).sort()
+      .map((name) => ({ packId, name, site: JSON.parse(fs.readFileSync(path.join(directory, name), "utf8")) }));
+  });
+}
 
 function site(overrides = {}) {
   return {
@@ -82,6 +95,31 @@ test("a handover estimate is transparent 2026 JPY and keeps map facts immutable"
   assert.ok(estimate.totalP90JPY > estimate.totalP50JPY);
   assert.ok(estimate.durationMonths > estimate.phasesMonths.constructionMonths);
   assert.deepEqual(estimate.review.violations, []);
+});
+
+test("every shipped map handover uses the canonical building and connection evidence fields without coercing null", () => {
+  const examples = shippedHandoverSites();
+  assert.equal(examples.length, 12);
+  for (const { packId, name, site: mapSite } of examples) {
+    const estimate = estimateThroughHandoverProject({
+      site: mapSite,
+      technicalProfileId: "medium_steel",
+      countryProfile: getCountryProfile("JP"),
+    });
+    assert.equal(estimate.spatialFacts.intersectedBuildingCount, mapSite.buildingIntersectionCount, `${packId}/${name}: buildings`);
+    assert.equal(estimate.spatialFacts.externalTopologyVerified, mapSite.physicalConnectionEvidence.connected, `${packId}/${name}: connection`);
+    if (mapSite.buildingIntersectionCount === null) assert.equal(estimate.estimateAssumptions?.intersectedBuildingCount ?? null, estimate.totalP50JPY === null ? null : 1);
+    if (mapSite.structureType) assert.equal(estimate.structureType, mapSite.structureType, `${packId}/${name}: structure`);
+  }
+});
+
+test("the stale shipped route remains unknown and cannot be tendered", () => {
+  const stale = shippedHandoverSites().find((entry) => entry.name === "06-route-revision-stale.handover-site.json").site;
+  const game = new ManagementGame({ openingCash: 100_000_000_000 });
+  const project = game.proposeThroughHandoverProject(stale, { technicalProfileId: "medium_steel" });
+  assert.equal(project.spatialFacts.externalTopologyVerified, null);
+  assert.ok(project.review.conditions.includes("external-topology:not-verified"));
+  assert.throws(() => game.tenderThroughHandoverProject(project.id), /topology must be verified/);
 });
 
 test("unknown critical length stays null and cannot silently become a zero-cost project", () => {

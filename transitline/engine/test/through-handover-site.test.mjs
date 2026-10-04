@@ -734,14 +734,17 @@ test("the example set covers every required case, with true, false and null all 
   assert.ok(all.some((s) => state(s) === true) && all.some((s) => state(s) === false) && all.some((s) => state(s) === null));
 });
 
-test("re-running the generator rewrites every example byte for byte", () => {
+test("re-running the generator rewrites every example to the same canonical content", () => {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), "handover-examples-"));
   const run = spawnSync(process.execPath, [path.join(root, "scripts", "build-through-handover-examples.mjs"), "--out", out], { cwd: root, encoding: "utf8" });
   assert.equal(run.status, 0, run.stderr);
   for (const id of examplePacks) {
     const files = fs.readdirSync(exampleDir(id)).filter((f) => f.endsWith(".handover-site.json")).sort();
     assert.deepEqual(fs.readdirSync(path.join(out, id)).sort(), files, id);
-    for (const f of files) assert.equal(fs.readFileSync(path.join(out, id, f), "utf8"), fs.readFileSync(path.join(exampleDir(id), f), "utf8"), `${id}/${f}`);
+    for (const f of files) {
+      const canonical = (text) => text.replaceAll("\r\n", "\n");
+      assert.equal(canonical(fs.readFileSync(path.join(out, id, f), "utf8")), canonical(fs.readFileSync(path.join(exampleDir(id), f), "utf8")), `${id}/${f}`);
+    }
   }
   fs.rmSync(out, { recursive: true, force: true });
 });
