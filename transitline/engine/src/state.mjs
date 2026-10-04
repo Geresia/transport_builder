@@ -113,6 +113,7 @@ export function createState(pack, options = {}) {
       rngState: ((options.seed ?? 0x6d2b79f5) ^ 0x4b1d5eed) >>> 0,
     },
     railCapacityApplications: [],
+    railwayControlOrders: { orders: [], nextSequence: 1 },
   };
 }
 

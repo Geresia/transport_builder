@@ -42,6 +42,8 @@ import {
 import { railwayTrafficReport } from "./railway-traffic-control.mjs";
 import { createRailwayDisruption, railwayDisruptionReport, resolveRailwayDisruption } from "./railway-disruptions.mjs";
 import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail-capacity-integration.mjs";
+import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from "./railway-disruption-response.mjs";
+import { clearRailwayControlOrder, createRailwayControlOrder, railwayControlOrderReport } from "./railway-service-control.mjs";
 
 const VEHICLE_BY_PROFILE = Object.freeze({
   medium_steel: "medium_4car",
@@ -214,6 +216,7 @@ export class ScenarioRuntime {
       railwayTraffic: railwayTrafficReport(this.operationalState),
       railwayDisruptions: railwayDisruptionReport(this.operationalState),
       railCapacityApplications: railCapacityApplicationReport(this.operationalState),
+      railwayControlOrders: railwayControlOrderReport(this.operationalState),
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
       throughFareAgreements: this.game.throughFareAgreementReport(),
       throughOperatingSettlements: this.game.throughOperatingSettlementReport(null, 24),
@@ -1169,6 +1172,46 @@ export class ScenarioRuntime {
 
   railwayDisruptionReport() {
     return railwayDisruptionReport(this.operationalState);
+  }
+
+  railwayDisruptionResponseOptions(eventId) {
+    const event = this.operationalState.railwayDisruptions?.events?.find((entry) => entry.id === eventId);
+    if (!event) throw new Error(`Unknown railway disruption ${eventId}`);
+    return railwayDisruptionResponseOptions(event);
+  }
+
+  respondRailwayDisruption(eventId, responseId) {
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("railway-disruption-responded", () => {
+        const response = applyRailwayDisruptionResponse(this.operationalState, eventId, responseId);
+        if (response.directCostJPY > 0) this.game.ledger.post({
+          atMinute: this.game.clock.minute,
+          amount: -response.directCostJPY,
+          category: "railway-disruption-response",
+          reference: eventId,
+          memo: response.label,
+        });
+        this.game.player.reputation = Math.max(0, Math.min(100, this.game.player.reputation + response.reputationDelta));
+        return response;
+      });
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
+  }
+
+  issueRailwayControlOrder(input) {
+    return createRailwayControlOrder(this.operationalState, input);
+  }
+
+  clearRailwayControlOrder(orderId, options = {}) {
+    return clearRailwayControlOrder(this.operationalState, orderId, options);
+  }
+
+  railwayControlOrderReport(lineId = null) {
+    return railwayControlOrderReport(this.operationalState, lineId);
   }
 
   applyRailCapacityGeometry(lineId, geometry) {

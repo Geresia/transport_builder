@@ -110,7 +110,7 @@ export function handleStop(state, train, stationId, allowBoarding = true) {
 
   // A train on its way back can only carry riders to stations still ahead of
   // it; otherwise they would ride to the terminus and be stranded.
-  const ids = line.stationIds;
+  const ids = Array.isArray(train.serviceStationIds) ? train.serviceStationIds : line.stationIds;
   const stopIndex = ids.indexOf(stationId);
   const capacity = trainCapacity(line);
   for (const p of state.passengers) {

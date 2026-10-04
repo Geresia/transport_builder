@@ -1,6 +1,7 @@
 import { TRAIN_SPEED_MPS } from "./network.mjs";
 import { haversineMetres } from "./projection.mjs";
 import { railwayDisruptionEffect } from "./railway-disruptions.mjs";
+import { effectiveLineStationIds } from "./railway-service-control.mjs";
 
 const key = (value) => String(value);
 
@@ -42,10 +43,11 @@ function blockAtProgress(segment, physicalDirection, progress) {
 export function trainSection(state, train) {
   const line = state.lines.find((entry) => key(entry.id) === key(train.lineId));
   if (!line) return null;
+  const stationIds = effectiveLineStationIds(state, line, train);
   const nextIndex = train.segIndex + train.dir;
-  if (nextIndex < 0 || nextIndex >= line.stationIds.length) return null;
-  const fromStationId = line.stationIds[train.segIndex];
-  const toStationId = line.stationIds[nextIndex];
+  if (nextIndex < 0 || nextIndex >= stationIds.length) return null;
+  const fromStationId = stationIds[train.segIndex];
+  const toStationId = stationIds[nextIndex];
   const resolved = segmentForLeg(state, line, fromStationId, toStationId);
   if (!resolved.segment && line.railwayTrafficControlMode === "legacy-unmapped") return null;
   if (!resolved.segment) return controlledLine(line) ? {
@@ -57,7 +59,7 @@ export function trainSection(state, train) {
     physicalDirection: null,
     resourceId: null,
     mappingError: resolved.error,
-    entersTerminal: nextIndex === line.stationIds.length - 1 && train.dir === 1,
+    entersTerminal: nextIndex === stationIds.length - 1 && train.dir === 1,
   } : null;
   const segment = resolved.segment;
   const physicalDirection = key(segment.fromStationId) === key(fromStationId) ? "forward" : "reverse";
@@ -81,14 +83,15 @@ export function trainSection(state, train) {
     junctionResourceIds: [...(line.railwayTrafficControl?.sectionJunctionResourceIds?.[key(segment.id)] ?? segment.junctionResourceIds ?? [])].map(key).sort(),
     junctionClearanceMinutes: Number(line.railwayTrafficControl?.sectionJunctionClearanceMinutes?.[key(segment.id)]
       ?? segment.junctionClearanceMinutes ?? 0),
-    entersTerminal: nextIndex === line.stationIds.length - 1 && train.dir === 1,
+    entersTerminal: nextIndex === stationIds.length - 1 && train.dir === 1,
   };
 }
 
 function junctionWindow(state, train, section) {
-  const from = state.stations.get(section.line.stationIds[train.segIndex]);
+  const stationIds = effectiveLineStationIds(state, section.line, train);
+  const from = state.stations.get(stationIds[train.segIndex]);
   const nextIndex = train.segIndex + train.dir;
-  const to = state.stations.get(section.line.stationIds[nextIndex]);
+  const to = state.stations.get(stationIds[nextIndex]);
   if (!from || !to) return null;
   const disruption = railwayDisruptionEffect(state, { lineId: section.line.id, trackSegmentId: section.sectionId, blockId: section.blockId, trainId: train.id });
   const speedMps = disruption.speedLimitMps === null ? TRAIN_SPEED_MPS : Math.min(TRAIN_SPEED_MPS, disruption.speedLimitMps);
@@ -155,7 +158,8 @@ export function signalBlockForTrain(state, train) {
       if (other === train || other.done || other.terminalResourceId !== train.terminalResourceId) continue;
       const otherLine = state.lines.find((entry) => key(entry.id) === key(other.lineId));
       const otherSection = trainSection(state, other);
-      const heldAtTerminal = otherLine && other.segIndex === otherLine.stationIds.length - 1 && other.dir === -1 && !(other.t > 0);
+      const otherStationIds = otherLine ? effectiveLineStationIds(state, otherLine, other) : [];
+      const heldAtTerminal = otherLine && other.segIndex === otherStationIds.length - 1 && other.dir === -1 && !(other.t > 0);
       const approachingTerminal = otherSection?.entersTerminal && other.t > 0;
       if (heldAtTerminal || approachingTerminal) {
         return { reason: otherSection?.mappingError ? "terminal-occupancy-unknown" : "terminal-occupied", sectionId: candidate.sectionId, resourceId: train.terminalResourceId, blockingTrainId: other.id };

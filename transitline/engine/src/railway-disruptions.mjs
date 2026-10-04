@@ -1,3 +1,5 @@
+import { syncRailwayControlOrders } from "./railway-service-control.mjs";
+
 export const RAILWAY_DISRUPTION_SCHEMA = "transitline.railway-disruption/1";
 
 export const RAILWAY_DISRUPTION_KINDS = Object.freeze({
@@ -19,6 +21,7 @@ const DEFAULT_RNG_STATE = 0x4b1d5eed;
 
 const clone = (value) => structuredClone(value);
 const textId = (value) => value === null || value === undefined ? null : String(value);
+const ongoing = (event) => event.status === "active" || event.status === "responding";
 
 function nextRandom(store) {
   let t = (store.rngState = ((store.rngState ?? DEFAULT_RNG_STATE) + 0x6d2b79f5) >>> 0);
@@ -63,7 +66,7 @@ function requireTrain(state, trainId) {
 }
 
 function targetAlreadyActive(store, kind, trackSegmentId, blockId, trainId) {
-  return (store?.events ?? []).some((event) => event.status === "active"
+  return (store?.events ?? []).some((event) => ongoing(event)
     && event.kind === kind
     && event.trackSegmentId === trackSegmentId
     && (event.blockId ?? null) === blockId
@@ -139,11 +142,12 @@ export function createRailwayDisruption(state, input = {}) {
 export function resolveRailwayDisruption(state, eventId, { atMinute = state.simMinutes, reason = "recovered" } = {}) {
   const event = state.railwayDisruptions?.events?.find((entry) => entry.id === eventId);
   if (!event) throw new Error(`Unknown railway disruption ${eventId}`);
-  if (event.status !== "active") throw new Error(`Railway disruption ${eventId} is already ${event.status}`);
+  if (!ongoing(event)) throw new Error(`Railway disruption ${eventId} is already ${event.status}`);
   if (!(Number.isFinite(atMinute) && atMinute >= event.startedAtMinute)) throw new Error("Railway disruption resolution time is invalid");
   event.status = "resolved";
   event.resolvedAtMinute = atMinute;
   event.resolutionReason = reason;
+  syncRailwayControlOrders(state, atMinute);
   return clone(event);
 }
 
@@ -151,7 +155,7 @@ function resolveExpired(state, atMinute) {
   const store = ensureRailwayDisruptionState(state);
   const resolved = [];
   for (const event of store.events) {
-    if (event.status !== "active" || event.expectedEndMinute > atMinute + 1e-9) continue;
+    if (!ongoing(event) || event.expectedEndMinute > atMinute + 1e-9) continue;
     event.status = "resolved";
     event.resolvedAtMinute = event.expectedEndMinute;
     event.resolutionReason = "natural-recovery";
@@ -213,11 +217,12 @@ export function advanceRailwayDisruptions(state) {
     store.lastEvaluatedHour++;
     created.push(...evaluateRailwayDisruptionHour(state, store.lastEvaluatedHour));
   }
+  syncRailwayControlOrders(state, now);
   return { created, resolved };
 }
 
 export function railwayDisruptionEffect(state, { lineId, trackSegmentId = null, blockId = null, trainId = null } = {}) {
-  const events = (state.railwayDisruptions?.events ?? []).filter((event) => event.status === "active"
+  const events = (state.railwayDisruptions?.events ?? []).filter((event) => ongoing(event)
     && event.startedAtMinute <= state.simMinutes + 1e-9
     && ((event.trainId !== null && textId(event.lineId) === textId(lineId) && textId(event.trainId) === textId(trainId))
       || (event.trackSegmentId !== null
@@ -239,7 +244,7 @@ export function railwayDisruptionReport(state) {
   return {
     schema: "transitline.railway-disruption-report/1",
     contractVersion: 1,
-    activeCount: events.filter((event) => event.status === "active").length,
+    activeCount: events.filter((event) => ongoing(event)).length,
     events: clone(events),
   };
 }

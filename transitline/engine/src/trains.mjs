@@ -8,6 +8,7 @@ import { bandAt } from "./state.mjs";
 import { recordThroughStationStop, recordThroughTrainMovement } from "./through-operation-integration.mjs";
 import { recordRailwayTraffic, releaseTrainSectionJunctions, signalBlockForTrain, trainSection } from "./railway-traffic-control.mjs";
 import { railwayDisruptionEffect } from "./railway-disruptions.mjs";
+import { effectiveLineStationIds } from "./railway-service-control.mjs";
 
 function recordDisruptionDelay(state, line, train, seconds) {
   if (!(seconds > 0)) return;
@@ -18,14 +19,15 @@ function recordDisruptionDelay(state, line, train, seconds) {
 }
 
 export function lineRoundTripMinutes(state, line) {
+  const stationIds = effectiveLineStationIds(state, line);
   let metres = 0;
-  for (let i = 0; i < line.stationIds.length - 1; i++) {
+  for (let i = 0; i < stationIds.length - 1; i++) {
     metres += haversineMetres(
-      state.stations.get(line.stationIds[i]).location,
-      state.stations.get(line.stationIds[i + 1]).location
+      state.stations.get(stationIds[i]).location,
+      state.stations.get(stationIds[i + 1]).location
     );
   }
-  const stops = 2 * (line.stationIds.length - 1);
+  const stops = 2 * (stationIds.length - 1);
   return ((2 * metres) / TRAIN_SPEED_MPS + stops * DWELL_SECONDS) / 60;
 }
 
@@ -42,7 +44,8 @@ function dayTypeAt(simMinutes) {
 
 function startTrain(state, line, scheduledDepartureMinute = null, scheduledReturnMinute = null, scheduledCompletionMinute = null, terminalResourceId = null) {
   line.lastDispatch = state.simMinutes;
-  const train = { id: state.nextTrainId++, lineId: line.id, segIndex: 0, t: 0, dir: 1, dwell: DWELL_SECONDS };
+  const serviceStationIds = effectiveLineStationIds(state, line);
+  const train = { id: state.nextTrainId++, lineId: line.id, segIndex: 0, t: 0, dir: 1, dwell: DWELL_SECONDS, serviceStationIds };
   if (scheduledDepartureMinute !== null) train.scheduledDepartureMinute = scheduledDepartureMinute;
   if (scheduledReturnMinute !== null) train.scheduledReturnMinute = scheduledReturnMinute;
   if (scheduledCompletionMinute !== null) train.scheduledCompletionMinute = scheduledCompletionMinute;
@@ -52,8 +55,8 @@ function startTrain(state, line, scheduledDepartureMinute = null, scheduledRetur
   recordRailwayTraffic(state, line.id, train.trafficOperatingDay, "dispatchedTrains");
   recordRailwayTraffic(state, line.id, train.trafficOperatingDay, scheduledDepartureMinute === null ? "unscheduledDispatchedTrains" : "scheduledDispatchedTrains");
   if (scheduledDepartureMinute !== null) recordRailwayTraffic(state, line.id, train.trafficOperatingDay, "departureDelaySeconds", Math.max(0, (state.simMinutes - scheduledDepartureMinute) * 60));
-  recordThroughStationStop(state, line, line.stationIds[0]);
-  handleStop(state, train, line.stationIds[0]);
+  recordThroughStationStop(state, line, serviceStationIds[0]);
+  handleStop(state, train, serviceStationIds[0]);
 }
 
 function dispatchScheduledTrains(state, line, schedule, allowDispatch = true) {
@@ -86,7 +89,7 @@ function dispatchScheduledTrains(state, line, schedule, allowDispatch = true) {
 export function dispatchTrains(state) {
   const band = bandAt(state);
   for (const line of state.lines) {
-    if (line.stationIds.length < 2) continue;
+    if (effectiveLineStationIds(state, line).length < 2) continue;
     const currentDayType = dayTypeAt(state.simMinutes);
     const scheduled = line.timetableDispatches?.[currentDayType] ?? null;
     for (const timetable of Object.values(line.timetableDispatches ?? {})) dispatchScheduledTrains(state, line, timetable, !line.suspended);
@@ -102,13 +105,13 @@ export function dispatchTrains(state) {
 export function stepTrains(state, dtSeconds) {
   for (const train of state.trains) {
     const line = state.lines.find((l) => l.id === train.lineId);
-    if (!line || line.stationIds.length < 2) {
+    if (!line || effectiveLineStationIds(state, line, train).length < 2) {
       train.done = true;
       continue;
     }
 
     let remaining = Math.max(0, dtSeconds);
-    const ids = line.stationIds;
+    const ids = effectiveLineStationIds(state, line, train);
     let guard = 0;
     while (remaining > 1e-9 && !train.done && guard++ < 10000) {
       if (Number.isFinite(train.holdUntilSimMinute)) {

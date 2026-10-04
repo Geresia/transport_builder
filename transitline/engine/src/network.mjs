@@ -2,6 +2,7 @@
 // `${stationId}|${lineId}` pairs rather than bare stations so a line change
 // costs a transfer penalty in routing.mjs's Dijkstra.
 import { haversineMetres } from "./projection.mjs";
+import { effectiveLineStationIds } from "./railway-service-control.mjs";
 
 export const TRAIN_SPEED_MPS = 12; // running speed between stops (~43 km/h)
 export const DWELL_SECONDS = 20; // Subway Builder's STATION_STOP_TIME default
@@ -18,7 +19,7 @@ export function buildRouteGraph(state) {
 
   for (const line of state.lines) {
     if (line.suspended) continue;
-    const ids = line.stationIds;
+    const ids = effectiveLineStationIds(state, line);
     for (const sid of ids) {
       if (!stationLines.has(sid)) stationLines.set(sid, new Set());
       stationLines.get(sid).add(line.id);
