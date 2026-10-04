@@ -39,6 +39,7 @@ import {
   buildOperationalRailwayTimetableInput,
   operationalTimetableApplicationReport,
 } from "./operational-timetable-integration.mjs";
+import { railwayTrafficReport } from "./railway-traffic-control.mjs";
 
 const VEHICLE_BY_PROFILE = Object.freeze({
   medium_steel: "medium_4car",
@@ -208,6 +209,7 @@ export class ScenarioRuntime {
       railwayTimetables: this.game.railwayTimetableReport(),
       operationalTimetableApplications: operationalTimetableApplicationReport(this.operationalState),
       operationalTimetableWarnings: structuredClone(this.operationalState?.operationalTimetableWarnings ?? []),
+      railwayTraffic: railwayTrafficReport(this.operationalState),
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
       throughFareAgreements: this.game.throughFareAgreementReport(),
       throughOperatingSettlements: this.game.throughOperatingSettlementReport(null, 24),
@@ -755,6 +757,16 @@ export class ScenarioRuntime {
         day: Math.floor(this.operationalState.simMinutes / 1440),
         delivered: this.operationalState.stats.deliveredByLine[lineId] ?? 0,
         trainKm: this.operationalState.stats.trainKmByLine[lineId] ?? 0,
+        dispatchedTrains: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.dispatchedTrains ?? 0,
+        completedTrains: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.completedTrains ?? 0,
+        scheduledDispatchedTrains: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.scheduledDispatchedTrains ?? 0,
+        unscheduledDispatchedTrains: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.unscheduledDispatchedTrains ?? 0,
+        scheduledCompletedTrains: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.scheduledCompletedTrains ?? 0,
+        onTimeTrains: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.onTimeTrains ?? 0,
+        missedDepartures: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.missedDepartures ?? 0,
+        departureDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.departureDelaySeconds ?? 0,
+        signalDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.signalDelaySeconds ?? 0,
+        arrivalDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.arrivalDelaySeconds ?? 0,
       };
       service.operationsStartedAtSimMinute = this.operationalState.simMinutes;
       service.operationsStartedAtGameMinute = this.game.clock.minute;

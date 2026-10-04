@@ -242,7 +242,13 @@ export function applyActiveRailwayTimetable({ operationalState, timetable, servi
       if (!returnPath) throw new Error(`Timetable duty ${path.dutyId} requires its accepted inbound path`);
       inboundByDuty.delete(path.dutyId);
       if (returnPath.departureMinute + 1e-9 < path.arrivalMinute) throw new Error(`Timetable return ${returnPath.pathId} departs before outbound ${path.pathId} arrives`);
-      return { outboundPathId: path.pathId, inboundPathId: returnPath.pathId, departureMinute: path.departureMinute, returnDepartureMinute: returnPath.departureMinute };
+      return {
+        outboundPathId: path.pathId,
+        inboundPathId: returnPath.pathId,
+        departureMinute: path.departureMinute,
+        returnDepartureMinute: returnPath.departureMinute,
+        completionMinute: returnPath.arrivalMinute,
+      };
     });
     if (inboundByDuty.size) throw new Error(`Timetable service ${summary.serviceId} has an inbound path without its accepted outbound duty`);
     pending.push({ summary, resolved, departureMinutes: roundTrips.map((entry) => entry.departureMinute), roundTrips });
@@ -256,6 +262,10 @@ export function applyActiveRailwayTimetable({ operationalState, timetable, servi
   }
   const applications = [];
   for (const { summary, resolved, departureMinutes, roundTrips } of pending) {
+    resolved.line.railwayTrafficControl = {
+      infrastructureRevision: timetable.infrastructureRevision,
+      sectionDirectionModes: Object.fromEntries((timetable.sections ?? []).map((section) => [section.sectionId, section.directionMode])),
+    };
     resolved.line.timetableDispatches ??= {};
     resolved.line.timetableDispatches[timetable.dayType] = {
       schema: OPERATIONAL_TIMETABLE_APPLICATION_SCHEMA,

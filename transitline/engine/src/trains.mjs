@@ -6,6 +6,7 @@ import { TRAIN_SPEED_MPS, DWELL_SECONDS } from "./network.mjs";
 import { handleStop } from "./passengers.mjs";
 import { bandAt } from "./state.mjs";
 import { recordThroughStationStop, recordThroughTrainMovement } from "./through-operation-integration.mjs";
+import { recordRailwayTraffic, signalBlockForTrain } from "./railway-traffic-control.mjs";
 
 export function lineRoundTripMinutes(state, line) {
   let metres = 0;
@@ -30,12 +31,17 @@ function dayTypeAt(simMinutes) {
   return weekday >= 5 ? "weekend" : "weekday";
 }
 
-function startTrain(state, line, scheduledDepartureMinute = null, scheduledReturnMinute = null) {
+function startTrain(state, line, scheduledDepartureMinute = null, scheduledReturnMinute = null, scheduledCompletionMinute = null) {
   line.lastDispatch = state.simMinutes;
   const train = { id: state.nextTrainId++, lineId: line.id, segIndex: 0, t: 0, dir: 1, dwell: DWELL_SECONDS };
   if (scheduledDepartureMinute !== null) train.scheduledDepartureMinute = scheduledDepartureMinute;
   if (scheduledReturnMinute !== null) train.scheduledReturnMinute = scheduledReturnMinute;
+  if (scheduledCompletionMinute !== null) train.scheduledCompletionMinute = scheduledCompletionMinute;
+  train.trafficOperatingDay = Math.floor((scheduledDepartureMinute ?? state.simMinutes) / 1440);
   state.trains.push(train);
+  recordRailwayTraffic(state, line.id, train.trafficOperatingDay, "dispatchedTrains");
+  recordRailwayTraffic(state, line.id, train.trafficOperatingDay, scheduledDepartureMinute === null ? "unscheduledDispatchedTrains" : "scheduledDispatchedTrains");
+  if (scheduledDepartureMinute !== null) recordRailwayTraffic(state, line.id, train.trafficOperatingDay, "departureDelaySeconds", Math.max(0, (state.simMinutes - scheduledDepartureMinute) * 60));
   recordThroughStationStop(state, line, line.stationIds[0]);
   handleStop(state, train, line.stationIds[0]);
 }
@@ -54,10 +60,14 @@ function dispatchScheduledTrains(state, line, schedule, allowDispatch = true) {
     for (const trip of schedule.roundTrips ?? schedule.departureMinutes.map((departureMinute) => ({ departureMinute, returnDepartureMinute: null }))) {
       const absoluteMinute = day * 1440 + trip.departureMinute;
       const returnMinute = trip.returnDepartureMinute === null ? null : day * 1440 + trip.returnDepartureMinute;
+      const completionMinute = trip.completionMinute === null || trip.completionMinute === undefined ? null : day * 1440 + trip.completionMinute;
       if (absoluteMinute <= previous + 1e-9 || absoluteMinute > now + 1e-9) continue;
       const graceMinutes = Number.isFinite(schedule.dispatchGraceMinutes) ? Math.max(0, schedule.dispatchGraceMinutes) : 1;
-      if (allowDispatch && now - absoluteMinute <= graceMinutes + 1e-9) startTrain(state, line, absoluteMinute, returnMinute);
-      else schedule.missedDepartures = (schedule.missedDepartures ?? 0) + 1;
+      if (allowDispatch && now - absoluteMinute <= graceMinutes + 1e-9) startTrain(state, line, absoluteMinute, returnMinute, completionMinute);
+      else {
+        schedule.missedDepartures = (schedule.missedDepartures ?? 0) + 1;
+        recordRailwayTraffic(state, line.id, day, "missedDepartures");
+      }
     }
   }
   schedule.lastCheckedSimMinute = now;
@@ -109,6 +119,16 @@ export function stepTrains(state, dtSeconds) {
       }
       const from = state.stations.get(ids[train.segIndex]);
       const to = state.stations.get(ids[nextIndex]);
+      if (!(train.t > 0)) {
+        const block = signalBlockForTrain(state, train);
+        if (block) {
+          train.signalWaitSeconds = (train.signalWaitSeconds ?? 0) + remaining;
+          train.waitingForSignal = block;
+          recordRailwayTraffic(state, line.id, train.trafficOperatingDay ?? Math.floor(state.simMinutes / 1440), "signalDelaySeconds", remaining);
+          break;
+        }
+        delete train.waitingForSignal;
+      }
       const segLength = Math.max(haversineMetres(from.location, to.location), 1);
       const secondsToArrival = ((1 - train.t) * segLength) / TRAIN_SPEED_MPS;
       if (remaining + 1e-9 < secondsToArrival) {
@@ -130,6 +150,16 @@ export function stepTrains(state, dtSeconds) {
       recordThroughStationStop(state, line, ids[train.segIndex]);
       handleStop(state, train, ids[train.segIndex], !finished);
       if (finished) {
+        const trafficDay = train.trafficOperatingDay ?? Math.floor(state.simMinutes / 1440);
+        recordRailwayTraffic(state, line.id, trafficDay, "completedTrains");
+        const arrivalDelaySeconds = Number.isFinite(train.scheduledCompletionMinute)
+          ? Math.max(0, (state.simMinutes - train.scheduledCompletionMinute) * 60)
+          : 0;
+        if (Number.isFinite(train.scheduledCompletionMinute)) {
+          recordRailwayTraffic(state, line.id, trafficDay, "scheduledCompletedTrains");
+          recordRailwayTraffic(state, line.id, trafficDay, "arrivalDelaySeconds", arrivalDelaySeconds);
+          if (arrivalDelaySeconds <= 300) recordRailwayTraffic(state, line.id, trafficDay, "onTimeTrains");
+        }
         train.done = true;
         break;
       }

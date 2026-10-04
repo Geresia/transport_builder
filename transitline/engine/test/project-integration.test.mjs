@@ -183,6 +183,57 @@ test("actual network counters settle once per simulation day into the management
   assert.equal(game.services[0].status, "suspended");
 });
 
+test("observed timetable misses and signal delays flow into the operating KPI", () => {
+  const game = new ManagementGame({ seed: 102, openingCash: 1_000_000_000_000 });
+  const { project, service } = completeProjectAndFleet(game);
+  const state = createState(integrationPack(), { materializeDemandStations: false, seed: 102 });
+  commissionProject(game, state, { projectId: project.id, serviceId: service.id });
+  const lineId = String(state.lines[0].id);
+  state.simMinutes = 1440;
+  state.stats.railwayTrafficByLine = { [lineId]: {
+    dispatchedTrains: 8,
+    completedTrains: 8,
+    scheduledDispatchedTrains: 8,
+    unscheduledDispatchedTrains: 0,
+    scheduledCompletedTrains: 8,
+    onTimeTrains: 4,
+    missedDepartures: 2,
+    departureDelaySeconds: 180,
+    signalDelaySeconds: 900,
+    arrivalDelaySeconds: 1_200,
+  } };
+  const result = settleIntegratedServiceDay(game, state, service.id);
+  assert.equal(result.railwayTraffic.serviceDeliveryRatio, 0.4);
+  assert.equal(result.railwayTraffic.signalDelaySeconds, 900);
+  assert.equal(result.punctuality, 0.5, "the existing settlement floor remains, but observed operation can lower the model KPI");
+  assert.equal(game.services[0].engineCursor.completedTrains, 8);
+  assert.equal(game.services[0].engineCursor.missedDepartures, 2);
+});
+
+test("dispatched but unfinished scheduled trains count against the settled service day", () => {
+  const game = new ManagementGame({ seed: 104, openingCash: 1_000_000_000_000 });
+  const { project, service } = completeProjectAndFleet(game);
+  const state = createState(integrationPack(), { materializeDemandStations: false, seed: 104 });
+  commissionProject(game, state, { projectId: project.id, serviceId: service.id });
+  const lineId = String(state.lines[0].id);
+  state.simMinutes = 1440;
+  state.stats.railwayTrafficByLine = { [lineId]: {
+    dispatchedTrains: 10,
+    completedTrains: 0,
+    scheduledDispatchedTrains: 10,
+    unscheduledDispatchedTrains: 0,
+    scheduledCompletedTrains: 0,
+    onTimeTrains: 0,
+    missedDepartures: 0,
+    departureDelaySeconds: 0,
+    signalDelaySeconds: 36_000,
+    arrivalDelaySeconds: 0,
+  } };
+  const result = settleIntegratedServiceDay(game, state, service.id);
+  assert.equal(result.railwayTraffic.serviceDeliveryRatio, 0);
+  assert.equal(result.punctuality, 0.5);
+});
+
 test("combined integrated settlement rolls back management and line frequency when accounting fails", () => {
   const game = new ManagementGame({ seed: 103, openingCash: 1_000_000_000_000 });
   const { project, service } = completeProjectAndFleet(game);

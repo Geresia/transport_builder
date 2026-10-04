@@ -11,6 +11,7 @@ import { VEHICLE_MODELS } from "./rolling-stock.mjs";
 import { applyVehicleOperatingWear } from "./operating-economy.mjs";
 import { dispatchVehicleFleet, reliabilityPunctualityPenalty } from "./service-reliability.mjs";
 import { electricityPriceForPeriod, staffingPunctualityAdjustment } from "./service-policy.mjs";
+import { railwayTrafficForDays } from "../railway-traffic-control.mjs";
 
 function orderedStationSourceIds(plan) {
   const adjacency = new Map(plan.stationCandidates.map((station) => [station.id, []]));
@@ -174,6 +175,23 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     if (simulationDay <= cursor.day) throw new Error(`Service ${serviceId} day ${simulationDay} is already settled`);
     const deliveredNow = operationalState.stats.deliveredByLine?.[lineId] ?? 0;
     const trainKmNow = operationalState.stats.trainKmByLine?.[lineId] ?? 0;
+    const trafficNow = operationalState.stats.railwayTrafficByLine?.[lineId] ?? {};
+    const legacyTraffic = {
+      dispatchedTrains: Math.max(0, (trafficNow.dispatchedTrains ?? 0) - (cursor.dispatchedTrains ?? 0)),
+      completedTrains: Math.max(0, (trafficNow.completedTrains ?? 0) - (cursor.completedTrains ?? 0)),
+      scheduledDispatchedTrains: Math.max(0, (trafficNow.scheduledDispatchedTrains ?? 0) - (cursor.scheduledDispatchedTrains ?? 0)),
+      unscheduledDispatchedTrains: Math.max(0, (trafficNow.unscheduledDispatchedTrains ?? 0) - (cursor.unscheduledDispatchedTrains ?? 0)),
+      scheduledCompletedTrains: Math.max(0, (trafficNow.scheduledCompletedTrains ?? 0) - (cursor.scheduledCompletedTrains ?? 0)),
+      onTimeTrains: Math.max(0, (trafficNow.onTimeTrains ?? 0) - (cursor.onTimeTrains ?? 0)),
+      missedDepartures: Math.max(0, (trafficNow.missedDepartures ?? 0) - (cursor.missedDepartures ?? 0)),
+      departureDelaySeconds: Math.max(0, (trafficNow.departureDelaySeconds ?? 0) - (cursor.departureDelaySeconds ?? 0)),
+      signalDelaySeconds: Math.max(0, (trafficNow.signalDelaySeconds ?? 0) - (cursor.signalDelaySeconds ?? 0)),
+      arrivalDelaySeconds: Math.max(0, (trafficNow.arrivalDelaySeconds ?? 0) - (cursor.arrivalDelaySeconds ?? 0)),
+    };
+    const traffic = railwayTrafficForDays(operationalState, lineId, cursor.day, simulationDay) ?? legacyTraffic;
+    const scheduledObligations = traffic.scheduledDispatchedTrains + traffic.missedDepartures;
+    traffic.completionOnTimeRatio = traffic.scheduledCompletedTrains ? traffic.onTimeTrains / traffic.scheduledCompletedTrains : null;
+    traffic.serviceDeliveryRatio = scheduledObligations ? traffic.onTimeTrains / scheduledObligations : null;
     const deliveredAgents = Math.max(0, deliveredNow - cursor.delivered);
     const trainKm = Math.max(0, trainKmNow - cursor.trainKm);
     const days = simulationDay - cursor.day;
@@ -208,7 +226,8 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       operatingDay: simulationDay,
     });
     const scheduledSets = reliability.operatingSets;
-    const punctuality = Math.max(0.5, Math.min(0.999, 0.985 - reliabilityPunctualityPenalty(reliability) - infrastructureMaintenance.punctualityPenalty - possessionImpact.punctualityPenalty - accessImpact.punctualityPenalty + staffingPunctualityAdjustment(service)));
+    const modelPunctuality = Math.max(0.5, Math.min(0.999, 0.985 - reliabilityPunctualityPenalty(reliability) - infrastructureMaintenance.punctualityPenalty - possessionImpact.punctualityPenalty - accessImpact.punctualityPenalty + staffingPunctualityAdjustment(service)));
+    const punctuality = traffic.serviceDeliveryRatio === null ? modelPunctuality : Math.max(0.5, Math.min(modelPunctuality, traffic.serviceDeliveryRatio));
     const line = operationalState.lines.find((entry) => String(entry.id) === lineId);
     if (line) {
       service.nominalLineFrequency ??= structuredClone(line.frequency);
@@ -238,7 +257,21 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     if (income > 0) game.ledger.post({ atMinute: game.clock.minute, amount: income, category: "integrated-operating-income", reference: service.id });
     if (cost > 0) game.ledger.post({ atMinute: game.clock.minute, amount: -cost, category: "integrated-operating-cost", reference: service.id });
     const vehicle = applyVehicleOperatingWear({ units: resources.units, modelId: service.modelId, trainKm, days, depot, ledger: game.ledger, clock: game.clock, maxUsedSets: scheduledSets, usedUnitIds: reliability.operatingUnitIds });
-    service.engineCursor = { day: simulationDay, delivered: deliveredNow, trainKm: trainKmNow };
+    service.engineCursor = {
+      day: simulationDay,
+      delivered: deliveredNow,
+      trainKm: trainKmNow,
+      dispatchedTrains: trafficNow.dispatchedTrains ?? 0,
+      completedTrains: trafficNow.completedTrains ?? 0,
+      scheduledDispatchedTrains: trafficNow.scheduledDispatchedTrains ?? 0,
+      unscheduledDispatchedTrains: trafficNow.unscheduledDispatchedTrains ?? 0,
+      scheduledCompletedTrains: trafficNow.scheduledCompletedTrains ?? 0,
+      onTimeTrains: trafficNow.onTimeTrains ?? 0,
+      missedDepartures: trafficNow.missedDepartures ?? 0,
+      departureDelaySeconds: trafficNow.departureDelaySeconds ?? 0,
+      signalDelaySeconds: trafficNow.signalDelaySeconds ?? 0,
+      arrivalDelaySeconds: trafficNow.arrivalDelaySeconds ?? 0,
+    };
     service.integratedTotals = service.integratedTotals ?? { passengers: 0, trainKm: 0, income: 0, cost: 0 };
     service.integratedTotals.passengers += passengers;
     service.integratedTotals.trainKm += trainKm;
@@ -276,6 +309,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       },
       vehicle,
       reliability,
+      railwayTraffic: traffic,
       resourcePoolId: resources.poolId,
       resourceWarnings: resources.warnings,
       throughHandoverPossession: possessionImpact,

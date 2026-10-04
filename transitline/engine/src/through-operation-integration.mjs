@@ -99,6 +99,7 @@ export function bindThroughServiceToLine(state, throughService, input = {}) {
   };
   line.throughServiceId = service.throughServiceId;
   line.throughOperationBindingId = binding.bindingId;
+  if (!(line.trackSegmentIds?.length)) line.railwayTrafficControlMode = "legacy-unmapped";
   state.throughServiceBindings.push(binding);
   operationStats(state, binding);
   return clone(binding);
@@ -118,6 +119,7 @@ export function unbindThroughServiceFromLine(state, throughServiceId) {
   if (line?.throughServiceId === throughServiceId) {
     delete line.throughServiceId;
     delete line.throughOperationBindingId;
+    if (line.railwayTrafficControlMode === "legacy-unmapped") delete line.railwayTrafficControlMode;
   }
   delete state.stats.throughOperations[throughServiceId];
   return true;
