@@ -787,7 +787,9 @@ test("re-running the generator rewrites every example byte for byte", () => {
   for (const id of examplePacks) {
     const files = fs.readdirSync(exampleDir(id)).filter((f) => f.endsWith(".rail-capacity.json")).sort();
     assert.deepEqual(fs.readdirSync(path.join(out, id)).sort(), files, id);
-    for (const f of files) assert.equal(fs.readFileSync(path.join(out, id, f), "utf8"), fs.readFileSync(path.join(exampleDir(id), f), "utf8"), `${id}/${f}`);
+    // the repository stores LF; a Windows checkout may hold CRLF, so compare the canonical (LF) content
+    const canonical = (text) => text.replaceAll("\r\n", "\n");
+    for (const f of files) assert.equal(canonical(fs.readFileSync(path.join(out, id, f), "utf8")), canonical(fs.readFileSync(path.join(exampleDir(id), f), "utf8")), `${id}/${f}`);
   }
   fs.rmSync(out, { recursive: true, force: true });
 });
