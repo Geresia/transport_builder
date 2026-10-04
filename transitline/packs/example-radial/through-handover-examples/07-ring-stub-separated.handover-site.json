@@ -1,0 +1,218 @@
+{
+  "schema": "transitline.through-handover-site-geometry/1",
+  "contractVersion": 1,
+  "handoverSiteId": "through-handover-site:0684384ee39bc330",
+  "siteRevision": "through-handover-site-revision:4701d992d0d2bd7c",
+  "key": "example:radial:handover-separated",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "name": "Connection drawn toward a stub that is 5 km away",
+  "throughRouteId": "through-route:5c931b041ca0821a",
+  "routeGeometryRevision": "through-route-revision:9f4544a7d0c1d6e9",
+  "designedRouteGeometryRevision": "through-route-revision:9f4544a7d0c1d6e9",
+  "handoverId": "through-handover:2028738acc7f54cc",
+  "fromLegId": "through-leg:4edb4aa8f21915fa",
+  "toLegId": "through-leg:92071ed5a0725037",
+  "fromConnectionPoint": {
+    "legId": "through-leg:4edb4aa8f21915fa",
+    "sourceKind": "planned",
+    "location": [
+      -0.01165,
+      0.04347
+    ],
+    "legAlignmentKnown": true,
+    "legAlignmentKind": "plan-alignment",
+    "onLegAlignment": true,
+    "distanceToLegAlignmentMeters": 0,
+    "planSegmentId": "seg:a444f2361976f6bc",
+    "alongLegMeters": 7779.6,
+    "distanceToHandoverEndMeters": 0,
+    "unknown": [],
+    "unknownReasons": {}
+  },
+  "toConnectionPoint": {
+    "legId": "through-leg:92071ed5a0725037",
+    "sourceKind": "planned",
+    "location": [
+      0.003,
+      0.0012
+    ],
+    "legAlignmentKnown": true,
+    "legAlignmentKind": "plan-alignment",
+    "onLegAlignment": true,
+    "distanceToLegAlignmentMeters": 0,
+    "planSegmentId": "seg:f1a5c5979278da51",
+    "alongLegMeters": 0,
+    "distanceToHandoverEndMeters": 0,
+    "unknown": [],
+    "unknownReasons": {}
+  },
+  "connectionAlignment": [
+    [
+      -0.01165,
+      0.04347
+    ],
+    [
+      -0.00965,
+      0.04247
+    ]
+  ],
+  "connectionLengthMeters": 248.9,
+  "minimumCurveRadiusMeters": 100000,
+  "structureType": null,
+  "structureTypeBasis": null,
+  "maximumGradientPermille": null,
+  "maximumGradientBasis": null,
+  "endpointGapMeters": 4805.2,
+  "turnoutCandidates": [],
+  "selectedTurnoutPoints": [],
+  "connectedPlanSegmentIds": [
+    "seg:a444f2361976f6bc",
+    "seg:f1a5c5979278da51"
+  ],
+  "externalNetworkId": null,
+  "externalLineId": null,
+  "externalSides": [],
+  "buildingIntersectionCount": 2,
+  "waterCrossingCount": 0,
+  "roadCrossingCount": 1,
+  "roadCrossingsByClass": {
+    "highway": 0,
+    "major": 0,
+    "minor": 1
+  },
+  "existingRailwayCrossingCount": null,
+  "averageSlopePercent": 1.45,
+  "maximumSlopePercent": 1.45,
+  "workAreaCandidates": [],
+  "selectedWorkAreaCandidateId": null,
+  "spatialFlags": [
+    "connection-separated",
+    "connection-through-buildings",
+    "connection-crosses-road",
+    "no-turnout-selected"
+  ],
+  "physicalConnectionEvidence": {
+    "connected": false,
+    "basis": "drawn-connection-vs-leg-alignments",
+    "reason": null,
+    "toleranceMeters": 1,
+    "nearDistanceMeters": 50,
+    "designedAgainstCurrentRoute": true,
+    "sides": [
+      {
+        "side": "from",
+        "legId": "through-leg:4edb4aa8f21915fa",
+        "legAlignmentKind": "plan-alignment",
+        "connectionEndToPointMeters": 0,
+        "pointToLegAlignmentMeters": 0,
+        "gapMeters": 0,
+        "joined": true,
+        "reason": null
+      },
+      {
+        "side": "to",
+        "legId": "through-leg:92071ed5a0725037",
+        "legAlignmentKind": "plan-alignment",
+        "connectionEndToPointMeters": 4805.2,
+        "pointToLegAlignmentMeters": 0,
+        "gapMeters": 4805.2,
+        "joined": false,
+        "reason": null
+      }
+    ]
+  },
+  "dataQuality": "low",
+  "unknown": [
+    "structureType",
+    "maximumGradientPermille",
+    "existingRailwayCrossingCount",
+    "selectedWorkAreaCandidateId"
+  ],
+  "unknownReasons": {
+    "structureType": "structure-not-stated",
+    "maximumGradientPermille": "track-profile-not-designed",
+    "existingRailwayCrossingCount": "no-layer",
+    "selectedWorkAreaCandidateId": "no-work-area-drawn"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "through-route-geometry",
+      "quality": "low",
+      "name": "ThroughRouteGeometry through-route:5c931b041ca0821a",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "connection-separated"
+    ],
+    "routeExample": "03-ring-arc-to-transfer-stub-separated",
+    "layers": {
+      "kind": "synthetic-fixture",
+      "generator": "scripts/lib/synthetic-layers.mjs",
+      "center": [
+        -0.01165,
+        0.04347
+      ]
+    },
+    "existingRail": false,
+    "drawnSite": {
+      "key": "example:radial:handover-separated",
+      "name": "Connection drawn toward a stub that is 5 km away",
+      "throughRouteId": "through-route:5c931b041ca0821a",
+      "handoverId": "through-handover:2028738acc7f54cc",
+      "fromLegId": "through-leg:4edb4aa8f21915fa",
+      "toLegId": "through-leg:92071ed5a0725037",
+      "routeGeometryRevision": "through-route-revision:9f4544a7d0c1d6e9",
+      "fromConnectionPoint": [
+        -0.01165,
+        0.04347
+      ],
+      "toConnectionPoint": [
+        0.003,
+        0.0012
+      ],
+      "connectionAlignment": [
+        [
+          -0.01165,
+          0.04347
+        ],
+        [
+          -0.00965,
+          0.04247
+        ]
+      ]
+    },
+    "generatedBy": "scripts/build-through-handover-examples.mjs"
+  }
+}
