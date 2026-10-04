@@ -26,6 +26,7 @@ import { createThroughService as buildThroughService } from "./through-service.m
 import { advanceVehicleRetrofitMonth, authorizeVehicleRetrofitRetest as buildVehicleRetrofitRetest, createVehicleRetrofitProgram, mergeVehicleTechnicalOverrides, startVehicleRetrofitProgram } from "./vehicle-retrofit.mjs";
 import { activeThroughHandoverConfirmations, advanceThroughHandoverProjectMonth, awardThroughHandoverProject, cancelThroughHandoverProject, createThroughHandoverProject, grantThroughHandoverPermission, tenderThroughHandoverProject } from "./through-handover-project.mjs";
 import { createThroughHandoverPossessionPlan, settleThroughHandoverPossessionMonth, throughHandoverPossessionImpact as calculateThroughHandoverPossessionImpact } from "./through-handover-possession.mjs";
+import { activateRailwayTimetable, approveRailwayTimetable, buildRailwayTimetable } from "./railway-timetable.mjs";
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
@@ -65,6 +66,7 @@ export class ManagementGame {
     this.vehicleRetrofitPrograms = [];
     this.throughFareAgreements = [];
     this.throughOperatingSettlements = [];
+    this.railwayTimetables = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -76,6 +78,7 @@ export class ManagementGame {
     this.nextThroughHandoverProjectSequence = 1;
     this.nextVehicleRetrofitSequence = 1;
     this.nextThroughFareSequence = 1;
+    this.nextRailwayTimetableSequence = 1;
     this.services = [];
     this.plans = [];
     this._transactionDepth = 0;
@@ -117,6 +120,7 @@ export class ManagementGame {
       vehicleRetrofitPrograms: structuredClone(this.vehicleRetrofitPrograms),
       throughFareAgreements: structuredClone(this.throughFareAgreements),
       throughOperatingSettlements: structuredClone(this.throughOperatingSettlements),
+      railwayTimetables: structuredClone(this.railwayTimetables),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -128,6 +132,7 @@ export class ManagementGame {
       nextThroughHandoverProjectSequence: this.nextThroughHandoverProjectSequence,
       nextVehicleRetrofitSequence: this.nextVehicleRetrofitSequence,
       nextThroughFareSequence: this.nextThroughFareSequence,
+      nextRailwayTimetableSequence: this.nextRailwayTimetableSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -145,7 +150,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -194,6 +199,10 @@ export class ManagementGame {
     this.nextThroughFareSequence = Math.max(
       snapshot.nextThroughFareSequence ?? 1,
       this.throughFareAgreements.reduce((max, agreement) => Math.max(max, Number(agreement.id?.match(/^through-fare:(\d+)$/)?.[1]) || 0), 0) + 1,
+    );
+    this.nextRailwayTimetableSequence = Math.max(
+      snapshot.nextRailwayTimetableSequence ?? 1,
+      this.railwayTimetables.reduce((max, timetable) => Math.max(max, Number(timetable.id?.match(/^railway-timetable:(\d+)$/)?.[1]) || 0), 0) + 1,
     );
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
@@ -1205,6 +1214,33 @@ export class ManagementGame {
     return settlement;
   }
 
+  assessRailwayTimetable(input = {}) {
+    return this.transact("railway-timetable-assessed", () => {
+      while (this.railwayTimetables.some((entry) => entry.id === `railway-timetable:${this.nextRailwayTimetableSequence}`)) this.nextRailwayTimetableSequence += 1;
+      const id = input.id ?? `railway-timetable:${this.nextRailwayTimetableSequence++}`;
+      if (this.railwayTimetables.some((entry) => entry.id === id)) throw new Error(`Duplicate railway timetable ${id}`);
+      const numericId = Number(String(id).match(/^railway-timetable:(\d+)$/)?.[1]);
+      if (Number.isInteger(numericId)) this.nextRailwayTimetableSequence = Math.max(this.nextRailwayTimetableSequence, numericId + 1);
+      const timetable = buildRailwayTimetable({ ...input, id, atMinute: this.clock.minute });
+      this.railwayTimetables.push(timetable);
+      return structuredClone(timetable);
+    });
+  }
+
+  approveRailwayTimetable(timetableId) {
+    return this.transact("railway-timetable-approved", () => approveRailwayTimetable(this.requireRailwayTimetable(timetableId), this.clock.minute));
+  }
+
+  activateRailwayTimetable(timetableId) {
+    return this.transact("railway-timetable-activated", () => activateRailwayTimetable(
+      this.requireRailwayTimetable(timetableId), this.services, this.throughServices, this.railwayTimetables, this.clock.minute,
+    ));
+  }
+
+  railwayTimetableReport(timetableId = null) {
+    return structuredClone(this.railwayTimetables.filter((entry) => timetableId === null || entry.id === timetableId));
+  }
+
   proposeThroughHandoverProject(site, input = {}) {
     return this.transact("through-handover-project-proposed", () => {
       const duplicate = this.throughHandoverProjects.find((entry) => entry.throughRouteId === site?.throughRouteId
@@ -1794,6 +1830,12 @@ export class ManagementGame {
     const service = this.throughServices.find((entry) => entry.throughServiceId === id);
     if (!service) throw new Error(`Unknown through service ${id}`);
     return service;
+  }
+
+  requireRailwayTimetable(id) {
+    const timetable = this.railwayTimetables.find((entry) => entry.id === id);
+    if (!timetable) throw new Error(`Unknown railway timetable ${id}`);
+    return timetable;
   }
 
   requireThroughHandoverProject(id) {

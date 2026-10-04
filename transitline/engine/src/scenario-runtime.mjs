@@ -199,6 +199,7 @@ export class ScenarioRuntime {
       trackAccess: this.game.trackAccessReport(),
       throughServices: this.game.throughServiceReport(),
       throughHandoverProjects: this.game.throughHandoverProjectReport(),
+      railwayTimetables: this.game.railwayTimetableReport(),
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
       throughFareAgreements: this.game.throughFareAgreementReport(),
       throughOperatingSettlements: this.game.throughOperatingSettlementReport(null, 24),
@@ -951,6 +952,22 @@ export class ScenarioRuntime {
 
   throughServiceReport(throughServiceId = null) {
     return this.game.throughServiceReport(throughServiceId);
+  }
+
+  assessRailwayTimetable(input = {}) {
+    return this.game.assessRailwayTimetable(input);
+  }
+
+  approveRailwayTimetable(timetableId) {
+    return this.game.approveRailwayTimetable(timetableId);
+  }
+
+  activateRailwayTimetable(timetableId) {
+    return this.game.activateRailwayTimetable(timetableId);
+  }
+
+  railwayTimetableReport(timetableId = null) {
+    return this.game.railwayTimetableReport(timetableId);
   }
 
   proposeThroughHandoverProject(site, input = {}) {
