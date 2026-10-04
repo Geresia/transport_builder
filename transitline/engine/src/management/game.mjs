@@ -25,6 +25,7 @@ import { awardTrackAccessOffer as buildTrackAccessAgreement, createTrackAccessOp
 import { createThroughService as buildThroughService } from "./through-service.mjs";
 import { advanceVehicleRetrofitMonth, authorizeVehicleRetrofitRetest as buildVehicleRetrofitRetest, createVehicleRetrofitProgram, mergeVehicleTechnicalOverrides, startVehicleRetrofitProgram } from "./vehicle-retrofit.mjs";
 import { activeThroughHandoverConfirmations, advanceThroughHandoverProjectMonth, awardThroughHandoverProject, cancelThroughHandoverProject, createThroughHandoverProject, grantThroughHandoverPermission, tenderThroughHandoverProject } from "./through-handover-project.mjs";
+import { createThroughHandoverPossessionPlan, settleThroughHandoverPossessionMonth, throughHandoverPossessionImpact as calculateThroughHandoverPossessionImpact } from "./through-handover-possession.mjs";
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
@@ -932,15 +933,18 @@ export class ManagementGame {
         });
       const throughHandovers = this.throughHandoverProjects
         .filter((project) => ["contracted", "under-construction", "inspection"].includes(project.status))
-        .map((project) => ({
-          projectId: project.id,
-          ...advanceThroughHandoverProjectMonth(project, {
+        .map((project) => {
+          const possessionSettlement = project.possessionPlan
+            ? settleThroughHandoverPossessionMonth(project.possessionPlan, project, { ledger: this.ledger, clock: this.clock })
+            : null;
+          const advancement = advanceThroughHandoverProjectMonth(project, {
             ledger: this.ledger,
             clock: this.clock,
             rng: this.rng,
             contractors: this.constructionContractors,
-          }),
-        }));
+          });
+          return { projectId: project.id, possessionSettlement, ...advancement };
+        });
       const depots = this.depots.filter((depot) => depot.status === "underConstruction")
         .map((depot) => ({ depotId: depot.id, ...advanceDepotDevelopmentMonth(depot, this.ledger, this.clock, this.rng, this.country) }));
       for (const pool of this.operatingResourcePools) rebalancePool(pool, this.operatingResourceContext());
@@ -1221,6 +1225,39 @@ export class ManagementGame {
 
   grantThroughHandoverPermission(projectId, ownerId) {
     return this.transact("through-handover-permission-granted", () => grantThroughHandoverPermission(this.requireThroughHandoverProject(projectId), ownerId, this.clock.minute));
+  }
+
+  planThroughHandoverPossession(projectId, input = {}) {
+    return this.transact("through-handover-possession-planned", () => {
+      const project = this.requireThroughHandoverProject(projectId);
+      if (project.possessionPlan) throw new Error(`Through handover project ${projectId} already has a possession plan`);
+      const affectedServiceIds = [...new Set((input.affectedServiceIds ?? []).map(String))].sort();
+      const baselineDailyRevenueJPYByService = { ...(input.baselineDailyRevenueJPYByService ?? {}) };
+      for (const serviceId of affectedServiceIds) {
+        const service = this.services.find((entry) => entry.id === serviceId);
+        if (!service) throw new Error(`Unknown affected service ${serviceId}`);
+        if (Number.isFinite(Number(baselineDailyRevenueJPYByService[serviceId]))) continue;
+        const latest = this.operatingMonthReports.filter((entry) => entry.serviceId === serviceId && entry.days > 0).sort((a, b) => b.month - a.month)[0];
+        const fromReport = latest ? latest.operatingIncomeJPY / latest.days : null;
+        const fromTotals = service.daysOperated > 0 && Number.isFinite(service.totals?.revenue) ? service.totals.revenue / service.daysOperated : null;
+        const baseline = Number.isFinite(fromReport) ? fromReport : fromTotals;
+        if (!Number.isFinite(baseline)) throw new Error(`No operating revenue baseline is available for ${serviceId}`);
+        baselineDailyRevenueJPYByService[serviceId] = baseline;
+      }
+      project.possessionPlan = createThroughHandoverPossessionPlan({
+        id: `through-handover-possession:${project.id}`,
+        project,
+        strategyId: input.strategyId,
+        affectedServiceIds,
+        baselineDailyRevenueJPYByService,
+        atMinute: this.clock.minute,
+      });
+      return structuredClone(project.possessionPlan);
+    });
+  }
+
+  throughHandoverPossessionImpact(serviceId) {
+    return calculateThroughHandoverPossessionImpact(this.throughHandoverProjects, serviceId);
   }
 
   tenderThroughHandoverProject(projectId, options = {}) {
@@ -1619,6 +1656,10 @@ export class ManagementGame {
       if (!service) throw new Error(`Unknown service ${serviceId}`);
       const contract = this.contracts.find((item) => item.id === service.contractId);
       const infrastructureImpact = this.infrastructureMaintenanceImpact(service.projectId);
+      const possessionImpact = this.throughHandoverPossessionImpact(service.id);
+      infrastructureImpact.capacityFactor *= possessionImpact.capacityFactor;
+      infrastructureImpact.punctualityPenalty += possessionImpact.punctualityPenalty;
+      infrastructureImpact.activeProgramIds = [...new Set([...(infrastructureImpact.activeProgramIds ?? []), ...possessionImpact.activePlanIds])];
       this.clock.advance(1440);
       const operatingDay = Math.floor(this.clock.minute / 1440);
       const resources = this.resolveOperatingResources(service.id);

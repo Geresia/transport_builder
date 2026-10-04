@@ -961,6 +961,10 @@ export class ScenarioRuntime {
     return this.game.grantThroughHandoverPermission(projectId, ownerId);
   }
 
+  planThroughHandoverPossession(projectId, input = {}) {
+    return this.game.planThroughHandoverPossession(projectId, input);
+  }
+
   tenderThroughHandoverProject(projectId, options = {}) {
     return this.game.tenderThroughHandoverProject(projectId, options);
   }

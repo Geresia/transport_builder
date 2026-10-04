@@ -1,4 +1,5 @@
 import { TECHNICAL_PROFILES } from "./construction.mjs";
+import { closeThroughHandoverPossessionPlan, possessionTenderFactors } from "./through-handover-possession.mjs";
 
 export const THROUGH_HANDOVER_PROJECT_SCHEMA = "transitline.through-handover-project/1";
 export const THROUGH_HANDOVER_SITE_SCHEMA = "transitline.through-handover-site-geometry/1";
@@ -196,10 +197,11 @@ export function tenderThroughHandoverProject(project, contractors, rng, { evalua
   const eligible = contractors.filter((entry) => entry.packageKinds?.includes(project.contractorKind)
     && entry.backlog < entry.packageCapacity && equipmentAvailable(entry, project.equipmentType) > 0 && entry.financialStrength >= 65);
   const round = (project.tender?.round ?? 0) + 1;
+  const possessionFactors = possessionTenderFactors(project.possessionPlan);
   const bids = eligible.map((contractor) => {
     const uncertainty = 1 + Math.min(0.2, project.spatialFacts.unknown.length * 0.015);
-    const priceP50 = money(project.totalP50JPY * contractor.priceFactor * (1 + contractor.backlog * 0.03) * uncertainty * (0.97 + rng.next() * 0.07));
-    const durationMonths = Math.max(6, Math.ceil(project.phasesMonths.constructionMonths * 100 / contractor.technicalScore * (1 + contractor.backlog * 0.04)));
+    const priceP50 = money(project.totalP50JPY * possessionFactors.contractCostFactor * contractor.priceFactor * (1 + contractor.backlog * 0.03) * uncertainty * (0.97 + rng.next() * 0.07));
+    const durationMonths = Math.max(1, Math.ceil(project.phasesMonths.constructionMonths * possessionFactors.constructionDurationFactor * 100 / contractor.technicalScore * (1 + contractor.backlog * 0.04)));
     return { id: `through-handover-bid:${project.id}:${round}:${contractor.id}`, contractorId: contractor.id, priceP50, priceP90: money(priceP50 * 1.25), durationMonths, technicalScore: contractor.technicalScore, safetyScore: contractor.safetyScore };
   });
   if (!bids.length) throw new Error("No qualified through handover contractor has capacity and equipment");
@@ -258,6 +260,7 @@ export function advanceThroughHandoverProjectMonth(project, { ledger, clock, rng
     project.contract.status = "completed";
     ledger.release(project.contract.commitmentId);
     releaseContractor(project, contractors, clock.minute, true);
+    closeThroughHandoverPossessionPlan(project.possessionPlan, project, clock.minute);
     return { status: project.status, paymentJPY: 0, completed: true };
   }
   if (project.delayMonths > 0) {
@@ -291,6 +294,7 @@ export function cancelThroughHandoverProject(project, { ledger, clock, contracto
   project.status = "cancelled";
   project.cancelledAtMinute = clock.minute;
   project.sunkCostJPY = project.paidJPY;
+  closeThroughHandoverPossessionPlan(project.possessionPlan, project, clock.minute);
   return clone(project);
 }
 

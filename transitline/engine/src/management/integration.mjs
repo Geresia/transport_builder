@@ -192,7 +192,8 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
     const accessImpact = game.trackAccessImpact(serviceId);
     const accessSettlement = game.settleTrackAccessForService(serviceId, operatingDay - 1, days);
     const infrastructureMaintenance = game.infrastructureMaintenanceImpact(service.projectId);
-    const infrastructureSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureMaintenance.capacityFactor));
+    const possessionImpact = game.throughHandoverPossessionImpact(service.id);
+    const infrastructureSets = Math.max(0, Math.floor(service.fleetRequirement.serviceSets * infrastructureMaintenance.capacityFactor * possessionImpact.capacityFactor));
     const requiredSets = Math.min(infrastructureSets, resources.maximumStaffedSets ?? infrastructureSets);
     const reliability = dispatchVehicleFleet({
       units: resources.units,
@@ -207,7 +208,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       operatingDay: simulationDay,
     });
     const scheduledSets = reliability.operatingSets;
-    const punctuality = Math.max(0.5, Math.min(0.999, 0.985 - reliabilityPunctualityPenalty(reliability) - infrastructureMaintenance.punctualityPenalty - accessImpact.punctualityPenalty + staffingPunctualityAdjustment(service)));
+    const punctuality = Math.max(0.5, Math.min(0.999, 0.985 - reliabilityPunctualityPenalty(reliability) - infrastructureMaintenance.punctualityPenalty - possessionImpact.punctualityPenalty - accessImpact.punctualityPenalty + staffingPunctualityAdjustment(service)));
     const line = operationalState.lines.find((entry) => String(entry.id) === lineId);
     if (line) {
       service.nominalLineFrequency ??= structuredClone(line.frequency);
@@ -277,6 +278,7 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       reliability,
       resourcePoolId: resources.poolId,
       resourceWarnings: resources.warnings,
+      throughHandoverPossession: possessionImpact,
       trackAccess: { impact: accessImpact, settlement: accessSettlement },
       infrastructureMaintenance,
       maintenanceProgress,

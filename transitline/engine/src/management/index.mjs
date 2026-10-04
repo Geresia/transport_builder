@@ -14,6 +14,7 @@ export * from "./operating-resource-pool.mjs";
 export * from "./track-access.mjs";
 export * from "./through-service.mjs";
 export * from "./through-handover-project.mjs";
+export * from "./through-handover-possession.mjs";
 export * from "./technical-compatibility.mjs";
 export * from "./vehicle-retrofit.mjs";
 export * from "./through-fare.mjs";
