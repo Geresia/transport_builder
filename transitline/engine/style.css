@@ -470,6 +470,9 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #through-handover-summary .handover-site { margin: 5px 0; padding: 5px; border: 1px solid var(--panel-line); border-radius: 5px; }
 #through-handover-summary .handover-fact { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; }
 #through-handover-legend .handover-legend-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; font-size: 11px; }
+.railway-disruption-summary { margin: 8px 0; padding: 8px; border: 1px solid #8b5cf6; border-radius: 7px; background: color-mix(in srgb, #8b5cf6 12%, var(--panel)); }
+.railway-disruption-row { margin-top: 5px; padding: 4px 6px; border-left: 3px solid #e5484d; font-size: 11px; overflow-wrap: anywhere; }
+.railway-disruption-row.resolved { border-left-color: var(--muted); color: var(--muted); }
 #station-panel .depot-bar { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
 #station-panel .depot-bar button { padding: 2px 8px; }
 #station-panel .depot-row { margin: 6px 0; padding: 6px; border: 1px solid var(--panel-line); border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }

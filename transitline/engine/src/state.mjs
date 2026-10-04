@@ -106,6 +106,13 @@ export function createState(pack, options = {}) {
       deliveredByLine: {},
       trainKmByLine: {},
     },
+    railwayDisruptions: {
+      events: [],
+      nextSequence: 1,
+      lastEvaluatedHour: 6,
+      rngState: ((options.seed ?? 0x6d2b79f5) ^ 0x4b1d5eed) >>> 0,
+    },
+    railCapacityApplications: [],
   };
 }
 

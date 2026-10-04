@@ -18,6 +18,15 @@ export function operationalInfrastructureRevision(segments = []) {
     capacityTrainsPerHour: segment.capacityTrainsPerHour ?? null,
     junctionResourceIds: [...(segment.junctionResourceIds ?? [])].map(key).sort(),
     junctionClearanceMinutes: segment.junctionClearanceMinutes ?? null,
+    railCapacityGeometryRevision: segment.railCapacityGeometryRevision ?? null,
+    railCapacitySectionId: segment.railCapacitySectionId ?? null,
+    railwayBlocks: segment.railwayBlocks === null || segment.railwayBlocks === undefined
+      ? null
+      : segment.railwayBlocks.map((block) => ({
+        blockId: key(block.blockId),
+        startAlongMeters: block.startAlongMeters,
+        endAlongMeters: block.endAlongMeters,
+      })).sort((a, b) => a.startAlongMeters - b.startAlongMeters || a.blockId.localeCompare(b.blockId)),
   })).sort((a, b) => a.sectionId.localeCompare(b.sectionId));
   return stableId("operational-infrastructure", JSON.stringify(facts));
 }

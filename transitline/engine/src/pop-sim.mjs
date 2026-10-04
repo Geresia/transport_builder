@@ -19,6 +19,7 @@ import { modeSplit, perceivedTransitTime, drivingTimeMultiplier } from "./mode-c
 import { computeJourneyFare } from "./fares.mjs";
 import { journeyRevenue, trainOperatingCost, maintenanceCost, issueBond, bondHour } from "./economy.mjs";
 import { trackCost, stationCost } from "./construction-cost.mjs";
+import { advanceRailwayDisruptions } from "./railway-disruptions.mjs";
 
 const DAY_S = 86400;
 const URBAN_DRIVE_MPS = 9; // ~32 km/h door to door
@@ -131,6 +132,7 @@ function releaseJourneys(sim, state, nowS) {
 
 export function popSimStep(sim, state, seconds = 1) {
   state.simMinutes += seconds / 60;
+  advanceRailwayDisruptions(state);
   const nowS = Math.round(state.simMinutes * 60 * 1000) / 1000; // simMinutes accumulates 1/60 per step: drop the float dust
   billNewConstruction(sim, state);
   refreshTimetable(sim, state, nowS);

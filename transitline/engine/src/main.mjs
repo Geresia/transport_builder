@@ -718,6 +718,23 @@ async function main() {
         container.append(empty);
         return;
       }
+      const disruptionReport = runtime.railwayDisruptionReport();
+      if (disruptionReport.events.length) {
+        const disruptionBox = document.createElement("section");
+        disruptionBox.className = "railway-disruption-summary";
+        const disruptionTitle = document.createElement("strong");
+        disruptionTitle.textContent = `운행 장애·속도제한 · 활성 ${disruptionReport.activeCount}건`;
+        disruptionBox.append(disruptionTitle);
+        for (const event of [...disruptionReport.events].reverse().slice(0, 8)) {
+          const row = document.createElement("div");
+          row.className = `railway-disruption-row ${event.status}`;
+          const target = event.trackSegmentId ? `구간 ${event.trackSegmentId}` : `열차 ${event.trainId}`;
+          const effect = event.effect.closed ? "운행 차단" : `제한 ${Math.round(event.effect.speedLimitMps * 3.6)}km/h`;
+          row.textContent = `${event.kind} · ${target} · ${effect} · ${event.status}`;
+          disruptionBox.append(row);
+        }
+        container.append(disruptionBox);
+      }
       const corporate = runtime.game.corporateFinancialStatements({ fromMonth: Math.max(0, Math.floor(runtime.game.clock.minute / (30 * 1440)) - 5) });
       const corporateLatest = corporate.monthly.at(-1);
       const corporateCard = document.createElement("article");

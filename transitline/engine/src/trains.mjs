@@ -6,7 +6,16 @@ import { TRAIN_SPEED_MPS, DWELL_SECONDS } from "./network.mjs";
 import { handleStop } from "./passengers.mjs";
 import { bandAt } from "./state.mjs";
 import { recordThroughStationStop, recordThroughTrainMovement } from "./through-operation-integration.mjs";
-import { recordRailwayTraffic, releaseTrainSectionJunctions, signalBlockForTrain } from "./railway-traffic-control.mjs";
+import { recordRailwayTraffic, releaseTrainSectionJunctions, signalBlockForTrain, trainSection } from "./railway-traffic-control.mjs";
+import { railwayDisruptionEffect } from "./railway-disruptions.mjs";
+
+function recordDisruptionDelay(state, line, train, seconds) {
+  if (!(seconds > 0)) return;
+  train.disruptionDelaySeconds = (train.disruptionDelaySeconds ?? 0) + seconds;
+  // Operational KPI completion belongs to the scheduled departure day, but disruption exposure belongs to the
+  // calendar day on which it happened. This keeps a cross-midnight delay from disappearing into an already-settled day.
+  recordRailwayTraffic(state, line.id, Math.floor(state.simMinutes / 1440), "disruptionDelaySeconds", seconds);
+}
 
 export function lineRoundTripMinutes(state, line) {
   let metres = 0;
@@ -120,7 +129,10 @@ export function stepTrains(state, dtSeconds) {
       }
       const from = state.stations.get(ids[train.segIndex]);
       const to = state.stations.get(ids[nextIndex]);
-      if (!(train.t > 0)) {
+      const controlSection = trainSection(state, train);
+      const atControlPoint = !(train.t > 0)
+        || Math.abs(train.t - (controlSection?.blockEntryProgress ?? -1)) <= 1e-8;
+      if (atControlPoint) {
         const block = signalBlockForTrain(state, train);
         if (block) {
           train.signalWaitSeconds = (train.signalWaitSeconds ?? 0) + remaining;
@@ -128,25 +140,45 @@ export function stepTrains(state, dtSeconds) {
           recordRailwayTraffic(state, line.id, train.trafficOperatingDay ?? Math.floor(state.simMinutes / 1440), "signalDelaySeconds", remaining);
           if (block.reason.startsWith("junction-")) recordRailwayTraffic(state, line.id, train.trafficOperatingDay ?? Math.floor(state.simMinutes / 1440), "junctionDelaySeconds", remaining);
           if (block.reason.startsWith("terminal-")) recordRailwayTraffic(state, line.id, train.trafficOperatingDay ?? Math.floor(state.simMinutes / 1440), "terminalDelaySeconds", remaining);
+          if (block.reason === "disruption-closure") recordDisruptionDelay(state, line, train, remaining);
           break;
         }
         delete train.waitingForSignal;
       }
+      const section = trainSection(state, train);
+      const disruption = railwayDisruptionEffect(state, {
+        lineId: line.id,
+        trackSegmentId: section?.sectionId ?? null,
+        blockId: section?.blockId ?? null,
+        trainId: train.id,
+      });
+      const speedMps = disruption.speedLimitMps === null ? TRAIN_SPEED_MPS : Math.min(TRAIN_SPEED_MPS, disruption.speedLimitMps);
+      if (disruption.closed || !(speedMps > 0)) {
+        train.waitingForDisruption = { reason: "disruption-closure", eventIds: disruption.eventIds, sectionId: section?.sectionId ?? null };
+        recordDisruptionDelay(state, line, train, remaining);
+        break;
+      }
+      delete train.waitingForDisruption;
       const segLength = Math.max(haversineMetres(from.location, to.location), 1);
-      const secondsToArrival = ((1 - train.t) * segLength) / TRAIN_SPEED_MPS;
-      if (remaining + 1e-9 < secondsToArrival) {
-        const movedMetres = TRAIN_SPEED_MPS * remaining;
+      const nextBoundaryProgress = Math.max(train.t, Math.min(1, section?.nextBlockBoundaryProgress ?? 1));
+      const secondsToBoundary = ((nextBoundaryProgress - train.t) * segLength) / speedMps;
+      if (remaining + 1e-9 < secondsToBoundary) {
+        const movedMetres = speedMps * remaining;
         train.t += movedMetres / segLength;
         state.stats.trainKmByLine[String(line.id)] = (state.stats.trainKmByLine[String(line.id)] ?? 0) + movedMetres / 1000;
         recordThroughTrainMovement(state, line, Math.min(train.segIndex, nextIndex), movedMetres);
+        if (speedMps < TRAIN_SPEED_MPS) recordDisruptionDelay(state, line, train, remaining * (1 - speedMps / TRAIN_SPEED_MPS));
         remaining = 0;
         break;
       }
 
-      remaining -= secondsToArrival;
-      const movedMetres = (1 - train.t) * segLength;
+      remaining -= secondsToBoundary;
+      const movedMetres = (nextBoundaryProgress - train.t) * segLength;
       state.stats.trainKmByLine[String(line.id)] = (state.stats.trainKmByLine[String(line.id)] ?? 0) + movedMetres / 1000;
       recordThroughTrainMovement(state, line, Math.min(train.segIndex, nextIndex), movedMetres);
+      if (speedMps < TRAIN_SPEED_MPS) recordDisruptionDelay(state, line, train, secondsToBoundary * (1 - speedMps / TRAIN_SPEED_MPS));
+      train.t = nextBoundaryProgress;
+      if (train.t < 1 - 1e-9) continue;
       releaseTrainSectionJunctions(state, train, state.simMinutes);
       train.t = 0;
       train.segIndex = nextIndex;

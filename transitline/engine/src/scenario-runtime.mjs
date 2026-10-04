@@ -40,6 +40,8 @@ import {
   operationalTimetableApplicationReport,
 } from "./operational-timetable-integration.mjs";
 import { railwayTrafficReport } from "./railway-traffic-control.mjs";
+import { createRailwayDisruption, railwayDisruptionReport, resolveRailwayDisruption } from "./railway-disruptions.mjs";
+import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail-capacity-integration.mjs";
 
 const VEHICLE_BY_PROFILE = Object.freeze({
   medium_steel: "medium_4car",
@@ -210,6 +212,8 @@ export class ScenarioRuntime {
       operationalTimetableApplications: operationalTimetableApplicationReport(this.operationalState),
       operationalTimetableWarnings: structuredClone(this.operationalState?.operationalTimetableWarnings ?? []),
       railwayTraffic: railwayTrafficReport(this.operationalState),
+      railwayDisruptions: railwayDisruptionReport(this.operationalState),
+      railCapacityApplications: railCapacityApplicationReport(this.operationalState),
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
       throughFareAgreements: this.game.throughFareAgreementReport(),
       throughOperatingSettlements: this.game.throughOperatingSettlementReport(null, 24),
@@ -768,6 +772,7 @@ export class ScenarioRuntime {
         signalDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.signalDelaySeconds ?? 0,
         junctionDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.junctionDelaySeconds ?? 0,
         terminalDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.terminalDelaySeconds ?? 0,
+        disruptionDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.disruptionDelaySeconds ?? 0,
         arrivalDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.arrivalDelaySeconds ?? 0,
         lateCompletedTrains: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.lateCompletedTrains ?? 0,
         lateArrivalDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.lateArrivalDelaySeconds ?? 0,
@@ -1152,6 +1157,26 @@ export class ScenarioRuntime {
 
   throughOperationReport() {
     return throughOperationReport(this.operationalState);
+  }
+
+  triggerRailwayDisruption(input) {
+    return createRailwayDisruption(this.operationalState, input);
+  }
+
+  resolveRailwayDisruption(eventId, options = {}) {
+    return resolveRailwayDisruption(this.operationalState, eventId, options);
+  }
+
+  railwayDisruptionReport() {
+    return railwayDisruptionReport(this.operationalState);
+  }
+
+  applyRailCapacityGeometry(lineId, geometry) {
+    return applyRailCapacityGeometry(this.operationalState, { lineId, geometry });
+  }
+
+  railCapacityApplicationReport(lineId = null) {
+    return railCapacityApplicationReport(this.operationalState, lineId);
   }
 
   evaluate() {
