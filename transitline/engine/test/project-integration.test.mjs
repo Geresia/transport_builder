@@ -8,6 +8,7 @@ import { buildRouteGraph } from "../src/network.mjs";
 import { createMapEngineBridge } from "../src/map-engine-bridge.mjs";
 import { loadIntegratedGame, saveIntegratedGame, snapshotOperationalState } from "../src/integrated-save.mjs";
 import { ScenarioRuntime } from "../src/scenario-runtime.mjs";
+import { recordRailwayTraffic } from "../src/railway-traffic-control.mjs";
 
 function integrationPack() {
   return {
@@ -232,6 +233,28 @@ test("dispatched but unfinished scheduled trains count against the settled servi
   const result = settleIntegratedServiceDay(game, state, service.id);
   assert.equal(result.railwayTraffic.serviceDeliveryRatio, 0);
   assert.equal(result.punctuality, 0.5);
+});
+
+test("a completion reported after its original day was settled appears in the next settlement audit", () => {
+  const game = new ManagementGame({ seed: 105, openingCash: 1_000_000_000_000 });
+  const { project, service } = completeProjectAndFleet(game);
+  const state = createState(integrationPack(), { materializeDemandStations: false, seed: 105 });
+  commissionProject(game, state, { projectId: project.id, serviceId: service.id });
+  const lineId = String(state.lines[0].id);
+  recordRailwayTraffic(state, lineId, 0, "scheduledDispatchedTrains", 1);
+  recordRailwayTraffic(state, lineId, 0, "dispatchedTrains", 1);
+  state.simMinutes = 1440;
+  const first = settleIntegratedServiceDay(game, state, service.id);
+  assert.equal(first.railwayTraffic.serviceDeliveryRatio, 0);
+  recordRailwayTraffic(state, lineId, 0, "scheduledCompletedTrains", 1);
+  recordRailwayTraffic(state, lineId, 0, "completedTrains", 1);
+  recordRailwayTraffic(state, lineId, 1, "lateCompletedTrains", 1);
+  recordRailwayTraffic(state, lineId, 1, "lateArrivalDelaySeconds", 600);
+  state.simMinutes = 2880;
+  const second = settleIntegratedServiceDay(game, state, service.id);
+  assert.equal(second.railwayTraffic.lateCompletedTrains, 1);
+  assert.equal(second.railwayTraffic.lateArrivalDelaySeconds, 600);
+  assert.equal(second.railwayTraffic.scheduledCompletedTrains, 0, "the already settled operating day is not rewritten");
 });
 
 test("combined integrated settlement rolls back management and line frequency when accounting fails", () => {

@@ -766,7 +766,11 @@ export class ScenarioRuntime {
         missedDepartures: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.missedDepartures ?? 0,
         departureDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.departureDelaySeconds ?? 0,
         signalDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.signalDelaySeconds ?? 0,
+        junctionDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.junctionDelaySeconds ?? 0,
+        terminalDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.terminalDelaySeconds ?? 0,
         arrivalDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.arrivalDelaySeconds ?? 0,
+        lateCompletedTrains: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.lateCompletedTrains ?? 0,
+        lateArrivalDelaySeconds: this.operationalState.stats.railwayTrafficByLine?.[lineId]?.lateArrivalDelaySeconds ?? 0,
       };
       service.operationsStartedAtSimMinute = this.operationalState.simMinutes;
       service.operationsStartedAtGameMinute = this.game.clock.minute;

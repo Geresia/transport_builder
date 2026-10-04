@@ -6,7 +6,7 @@ import { TRAIN_SPEED_MPS, DWELL_SECONDS } from "./network.mjs";
 import { handleStop } from "./passengers.mjs";
 import { bandAt } from "./state.mjs";
 import { recordThroughStationStop, recordThroughTrainMovement } from "./through-operation-integration.mjs";
-import { recordRailwayTraffic, signalBlockForTrain } from "./railway-traffic-control.mjs";
+import { recordRailwayTraffic, releaseTrainSectionJunctions, signalBlockForTrain } from "./railway-traffic-control.mjs";
 
 export function lineRoundTripMinutes(state, line) {
   let metres = 0;
@@ -31,12 +31,13 @@ function dayTypeAt(simMinutes) {
   return weekday >= 5 ? "weekend" : "weekday";
 }
 
-function startTrain(state, line, scheduledDepartureMinute = null, scheduledReturnMinute = null, scheduledCompletionMinute = null) {
+function startTrain(state, line, scheduledDepartureMinute = null, scheduledReturnMinute = null, scheduledCompletionMinute = null, terminalResourceId = null) {
   line.lastDispatch = state.simMinutes;
   const train = { id: state.nextTrainId++, lineId: line.id, segIndex: 0, t: 0, dir: 1, dwell: DWELL_SECONDS };
   if (scheduledDepartureMinute !== null) train.scheduledDepartureMinute = scheduledDepartureMinute;
   if (scheduledReturnMinute !== null) train.scheduledReturnMinute = scheduledReturnMinute;
   if (scheduledCompletionMinute !== null) train.scheduledCompletionMinute = scheduledCompletionMinute;
+  if (terminalResourceId !== null) train.terminalResourceId = terminalResourceId;
   train.trafficOperatingDay = Math.floor((scheduledDepartureMinute ?? state.simMinutes) / 1440);
   state.trains.push(train);
   recordRailwayTraffic(state, line.id, train.trafficOperatingDay, "dispatchedTrains");
@@ -63,7 +64,7 @@ function dispatchScheduledTrains(state, line, schedule, allowDispatch = true) {
       const completionMinute = trip.completionMinute === null || trip.completionMinute === undefined ? null : day * 1440 + trip.completionMinute;
       if (absoluteMinute <= previous + 1e-9 || absoluteMinute > now + 1e-9) continue;
       const graceMinutes = Number.isFinite(schedule.dispatchGraceMinutes) ? Math.max(0, schedule.dispatchGraceMinutes) : 1;
-      if (allowDispatch && now - absoluteMinute <= graceMinutes + 1e-9) startTrain(state, line, absoluteMinute, returnMinute, completionMinute);
+      if (allowDispatch && now - absoluteMinute <= graceMinutes + 1e-9) startTrain(state, line, absoluteMinute, returnMinute, completionMinute, trip.terminalResourceId ?? null);
       else {
         schedule.missedDepartures = (schedule.missedDepartures ?? 0) + 1;
         recordRailwayTraffic(state, line.id, day, "missedDepartures");
@@ -125,6 +126,8 @@ export function stepTrains(state, dtSeconds) {
           train.signalWaitSeconds = (train.signalWaitSeconds ?? 0) + remaining;
           train.waitingForSignal = block;
           recordRailwayTraffic(state, line.id, train.trafficOperatingDay ?? Math.floor(state.simMinutes / 1440), "signalDelaySeconds", remaining);
+          if (block.reason.startsWith("junction-")) recordRailwayTraffic(state, line.id, train.trafficOperatingDay ?? Math.floor(state.simMinutes / 1440), "junctionDelaySeconds", remaining);
+          if (block.reason.startsWith("terminal-")) recordRailwayTraffic(state, line.id, train.trafficOperatingDay ?? Math.floor(state.simMinutes / 1440), "terminalDelaySeconds", remaining);
           break;
         }
         delete train.waitingForSignal;
@@ -144,6 +147,7 @@ export function stepTrains(state, dtSeconds) {
       const movedMetres = (1 - train.t) * segLength;
       state.stats.trainKmByLine[String(line.id)] = (state.stats.trainKmByLine[String(line.id)] ?? 0) + movedMetres / 1000;
       recordThroughTrainMovement(state, line, Math.min(train.segIndex, nextIndex), movedMetres);
+      releaseTrainSectionJunctions(state, train, state.simMinutes);
       train.t = 0;
       train.segIndex = nextIndex;
       const finished = train.segIndex === 0 && train.dir === -1;
@@ -159,6 +163,11 @@ export function stepTrains(state, dtSeconds) {
           recordRailwayTraffic(state, line.id, trafficDay, "scheduledCompletedTrains");
           recordRailwayTraffic(state, line.id, trafficDay, "arrivalDelaySeconds", arrivalDelaySeconds);
           if (arrivalDelaySeconds <= 300) recordRailwayTraffic(state, line.id, trafficDay, "onTimeTrains");
+        }
+        const completionDay = Math.floor(state.simMinutes / 1440);
+        if (completionDay > trafficDay) {
+          recordRailwayTraffic(state, line.id, completionDay, "lateCompletedTrains");
+          recordRailwayTraffic(state, line.id, completionDay, "lateArrivalDelaySeconds", arrivalDelaySeconds);
         }
         train.done = true;
         break;

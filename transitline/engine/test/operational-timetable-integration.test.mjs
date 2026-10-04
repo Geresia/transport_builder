@@ -46,7 +46,7 @@ test("operational timetable draft uses actual assets, disclosed assumptions and 
     operationalState: state,
     services: [service],
     infrastructureRevision: "assets:1",
-    servicePlans: [{ serviceId: service.id, firstDepartureMinute: 361, lastDepartureMinute: 371, headwayMinutes: 10 }],
+    servicePlans: [{ serviceId: service.id, firstDepartureMinute: 361, lastDepartureMinute: 371, headwayMinutes: 10, terminalResourceId: "terminal:C:1" }],
     closureWindowsBySectionId: { bc: [{ startMinute: 500, endMinute: 510, reason: "inspection" }] },
     infrastructureAssumptions: { directionMode: "double", minimumHeadwayMinutes: 3 },
   });
@@ -82,7 +82,7 @@ test("active timetable dispatches at exact accepted minutes instead of frequency
   runtime.game.services.push(service);
   const assessed = runtime.assessOperationalRailwayTimetable({
     infrastructureRevision: "assets:1",
-    servicePlans: [{ serviceId: service.id, firstDepartureMinute: 361, lastDepartureMinute: 371, headwayMinutes: 10 }],
+    servicePlans: [{ serviceId: service.id, firstDepartureMinute: 361, lastDepartureMinute: 371, headwayMinutes: 10, terminalResourceId: "terminal:C:1" }],
     infrastructureAssumptions: { directionMode: "double", minimumHeadwayMinutes: 3 },
   });
   assert.equal(assessed.assessment.verdict, "possible");
@@ -98,6 +98,8 @@ test("active timetable dispatches at exact accepted minutes instead of frequency
   assert.equal(state.trains.length, 1);
   assert.equal(state.trains[0].scheduledDepartureMinute, 361);
   assert.ok(state.trains[0].scheduledReturnMinute > assessed.acceptedPaths.find((entry) => entry.direction === "forward").arrivalMinute);
+  assert.equal(state.trains[0].terminalResourceId, "terminal:C:1");
+  assert.deepEqual(line.railwayTrafficControl.sectionJunctionClearanceMinutes, { ab: 1, bc: 1 });
   state.simMinutes = 371;
   dispatchTrains(state);
   assert.equal(state.trains.length, 2);

@@ -1,3 +1,6 @@
+import { TRAIN_SPEED_MPS } from "./network.mjs";
+import { haversineMetres } from "./projection.mjs";
+
 const key = (value) => String(value);
 
 function segmentForLeg(state, line, fromStationId, toStationId) {
@@ -27,10 +30,13 @@ export function trainSection(state, train) {
   if (!resolved.segment) return controlledLine(line) ? {
     line,
     segment: null,
+    fromStationId: key(fromStationId),
+    toStationId: key(toStationId),
     sectionId: null,
     physicalDirection: null,
     resourceId: null,
     mappingError: resolved.error,
+    entersTerminal: nextIndex === line.stationIds.length - 1 && train.dir === 1,
   } : null;
   const segment = resolved.segment;
   const physicalDirection = key(segment.fromStationId) === key(fromStationId) ? "forward" : "reverse";
@@ -44,7 +50,48 @@ export function trainSection(state, train) {
     sectionId: key(segment.id),
     physicalDirection,
     resourceId: directionMode === "single" ? `section:${segment.id}:shared` : `section:${segment.id}:${physicalDirection}`,
+    junctionResourceIds: [...(line.railwayTrafficControl?.sectionJunctionResourceIds?.[key(segment.id)] ?? segment.junctionResourceIds ?? [])].map(key).sort(),
+    junctionClearanceMinutes: Number(line.railwayTrafficControl?.sectionJunctionClearanceMinutes?.[key(segment.id)]
+      ?? segment.junctionClearanceMinutes ?? 0),
+    entersTerminal: nextIndex === line.stationIds.length - 1 && train.dir === 1,
   };
+}
+
+function junctionWindow(state, train, section) {
+  const from = state.stations.get(section.line.stationIds[train.segIndex]);
+  const nextIndex = train.segIndex + train.dir;
+  const to = state.stations.get(section.line.stationIds[nextIndex]);
+  if (!from || !to) return null;
+  const totalMinutes = haversineMetres(from.location, to.location) / TRAIN_SPEED_MPS / 60;
+  const exitMinute = state.simMinutes + Math.max(0, 1 - (Number(train.t) || 0)) * totalMinutes;
+  const clearance = Math.max(0, Number(section.junctionClearanceMinutes) || 0);
+  return { startMinute: exitMinute - clearance, endMinute: exitMinute + clearance };
+}
+
+function overlaps(left, right) {
+  return left.startMinute < right.endMinute - 1e-9 && right.startMinute < left.endMinute - 1e-9;
+}
+
+function sameStationPair(left, right) {
+  if (!left || !right) return false;
+  const leftPair = [key(left.fromStationId), key(left.toStationId)].sort();
+  const rightPair = [key(right.fromStationId), key(right.toStationId)].sort();
+  return leftPair[0] === rightPair[0] && leftPair[1] === rightPair[1];
+}
+
+export function releaseTrainSectionJunctions(state, train, atMinute = state.simMinutes) {
+  const section = trainSection(state, train);
+  if (!section || section.mappingError || !section.junctionResourceIds.length) return [];
+  state.railwayInterlocking ??= { junctionReleaseMinutes: {} };
+  state.railwayInterlocking.junctionReleaseMinutes ??= {};
+  const releaseMinute = Number(atMinute) + Math.max(0, Number(section.junctionClearanceMinutes) || 0);
+  for (const resourceId of section.junctionResourceIds) {
+    state.railwayInterlocking.junctionReleaseMinutes[resourceId] = Math.max(
+      state.railwayInterlocking.junctionReleaseMinutes[resourceId] ?? -Infinity,
+      releaseMinute,
+    );
+  }
+  return section.junctionResourceIds.map((resourceId) => ({ resourceId, releaseMinute }));
 }
 
 export function signalBlockForTrain(state, train) {
@@ -54,11 +101,37 @@ export function signalBlockForTrain(state, train) {
   if (candidate.segment.status && candidate.segment.status !== "available") {
     return { reason: "section-unavailable", sectionId: candidate.sectionId, resourceId: candidate.resourceId, blockingTrainId: null };
   }
+  const candidateJunctionWindow = junctionWindow(state, train, candidate);
+  for (const resourceId of candidate.junctionResourceIds) {
+    const releaseMinute = state.railwayInterlocking?.junctionReleaseMinutes?.[resourceId];
+    if (candidateJunctionWindow && Number.isFinite(releaseMinute) && releaseMinute > candidateJunctionWindow.startMinute + 1e-9) {
+      return { reason: "junction-clearance", sectionId: candidate.sectionId, resourceId, blockingTrainId: null, releaseMinute };
+    }
+  }
+  if (train.terminalResourceId && candidate.entersTerminal) {
+    for (const other of state.trains) {
+      if (other === train || other.done || other.terminalResourceId !== train.terminalResourceId) continue;
+      const otherLine = state.lines.find((entry) => key(entry.id) === key(other.lineId));
+      const otherSection = trainSection(state, other);
+      const heldAtTerminal = otherLine && other.segIndex === otherLine.stationIds.length - 1 && other.dir === -1 && !(other.t > 0);
+      const approachingTerminal = otherSection?.entersTerminal && other.t > 0;
+      if (heldAtTerminal || approachingTerminal) {
+        return { reason: otherSection?.mappingError ? "terminal-occupancy-unknown" : "terminal-occupied", sectionId: candidate.sectionId, resourceId: train.terminalResourceId, blockingTrainId: other.id };
+      }
+    }
+  }
   for (const other of state.trains) {
     if (other === train || other.done || !(other.t > 0)) continue;
     const occupied = trainSection(state, other);
-    if (occupied?.resourceId !== candidate.resourceId) continue;
-    return { reason: "block-occupied", sectionId: candidate.sectionId, resourceId: candidate.resourceId, blockingTrainId: other.id };
+    if (occupied?.mappingError && sameStationPair(candidate.segment, occupied)) {
+      return { reason: "occupancy-unknown", sectionId: candidate.sectionId, resourceId: candidate.resourceId, blockingTrainId: other.id };
+    }
+    if (occupied?.resourceId === candidate.resourceId) return { reason: "block-occupied", sectionId: candidate.sectionId, resourceId: candidate.resourceId, blockingTrainId: other.id };
+    const occupiedJunctionWindow = occupied && !occupied.mappingError ? junctionWindow(state, other, occupied) : null;
+    const sharedJunction = candidateJunctionWindow && occupiedJunctionWindow && overlaps(candidateJunctionWindow, occupiedJunctionWindow)
+      ? candidate.junctionResourceIds.find((resourceId) => occupied.junctionResourceIds?.includes(resourceId))
+      : null;
+    if (sharedJunction) return { reason: "junction-occupied", sectionId: candidate.sectionId, resourceId: sharedJunction, blockingTrainId: other.id };
   }
   return null;
 }
@@ -75,9 +148,15 @@ export function railwayTrafficStats(state, lineId) {
     missedDepartures: 0,
     departureDelaySeconds: 0,
     signalDelaySeconds: 0,
+    junctionDelaySeconds: 0,
+    terminalDelaySeconds: 0,
     arrivalDelaySeconds: 0,
+    lateCompletedTrains: 0,
+    lateArrivalDelaySeconds: 0,
     days: {},
   };
+  const existing = state.stats.railwayTrafficByLine[key(lineId)];
+  if (existing && existing.days === undefined) existing.legacyUnbucketed = true;
   const stats = state.stats.railwayTrafficByLine[key(lineId)] ??= structuredClone(defaults);
   for (const [field, value] of Object.entries(defaults)) stats[field] ??= structuredClone(value);
   return stats;
@@ -94,7 +173,11 @@ function emptyDay() {
     missedDepartures: 0,
     departureDelaySeconds: 0,
     signalDelaySeconds: 0,
+    junctionDelaySeconds: 0,
+    terminalDelaySeconds: 0,
     arrivalDelaySeconds: 0,
+    lateCompletedTrains: 0,
+    lateArrivalDelaySeconds: 0,
   };
 }
 
@@ -110,7 +193,7 @@ export function recordRailwayTraffic(state, lineId, operatingDay, field, amount 
 
 export function railwayTrafficForDays(state, lineId, fromDay, toDayExclusive) {
   const stats = state?.stats?.railwayTrafficByLine?.[key(lineId)];
-  if (!stats?.days) return null;
+  if (!stats?.days || stats.legacyUnbucketed) return null;
   const result = emptyDay();
   for (let day = fromDay; day < toDayExclusive; day += 1) {
     const row = stats.days[String(day)];

@@ -248,6 +248,7 @@ export function applyActiveRailwayTimetable({ operationalState, timetable, servi
         departureMinute: path.departureMinute,
         returnDepartureMinute: returnPath.departureMinute,
         completionMinute: returnPath.arrivalMinute,
+        terminalResourceId: path.terminalTurnback?.resourceId ?? null,
       };
     });
     if (inboundByDuty.size) throw new Error(`Timetable service ${summary.serviceId} has an inbound path without its accepted outbound duty`);
@@ -265,6 +266,8 @@ export function applyActiveRailwayTimetable({ operationalState, timetable, servi
     resolved.line.railwayTrafficControl = {
       infrastructureRevision: timetable.infrastructureRevision,
       sectionDirectionModes: Object.fromEntries((timetable.sections ?? []).map((section) => [section.sectionId, section.directionMode])),
+      sectionJunctionResourceIds: Object.fromEntries((timetable.sections ?? []).map((section) => [section.sectionId, [...(section.junctionResourceIds ?? [])]])),
+      sectionJunctionClearanceMinutes: Object.fromEntries((timetable.sections ?? []).map((section) => [section.sectionId, section.junctionClearanceMinutes ?? 0])),
     };
     resolved.line.timetableDispatches ??= {};
     resolved.line.timetableDispatches[timetable.dayType] = {

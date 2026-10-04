@@ -186,7 +186,11 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       missedDepartures: Math.max(0, (trafficNow.missedDepartures ?? 0) - (cursor.missedDepartures ?? 0)),
       departureDelaySeconds: Math.max(0, (trafficNow.departureDelaySeconds ?? 0) - (cursor.departureDelaySeconds ?? 0)),
       signalDelaySeconds: Math.max(0, (trafficNow.signalDelaySeconds ?? 0) - (cursor.signalDelaySeconds ?? 0)),
+      junctionDelaySeconds: Math.max(0, (trafficNow.junctionDelaySeconds ?? 0) - (cursor.junctionDelaySeconds ?? 0)),
+      terminalDelaySeconds: Math.max(0, (trafficNow.terminalDelaySeconds ?? 0) - (cursor.terminalDelaySeconds ?? 0)),
       arrivalDelaySeconds: Math.max(0, (trafficNow.arrivalDelaySeconds ?? 0) - (cursor.arrivalDelaySeconds ?? 0)),
+      lateCompletedTrains: Math.max(0, (trafficNow.lateCompletedTrains ?? 0) - (cursor.lateCompletedTrains ?? 0)),
+      lateArrivalDelaySeconds: Math.max(0, (trafficNow.lateArrivalDelaySeconds ?? 0) - (cursor.lateArrivalDelaySeconds ?? 0)),
     };
     const traffic = railwayTrafficForDays(operationalState, lineId, cursor.day, simulationDay) ?? legacyTraffic;
     const scheduledObligations = traffic.scheduledDispatchedTrains + traffic.missedDepartures;
@@ -270,7 +274,11 @@ export function settleIntegratedServiceDay(game, operationalState, serviceId) {
       missedDepartures: trafficNow.missedDepartures ?? 0,
       departureDelaySeconds: trafficNow.departureDelaySeconds ?? 0,
       signalDelaySeconds: trafficNow.signalDelaySeconds ?? 0,
+      junctionDelaySeconds: trafficNow.junctionDelaySeconds ?? 0,
+      terminalDelaySeconds: trafficNow.terminalDelaySeconds ?? 0,
       arrivalDelaySeconds: trafficNow.arrivalDelaySeconds ?? 0,
+      lateCompletedTrains: trafficNow.lateCompletedTrains ?? 0,
+      lateArrivalDelaySeconds: trafficNow.lateArrivalDelaySeconds ?? 0,
     };
     service.integratedTotals = service.integratedTotals ?? { passengers: 0, trainKm: 0, income: 0, cost: 0 };
     service.integratedTotals.passengers += passengers;
