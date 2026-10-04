@@ -20,6 +20,7 @@ import { attachConstructionEditor } from "./map/construction-ui.mjs";
 import { mountConstructionSelection } from "./map/construction-selection-ui.mjs";
 import { mountConstructionImpact } from "./map/construction-impact-ui.mjs";
 import { mountConstructionWorkfront } from "./map/construction-workfront-ui.mjs";
+import { attachThroughHandoverEditor } from "./map/through-handover-ui.mjs";
 import { mountSiteDesignBridge } from "./map/site-design-bridge.mjs";
 import { planIdForKey, planningDefaults, ScenarioRuntime, stablePlanKey } from "./scenario-runtime.mjs";
 import { mountStationManagementPanel } from "./station-management-ui.mjs";
@@ -308,7 +309,7 @@ function syncNetworkModeUI(pack) {
 
 async function main() {
   const pack = await loadPack(packPath);
-  const state = defineViewSlots(createState(pack), ["mapOverlay", "depotView", "stationView", "constructionView"]); // display-only: kept out of saves
+  const state = defineViewSlots(createState(pack), ["mapOverlay", "depotView", "stationView", "constructionView", "throughHandoverView"]); // display-only: kept out of saves
   seedExistingNetwork(state, pack);
   syncNetworkModeUI(pack);
 
@@ -333,6 +334,8 @@ async function main() {
   let constructionImpact = null;
   let constructionImpactOutput = null;
   let constructionWorkfront = null;
+  let throughHandoverUi = null;
+  let throughServiceManagement = null;
   const getCurrentSpatial = () => withRailLayer(packSpatial, currentMapExport?.externalNetworks ?? []);
   refreshMapOverlay = () => {
     currentMapExport = buildMapExport({ pack, mode: networkMode, drawnLines: drawnLinesFromState(state), spatial: packSpatial });
@@ -347,6 +350,7 @@ async function main() {
     constructionSelection?.refresh();
     constructionImpact?.refresh();
     constructionWorkfront?.refresh();
+    throughHandoverUi?.refresh();
   };
   window.transitlineMap = { setEngineReport(report) { engineReport = report; refreshMapOverlay(); } };
   if (scenarioPlay) renderPhaseLegend($("map-legend"));
@@ -401,6 +405,7 @@ async function main() {
         if ($("btn-depot").classList.contains("active")) $("btn-depot").click();
         if ($("btn-station").classList.contains("active")) $("btn-station").click();
         if ($("btn-construction").classList.contains("active")) $("btn-construction").click();
+        if ($("btn-through-handover").classList.contains("active")) $("btn-through-handover").click();
       }
       selectionButton.classList.toggle("active", enabled);
       stationSelection.setEnabled(enabled);
@@ -421,7 +426,7 @@ async function main() {
     constructionSelectionButton.hidden = false;
     constructionSelectionButton.addEventListener("click", () => {
       const enabled = !constructionSelectionButton.classList.contains("active");
-      if (enabled) for (const id of ["btn-depot", "btn-station", "btn-construction", "btn-station-design"]) if ($(id).classList.contains("active")) $(id).click();
+      if (enabled) for (const id of ["btn-depot", "btn-station", "btn-construction", "btn-through-handover", "btn-station-design"]) if ($(id).classList.contains("active")) $(id).click();
       constructionSelectionButton.classList.toggle("active", enabled);
       constructionSelection.setEnabled(enabled);
       if (!enabled) constructionSelection.clear();
@@ -444,7 +449,7 @@ async function main() {
     impactButton.hidden = false;
     impactButton.addEventListener("click", () => {
       const enabled = !impactButton.classList.contains("active");
-      if (enabled) for (const id of ["btn-depot", "btn-station", "btn-construction", "btn-station-design", "btn-construction-select"]) if ($(id).classList.contains("active")) $(id).click();
+      if (enabled) for (const id of ["btn-depot", "btn-station", "btn-construction", "btn-through-handover", "btn-station-design", "btn-construction-select"]) if ($(id).classList.contains("active")) $(id).click();
       impactButton.classList.toggle("active", enabled);
       constructionImpact.setEnabled(enabled);
       impactButton.blur();
@@ -475,7 +480,7 @@ async function main() {
     workfrontButton.hidden = false;
     workfrontButton.addEventListener("click", () => {
       const enabled = !workfrontButton.classList.contains("active");
-      if (enabled) for (const id of ["btn-depot", "btn-station", "btn-construction", "btn-station-design", "btn-construction-select", "btn-construction-impact"]) if ($(id).classList.contains("active")) $(id).click();
+      if (enabled) for (const id of ["btn-depot", "btn-station", "btn-construction", "btn-through-handover", "btn-station-design", "btn-construction-select", "btn-construction-impact"]) if ($(id).classList.contains("active")) $(id).click();
       workfrontButton.classList.toggle("active", enabled);
       constructionWorkfront.setEnabled(enabled);
       workfrontButton.blur();
@@ -483,6 +488,25 @@ async function main() {
     for (const editorButton of [$("btn-depot"), $("btn-station"), $("btn-construction"), $("btn-station-design"), $("btn-construction-select"), impactButton]) editorButton.addEventListener("click", () => {
       if (editorButton.classList.contains("active") && workfrontButton.classList.contains("active")) workfrontButton.click();
     });
+
+    // Through-running connection editor: the map contributes only measured geometry. The management engine
+    // prices, permits and builds the selected site through the stable handoverSiteId/revision contract.
+    throughHandoverUi = attachThroughHandoverEditor({
+      canvas,
+      projection,
+      pack,
+      state,
+      getRoutes: () => (runtime.report().throughRoutes ?? []).map((entry) => entry.route),
+      getMapExport: () => currentMapExport,
+      getSpatial: getCurrentSpatial,
+      getExternalAlignments: () => [],
+      panel: $("through-handover-panel"),
+      summary: $("through-handover-summary"),
+      legend: $("through-handover-legend"),
+      button: $("btn-through-handover"),
+      onChange: () => queueMicrotask(() => throughServiceManagement?.refresh()),
+    });
+    $("btn-through-handover").hidden = false;
 
     // 3D station-site editor (packs/tokyo/site-design.html), opened for the currently selected station
     // candidate. The bridge owns the iframe/postMessage plumbing and spatial collision recheck; this module
@@ -542,12 +566,14 @@ async function main() {
     });
   }
   // Map editors own the pointer while active: keep exactly one drawing editor on.
-  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-construction")];
+  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-construction"), $("btn-through-handover")];
   for (const activeButton of drawingButtons) {
     activeButton.addEventListener("click", () => {
       if (!activeButton.classList.contains("active")) return;
       for (const other of drawingButtons) if (other !== activeButton && other.classList.contains("active")) other.click();
-      if ($("btn-station-design").classList.contains("active")) $("btn-station-design").click();
+      for (const id of ["btn-station-design", "btn-construction-select", "btn-construction-impact", "btn-construction-workfront"]) {
+        if ($(id).classList.contains("active")) $(id).click();
+      }
     });
   }
 
@@ -620,7 +646,6 @@ async function main() {
   if (runtime) {
     let stationManagement = null;
     let constructionContractorManagement = null;
-    let throughServiceManagement = null;
     const scenarioPanel = $("scenario-panel");
     const profile = $("scenario-profile");
     const structure = $("scenario-structure");
@@ -1389,9 +1414,13 @@ async function main() {
       // Only a saved route whose every source has a commissioned operational line and whose handovers are
       // physically confirmed can become a simulator line. Unknown external topology stays blocked.
       getOperationDraft: (service) => runtime.throughOperationDraft(service.throughServiceId, currentMapExport),
+      getSelectedHandoverSite: () => throughHandoverUi?.selectedSite ?? null,
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
-    canvas.addEventListener("pointerup", () => queueMicrotask(() => stationManagement?.refresh()), true);
+    canvas.addEventListener("pointerup", () => queueMicrotask(() => {
+      stationManagement?.refresh();
+      throughServiceManagement?.refresh();
+    }), true);
 
     $("scenario-opportunity-view").addEventListener("click", () => run(() => {
       const opportunity = runtime.viewOpportunity();

@@ -174,6 +174,21 @@ test("every required infrastructure owner must grant permission before tender", 
   assert.ok(tender.ranking.length >= 1);
 });
 
+test("canonical map external sides supply the infrastructure owners when no override is given", () => {
+  const mapped = site({ externalSides: [
+    { side: "from", infrastructureOwnerId: "owner:b" },
+    { side: "to", infrastructureOwnerId: "owner:a" },
+  ] });
+  delete mapped.requiredInfrastructureOwnerIds;
+  const project = createThroughHandoverProject({
+    id: "handover-project:map-owners",
+    site: mapped,
+    technicalProfileId: "medium_steel",
+    countryProfile: getCountryProfile("JP"),
+  });
+  assert.deepEqual(project.requiredInfrastructureOwnerIds, ["owner:a", "owner:b"]);
+});
+
 test("award reserves cash, pays progress once, releases contractor and confirms only the exact route revision", () => {
   const game = new ManagementGame({ seed: 830, openingCash: 100_000_000_000 });
   const created = game.proposeThroughHandoverProject(site(), { technicalProfileId: "medium_steel", structureType: "at-grade" });

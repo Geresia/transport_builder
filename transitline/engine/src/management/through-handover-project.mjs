@@ -146,7 +146,8 @@ export function estimateThroughHandoverProject({ site, technicalProfileId, struc
 }
 
 function requiredOwners(site, supplied) {
-  return uniqueText(supplied ?? site.requiredInfrastructureOwnerIds ?? site.infrastructureOwnerIds ?? []);
+  const mappedOwners = (site.externalSides ?? []).map((side) => side.infrastructureOwnerId).filter(Boolean);
+  return uniqueText(supplied ?? site.requiredInfrastructureOwnerIds ?? site.infrastructureOwnerIds ?? mappedOwners);
 }
 
 export function createThroughHandoverProject({ id, site, technicalProfileId, structureType, turnoutCount, requiredInfrastructureOwnerIds, countryProfile, atMinute = 0 } = {}) {

@@ -15,7 +15,7 @@ const HIT_PX = 12;
 
 // state: read-only for the handover editor except `state.throughHandoverView` (what the renderer draws)
 // getRoutes() -> ThroughRouteGeometry v1[]; getMapExport() -> { plans, externalNetworks }; getSpatial() / getExternalAlignments() optional
-export function attachThroughHandoverEditor({ canvas, projection, pack, state, getRoutes, getMapExport = () => ({ plans: [], externalNetworks: [] }), getSpatial = () => makeSpatialContext(), getExternalAlignments = () => [], panel, summary, legend, button }) {
+export function attachThroughHandoverEditor({ canvas, projection, pack, state, getRoutes, getMapExport = () => ({ plans: [], externalNetworks: [] }), getSpatial = () => makeSpatialContext(), getExternalAlignments = () => [], panel, summary, legend, button, onChange = () => {} }) {
   const packId = pack.manifest?.id ?? "pack";
   const storageKey = `transitline.through-handovers.v1:${packId}`;
   let stored = null;
@@ -40,7 +40,11 @@ export function attachThroughHandoverEditor({ canvas, projection, pack, state, g
   };
   const pointer = (ev) => { const r = canvas.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
-  const save = () => { try { localStorage.setItem(storageKey, serializeThroughHandoverDoc(doc)); } catch { notes.push({ code: "through-handover-doc-not-saved" }); } };
+  const save = () => {
+    try { localStorage.setItem(storageKey, serializeThroughHandoverDoc(doc)); }
+    catch { notes.push({ code: "through-handover-doc-not-saved" }); }
+    onChange();
+  };
   const routeOf = (site) => (getRoutes() ?? []).find((r) => r.throughRouteId === site.throughRouteId) ?? null;
   const near = (loc, xy) => { const [x, y] = screen(loc); return Math.hypot(x - xy[0], y - xy[1]) <= HIT_PX; };
 
@@ -94,7 +98,13 @@ export function attachThroughHandoverEditor({ canvas, projection, pack, state, g
     for (const site of doc.sites) {
       const route = routeOf(site);
       const row = el("div", `handover-row${site.key === selectedKey ? " selected" : ""}`);
-      row.addEventListener("click", () => { if (selectedKey !== site.key) { selectedKey = site.key; refresh(); } });
+      row.addEventListener("click", () => {
+        if (selectedKey !== site.key) {
+          selectedKey = site.key;
+          refresh();
+          onChange();
+        }
+      });
       const name = el("input");
       name.value = site.name ?? "";
       name.addEventListener("change", () => { updateSite(doc, site.key, { name: name.value.trim() || null }); save(); refresh(); });
@@ -173,8 +183,10 @@ export function attachThroughHandoverEditor({ canvas, projection, pack, state, g
       }
     }
     const hit = [...doc.sites].reverse().find((s) => [s.fromConnectionPoint, s.toConnectionPoint, ...s.via].some((p) => p && near(p, xy)));
+    const previousKey = selectedKey;
     selectedKey = hit?.key ?? selectedKey;
     refresh();
+    if (selectedKey !== previousKey) onChange();
   }, true);
   canvas.addEventListener("pointermove", (ev) => {
     if (!active || !drag) return;

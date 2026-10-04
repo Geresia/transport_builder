@@ -458,6 +458,18 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #btn-construction.active { background: #ffd60a; color: #0c1114; }
 #btn-construction-impact.active { background: #e5484d; color: white; }
 #btn-construction-workfront.active { background: #ffe66d; color: #0c1114; }
+#btn-through-handover.active { background: #a78bfa; color: #0c1114; }
+#through-handover-panel .handover-bar { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+#through-handover-panel .handover-bar button { padding: 2px 8px; }
+#through-handover-panel .handover-row { margin: 6px 0; padding: 6px; border: 1px solid var(--panel-line); border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }
+#through-handover-panel .handover-row.selected { border-color: #a78bfa; }
+#through-handover-panel input, #through-handover-panel select { width: 100%; box-sizing: border-box; color: var(--text); background: var(--chip); border: 1px solid var(--chip-line); border-radius: 4px; font: inherit; }
+#through-handover-panel .diag, #through-handover-summary .diag { margin: 4px 0; padding: 3px 6px; border-left: 3px solid var(--muted); border-radius: 3px; font-size: 11px; overflow-wrap: anywhere; }
+#through-handover-panel .diag.warning, #through-handover-summary .diag.warning { border-left-color: var(--warn); }
+#through-handover-panel .diag.info, #through-handover-summary .diag.info { border-left-color: var(--info); color: var(--muted); }
+#through-handover-summary .handover-site { margin: 5px 0; padding: 5px; border: 1px solid var(--panel-line); border-radius: 5px; }
+#through-handover-summary .handover-fact { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; }
+#through-handover-legend .handover-legend-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; font-size: 11px; }
 #station-panel .depot-bar { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
 #station-panel .depot-bar button { padding: 2px 8px; }
 #station-panel .depot-row { margin: 6px 0; padding: 6px; border: 1px solid var(--panel-line); border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }

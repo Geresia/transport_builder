@@ -37,7 +37,7 @@ test("a drawn line's key is saved with the game and gives the same plan id after
   assert.equal(stablePlanKey("runtime", [...ids].reverse()), key, "drawn in the other direction is the same plan");
 });
 
-test("display models on the state (overlay, depot, station and construction layers) are never written into a save", () => {
+test("display models on the state are never written into a save", () => {
   const source = pack();
   const state = defineViewSlots(createState(source));
   const runtime = new ScenarioRuntime({ pack: source, operationalState: state, networkMode: "scratch", seed: 5 });
@@ -45,11 +45,12 @@ test("display models on the state (overlay, depot, station and construction laye
   state.depotView = { marker: "depot-only" };
   state.stationView = { marker: "station-only" };
   state.constructionView = { marker: "construction-only" };
+  state.throughHandoverView = { marker: "handover-only" };
   const saved = runtime.save();
-  assert.doesNotMatch(saved, /overlay-only|depot-only|station-only|construction-only/);
-  assert.equal(Object.keys(JSON.parse(saved).operations).some((k) => ["mapOverlay", "depotView", "stationView", "constructionView"].includes(k)), false);
+  assert.doesNotMatch(saved, /overlay-only|depot-only|station-only|construction-only|handover-only/);
+  assert.equal(Object.keys(JSON.parse(saved).operations).some((k) => ["mapOverlay", "depotView", "stationView", "constructionView", "throughHandoverView"].includes(k)), false);
   runtime.load(saved);
-  for (const name of ["mapOverlay", "depotView", "stationView", "constructionView"]) {
+  for (const name of ["mapOverlay", "depotView", "stationView", "constructionView", "throughHandoverView"]) {
     const d = Object.getOwnPropertyDescriptor(state, name);
     assert.ok(d && d.enumerable === false && d.writable, `${name} is still a hidden, writable slot after a load`);
   }

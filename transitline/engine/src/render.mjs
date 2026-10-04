@@ -7,6 +7,7 @@ import { drawPlanOverlay } from "./map/overlay.mjs";
 import { drawDepotOverlay } from "./map/depot-view.mjs";
 import { drawStationOverlay } from "./map/station-view.mjs";
 import { drawConstructionOverlay } from "./map/construction-view.mjs";
+import { drawThroughHandoverOverlay } from "./map/through-handover-view.mjs";
 
 const BG = "#1b2131";
 const STATION_STROKE = "#f1f2f5";
@@ -331,6 +332,7 @@ export function draw(ctx, state, projection, width, height, input) {
   if (state.depotView) drawDepotOverlay(ctx, state.depotView, screen);
   if (state.stationView) drawStationOverlay(ctx, state.stationView, screen, state.stationView.layers);
   if (state.constructionView) drawConstructionOverlay(ctx, state.constructionView, screen);
+  if (state.throughHandoverView) drawThroughHandoverOverlay(ctx, state.throughHandoverView, screen);
 
   ctx.restore();
 }

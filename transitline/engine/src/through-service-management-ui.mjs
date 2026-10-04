@@ -1,4 +1,4 @@
-import { VEHICLE_MODELS, vehicleRetrofitRequirements } from "./management/index.mjs";
+import { TECHNICAL_PROFILES, VEHICLE_MODELS, vehicleRetrofitRequirements } from "./management/index.mjs";
 
 const yen = new Intl.NumberFormat("ko-KR", { notation: "compact", style: "currency", currency: "JPY", maximumFractionDigits: 1 });
 const STATUS = Object.freeze({ draft: "초안", assessed: "심사 완료", approved: "승인·운행 가능", suspended: "운행 중단", terminated: "종료" });
@@ -83,7 +83,7 @@ function fareParticipantGroups(service) {
   return [...groups.values()].sort((a, b) => a.operatorId.localeCompare(b.operatorId));
 }
 
-export function mountThroughServiceManagementPanel({ container, runtime, getMapExport = () => null, getOperationDraft = () => null, onChange = () => {} }) {
+export function mountThroughServiceManagementPanel({ container, runtime, getMapExport = () => null, getOperationDraft = () => null, getSelectedHandoverSite = () => null, onChange = () => {} }) {
   let notice = "지도 직통 경로와 경영 계약을 연결하면 실제 운행정산이 시작됩니다.";
   let noticeError = false;
 
@@ -175,6 +175,61 @@ export function mountThroughServiceManagementPanel({ container, runtime, getMapE
       }),
     );
     section.append(legsBox, controls, el("div", "through-note", "외부선의 선로 접속·소유자·기술자료가 없으면 안전으로 가정하지 않고 자료 미상으로 심사됩니다."));
+    return section;
+  }
+
+  function renderHandoverProjects() {
+    const section = el("section", "through-route-planner");
+    section.append(el("strong", "", "직통 접속부 건설"));
+    const selectedSite = getSelectedHandoverSite();
+    const projects = runtime.throughHandoverProjectReport();
+    if (selectedSite) {
+      const selected = el("div", "through-note", `지도 선택 · ${selectedSite.name ?? selectedSite.handoverSiteId}`);
+      const profile = el("select");
+      for (const id of Object.keys(TECHNICAL_PROFILES).sort()) profile.append(new Option(id, id));
+      if (TECHNICAL_PROFILES.medium_steel) profile.value = "medium_steel";
+      const duplicate = projects.some((project) => project.throughRouteId === selectedSite.throughRouteId
+        && project.routeGeometryRevision === selectedSite.routeGeometryRevision
+        && project.handoverId === selectedSite.handoverId && project.status !== "cancelled");
+      section.append(selected, profile, button("선택 접속부 사업 제안", () => run(
+        () => runtime.proposeThroughHandoverProject(selectedSite, { technicalProfileId: profile.value }),
+        (project) => `${project.id}의 견적과 기술검토를 만들었습니다.`,
+      ), duplicate));
+    } else section.append(el("div", "through-note", "지도에서 ‘직통 접속부’를 열고 후보 하나를 선택하세요."));
+
+    for (const project of projects) {
+      const card = el("article", "through-subcard");
+      card.append(el("strong", "", project.id), metricGrid([
+        ["상태", project.status], ["구조", project.structureType],
+        ["P50", project.totalP50JPY === null ? "미상" : yen.format(project.totalP50JPY)],
+        ["기간", project.durationMonths === null ? "미상" : `${project.durationMonths}개월`],
+      ]));
+      if (project.review?.violations?.length) card.append(el("div", "through-error", `불가 · ${project.review.violations.join(", ")}`));
+      if (project.review?.conditions?.length) card.append(el("div", "through-warning", `조건 · ${project.review.conditions.join(", ")}`));
+      const actions = el("div", "through-actions");
+      for (const ownerId of project.requiredInfrastructureOwnerIds ?? []) {
+        if (!(project.permissions ?? []).some((permission) => permission.ownerId === ownerId)) {
+          actions.append(button(`${ownerId} 허가`, () => run(
+            () => runtime.grantThroughHandoverPermission(project.id, ownerId),
+            `${ownerId}의 접속공사 허가를 받았습니다.`,
+          )));
+        }
+      }
+      if (["proposed", "permitted"].includes(project.status)) actions.append(button("시공사 입찰", () => run(
+        () => runtime.tenderThroughHandoverProject(project.id),
+        "접속부 시공사 입찰을 평가했습니다.",
+      )));
+      if (project.status === "tendered") actions.append(button("우선순위 시공사 낙찰", () => {
+        if (!window.confirm("P50 계약금이 약정되고 10% 착수금이 지급됩니다. 낙찰할까요?")) return null;
+        return run(() => runtime.awardThroughHandoverProject(project.id), "접속부 공사를 낙찰했습니다.");
+      }));
+      if (!["available", "cancelled"].includes(project.status)) actions.append(button("사업 취소", () => {
+        if (!window.confirm("이미 지급한 비용은 매몰비용으로 남습니다. 취소할까요?")) return null;
+        return run(() => runtime.cancelThroughHandoverProject(project.id), "접속부 사업을 취소했습니다.");
+      }, false, "danger"));
+      card.append(actions);
+      section.append(card);
+    }
     return section;
   }
 
@@ -315,6 +370,7 @@ export function mountThroughServiceManagementPanel({ container, runtime, getMapE
     const view = buildThroughServiceManagementView(runtime.report());
     container.append(el("div", noticeError ? "through-error" : "through-notice", notice));
     container.append(renderRoutePlanner());
+    container.append(renderHandoverProjects());
     if (!view.length) {
       container.append(el("div", "through-empty", "아직 직통 경로에서 생성된 경영 서비스가 없습니다."));
       return;

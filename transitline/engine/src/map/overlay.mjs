@@ -232,7 +232,7 @@ export function renderPhaseLegend(container, phases = PHASES) {
 
 // The overlay models live on `state` because render.mjs reads them there, but they are display data: keep them
 // non-enumerable so the integrated save (snapshotOperationalState walks Object.entries) and a load never carry them.
-export function defineViewSlots(state, names = ["mapOverlay", "depotView", "stationView", "constructionView"]) {
+export function defineViewSlots(state, names = ["mapOverlay", "depotView", "stationView", "constructionView", "throughHandoverView"]) {
   for (const name of names) Object.defineProperty(state, name, { value: null, writable: true, enumerable: false, configurable: true });
   return state;
 }
