@@ -1,0 +1,1383 @@
+{
+  "schema": "transitline.rail-capacity-geometry/1",
+  "contractVersion": 1,
+  "railGeometryId": "rail-geometry:4142e9d1954dfe47",
+  "railGeometryRevision": "rail-geometry-revision:3ba1b171b7952b13",
+  "key": "example:tokyo:rail-existing-line",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "name": "East river crossing joined to an existing Koto line (station level only)",
+  "coordinateReference": "EPSG:4326",
+  "planIds": [
+    "plan:b9b153e3df14331d"
+  ],
+  "planRevisions": [
+    {
+      "planId": "plan:b9b153e3df14331d",
+      "planRevision": "plan-revision:21a5fd47d9594991"
+    }
+  ],
+  "externalLineIds": [
+    "ext-line:443259"
+  ],
+  "throughRouteId": "through-route:b0e9da50ae416366",
+  "routeGeometryRevision": "through-route-revision:717fd336956ddd1c",
+  "revision": {
+    "state": "current",
+    "mismatches": [],
+    "missing": []
+  },
+  "sections": [
+    {
+      "sectionId": "rail-section:23fa09287af988a6",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "throughLegIds": null,
+      "fromStationId": "kanto-12203",
+      "toStationId": "ward-edogawa",
+      "startLocation": [
+        139.93268,
+        35.72642
+      ],
+      "endLocation": [
+        139.87118,
+        35.7136
+      ],
+      "alignment": null,
+      "lengthMeters": null,
+      "directionMode": null,
+      "directionModeBasis": null,
+      "directionModeSource": null,
+      "minimumCurveRadiusMeters": null,
+      "groundGradientPermille": null,
+      "designedGradientPermille": null,
+      "structureHint": null,
+      "structureHintBasis": null,
+      "buildingIntersectionCount": null,
+      "waterCrossingCount": null,
+      "roadCrossingCount": null,
+      "roadCrossingsByClass": null,
+      "existingRailwayCrossingCount": null,
+      "blockIds": null,
+      "junctionResourceIds": null,
+      "ends": [
+        {
+          "endpoint": "start",
+          "stationId": "kanto-12203",
+          "location": [
+            139.93268,
+            35.72642
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        },
+        {
+          "endpoint": "end",
+          "stationId": "ward-edogawa",
+          "location": [
+            139.87118,
+            35.7136
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:eae5c8fc4e19300e"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        }
+      ],
+      "unknown": [
+        "alignment",
+        "blockIds",
+        "buildingIntersectionCount",
+        "designedGradientPermille",
+        "directionMode",
+        "existingRailwayCrossingCount",
+        "groundGradientPermille",
+        "junctionResourceIds",
+        "lengthMeters",
+        "minimumCurveRadiusMeters",
+        "roadCrossingCount",
+        "structureHint",
+        "throughLegIds",
+        "waterCrossingCount"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "blockIds": "external-alignment-not-in-source",
+        "buildingIntersectionCount": "external-alignment-not-in-source",
+        "designedGradientPermille": "track-profile-not-designed",
+        "directionMode": "external-track-data-not-in-source",
+        "existingRailwayCrossingCount": "external-alignment-not-in-source",
+        "groundGradientPermille": "external-alignment-not-in-source",
+        "junctionResourceIds": "no-junction-data",
+        "lengthMeters": "external-alignment-not-in-source",
+        "minimumCurveRadiusMeters": "external-alignment-not-in-source",
+        "roadCrossingCount": "external-alignment-not-in-source",
+        "structureHint": "external-alignment-not-in-source",
+        "throughLegIds": "no-through-route",
+        "waterCrossingCount": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "sectionId": "rail-section:36977ec52e86d79b",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "throughLegIds": null,
+      "fromStationId": "ward-koto",
+      "toStationId": "ward-sumida",
+      "startLocation": [
+        139.81276,
+        35.67399
+      ],
+      "endLocation": [
+        139.81254,
+        35.70474
+      ],
+      "alignment": null,
+      "lengthMeters": null,
+      "directionMode": null,
+      "directionModeBasis": null,
+      "directionModeSource": null,
+      "minimumCurveRadiusMeters": null,
+      "groundGradientPermille": null,
+      "designedGradientPermille": null,
+      "structureHint": null,
+      "structureHintBasis": null,
+      "buildingIntersectionCount": null,
+      "waterCrossingCount": null,
+      "roadCrossingCount": null,
+      "roadCrossingsByClass": null,
+      "existingRailwayCrossingCount": null,
+      "blockIds": null,
+      "junctionResourceIds": null,
+      "ends": [
+        {
+          "endpoint": "start",
+          "stationId": "ward-koto",
+          "location": [
+            139.81276,
+            35.67399
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:36977ec52e86d79b",
+            "rail-section:785f3d5fced8b7e9",
+            "rail-section:eae5c8fc4e19300e"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        },
+        {
+          "endpoint": "end",
+          "stationId": "ward-sumida",
+          "location": [
+            139.81254,
+            35.70474
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:36977ec52e86d79b"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        }
+      ],
+      "unknown": [
+        "alignment",
+        "blockIds",
+        "buildingIntersectionCount",
+        "designedGradientPermille",
+        "directionMode",
+        "existingRailwayCrossingCount",
+        "groundGradientPermille",
+        "junctionResourceIds",
+        "lengthMeters",
+        "minimumCurveRadiusMeters",
+        "roadCrossingCount",
+        "structureHint",
+        "throughLegIds",
+        "waterCrossingCount"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "blockIds": "external-alignment-not-in-source",
+        "buildingIntersectionCount": "external-alignment-not-in-source",
+        "designedGradientPermille": "track-profile-not-designed",
+        "directionMode": "external-track-data-not-in-source",
+        "existingRailwayCrossingCount": "external-alignment-not-in-source",
+        "groundGradientPermille": "external-alignment-not-in-source",
+        "junctionResourceIds": "no-junction-data",
+        "lengthMeters": "external-alignment-not-in-source",
+        "minimumCurveRadiusMeters": "external-alignment-not-in-source",
+        "roadCrossingCount": "external-alignment-not-in-source",
+        "structureHint": "external-alignment-not-in-source",
+        "throughLegIds": "no-through-route",
+        "waterCrossingCount": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "sectionId": "rail-section:36977ec52e86d79b",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "throughLegIds": null,
+      "fromStationId": "ward-sumida",
+      "toStationId": "ward-koto",
+      "startLocation": [
+        139.81254,
+        35.70474
+      ],
+      "endLocation": [
+        139.81276,
+        35.67399
+      ],
+      "alignment": null,
+      "lengthMeters": null,
+      "directionMode": null,
+      "directionModeBasis": null,
+      "directionModeSource": null,
+      "minimumCurveRadiusMeters": null,
+      "groundGradientPermille": null,
+      "designedGradientPermille": null,
+      "structureHint": null,
+      "structureHintBasis": null,
+      "buildingIntersectionCount": null,
+      "waterCrossingCount": null,
+      "roadCrossingCount": null,
+      "roadCrossingsByClass": null,
+      "existingRailwayCrossingCount": null,
+      "blockIds": null,
+      "junctionResourceIds": null,
+      "ends": [
+        {
+          "endpoint": "start",
+          "stationId": "ward-sumida",
+          "location": [
+            139.81254,
+            35.70474
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:36977ec52e86d79b"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        },
+        {
+          "endpoint": "end",
+          "stationId": "ward-koto",
+          "location": [
+            139.81276,
+            35.67399
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:36977ec52e86d79b",
+            "rail-section:785f3d5fced8b7e9",
+            "rail-section:eae5c8fc4e19300e"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        }
+      ],
+      "unknown": [
+        "alignment",
+        "blockIds",
+        "buildingIntersectionCount",
+        "designedGradientPermille",
+        "directionMode",
+        "existingRailwayCrossingCount",
+        "groundGradientPermille",
+        "junctionResourceIds",
+        "lengthMeters",
+        "minimumCurveRadiusMeters",
+        "roadCrossingCount",
+        "structureHint",
+        "throughLegIds",
+        "waterCrossingCount"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "blockIds": "external-alignment-not-in-source",
+        "buildingIntersectionCount": "external-alignment-not-in-source",
+        "designedGradientPermille": "track-profile-not-designed",
+        "directionMode": "external-track-data-not-in-source",
+        "existingRailwayCrossingCount": "external-alignment-not-in-source",
+        "groundGradientPermille": "external-alignment-not-in-source",
+        "junctionResourceIds": "no-junction-data",
+        "lengthMeters": "external-alignment-not-in-source",
+        "minimumCurveRadiusMeters": "external-alignment-not-in-source",
+        "roadCrossingCount": "external-alignment-not-in-source",
+        "structureHint": "external-alignment-not-in-source",
+        "throughLegIds": "no-through-route",
+        "waterCrossingCount": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "sectionId": "rail-section:785f3d5fced8b7e9",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "throughLegIds": null,
+      "fromStationId": "ward-koto",
+      "toStationId": "ward-chuo",
+      "startLocation": [
+        139.81276,
+        35.67399
+      ],
+      "endLocation": [
+        139.77747,
+        35.67927
+      ],
+      "alignment": null,
+      "lengthMeters": null,
+      "directionMode": null,
+      "directionModeBasis": null,
+      "directionModeSource": null,
+      "minimumCurveRadiusMeters": null,
+      "groundGradientPermille": null,
+      "designedGradientPermille": null,
+      "structureHint": null,
+      "structureHintBasis": null,
+      "buildingIntersectionCount": null,
+      "waterCrossingCount": null,
+      "roadCrossingCount": null,
+      "roadCrossingsByClass": null,
+      "existingRailwayCrossingCount": null,
+      "blockIds": null,
+      "junctionResourceIds": null,
+      "ends": [
+        {
+          "endpoint": "start",
+          "stationId": "ward-koto",
+          "location": [
+            139.81276,
+            35.67399
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:36977ec52e86d79b",
+            "rail-section:36977ec52e86d79b",
+            "rail-section:eae5c8fc4e19300e"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        },
+        {
+          "endpoint": "end",
+          "stationId": "ward-chuo",
+          "location": [
+            139.77747,
+            35.67927
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:860b30270966df91"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        }
+      ],
+      "unknown": [
+        "alignment",
+        "blockIds",
+        "buildingIntersectionCount",
+        "designedGradientPermille",
+        "directionMode",
+        "existingRailwayCrossingCount",
+        "groundGradientPermille",
+        "junctionResourceIds",
+        "lengthMeters",
+        "minimumCurveRadiusMeters",
+        "roadCrossingCount",
+        "structureHint",
+        "throughLegIds",
+        "waterCrossingCount"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "blockIds": "external-alignment-not-in-source",
+        "buildingIntersectionCount": "external-alignment-not-in-source",
+        "designedGradientPermille": "track-profile-not-designed",
+        "directionMode": "external-track-data-not-in-source",
+        "existingRailwayCrossingCount": "external-alignment-not-in-source",
+        "groundGradientPermille": "external-alignment-not-in-source",
+        "junctionResourceIds": "no-junction-data",
+        "lengthMeters": "external-alignment-not-in-source",
+        "minimumCurveRadiusMeters": "external-alignment-not-in-source",
+        "roadCrossingCount": "external-alignment-not-in-source",
+        "structureHint": "external-alignment-not-in-source",
+        "throughLegIds": "no-through-route",
+        "waterCrossingCount": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "sectionId": "rail-section:860b30270966df91",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "throughLegIds": null,
+      "fromStationId": "ward-chuo",
+      "toStationId": "ward-chiyoda",
+      "startLocation": [
+        139.77747,
+        35.67927
+      ],
+      "endLocation": [
+        139.75764,
+        35.69088
+      ],
+      "alignment": null,
+      "lengthMeters": null,
+      "directionMode": null,
+      "directionModeBasis": null,
+      "directionModeSource": null,
+      "minimumCurveRadiusMeters": null,
+      "groundGradientPermille": null,
+      "designedGradientPermille": null,
+      "structureHint": null,
+      "structureHintBasis": null,
+      "buildingIntersectionCount": null,
+      "waterCrossingCount": null,
+      "roadCrossingCount": null,
+      "roadCrossingsByClass": null,
+      "existingRailwayCrossingCount": null,
+      "blockIds": null,
+      "junctionResourceIds": null,
+      "ends": [
+        {
+          "endpoint": "start",
+          "stationId": "ward-chuo",
+          "location": [
+            139.77747,
+            35.67927
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:785f3d5fced8b7e9"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        },
+        {
+          "endpoint": "end",
+          "stationId": "ward-chiyoda",
+          "location": [
+            139.75764,
+            35.69088
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:a74429b170434cdb"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        }
+      ],
+      "unknown": [
+        "alignment",
+        "blockIds",
+        "buildingIntersectionCount",
+        "designedGradientPermille",
+        "directionMode",
+        "existingRailwayCrossingCount",
+        "groundGradientPermille",
+        "junctionResourceIds",
+        "lengthMeters",
+        "minimumCurveRadiusMeters",
+        "roadCrossingCount",
+        "structureHint",
+        "throughLegIds",
+        "waterCrossingCount"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "blockIds": "external-alignment-not-in-source",
+        "buildingIntersectionCount": "external-alignment-not-in-source",
+        "designedGradientPermille": "track-profile-not-designed",
+        "directionMode": "external-track-data-not-in-source",
+        "existingRailwayCrossingCount": "external-alignment-not-in-source",
+        "groundGradientPermille": "external-alignment-not-in-source",
+        "junctionResourceIds": "no-junction-data",
+        "lengthMeters": "external-alignment-not-in-source",
+        "minimumCurveRadiusMeters": "external-alignment-not-in-source",
+        "roadCrossingCount": "external-alignment-not-in-source",
+        "structureHint": "external-alignment-not-in-source",
+        "throughLegIds": "no-through-route",
+        "waterCrossingCount": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "sectionId": "rail-section:a74429b170434cdb",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "throughLegIds": null,
+      "fromStationId": "ward-chiyoda",
+      "toStationId": "ward-shinjuku",
+      "startLocation": [
+        139.75764,
+        35.69088
+      ],
+      "endLocation": [
+        139.70422,
+        35.70441
+      ],
+      "alignment": null,
+      "lengthMeters": null,
+      "directionMode": null,
+      "directionModeBasis": null,
+      "directionModeSource": null,
+      "minimumCurveRadiusMeters": null,
+      "groundGradientPermille": null,
+      "designedGradientPermille": null,
+      "structureHint": null,
+      "structureHintBasis": null,
+      "buildingIntersectionCount": null,
+      "waterCrossingCount": null,
+      "roadCrossingCount": null,
+      "roadCrossingsByClass": null,
+      "existingRailwayCrossingCount": null,
+      "blockIds": null,
+      "junctionResourceIds": null,
+      "ends": [
+        {
+          "endpoint": "start",
+          "stationId": "ward-chiyoda",
+          "location": [
+            139.75764,
+            35.69088
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:860b30270966df91"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        },
+        {
+          "endpoint": "end",
+          "stationId": "ward-shinjuku",
+          "location": [
+            139.70422,
+            35.70441
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        }
+      ],
+      "unknown": [
+        "alignment",
+        "blockIds",
+        "buildingIntersectionCount",
+        "designedGradientPermille",
+        "directionMode",
+        "existingRailwayCrossingCount",
+        "groundGradientPermille",
+        "junctionResourceIds",
+        "lengthMeters",
+        "minimumCurveRadiusMeters",
+        "roadCrossingCount",
+        "structureHint",
+        "throughLegIds",
+        "waterCrossingCount"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "blockIds": "external-alignment-not-in-source",
+        "buildingIntersectionCount": "external-alignment-not-in-source",
+        "designedGradientPermille": "track-profile-not-designed",
+        "directionMode": "external-track-data-not-in-source",
+        "existingRailwayCrossingCount": "external-alignment-not-in-source",
+        "groundGradientPermille": "external-alignment-not-in-source",
+        "junctionResourceIds": "no-junction-data",
+        "lengthMeters": "external-alignment-not-in-source",
+        "minimumCurveRadiusMeters": "external-alignment-not-in-source",
+        "roadCrossingCount": "external-alignment-not-in-source",
+        "structureHint": "external-alignment-not-in-source",
+        "throughLegIds": "no-through-route",
+        "waterCrossingCount": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "sectionId": "rail-section:bb57584698dddd58",
+      "sourceKind": "plan",
+      "planId": "plan:b9b153e3df14331d",
+      "segmentId": "seg:29a889cbeeb9b321",
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "throughLegIds": [
+        "through-leg:20f565330e1d6081"
+      ],
+      "fromStationId": "stn:b00d2c67f5415425",
+      "toStationId": "stn:b811921b26eaebbd",
+      "startLocation": [
+        139.81276,
+        35.67399
+      ],
+      "endLocation": [
+        139.81254,
+        35.70474
+      ],
+      "alignment": [
+        [
+          139.81276,
+          35.67399
+        ],
+        [
+          139.81254,
+          35.70474
+        ]
+      ],
+      "lengthMeters": 3419.3,
+      "directionMode": null,
+      "directionModeBasis": null,
+      "directionModeSource": null,
+      "minimumCurveRadiusMeters": 2047,
+      "groundGradientPermille": 0,
+      "designedGradientPermille": null,
+      "structureHint": "elevated",
+      "structureHintBasis": "player",
+      "buildingIntersectionCount": null,
+      "waterCrossingCount": 2,
+      "roadCrossingCount": null,
+      "roadCrossingsByClass": null,
+      "existingRailwayCrossingCount": 6,
+      "blockIds": null,
+      "junctionResourceIds": null,
+      "ends": [
+        {
+          "endpoint": "start",
+          "stationId": "stn:b00d2c67f5415425",
+          "location": [
+            139.81276,
+            35.67399
+          ],
+          "joinedSectionIds": [],
+          "nearSectionIds": [],
+          "externalSectionIdsAtStation": [],
+          "state": false,
+          "unknown": [],
+          "unknownReasons": {}
+        },
+        {
+          "endpoint": "end",
+          "stationId": "stn:b811921b26eaebbd",
+          "location": [
+            139.81254,
+            35.70474
+          ],
+          "joinedSectionIds": [
+            "rail-section:fa8c8f768d1968a0"
+          ],
+          "nearSectionIds": [],
+          "externalSectionIdsAtStation": [],
+          "state": true,
+          "unknown": [],
+          "unknownReasons": {}
+        }
+      ],
+      "unknown": [
+        "blockIds",
+        "buildingIntersectionCount",
+        "designedGradientPermille",
+        "directionMode",
+        "junctionResourceIds",
+        "roadCrossingCount"
+      ],
+      "unknownReasons": {
+        "blockIds": "no-block-data",
+        "buildingIntersectionCount": "outside-coverage",
+        "designedGradientPermille": "track-profile-not-designed",
+        "directionMode": "track-count-not-stated",
+        "junctionResourceIds": "no-junction-data",
+        "roadCrossingCount": "no-layer"
+      }
+    },
+    {
+      "sectionId": "rail-section:eae5c8fc4e19300e",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "throughLegIds": null,
+      "fromStationId": "ward-edogawa",
+      "toStationId": "ward-koto",
+      "startLocation": [
+        139.87118,
+        35.7136
+      ],
+      "endLocation": [
+        139.81276,
+        35.67399
+      ],
+      "alignment": null,
+      "lengthMeters": null,
+      "directionMode": null,
+      "directionModeBasis": null,
+      "directionModeSource": null,
+      "minimumCurveRadiusMeters": null,
+      "groundGradientPermille": null,
+      "designedGradientPermille": null,
+      "structureHint": null,
+      "structureHintBasis": null,
+      "buildingIntersectionCount": null,
+      "waterCrossingCount": null,
+      "roadCrossingCount": null,
+      "roadCrossingsByClass": null,
+      "existingRailwayCrossingCount": null,
+      "blockIds": null,
+      "junctionResourceIds": null,
+      "ends": [
+        {
+          "endpoint": "start",
+          "stationId": "ward-edogawa",
+          "location": [
+            139.87118,
+            35.7136
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:23fa09287af988a6"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        },
+        {
+          "endpoint": "end",
+          "stationId": "ward-koto",
+          "location": [
+            139.81276,
+            35.67399
+          ],
+          "joinedSectionIds": null,
+          "nearSectionIds": null,
+          "externalSectionIdsAtStation": [
+            "rail-section:36977ec52e86d79b",
+            "rail-section:36977ec52e86d79b",
+            "rail-section:785f3d5fced8b7e9"
+          ],
+          "state": null,
+          "unknown": [
+            "state"
+          ],
+          "unknownReasons": {
+            "state": "external-alignment-not-in-source"
+          }
+        }
+      ],
+      "unknown": [
+        "alignment",
+        "blockIds",
+        "buildingIntersectionCount",
+        "designedGradientPermille",
+        "directionMode",
+        "existingRailwayCrossingCount",
+        "groundGradientPermille",
+        "junctionResourceIds",
+        "lengthMeters",
+        "minimumCurveRadiusMeters",
+        "roadCrossingCount",
+        "structureHint",
+        "throughLegIds",
+        "waterCrossingCount"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "blockIds": "external-alignment-not-in-source",
+        "buildingIntersectionCount": "external-alignment-not-in-source",
+        "designedGradientPermille": "track-profile-not-designed",
+        "directionMode": "external-track-data-not-in-source",
+        "existingRailwayCrossingCount": "external-alignment-not-in-source",
+        "groundGradientPermille": "external-alignment-not-in-source",
+        "junctionResourceIds": "no-junction-data",
+        "lengthMeters": "external-alignment-not-in-source",
+        "minimumCurveRadiusMeters": "external-alignment-not-in-source",
+        "roadCrossingCount": "external-alignment-not-in-source",
+        "structureHint": "external-alignment-not-in-source",
+        "throughLegIds": "no-through-route",
+        "waterCrossingCount": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "sectionId": "rail-section:fa8c8f768d1968a0",
+      "sourceKind": "plan",
+      "planId": "plan:b9b153e3df14331d",
+      "segmentId": "seg:4c77da73dfd17c89",
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "throughLegIds": [
+        "through-leg:20f565330e1d6081"
+      ],
+      "fromStationId": "stn:b811921b26eaebbd",
+      "toStationId": "stn:c247c3f5a3f53c4b",
+      "startLocation": [
+        139.81254,
+        35.70474
+      ],
+      "endLocation": [
+        139.87118,
+        35.7136
+      ],
+      "alignment": [
+        [
+          139.81254,
+          35.70474
+        ],
+        [
+          139.87118,
+          35.7136
+        ]
+      ],
+      "lengthMeters": 5385.4,
+      "directionMode": "double",
+      "directionModeBasis": "player",
+      "directionModeSource": null,
+      "minimumCurveRadiusMeters": 2047,
+      "groundGradientPermille": 0,
+      "designedGradientPermille": null,
+      "structureHint": "shield",
+      "structureHintBasis": "player",
+      "buildingIntersectionCount": null,
+      "waterCrossingCount": 1,
+      "roadCrossingCount": null,
+      "roadCrossingsByClass": null,
+      "existingRailwayCrossingCount": 1,
+      "blockIds": null,
+      "junctionResourceIds": null,
+      "ends": [
+        {
+          "endpoint": "start",
+          "stationId": "stn:b811921b26eaebbd",
+          "location": [
+            139.81254,
+            35.70474
+          ],
+          "joinedSectionIds": [
+            "rail-section:bb57584698dddd58"
+          ],
+          "nearSectionIds": [],
+          "externalSectionIdsAtStation": [],
+          "state": true,
+          "unknown": [],
+          "unknownReasons": {}
+        },
+        {
+          "endpoint": "end",
+          "stationId": "stn:c247c3f5a3f53c4b",
+          "location": [
+            139.87118,
+            35.7136
+          ],
+          "joinedSectionIds": [],
+          "nearSectionIds": [],
+          "externalSectionIdsAtStation": [],
+          "state": false,
+          "unknown": [],
+          "unknownReasons": {}
+        }
+      ],
+      "unknown": [
+        "blockIds",
+        "buildingIntersectionCount",
+        "designedGradientPermille",
+        "junctionResourceIds",
+        "roadCrossingCount"
+      ],
+      "unknownReasons": {
+        "blockIds": "no-block-data",
+        "buildingIntersectionCount": "outside-coverage",
+        "designedGradientPermille": "track-profile-not-designed",
+        "junctionResourceIds": "no-junction-data",
+        "roadCrossingCount": "no-layer"
+      }
+    }
+  ],
+  "blocks": null,
+  "signalCandidates": null,
+  "signalSystem": null,
+  "junctions": null,
+  "terminals": null,
+  "closureTargets": [
+    {
+      "sectionId": "rail-section:23fa09287af988a6",
+      "blockIds": null,
+      "lengthMeters": null
+    },
+    {
+      "sectionId": "rail-section:36977ec52e86d79b",
+      "blockIds": null,
+      "lengthMeters": null
+    },
+    {
+      "sectionId": "rail-section:36977ec52e86d79b",
+      "blockIds": null,
+      "lengthMeters": null
+    },
+    {
+      "sectionId": "rail-section:785f3d5fced8b7e9",
+      "blockIds": null,
+      "lengthMeters": null
+    },
+    {
+      "sectionId": "rail-section:860b30270966df91",
+      "blockIds": null,
+      "lengthMeters": null
+    },
+    {
+      "sectionId": "rail-section:a74429b170434cdb",
+      "blockIds": null,
+      "lengthMeters": null
+    },
+    {
+      "sectionId": "rail-section:bb57584698dddd58",
+      "blockIds": null,
+      "lengthMeters": 3419.3
+    },
+    {
+      "sectionId": "rail-section:eae5c8fc4e19300e",
+      "blockIds": null,
+      "lengthMeters": null
+    },
+    {
+      "sectionId": "rail-section:fa8c8f768d1968a0",
+      "blockIds": null,
+      "lengthMeters": 5385.4
+    }
+  ],
+  "spatialFlags": [
+    "block-data-missing",
+    "external-alignment-unknown",
+    "junction-data-missing",
+    "section-direction-unknown",
+    "terminal-data-missing"
+  ],
+  "dataQuality": "low",
+  "unknown": [
+    "blocks",
+    "junctions",
+    "section:rail-section:23fa09287af988a6:alignment",
+    "section:rail-section:23fa09287af988a6:blockIds",
+    "section:rail-section:23fa09287af988a6:buildingIntersectionCount",
+    "section:rail-section:23fa09287af988a6:designedGradientPermille",
+    "section:rail-section:23fa09287af988a6:directionMode",
+    "section:rail-section:23fa09287af988a6:end:end:state",
+    "section:rail-section:23fa09287af988a6:end:start:state",
+    "section:rail-section:23fa09287af988a6:existingRailwayCrossingCount",
+    "section:rail-section:23fa09287af988a6:groundGradientPermille",
+    "section:rail-section:23fa09287af988a6:junctionResourceIds",
+    "section:rail-section:23fa09287af988a6:lengthMeters",
+    "section:rail-section:23fa09287af988a6:minimumCurveRadiusMeters",
+    "section:rail-section:23fa09287af988a6:roadCrossingCount",
+    "section:rail-section:23fa09287af988a6:structureHint",
+    "section:rail-section:23fa09287af988a6:throughLegIds",
+    "section:rail-section:23fa09287af988a6:waterCrossingCount",
+    "section:rail-section:36977ec52e86d79b:alignment",
+    "section:rail-section:36977ec52e86d79b:blockIds",
+    "section:rail-section:36977ec52e86d79b:buildingIntersectionCount",
+    "section:rail-section:36977ec52e86d79b:designedGradientPermille",
+    "section:rail-section:36977ec52e86d79b:directionMode",
+    "section:rail-section:36977ec52e86d79b:end:end:state",
+    "section:rail-section:36977ec52e86d79b:end:start:state",
+    "section:rail-section:36977ec52e86d79b:existingRailwayCrossingCount",
+    "section:rail-section:36977ec52e86d79b:groundGradientPermille",
+    "section:rail-section:36977ec52e86d79b:junctionResourceIds",
+    "section:rail-section:36977ec52e86d79b:lengthMeters",
+    "section:rail-section:36977ec52e86d79b:minimumCurveRadiusMeters",
+    "section:rail-section:36977ec52e86d79b:roadCrossingCount",
+    "section:rail-section:36977ec52e86d79b:structureHint",
+    "section:rail-section:36977ec52e86d79b:throughLegIds",
+    "section:rail-section:36977ec52e86d79b:waterCrossingCount",
+    "section:rail-section:785f3d5fced8b7e9:alignment",
+    "section:rail-section:785f3d5fced8b7e9:blockIds",
+    "section:rail-section:785f3d5fced8b7e9:buildingIntersectionCount",
+    "section:rail-section:785f3d5fced8b7e9:designedGradientPermille",
+    "section:rail-section:785f3d5fced8b7e9:directionMode",
+    "section:rail-section:785f3d5fced8b7e9:end:end:state",
+    "section:rail-section:785f3d5fced8b7e9:end:start:state",
+    "section:rail-section:785f3d5fced8b7e9:existingRailwayCrossingCount",
+    "section:rail-section:785f3d5fced8b7e9:groundGradientPermille",
+    "section:rail-section:785f3d5fced8b7e9:junctionResourceIds",
+    "section:rail-section:785f3d5fced8b7e9:lengthMeters",
+    "section:rail-section:785f3d5fced8b7e9:minimumCurveRadiusMeters",
+    "section:rail-section:785f3d5fced8b7e9:roadCrossingCount",
+    "section:rail-section:785f3d5fced8b7e9:structureHint",
+    "section:rail-section:785f3d5fced8b7e9:throughLegIds",
+    "section:rail-section:785f3d5fced8b7e9:waterCrossingCount",
+    "section:rail-section:860b30270966df91:alignment",
+    "section:rail-section:860b30270966df91:blockIds",
+    "section:rail-section:860b30270966df91:buildingIntersectionCount",
+    "section:rail-section:860b30270966df91:designedGradientPermille",
+    "section:rail-section:860b30270966df91:directionMode",
+    "section:rail-section:860b30270966df91:end:end:state",
+    "section:rail-section:860b30270966df91:end:start:state",
+    "section:rail-section:860b30270966df91:existingRailwayCrossingCount",
+    "section:rail-section:860b30270966df91:groundGradientPermille",
+    "section:rail-section:860b30270966df91:junctionResourceIds",
+    "section:rail-section:860b30270966df91:lengthMeters",
+    "section:rail-section:860b30270966df91:minimumCurveRadiusMeters",
+    "section:rail-section:860b30270966df91:roadCrossingCount",
+    "section:rail-section:860b30270966df91:structureHint",
+    "section:rail-section:860b30270966df91:throughLegIds",
+    "section:rail-section:860b30270966df91:waterCrossingCount",
+    "section:rail-section:a74429b170434cdb:alignment",
+    "section:rail-section:a74429b170434cdb:blockIds",
+    "section:rail-section:a74429b170434cdb:buildingIntersectionCount",
+    "section:rail-section:a74429b170434cdb:designedGradientPermille",
+    "section:rail-section:a74429b170434cdb:directionMode",
+    "section:rail-section:a74429b170434cdb:end:end:state",
+    "section:rail-section:a74429b170434cdb:end:start:state",
+    "section:rail-section:a74429b170434cdb:existingRailwayCrossingCount",
+    "section:rail-section:a74429b170434cdb:groundGradientPermille",
+    "section:rail-section:a74429b170434cdb:junctionResourceIds",
+    "section:rail-section:a74429b170434cdb:lengthMeters",
+    "section:rail-section:a74429b170434cdb:minimumCurveRadiusMeters",
+    "section:rail-section:a74429b170434cdb:roadCrossingCount",
+    "section:rail-section:a74429b170434cdb:structureHint",
+    "section:rail-section:a74429b170434cdb:throughLegIds",
+    "section:rail-section:a74429b170434cdb:waterCrossingCount",
+    "section:rail-section:bb57584698dddd58:blockIds",
+    "section:rail-section:bb57584698dddd58:buildingIntersectionCount",
+    "section:rail-section:bb57584698dddd58:designedGradientPermille",
+    "section:rail-section:bb57584698dddd58:directionMode",
+    "section:rail-section:bb57584698dddd58:junctionResourceIds",
+    "section:rail-section:bb57584698dddd58:roadCrossingCount",
+    "section:rail-section:eae5c8fc4e19300e:alignment",
+    "section:rail-section:eae5c8fc4e19300e:blockIds",
+    "section:rail-section:eae5c8fc4e19300e:buildingIntersectionCount",
+    "section:rail-section:eae5c8fc4e19300e:designedGradientPermille",
+    "section:rail-section:eae5c8fc4e19300e:directionMode",
+    "section:rail-section:eae5c8fc4e19300e:end:end:state",
+    "section:rail-section:eae5c8fc4e19300e:end:start:state",
+    "section:rail-section:eae5c8fc4e19300e:existingRailwayCrossingCount",
+    "section:rail-section:eae5c8fc4e19300e:groundGradientPermille",
+    "section:rail-section:eae5c8fc4e19300e:junctionResourceIds",
+    "section:rail-section:eae5c8fc4e19300e:lengthMeters",
+    "section:rail-section:eae5c8fc4e19300e:minimumCurveRadiusMeters",
+    "section:rail-section:eae5c8fc4e19300e:roadCrossingCount",
+    "section:rail-section:eae5c8fc4e19300e:structureHint",
+    "section:rail-section:eae5c8fc4e19300e:throughLegIds",
+    "section:rail-section:eae5c8fc4e19300e:waterCrossingCount",
+    "section:rail-section:fa8c8f768d1968a0:blockIds",
+    "section:rail-section:fa8c8f768d1968a0:buildingIntersectionCount",
+    "section:rail-section:fa8c8f768d1968a0:designedGradientPermille",
+    "section:rail-section:fa8c8f768d1968a0:junctionResourceIds",
+    "section:rail-section:fa8c8f768d1968a0:roadCrossingCount",
+    "signalCandidates",
+    "signalSystem",
+    "terminals"
+  ],
+  "unknownReasons": {
+    "blocks": "no-block-data",
+    "junctions": "no-junction-data",
+    "section:rail-section:23fa09287af988a6:alignment": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:blockIds": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:buildingIntersectionCount": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:designedGradientPermille": "track-profile-not-designed",
+    "section:rail-section:23fa09287af988a6:directionMode": "external-track-data-not-in-source",
+    "section:rail-section:23fa09287af988a6:end:end:state": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:end:start:state": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:existingRailwayCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:groundGradientPermille": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:junctionResourceIds": "no-junction-data",
+    "section:rail-section:23fa09287af988a6:lengthMeters": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:minimumCurveRadiusMeters": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:roadCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:structureHint": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:throughLegIds": "no-through-route",
+    "section:rail-section:23fa09287af988a6:waterCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:alignment": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:blockIds": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:buildingIntersectionCount": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:designedGradientPermille": "track-profile-not-designed",
+    "section:rail-section:36977ec52e86d79b:directionMode": "external-track-data-not-in-source",
+    "section:rail-section:36977ec52e86d79b:end:end:state": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:end:start:state": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:existingRailwayCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:groundGradientPermille": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:junctionResourceIds": "no-junction-data",
+    "section:rail-section:36977ec52e86d79b:lengthMeters": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:minimumCurveRadiusMeters": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:roadCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:structureHint": "external-alignment-not-in-source",
+    "section:rail-section:36977ec52e86d79b:throughLegIds": "no-through-route",
+    "section:rail-section:36977ec52e86d79b:waterCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:alignment": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:blockIds": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:buildingIntersectionCount": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:designedGradientPermille": "track-profile-not-designed",
+    "section:rail-section:785f3d5fced8b7e9:directionMode": "external-track-data-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:end:end:state": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:end:start:state": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:existingRailwayCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:groundGradientPermille": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:junctionResourceIds": "no-junction-data",
+    "section:rail-section:785f3d5fced8b7e9:lengthMeters": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:minimumCurveRadiusMeters": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:roadCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:structureHint": "external-alignment-not-in-source",
+    "section:rail-section:785f3d5fced8b7e9:throughLegIds": "no-through-route",
+    "section:rail-section:785f3d5fced8b7e9:waterCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:alignment": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:blockIds": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:buildingIntersectionCount": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:designedGradientPermille": "track-profile-not-designed",
+    "section:rail-section:860b30270966df91:directionMode": "external-track-data-not-in-source",
+    "section:rail-section:860b30270966df91:end:end:state": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:end:start:state": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:existingRailwayCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:groundGradientPermille": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:junctionResourceIds": "no-junction-data",
+    "section:rail-section:860b30270966df91:lengthMeters": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:minimumCurveRadiusMeters": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:roadCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:structureHint": "external-alignment-not-in-source",
+    "section:rail-section:860b30270966df91:throughLegIds": "no-through-route",
+    "section:rail-section:860b30270966df91:waterCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:alignment": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:blockIds": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:buildingIntersectionCount": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:designedGradientPermille": "track-profile-not-designed",
+    "section:rail-section:a74429b170434cdb:directionMode": "external-track-data-not-in-source",
+    "section:rail-section:a74429b170434cdb:end:end:state": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:end:start:state": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:existingRailwayCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:groundGradientPermille": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:junctionResourceIds": "no-junction-data",
+    "section:rail-section:a74429b170434cdb:lengthMeters": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:minimumCurveRadiusMeters": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:roadCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:structureHint": "external-alignment-not-in-source",
+    "section:rail-section:a74429b170434cdb:throughLegIds": "no-through-route",
+    "section:rail-section:a74429b170434cdb:waterCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:bb57584698dddd58:blockIds": "no-block-data",
+    "section:rail-section:bb57584698dddd58:buildingIntersectionCount": "outside-coverage",
+    "section:rail-section:bb57584698dddd58:designedGradientPermille": "track-profile-not-designed",
+    "section:rail-section:bb57584698dddd58:directionMode": "track-count-not-stated",
+    "section:rail-section:bb57584698dddd58:junctionResourceIds": "no-junction-data",
+    "section:rail-section:bb57584698dddd58:roadCrossingCount": "no-layer",
+    "section:rail-section:eae5c8fc4e19300e:alignment": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:blockIds": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:buildingIntersectionCount": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:designedGradientPermille": "track-profile-not-designed",
+    "section:rail-section:eae5c8fc4e19300e:directionMode": "external-track-data-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:end:end:state": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:end:start:state": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:existingRailwayCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:groundGradientPermille": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:junctionResourceIds": "no-junction-data",
+    "section:rail-section:eae5c8fc4e19300e:lengthMeters": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:minimumCurveRadiusMeters": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:roadCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:structureHint": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:throughLegIds": "no-through-route",
+    "section:rail-section:eae5c8fc4e19300e:waterCrossingCount": "external-alignment-not-in-source",
+    "section:rail-section:fa8c8f768d1968a0:blockIds": "no-block-data",
+    "section:rail-section:fa8c8f768d1968a0:buildingIntersectionCount": "outside-coverage",
+    "section:rail-section:fa8c8f768d1968a0:designedGradientPermille": "track-profile-not-designed",
+    "section:rail-section:fa8c8f768d1968a0:junctionResourceIds": "no-junction-data",
+    "section:rail-section:fa8c8f768d1968a0:roadCrossingCount": "no-layer",
+    "signalCandidates": "no-block-data",
+    "signalSystem": "signal-system-not-in-source",
+    "terminals": "no-terminal-data"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "plan-geometry",
+      "quality": "medium",
+      "name": "PlanGeometry plan:b9b153e3df14331d",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "existing-network",
+      "quality": null,
+      "name": "CityPack existing network (external:tokyo), station level",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "through-route-geometry",
+      "quality": "low",
+      "name": "ThroughRouteGeometry through-route:b0e9da50ae416366",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "国土交通省 国土数値情報 water polygons, packs/tokyo/barriers.json",
+      "license": "MLIT-KSJ-terms"
+    }
+  ],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "source": {
+    "case": [
+      "no-signal-or-block-data",
+      "external-alignment-unknown"
+    ],
+    "layers": {
+      "kind": "pack-files",
+      "files": [
+        "barriers.json",
+        "obstacles.json"
+      ],
+      "existingRail": "station-level (external networks)"
+    },
+    "existingRail": true,
+    "throughRouteExample": "02-east-river-koto-line-external",
+    "drawnDesign": {
+      "key": "example:tokyo:rail-existing-line",
+      "name": "East river crossing joined to an existing Koto line (station level only)",
+      "planIds": [
+        "plan:b9b153e3df14331d"
+      ],
+      "externalLineIds": [
+        "ext-line:443259"
+      ],
+      "throughRouteId": "through-route:b0e9da50ae416366",
+      "designedRevisions": {
+        "plans": {
+          "plan:b9b153e3df14331d": "plan-revision:21a5fd47d9594991"
+        },
+        "routes": {
+          "through-route:b0e9da50ae416366": "through-route-revision:717fd336956ddd1c"
+        }
+      },
+      "sectionFacts": [
+        {
+          "ref": {
+            "planId": "plan:b9b153e3df14331d",
+            "segmentId": "seg:4c77da73dfd17c89"
+          },
+          "basis": "player",
+          "directionMode": "double"
+        }
+      ]
+    },
+    "generatedBy": "scripts/build-rail-capacity-examples.mjs"
+  }
+}
