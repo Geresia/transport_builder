@@ -24,18 +24,58 @@ export function targetTrains(state, line, bandId) {
   return (line.frequency[bandId] * lineRoundTripMinutes(state, line)) / 60;
 }
 
+function dayTypeAt(simMinutes) {
+  const day = Math.floor(simMinutes / 1440);
+  const weekday = ((day % 7) + 7) % 7;
+  return weekday >= 5 ? "weekend" : "weekday";
+}
+
+function startTrain(state, line, scheduledDepartureMinute = null, scheduledReturnMinute = null) {
+  line.lastDispatch = state.simMinutes;
+  const train = { id: state.nextTrainId++, lineId: line.id, segIndex: 0, t: 0, dir: 1, dwell: DWELL_SECONDS };
+  if (scheduledDepartureMinute !== null) train.scheduledDepartureMinute = scheduledDepartureMinute;
+  if (scheduledReturnMinute !== null) train.scheduledReturnMinute = scheduledReturnMinute;
+  state.trains.push(train);
+  recordThroughStationStop(state, line, line.stationIds[0]);
+  handleStop(state, train, line.stationIds[0]);
+}
+
+function dispatchScheduledTrains(state, line, schedule, allowDispatch = true) {
+  const now = state.simMinutes;
+  const previous = Number.isFinite(schedule.lastCheckedSimMinute) ? schedule.lastCheckedSimMinute : now;
+  if (now <= previous) {
+    schedule.lastCheckedSimMinute = now;
+    return;
+  }
+  const firstDay = Math.floor(previous / 1440);
+  const lastDay = Math.floor(now / 1440);
+  for (let day = firstDay; day <= lastDay; day += 1) {
+    if (dayTypeAt(day * 1440) !== schedule.dayType) continue;
+    for (const trip of schedule.roundTrips ?? schedule.departureMinutes.map((departureMinute) => ({ departureMinute, returnDepartureMinute: null }))) {
+      const absoluteMinute = day * 1440 + trip.departureMinute;
+      const returnMinute = trip.returnDepartureMinute === null ? null : day * 1440 + trip.returnDepartureMinute;
+      if (absoluteMinute <= previous + 1e-9 || absoluteMinute > now + 1e-9) continue;
+      const graceMinutes = Number.isFinite(schedule.dispatchGraceMinutes) ? Math.max(0, schedule.dispatchGraceMinutes) : 1;
+      if (allowDispatch && now - absoluteMinute <= graceMinutes + 1e-9) startTrain(state, line, absoluteMinute, returnMinute);
+      else schedule.missedDepartures = (schedule.missedDepartures ?? 0) + 1;
+    }
+  }
+  schedule.lastCheckedSimMinute = now;
+}
+
 export function dispatchTrains(state) {
   const band = bandAt(state);
   for (const line of state.lines) {
-    if (line.suspended || line.stationIds.length < 2) continue;
+    if (line.stationIds.length < 2) continue;
+    const currentDayType = dayTypeAt(state.simMinutes);
+    const scheduled = line.timetableDispatches?.[currentDayType] ?? null;
+    for (const timetable of Object.values(line.timetableDispatches ?? {})) dispatchScheduledTrains(state, line, timetable, !line.suspended);
+    if (line.suspended) continue;
+    if (scheduled) continue;
     const perHour = line.frequency[band.id];
     if (perHour <= 0) continue;
     if (state.simMinutes - line.lastDispatch < 60 / perHour) continue;
-    line.lastDispatch = state.simMinutes;
-    const train = { id: state.nextTrainId++, lineId: line.id, segIndex: 0, t: 0, dir: 1, dwell: DWELL_SECONDS };
-    state.trains.push(train);
-    recordThroughStationStop(state, line, line.stationIds[0]);
-    handleStop(state, train, line.stationIds[0]); // let waiting origin passengers board
+    startTrain(state, line);
   }
 }
 
@@ -51,6 +91,10 @@ export function stepTrains(state, dtSeconds) {
     const ids = line.stationIds;
     let guard = 0;
     while (remaining > 1e-9 && !train.done && guard++ < 10000) {
+      if (Number.isFinite(train.holdUntilSimMinute)) {
+        if (state.simMinutes + 1e-9 < train.holdUntilSimMinute) break;
+        delete train.holdUntilSimMinute;
+      }
       if (train.dwell > 0) {
         const used = Math.min(train.dwell, remaining);
         train.dwell -= used;
@@ -89,8 +133,13 @@ export function stepTrains(state, dtSeconds) {
         train.done = true;
         break;
       }
-      if (train.segIndex === ids.length - 1) train.dir = -1;
-      train.dwell = DWELL_SECONDS;
+      if (train.segIndex === ids.length - 1) {
+        train.dir = -1;
+        if (Number.isFinite(train.scheduledReturnMinute)) {
+          train.holdUntilSimMinute = train.scheduledReturnMinute;
+          train.dwell = 0;
+        } else train.dwell = DWELL_SECONDS;
+      } else train.dwell = DWELL_SECONDS;
     }
   }
   state.trains = state.trains.filter((t) => !t.done);

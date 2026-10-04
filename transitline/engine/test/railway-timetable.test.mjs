@@ -171,3 +171,19 @@ test("old saves restore an empty timetable collection and monotonic id allocator
   assert.deepEqual(restored.railwayTimetables, []);
   assert.equal(restored.nextRailwayTimetableSequence, 1);
 });
+
+test("superseding a day type clears stale service timetable links", () => {
+  const game = new ManagementGame({ seed: 1304 });
+  game.services.push({ id: "service:a", status: "open" }, { id: "service:b", status: "open" });
+  const first = game.assessRailwayTimetable({ infrastructureRevision: "rev:1", sections: [section("s1", "A", "B")], paths: [
+    path("path:a", 60, { sectionIds: ["s1"], serviceId: "service:a" }),
+    path("path:b", 70, { sectionIds: ["s1"], serviceId: "service:b" }),
+  ] });
+  game.approveRailwayTimetable(first.id);
+  game.activateRailwayTimetable(first.id);
+  const second = game.assessRailwayTimetable({ infrastructureRevision: "rev:1", sections: [section("s1", "A", "B")], paths: [path("path:a2", 90, { sectionIds: ["s1"], serviceId: "service:a" })] });
+  game.approveRailwayTimetable(second.id);
+  game.activateRailwayTimetable(second.id);
+  assert.equal(game.services[0].activeTimetableId, second.id);
+  assert.equal(game.services[1].activeTimetableId, undefined);
+});

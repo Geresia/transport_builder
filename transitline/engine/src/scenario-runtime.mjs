@@ -33,6 +33,12 @@ import {
   saveThroughRouteSelection,
   throughRoutePlanningReport,
 } from "./through-route-planning-integration.mjs";
+import {
+  applyActiveRailwayTimetable,
+  blockUnmappedRailwayTimetable,
+  buildOperationalRailwayTimetableInput,
+  operationalTimetableApplicationReport,
+} from "./operational-timetable-integration.mjs";
 
 const VEHICLE_BY_PROFILE = Object.freeze({
   medium_steel: "medium_4car",
@@ -200,6 +206,8 @@ export class ScenarioRuntime {
       throughServices: this.game.throughServiceReport(),
       throughHandoverProjects: this.game.throughHandoverProjectReport(),
       railwayTimetables: this.game.railwayTimetableReport(),
+      operationalTimetableApplications: operationalTimetableApplicationReport(this.operationalState),
+      operationalTimetableWarnings: structuredClone(this.operationalState?.operationalTimetableWarnings ?? []),
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
       throughFareAgreements: this.game.throughFareAgreementReport(),
       throughOperatingSettlements: this.game.throughOperatingSettlementReport(null, 24),
@@ -958,12 +966,38 @@ export class ScenarioRuntime {
     return this.game.assessRailwayTimetable(input);
   }
 
+  assessOperationalRailwayTimetable(input = {}) {
+    const draft = buildOperationalRailwayTimetableInput({
+      ...input,
+      operationalState: this.operationalState,
+      services: this.game.services,
+      throughServices: this.game.throughServices,
+    });
+    return this.game.assessRailwayTimetable(draft);
+  }
+
   approveRailwayTimetable(timetableId) {
     return this.game.approveRailwayTimetable(timetableId);
   }
 
   activateRailwayTimetable(timetableId) {
-    return this.game.activateRailwayTimetable(timetableId);
+    const managementCheckpoint = this.game.snapshot();
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      const timetable = this.game.activateRailwayTimetable(timetableId);
+      applyActiveRailwayTimetable({
+        operationalState: this.operationalState,
+        timetable: this.game.requireRailwayTimetable(timetableId),
+        services: this.game.services,
+        throughServices: this.game.throughServices,
+      });
+      return timetable;
+    } catch (error) {
+      this.game = new ManagementGame({ countryId: managementCheckpoint.countryId }).restore(managementCheckpoint);
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
   }
 
   railwayTimetableReport(timetableId = null) {
@@ -1119,6 +1153,27 @@ export class ScenarioRuntime {
 
   load(text) {
     const restored = loadIntegratedGame(text, { id: this.pack.manifest.id, version: this.pack.manifest.version });
+    restored.operationalState.operationalTimetableWarnings = [];
+    for (const timetable of restored.game.railwayTimetables.filter((entry) => entry.status === "active").sort((a, b) => a.dayType.localeCompare(b.dayType))) {
+      try {
+        applyActiveRailwayTimetable({
+          operationalState: restored.operationalState,
+          timetable,
+          services: restored.game.services,
+          throughServices: restored.game.throughServices,
+        });
+      } catch (error) {
+        const warning = { timetableId: timetable.id, dayType: timetable.dayType, reason: error.message };
+        restored.operationalState.operationalTimetableWarnings.push(warning);
+        blockUnmappedRailwayTimetable({
+          operationalState: restored.operationalState,
+          timetable,
+          services: restored.game.services,
+          throughServices: restored.game.throughServices,
+          reason: error.message,
+        });
+      }
+    }
     this.game = restored.game;
     replaceState(this.operationalState, restored.operationalState);
     this.bridge = createMapEngineBridge(this.game, this.operationalState);

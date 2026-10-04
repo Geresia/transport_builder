@@ -53,6 +53,12 @@ function normalizePath(path) {
   if (!(typeof path.serviceId === "string" && path.serviceId)) throw new Error(`Timetable path ${path.pathId} requires serviceId`);
   if (!["forward", "reverse"].includes(path.direction)) throw new Error(`Timetable path ${path.pathId} has invalid direction`);
   if (!Array.isArray(path.sectionIds) || !path.sectionIds.length) throw new Error(`Timetable path ${path.pathId} requires sections`);
+  const sectionDirections = path.sectionDirections === undefined
+    ? Array(path.sectionIds.length).fill(path.direction)
+    : path.sectionDirections.map(String);
+  if (sectionDirections.length !== path.sectionIds.length || sectionDirections.some((value) => !["forward", "reverse"].includes(value))) {
+    throw new Error(`Timetable path ${path.pathId} has invalid section directions`);
+  }
   const dwellMinutesAfterSection = (path.dwellMinutesAfterSection ?? []).map((value, index) => {
     const number = Number(value);
     if (!Number.isFinite(number) || number < 0) throw new Error(`Timetable path ${path.pathId} has invalid dwell at ${index}`);
@@ -65,18 +71,20 @@ function normalizePath(path) {
   if (terminalTurnback && !terminalTurnback.resourceId) throw new Error(`Timetable path ${path.pathId} requires a turnback resource`);
   return {
     pathId: path.pathId,
+    dutyId: path.dutyId === null || path.dutyId === undefined ? null : String(path.dutyId),
     serviceId: path.serviceId,
     operatorId: path.operatorId ?? null,
     priority: Number.isFinite(Number(path.priority)) ? Number(path.priority) : 0,
     departureMinute: minute(path.departureMinute, `${path.pathId}.departureMinute`),
     direction: path.direction,
     sectionIds: path.sectionIds.map(String),
+    sectionDirections,
     dwellMinutesAfterSection,
     terminalTurnback,
   };
 }
 
-export function expandPeriodicService({ pathKey, serviceId, operatorId = null, priority = 0, direction = "forward", sectionIds, firstDepartureMinute, lastDepartureMinute, headwayMinutes, dwellMinutesAfterSection = [], terminalTurnback = null } = {}) {
+export function expandPeriodicService({ pathKey, serviceId, operatorId = null, priority = 0, direction = "forward", sectionIds, sectionDirections, firstDepartureMinute, lastDepartureMinute, headwayMinutes, dwellMinutesAfterSection = [], terminalTurnback = null } = {}) {
   if (!(typeof pathKey === "string" && pathKey)) throw new Error("Periodic service requires pathKey");
   const first = minute(firstDepartureMinute, "firstDepartureMinute");
   const last = minute(lastDepartureMinute, "lastDepartureMinute");
@@ -85,7 +93,7 @@ export function expandPeriodicService({ pathKey, serviceId, operatorId = null, p
   const paths = [];
   let sequence = 1;
   for (let departureMinute = first; departureMinute <= last + 1e-9; departureMinute += headway) {
-    paths.push(normalizePath({ pathId: `${pathKey}:${sequence++}`, serviceId, operatorId, priority, departureMinute, direction, sectionIds, dwellMinutesAfterSection, terminalTurnback }));
+    paths.push(normalizePath({ pathId: `${pathKey}:${sequence++}`, serviceId, operatorId, priority, departureMinute, direction, sectionIds, sectionDirections, dwellMinutesAfterSection, terminalTurnback }));
   }
   return paths;
 }
@@ -97,13 +105,14 @@ function pathTimings(path, sectionsById) {
   for (let index = 0; index < path.sectionIds.length; index++) {
     const section = sectionsById.get(path.sectionIds[index]);
     if (!section) return { timings: [], violations: [`section:${path.sectionIds[index]}:not-found`] };
-    const fromNodeId = path.direction === "forward" ? section.fromNodeId : section.toNodeId;
-    const toNodeId = path.direction === "forward" ? section.toNodeId : section.fromNodeId;
+    const sectionDirection = path.sectionDirections[index];
+    const fromNodeId = sectionDirection === "forward" ? section.fromNodeId : section.toNodeId;
+    const toNodeId = sectionDirection === "forward" ? section.toNodeId : section.fromNodeId;
     if (previousNode !== null && fromNodeId !== previousNode) return { timings: [], violations: [`section:${section.sectionId}:route-disconnected`] };
     const entryMinute = cursor;
     const exitMinute = cursor + section.runMinutes;
     if (exitMinute > 1440) return { timings: [], violations: [`section:${section.sectionId}:outside-operating-day`] };
-    timings.push({ sectionId: section.sectionId, fromNodeId, toNodeId, entryMinute, exitMinute, direction: path.direction });
+    timings.push({ sectionId: section.sectionId, fromNodeId, toNodeId, entryMinute, exitMinute, direction: sectionDirection });
     cursor = exitMinute + (path.dwellMinutesAfterSection[index] ?? 0);
     previousNode = toNodeId;
   }
@@ -175,7 +184,7 @@ function serviceSummary(paths, accepted, rejected) {
   });
 }
 
-export function buildRailwayTimetable({ id, infrastructureRevision, dayType = "weekday", sections = [], paths = [], minimumAcceptanceRatio = 1, atMinute = 0 } = {}) {
+export function buildRailwayTimetable({ id, infrastructureRevision, dayType = "weekday", sections = [], paths = [], minimumAcceptanceRatio = 1, operationalFacts = null, atMinute = 0 } = {}) {
   if (!(typeof id === "string" && id)) throw new Error("Railway timetable requires an id");
   if (!(typeof infrastructureRevision === "string" && infrastructureRevision)) throw new Error("Railway timetable requires infrastructureRevision");
   if (!RAILWAY_TIMETABLE_DAY_TYPES.includes(dayType)) throw new Error(`Invalid railway timetable day type ${dayType}`);
@@ -202,7 +211,7 @@ export function buildRailwayTimetable({ id, infrastructureRevision, dayType = "w
       continue;
     }
     reserve(path, schedule, sectionsById, reservations);
-    accepted.push({ pathId: path.pathId, serviceId: path.serviceId, operatorId: path.operatorId, priority: path.priority, departureMinute: path.departureMinute, arrivalMinute: schedule.arrivalMinute, direction: path.direction, timings: schedule.timings, terminalTurnback: clone(path.terminalTurnback) });
+    accepted.push({ pathId: path.pathId, dutyId: path.dutyId, serviceId: path.serviceId, operatorId: path.operatorId, priority: path.priority, departureMinute: path.departureMinute, arrivalMinute: schedule.arrivalMinute, direction: path.direction, timings: schedule.timings, terminalTurnback: clone(path.terminalTurnback) });
   }
   accepted.sort((a, b) => a.departureMinute - b.departureMinute || a.pathId.localeCompare(b.pathId));
   rejected.sort((a, b) => a.pathId.localeCompare(b.pathId));
@@ -222,6 +231,7 @@ export function buildRailwayTimetable({ id, infrastructureRevision, dayType = "w
     serviceSummary: serviceSummary(normalizedPaths, accepted, rejected),
     assessment: { verdict, acceptanceRatio, violations: rejected.map((entry) => `${entry.pathId}:${entry.reason}`), missingInputs: normalizedPaths.length ? [] : ["paths"] },
     sections: normalizedSections,
+    operationalFacts: operationalFacts === null ? null : clone(operationalFacts),
     createdAtMinute: atMinute,
   };
 }
@@ -246,6 +256,10 @@ export function activateRailwayTimetable(timetable, services, throughServices, t
   for (const current of timetables.filter((entry) => entry.id !== timetable.id && entry.dayType === timetable.dayType && entry.status === "active")) {
     current.status = "superseded";
     current.supersededAtMinute = atMinute;
+    for (const previousServiceId of uniqueText(current.acceptedPaths.map((entry) => entry.serviceId))) {
+      const previousService = services.find((entry) => entry.id === previousServiceId) ?? throughServices.find((entry) => entry.throughServiceId === previousServiceId);
+      if (previousService?.activeTimetableId === current.id) delete previousService.activeTimetableId;
+    }
   }
   timetable.status = "active";
   timetable.activatedAtMinute = atMinute;
