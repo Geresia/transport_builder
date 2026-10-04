@@ -103,7 +103,7 @@ const EXAMPLES = {
       { file: "03-bypass-through-buildings", case: ["through-buildings"], route: "01-spoke-to-ring-joined", layers: syn(h, { blockedAt: [shift(h, -0.0012, 0.0001)] }),
         drawn: (r) => bypass(r, "example:radial:handover-buildings", "Bypass track through a building", [shift(h, -0.0012, 0.0001)], { turnoutCandidates: [{ key: "turnout-1", location: alongLeg(r, 0, -120) }] }) },
       { file: "04-bypass-crosses-road", case: ["road-crossing"], route: "01-spoke-to-ring-joined", layers,
-        drawn: (r) => bypass(r, "example:radial:handover-road", "Bypass track crossing a major road", [], { structureHint: "elevated", workAreas: [{ key: "work-1", polygon: rect(h, 0.0008, 0.0006) }] }) },
+        drawn: (r) => bypass(r, "example:radial:handover-road", "Bypass track crossing a major road", [], { structureType: "viaduct", maximumGradientPermille: 30, selectedWorkAreaKey: "work-1", workAreas: [{ key: "work-1", polygon: rect(h, 0.0008, 0.0006) }] }) },
       { file: "05-some-layers-missing", case: ["some-layers-missing"], route: "01-spoke-to-ring-joined", layers: syn(h, { only: ["buildings", "dem"] }),
         drawn: (r) => bypass(r, "example:radial:handover-partial-layers", "Bypass with only building and terrain layers available", []) },
       { file: "06-route-revision-stale", case: ["route-revision-stale"], route: "01-spoke-to-ring-joined", layers,
@@ -118,7 +118,7 @@ const EXAMPLES = {
       { file: "01-trunk-joined-with-turnout", case: ["player-legs-joined"], route: "01-corridor-trunk-split", layers: syn(h),
         drawn: (r) => joinedAtStation(r, "example:corridor:handover-joined", "Trunk split at its middle station", { turnoutCandidates: [{ key: "turnout-1", location: endOf(r, 0) }] }) },
       { file: "02-bypass-crosses-river", case: ["water-crossing"], route: "01-corridor-trunk-split", layers: syn(h),
-        drawn: (r) => bypass(r, "example:corridor:handover-river", "Passing loop that dips across the river", [shift(h, -0.0027, -0.005), shift(h, 0.0027, -0.005)], { structureHint: "bridge" }) },
+        drawn: (r) => bypass(r, "example:corridor:handover-river", "Passing loop that dips across the river", [shift(h, -0.0027, -0.005), shift(h, 0.0027, -0.005)], { structureType: "bridge", maximumGradientPermille: 25 }) },
     ];
   },
 };
@@ -137,6 +137,6 @@ for (const id of Object.keys(EXAMPLES).filter((k) => !only || k === only)) {
     const body = { ...out.site, source: { case: ex.case, routeExample: ex.route, layers: ex.layers.spec, existingRail: Boolean(ex.externalNetworks), drawnSite: drawn, generatedBy: GENERATED_BY } };
     fs.writeFileSync(path.join(outDir, `${ex.file}.handover-site.json`), `${JSON.stringify(body, null, 2)}\n`);
     const s = out.site;
-    console.log(`[${id}] ${ex.file}: connected=${s.physicalConnectionEvidence.connected} reason=${s.physicalConnectionEvidence.reason} gap=${s.endpointGapMeters} len=${s.connectionLengthMeters} bldg=${s.buildingIntersectionCount} water=${s.waterCrossingCount} road=${s.roadCrossingCount} rail=${s.existingRailwayCrossingCount} slope=${s.averageSlopePercent} q=${s.dataQuality} radius=${s.minimumCurveRadiusMeters} structure=${s.structureHint} flags=[${s.spatialFlags}] unknown=${s.unknown.length} warn=${out.warnings.map((w) => w.code)}`);
+    console.log(`[${id}] ${ex.file}: connected=${s.physicalConnectionEvidence.connected} reason=${s.physicalConnectionEvidence.reason} gap=${s.endpointGapMeters} len=${s.connectionLengthMeters} bldg=${s.buildingIntersectionCount} water=${s.waterCrossingCount} road=${s.roadCrossingCount} rail=${s.existingRailwayCrossingCount} slope=${s.averageSlopePercent} q=${s.dataQuality} radius=${s.minimumCurveRadiusMeters} structure=${s.structureType} gradient=${s.maximumGradientPermille} workArea=${s.selectedWorkAreaCandidateId ? "selected" : null} flags=[${s.spatialFlags}] unknown=${s.unknown.length} warn=${out.warnings.map((w) => w.code)}`);
   }
 }

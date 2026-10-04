@@ -2,7 +2,7 @@
   "schema": "transitline.through-handover-site-geometry/1",
   "contractVersion": 1,
   "handoverSiteId": "through-handover-site:2c1a185334071b6d",
-  "siteRevision": "through-handover-site-revision:c3ea59185adea776",
+  "siteRevision": "through-handover-site-revision:657428f83177c256",
   "key": "example:tokyo:handover-east-river-koto-drawn",
   "sourcePackId": "tokyo",
   "sourcePackVersion": "0.1.0",
@@ -75,8 +75,10 @@
   ],
   "connectionLengthMeters": 127.4,
   "minimumCurveRadiusMeters": 52,
-  "structureHint": null,
-  "structureHintBasis": null,
+  "structureType": null,
+  "structureTypeBasis": null,
+  "maximumGradientPermille": null,
+  "maximumGradientBasis": null,
   "endpointGapMeters": null,
   "turnoutCandidates": [
     {
@@ -170,6 +172,7 @@
       }
     }
   ],
+  "selectedWorkAreaCandidateId": null,
   "spatialFlags": [
     "leg-alignment-unknown",
     "work-area-water-overlap"
@@ -206,22 +209,26 @@
   },
   "dataQuality": "low",
   "unknown": [
-    "structureHint",
+    "structureType",
+    "maximumGradientPermille",
     "physicalConnectionEvidence",
     "endpointGapMeters",
     "buildingIntersectionCount",
     "roadCrossingCount",
     "averageSlopePercent",
-    "maximumSlopePercent"
+    "maximumSlopePercent",
+    "selectedWorkAreaCandidateId"
   ],
   "unknownReasons": {
-    "structureHint": "structure-not-stated",
+    "structureType": "structure-not-stated",
+    "maximumGradientPermille": "track-profile-not-designed",
     "physicalConnectionEvidence": "external-alignment-not-in-source",
     "endpointGapMeters": "external-alignment-not-in-source",
     "buildingIntersectionCount": "outside-coverage",
     "roadCrossingCount": "no-layer",
     "averageSlopePercent": "no-layer",
-    "maximumSlopePercent": "no-layer"
+    "maximumSlopePercent": "no-layer",
+    "selectedWorkAreaCandidateId": "work-area-not-selected"
   },
   "warnings": [],
   "sourceLayers": [

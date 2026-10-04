@@ -2,7 +2,7 @@
   "schema": "transitline.through-handover-site-geometry/1",
   "contractVersion": 1,
   "handoverSiteId": "through-handover-site:8afd992a9409add4",
-  "siteRevision": "through-handover-site-revision:ba4285015abde4b3",
+  "siteRevision": "through-handover-site-revision:06a2f14b1a0d3b65",
   "key": "example:radial:handover-joined",
   "sourcePackId": "example-radial",
   "sourcePackVersion": "0.1.0",
@@ -55,8 +55,10 @@
   ],
   "connectionLengthMeters": 0,
   "minimumCurveRadiusMeters": null,
-  "structureHint": null,
-  "structureHintBasis": null,
+  "structureType": null,
+  "structureTypeBasis": null,
+  "maximumGradientPermille": null,
+  "maximumGradientBasis": null,
   "endpointGapMeters": 0,
   "turnoutCandidates": [
     {
@@ -143,6 +145,7 @@
       "unknownReasons": {}
     }
   ],
+  "selectedWorkAreaCandidateId": null,
   "spatialFlags": [],
   "physicalConnectionEvidence": {
     "connected": true,
@@ -177,13 +180,17 @@
   "dataQuality": "low",
   "unknown": [
     "minimumCurveRadiusMeters",
-    "structureHint",
-    "existingRailwayCrossingCount"
+    "structureType",
+    "maximumGradientPermille",
+    "existingRailwayCrossingCount",
+    "selectedWorkAreaCandidateId"
   ],
   "unknownReasons": {
     "minimumCurveRadiusMeters": "zero-length-connection",
-    "structureHint": "structure-not-stated",
-    "existingRailwayCrossingCount": "no-layer"
+    "structureType": "structure-not-stated",
+    "maximumGradientPermille": "track-profile-not-designed",
+    "existingRailwayCrossingCount": "no-layer",
+    "selectedWorkAreaCandidateId": "work-area-not-selected"
   },
   "warnings": [],
   "sourceLayers": [

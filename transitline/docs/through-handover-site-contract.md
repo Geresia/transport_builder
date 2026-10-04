@@ -29,7 +29,9 @@ drawn: {
   fromConnectionPoint?, toConnectionPoint?,         // [lon,lat]
   connectionAlignment?,                             // [[lon,lat]...] 어느 방향으로 그려도 from→to로 정규화
   turnoutCandidates?: [{ key?, location, selected? }],   // selected 기본 true
-  workAreas?: [{ key?, polygon }]
+  workAreas?: [{ key?, polygon }],
+  selectedWorkAreaKey?,                             // 고른 작업구역의 key
+  structureType?, maximumGradientPermille?          // 플레이어가 지정한 값만
 }
 ctx: { pack, route, plans?, externalNetworks?, externalAlignments?, spatial? }
 ```
@@ -51,7 +53,9 @@ ctx: { pack, route, plans?, externalNetworks?, externalAlignments?, spatial? }
 | `fromConnectionPoint`, `toConnectionPoint` | 아래 "접속점" |
 | `connectionAlignment`, `connectionLengthMeters` | 그린 연락선(from→to 정규화), 길이(m). 안 그렸으면 `null` |
 | `minimumCurveRadiusMeters` | 연락선 꺾임점의 최소 반경(PlanGeometry와 같은 꼭짓점 필렛 규칙). 직선(꼭짓점 2개)은 상한값 `100000`. 안 그렸거나 길이 0이면 `null` |
-| `structureHint`, `structureHintBasis` | 연락선 구조형식. **플레이어가 지정한 값만**(`STRUCTURE_HINTS` 중 하나, basis `"player"`). 건물·수역 교차로 추정하지 않으며 미지정은 `null`(`structure-not-stated`) |
+| `structureType`, `structureTypeBasis` | 연락선 구조형식. **플레이어가 지정한 값만**: `at-grade, cut-cover, tunnel, viaduct, bridge`(경영 엔진이 단가를 매기는 5종, `CONNECTION_STRUCTURE_TYPES`). basis는 `"player"`. 건물·수역 교차로 추정하지 않으며 미지정은 `null`(`structure-not-stated`) |
+| `maximumGradientPermille`, `maximumGradientBasis` | 연락선의 **설계 구배**(‰). 플레이어가 지정한 값만 채운다. 지반 경사(`averageSlopePercent`)를 구배로 바꾸지 않으며 미지정은 `null`(`track-profile-not-designed`) |
+| `selectedWorkAreaCandidateId` | 플레이어가 고른 작업구역의 `workAreaId`. 작업구역이 없으면 `null`(`no-work-area-drawn`), 안 골랐으면 `null`(`work-area-not-selected`) |
 | `turnoutCandidates[]` | 플레이어가 찍은 분기기 후보 전체 `turnoutId, key, location, selected` |
 | `endpointGapMeters` | 양쪽 `gapMeters` 중 큰 값. 한쪽이라도 측정 불가면 `null` |
 | `selectedTurnoutPoints[]` | 선택된 분기기 `turnoutId, key, location, nearestLegId, distanceToFromLegMeters, distanceToToLegMeters, distanceToConnectionAlignmentMeters, distanceToFromPointMeters, distanceToToPointMeters, onTrack`. `turnoutId` 순 |
@@ -97,7 +101,7 @@ true/false는 "지도가 측정한 공간 사실"일 뿐 직통운행 가부가 
 
 ## 편집·저장
 
-`through-handover-editor.mjs`: `addSite`(handover 선택, 설계 기준 revision 기록), `selectHandover`(대상 변경: 그림은 지우고 key 유지), `setConnectionPoint`(route를 주면 알려진 선형에 50 m 이내로 스냅), `addWaypoint/moveWaypoint/removeWaypoint/clearWaypoints`, `addTurnout/moveTurnout/setTurnoutSelected/removeTurnout`, `addWorkArea/redrawWorkArea/removeWorkArea`, `rebindRoute`(플레이어가 현재 route를 다시 확인했음을 기록), `toDrawnSite`, `serializeThroughHandoverDoc`, `restoreThroughHandoverDoc`.
+`through-handover-editor.mjs`: `addSite`(handover 선택, 설계 기준 revision 기록), `selectHandover`(대상 변경: 그림은 지우고 key 유지), `setConnectionPoint`(route를 주면 알려진 선형에 50 m 이내로 스냅), `addWaypoint/moveWaypoint/removeWaypoint/clearWaypoints`, `addTurnout/moveTurnout/setTurnoutSelected/removeTurnout`, `addWorkArea/redrawWorkArea/removeWorkArea/selectWorkArea`, `setStructureType`, `setMaximumGradient`, `rebindRoute`(플레이어가 현재 route를 다시 확인했음을 기록), `toDrawnSite`, `serializeThroughHandoverDoc`, `restoreThroughHandoverDoc`.
 
 - 편집은 설계 기준 revision을 바꾸지 않는다. route가 바뀐 뒤에는 `rebindRoute`로 명시적으로 확인하기 전까지 stale이다.
 - 다른 팩의 저장본은 거부(`through-handover-doc-other-pack`)하고 빈 문서를 돌려준다. 팩 버전만 다르면 `pack-version-mismatch` 경고.
@@ -105,6 +109,22 @@ true/false는 "지도가 측정한 공간 사실"일 뿐 직통운행 가부가 
 ## 표시 (`through-handover-view.mjs`)
 
 원래 두 leg(파랑), 그린 연락선, 접속 상태 배지, 선택 분기기(◆), 작업구역, 건물·수역·도로·철도 충돌 마커. 접속 상태는 세 모양이 다르다: true = 초록 실선 ✓, false = 빨강 실선 ✕, null = 노랑 점선 ?(경로가 바뀌면 보라 점선 ↻). 충돌 마커는 발견 = 채운 원+개수, 미상 = 속 빈 ?, 0 = 표시 없음. 선형 자료가 없는 접속점은 속 빈 고리 + "선형 자료 없음". 충돌 마커는 정확한 교차 위치가 아니라 연락선 중간에 모아 표시한다. 비용·공기·승인 결과는 표시하지 않는다. 패널은 `textContent`만 사용한다.
+
+## 경영 엔진이 읽는 이름 (대응표)
+
+`engine/src/management/through-handover-project.mjs`(master)가 이 계약을 읽는다. 이름이 다른 곳은 경영 쪽 읽기에서 아래처럼 맞춘다. 지도 쪽 이름이 정본이다.
+
+| 경영 엔진이 읽는 이름 | 이 계약의 정본 | 비고 |
+|---|---|---|
+| `connectionLengthMeters` | 같음 | |
+| `minimumCurveRadiusMeters` | 같음 | 직선은 100000 |
+| `intersectedBuildingCount` | `buildingIntersectionCount` | 이름만 다름 |
+| `waterCrossingCount`, `roadCrossingCount`, `existingRailwayCrossingCount` | 같음 | |
+| `externalTopologyVerified` | `physicalConnectionEvidence.connected` | true/false/null 그대로 |
+| `maximumGradientPermille` | 같음 | 플레이어 설계값만, 없으면 null |
+| `selectedWorkAreaCandidateId` | 같음 | |
+| 입찰의 `structureType` 인자 | `structureType` | 같은 5종. 지도 값은 플레이어의 지정이며 경영 쪽 기본값은 `at-grade` |
+| `unknown`, `unknownReasons`, `dataQuality` | 같음 | |
 
 ## 한계
 

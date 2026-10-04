@@ -2,7 +2,7 @@
   "schema": "transitline.through-handover-site-geometry/1",
   "contractVersion": 1,
   "handoverSiteId": "through-handover-site:721618b5dbd01c97",
-  "siteRevision": "through-handover-site-revision:bd88a63c3e1ce74e",
+  "siteRevision": "through-handover-site-revision:93e0a55abcc8b97c",
   "key": "example:tokyo:handover-east-river-koto-picked",
   "sourcePackId": "tokyo",
   "sourcePackVersion": "0.1.0",
@@ -62,8 +62,10 @@
   "connectionAlignment": null,
   "connectionLengthMeters": null,
   "minimumCurveRadiusMeters": null,
-  "structureHint": null,
-  "structureHintBasis": null,
+  "structureType": null,
+  "structureTypeBasis": null,
+  "maximumGradientPermille": null,
+  "maximumGradientBasis": null,
   "endpointGapMeters": null,
   "turnoutCandidates": [],
   "selectedTurnoutPoints": [],
@@ -89,6 +91,7 @@
   "averageSlopePercent": null,
   "maximumSlopePercent": null,
   "workAreaCandidates": [],
+  "selectedWorkAreaCandidateId": null,
   "spatialFlags": [
     "no-connection-drawn",
     "leg-alignment-unknown",
@@ -129,7 +132,8 @@
     "connectionAlignment",
     "connectionLengthMeters",
     "minimumCurveRadiusMeters",
-    "structureHint",
+    "structureType",
+    "maximumGradientPermille",
     "physicalConnectionEvidence",
     "endpointGapMeters",
     "buildingIntersectionCount",
@@ -137,13 +141,15 @@
     "roadCrossingCount",
     "existingRailwayCrossingCount",
     "averageSlopePercent",
-    "maximumSlopePercent"
+    "maximumSlopePercent",
+    "selectedWorkAreaCandidateId"
   ],
   "unknownReasons": {
     "connectionAlignment": "no-connection-drawn",
     "connectionLengthMeters": "no-connection-drawn",
     "minimumCurveRadiusMeters": "no-connection-drawn",
-    "structureHint": "structure-not-stated",
+    "structureType": "structure-not-stated",
+    "maximumGradientPermille": "track-profile-not-designed",
     "physicalConnectionEvidence": "no-connection-drawn",
     "endpointGapMeters": "no-connection-drawn",
     "buildingIntersectionCount": "no-connection-drawn",
@@ -151,7 +157,8 @@
     "roadCrossingCount": "no-connection-drawn",
     "existingRailwayCrossingCount": "no-connection-drawn",
     "averageSlopePercent": "no-connection-drawn",
-    "maximumSlopePercent": "no-connection-drawn"
+    "maximumSlopePercent": "no-connection-drawn",
+    "selectedWorkAreaCandidateId": "no-work-area-drawn"
   },
   "warnings": [],
   "sourceLayers": [

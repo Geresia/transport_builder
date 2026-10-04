@@ -47,7 +47,8 @@ export const REASON_LABELS = Object.freeze({
   "route-revision-stale": "직통 경로가 바뀌어 재확인 필요",
   "design-revision-not-recorded": "설계 기준 경로 미기록",
   "no-layer": "공간 자료 없음", "outside-coverage": "자료 범위 밖", "no-dem-value": "고도 자료 결측",
-  "plan-missing": "계획 노선 없음", "zero-length-connection": "연락선 길이 0", "structure-not-stated": "구조형식 미지정", "external-leg-end-not-in-source": "외부 구간 끝 위치 자료 없음",
+  "plan-missing": "계획 노선 없음", "zero-length-connection": "연락선 길이 0", "structure-not-stated": "구조형식 미지정",
+  "track-profile-not-designed": "선로 종단 설계 없음", "work-area-not-selected": "작업구역 미선택", "no-work-area-drawn": "작업구역 미작도", "external-leg-end-not-in-source": "외부 구간 끝 위치 자료 없음",
 });
 const reasonText = (code) => (code ? REASON_LABELS[code] ?? code : null);
 
@@ -94,10 +95,13 @@ export function buildThroughHandoverView({ routes = [], exportData, selectedId =
       joint: joint ? { location: joint, state, style: CONNECTION_STYLES[state], reason: reasonText(s.physicalConnectionEvidence.reason), gapMeters: s.endpointGapMeters } : null,
       connection: s.connectionAlignment ? { alignment: s.connectionAlignment, lengthMeters: s.connectionLengthMeters, style: CONNECTION_STYLES[state] } : null,
       turnouts: s.selectedTurnoutPoints.map((t) => ({ turnoutId: t.turnoutId, location: t.location, onTrack: t.onTrack })),
-      workAreas: s.workAreaCandidates.map((w) => ({ workAreaId: w.workAreaId, polygon: w.polygon, location: w.location, areaSquareMeters: w.areaSquareMeters, buildingIntersectionCount: w.buildingIntersectionCount, waterOverlapCount: w.waterOverlapCount })),
+      workAreas: s.workAreaCandidates.map((w) => ({ workAreaId: w.workAreaId, selected: w.workAreaId === s.selectedWorkAreaCandidateId, polygon: w.polygon, location: w.location, areaSquareMeters: w.areaSquareMeters, buildingIntersectionCount: w.buildingIntersectionCount, waterOverlapCount: w.waterOverlapCount })),
       conflicts,
       curve: { minimumRadiusMeters: s.minimumCurveRadiusMeters, reason: s.minimumCurveRadiusMeters === null ? reasonText(s.unknownReasons.minimumCurveRadiusMeters) : null },
-      structure: { hint: s.structureHint, reason: s.structureHint === null ? reasonText(s.unknownReasons.structureHint) : null },
+      structure: { type: s.structureType, reason: s.structureType === null ? reasonText(s.unknownReasons.structureType) : null },
+      gradient: { maximumPermille: s.maximumGradientPermille, reason: s.maximumGradientPermille === null ? reasonText(s.unknownReasons.maximumGradientPermille) : null },
+      selectedWorkAreaId: s.selectedWorkAreaCandidateId,
+      selectedWorkAreaReason: s.selectedWorkAreaCandidateId === null ? reasonText(s.unknownReasons.selectedWorkAreaCandidateId) : null,
       slope: { average: s.averageSlopePercent, maximum: s.maximumSlopePercent, reason: s.averageSlopePercent === null ? reasonText(s.unknownReasons.averageSlopePercent) : null },
       evidence: { connected: s.physicalConnectionEvidence.connected, reason: reasonText(s.physicalConnectionEvidence.reason), endpointGapMeters: s.endpointGapMeters, connectionLengthMeters: s.connectionLengthMeters },
       flags: s.spatialFlags.map((flag) => ({ flag, label: FLAG_LABELS[flag] ?? flag })),
@@ -158,9 +162,9 @@ export function drawThroughHandoverOverlay(ctx, model, screen) {
       }
     }
     for (const w of s.workAreas) {
-      ctx.fillStyle = s.selected ? "rgba(251, 191, 36, 0.22)" : "rgba(251, 191, 36, 0.12)";
-      ctx.strokeStyle = "#fbbf24";
-      ctx.lineWidth = 1.5;
+      ctx.fillStyle = w.selected ? "rgba(52, 211, 153, 0.28)" : s.selected ? "rgba(251, 191, 36, 0.22)" : "rgba(251, 191, 36, 0.12)";
+      ctx.strokeStyle = w.selected ? "#34d399" : "#fbbf24";
+      ctx.lineWidth = w.selected ? 2.5 : 1.5;
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
       path(ctx, w.polygon.map(screen));
@@ -253,7 +257,9 @@ export function renderThroughHandoverPanel(container, model) {
     for (const c of s.conflicts) fact(c.label, c.count === null ? null : `${num(c.count)}곳`, c.reason);
     fact("지반 경사 평균/최대", s.slope.average === null ? null : `${num(s.slope.average, 1)} / ${num(s.slope.maximum, 1)} %`, s.slope.reason);
     fact("최소 곡선반경", s.curve.minimumRadiusMeters === null ? null : s.curve.minimumRadiusMeters >= 100000 ? "직선" : `${num(s.curve.minimumRadiusMeters)} m`, s.curve.reason);
-    fact("구조형식(플레이어 지정)", s.structure.hint, s.structure.reason);
+    fact("구조형식(플레이어 지정)", s.structure.type, s.structure.reason);
+    fact("최대 구배(플레이어 지정)", s.gradient.maximumPermille === null ? null : `${num(s.gradient.maximumPermille, 1)} ‰`, s.gradient.reason);
+    fact("선택한 작업구역", s.selectedWorkAreaId === null ? null : "선택됨", s.selectedWorkAreaReason);
     block.append(el("div", "handover-fact", `선택한 분기기: ${num(s.turnouts.length)}개 · 작업구역: ${num(s.workAreas.length)}곳`));
     for (const f of s.flags) block.append(el("div", "diag warning", `⚠ ${f.label}`));
     for (const w of s.warnings) block.append(el("div", "diag warning", `⚠ ${w.code}`));

@@ -2,7 +2,7 @@
   "schema": "transitline.through-handover-site-geometry/1",
   "contractVersion": 1,
   "handoverSiteId": "through-handover-site:ca36a2199a1cc48f",
-  "siteRevision": "through-handover-site-revision:8fb411872ebcbbe5",
+  "siteRevision": "through-handover-site-revision:fd31b12e6f3e125c",
   "key": "example:radial:handover-road",
   "sourcePackId": "example-radial",
   "sourcePackVersion": "0.1.0",
@@ -59,8 +59,10 @@
   ],
   "connectionLengthMeters": 164.2,
   "minimumCurveRadiusMeters": 100000,
-  "structureHint": "elevated",
-  "structureHintBasis": "player",
+  "structureType": "viaduct",
+  "structureTypeBasis": "player",
+  "maximumGradientPermille": 30,
+  "maximumGradientBasis": "player",
   "endpointGapMeters": 0.1,
   "turnoutCandidates": [],
   "selectedTurnoutPoints": [],
@@ -119,6 +121,7 @@
       "unknownReasons": {}
     }
   ],
+  "selectedWorkAreaCandidateId": "through-work-area:07358c0b3a7963a1",
   "spatialFlags": [
     "connection-crosses-road",
     "connection-point-away-from-leg-end",
@@ -238,7 +241,9 @@
           0.012583
         ]
       ],
-      "structureHint": "elevated",
+      "structureType": "viaduct",
+      "maximumGradientPermille": 30,
+      "selectedWorkAreaKey": "work-1",
       "workAreas": [
         {
           "key": "work-1",

@@ -12,6 +12,7 @@ import { buildThroughRoute } from "../src/map/through-route.mjs";
 import {
   JOIN_TOLERANCE_METERS,
   THROUGH_HANDOVER_EXPORT_SCHEMA,
+  CONNECTION_STRUCTURE_TYPES,
   THROUGH_HANDOVER_SITE_SCHEMA,
   buildThroughHandoverExport,
   buildThroughHandoverSite,
@@ -22,7 +23,7 @@ import {
 import {
   addSite, addTurnout, addWaypoint, addWorkArea, clearConnectionPoint, moveTurnout, moveWaypoint, newThroughHandoverDoc, rebindRoute,
   redrawWorkArea, removeSite, removeTurnout, removeWaypoint, removeWorkArea, restoreThroughHandoverDoc, selectHandover,
-  serializeThroughHandoverDoc, setConnectionPoint, setStructureHint, setTurnoutSelected, toDrawnSite,
+  serializeThroughHandoverDoc, selectWorkArea, setConnectionPoint, setMaximumGradient, setStructureType, setTurnoutSelected, toDrawnSite,
 } from "../src/map/through-handover-editor.mjs";
 import {
   CONNECTION_STYLES, buildThroughHandoverView, drawThroughHandoverOverlay, renderThroughHandoverLegend, renderThroughHandoverPanel,
@@ -396,22 +397,63 @@ test("minimum curve radius: straight reports the cap, a bend its fillet radius, 
   assert.equal(zero.unknownReasons.minimumCurveRadiusMeters, "zero-length-connection");
 });
 
-test("structure type is only what the player states: never inferred from water or buildings", () => {
+test("structure type is only what the player states, from the management engine's five types; never inferred from water or buildings", () => {
+  assert.deepEqual([...CONNECTION_STRUCTURE_TYPES], ["at-grade", "cut-cover", "tunnel", "viaduct", "bridge"]);
   const spatial = layersOf({ water: [rect(139.02005, 34.99995, 139.02035, 35.00005)], buildings: [rect(139.0201, 34.9999, 139.0203, 35.0001)] });
   const unstated = build(rAN, bridge(), { spatial });
   assert.equal(unstated.waterCrossingCount, 1);
-  assert.equal(unstated.structureHint, null);
-  assert.equal(unstated.structureHintBasis, null);
-  assert.ok(unstated.unknown.includes("structureHint"));
-  assert.equal(unstated.unknownReasons.structureHint, "structure-not-stated");
-  const stated = buildThroughHandoverSite(bridge({ structureHint: "bridge" }), ctxOf(rAN, { spatial }));
-  assert.equal(stated.site.structureHint, "bridge");
-  assert.equal(stated.site.structureHintBasis, "player");
-  assert.ok(!stated.site.unknown.includes("structureHint"));
-  const bad = buildThroughHandoverSite(bridge({ structureHint: "magic" }), ctxOf(rAN));
-  assert.equal(bad.site.structureHint, null);
-  assert.equal(bad.warnings[0].code, "invalid-structure-hint");
+  assert.equal(unstated.structureType, null);
+  assert.equal(unstated.structureTypeBasis, null);
+  assert.ok(unstated.unknown.includes("structureType"));
+  assert.equal(unstated.unknownReasons.structureType, "structure-not-stated");
+  const stated = buildThroughHandoverSite(bridge({ structureType: "bridge" }), ctxOf(rAN, { spatial }));
+  assert.equal(stated.site.structureType, "bridge");
+  assert.equal(stated.site.structureTypeBasis, "player");
+  assert.ok(!stated.site.unknown.includes("structureType"));
+  for (const wrong of ["magic", "elevated", "surface"]) {
+    const bad = buildThroughHandoverSite(bridge({ structureType: wrong }), ctxOf(rAN));
+    assert.equal(bad.site.structureType, null, wrong);
+    assert.equal(bad.warnings[0].code, "invalid-structure-type");
+  }
   assert.notEqual(stated.site.siteRevision, unstated.siteRevision);
+});
+
+test("maximum gradient is only the designed value the player states; the ground slope never fills it", () => {
+  const withDem = build(rAN, bridge(), { spatial: layersOf({ slopeDegrees: 2 }) });
+  assert.equal(withDem.averageSlopePercent, 3.49);
+  assert.equal(withDem.maximumGradientPermille, null, "a ground slope of 3.49 % is not a 34.9 permille track gradient");
+  assert.equal(withDem.maximumGradientBasis, null);
+  assert.ok(withDem.unknown.includes("maximumGradientPermille"));
+  assert.equal(withDem.unknownReasons.maximumGradientPermille, "track-profile-not-designed");
+  const stated = build(rAN, bridge({ maximumGradientPermille: 30.04 }));
+  assert.equal(stated.maximumGradientPermille, 30);
+  assert.equal(stated.maximumGradientBasis, "player");
+  assert.ok(!stated.unknown.includes("maximumGradientPermille"));
+  assert.equal(build(rAN, bridge({ maximumGradientPermille: 0 })).maximumGradientPermille, 0, "a designed level track is 0, not unknown");
+  for (const wrong of [-1, "30", NaN, Infinity]) {
+    const bad = buildThroughHandoverSite(bridge({ maximumGradientPermille: wrong }), ctxOf(rAN));
+    assert.equal(bad.site.maximumGradientPermille, null, String(wrong));
+    assert.equal(bad.warnings[0].code, "invalid-gradient");
+  }
+});
+
+test("the chosen work area is reported by id; no area, no choice or a missing key are null with a reason", () => {
+  const areas = [{ key: "w1", polygon: rect(139.0199, 34.9998, 139.0205, 35.0002) }, { key: "w2", polygon: rect(139.0201, 35.0001, 139.0203, 35.0002) }];
+  const chosen = build(rAN, bridge({ workAreas: areas, selectedWorkAreaKey: "w2" }));
+  assert.equal(chosen.selectedWorkAreaCandidateId, chosen.workAreaCandidates.find((w) => w.key === "w2").workAreaId);
+  assert.equal(chosen.selectedWorkAreaCandidateId, stableId("through-work-area", chosen.handoverSiteId, "w2"));
+  assert.ok(!chosen.unknown.includes("selectedWorkAreaCandidateId"));
+  assert.equal(JSON.stringify(build(rAN, bridge({ workAreas: [...areas].reverse(), selectedWorkAreaKey: "w2" }))), JSON.stringify(chosen), "drawing order does not matter");
+  const none = build(rAN, bridge({ workAreas: areas }));
+  assert.equal(none.selectedWorkAreaCandidateId, null);
+  assert.equal(none.unknownReasons.selectedWorkAreaCandidateId, "work-area-not-selected");
+  const empty = build(rAN, bridge({ selectedWorkAreaKey: "w1" }));
+  assert.equal(empty.selectedWorkAreaCandidateId, null);
+  assert.equal(empty.unknownReasons.selectedWorkAreaCandidateId, "no-work-area-drawn");
+  const missing = buildThroughHandoverSite(bridge({ workAreas: areas, selectedWorkAreaKey: "w9" }), ctxOf(rAN));
+  assert.equal(missing.site.selectedWorkAreaCandidateId, null);
+  assert.equal(missing.warnings[0].code, "selected-work-area-missing");
+  assert.notEqual(chosen.siteRevision, build(rAN, bridge({ workAreas: areas, selectedWorkAreaKey: "w1" })).siteRevision);
 });
 
 test("turnoutCandidates lists every candidate with its selected flag; selectedTurnoutPoints only the chosen ones", () => {
@@ -501,8 +543,10 @@ test("editor: pick a handover, both points, waypoints, turnouts, work areas; the
   assert.equal(built().handoverSiteId, id);
   assert.throws(() => moveWaypoint(doc, site.key, 5, [0, 0]), /Unknown waypoint/);
   assert.throws(() => addWaypoint(doc, site.key, [0, 0], 9), /Bad waypoint/);
-  setStructureHint(doc, site.key, "elevated");
-  assert.equal(built().structureHint, "elevated");
+  setStructureType(doc, site.key, "viaduct");
+  setMaximumGradient(doc, site.key, 25);
+  assert.equal(built().structureType, "viaduct");
+  assert.equal(built().maximumGradientPermille, 25);
   const t = addTurnout(doc, site.key, [139.0199, 35]);
   addTurnout(doc, site.key, [139.0203, 35], { selected: false });
   assert.equal(t.key, "turnout-1");
@@ -516,7 +560,12 @@ test("editor: pick a handover, both points, waypoints, turnouts, work areas; the
   assert.equal(w.key, "work-1");
   redrawWorkArea(doc, site.key, "work-1", rect(139.0200, 34.9998, 139.0206, 35.0003));
   assert.equal(built().workAreaCandidates.length, 1);
+  assert.equal(built().selectedWorkAreaCandidateId, null);
+  selectWorkArea(doc, site.key, "work-1");
+  assert.equal(built().selectedWorkAreaCandidateId, built().workAreaCandidates[0].workAreaId);
+  assert.throws(() => selectWorkArea(doc, site.key, "work-9"), /Unknown work area/);
   removeWorkArea(doc, site.key, "work-1");
+  assert.equal(site.selectedWorkAreaKey, null, "removing the chosen area clears the choice");
   assert.equal(built().workAreaCandidates.length, 0);
   clearConnectionPoint(doc, site.key, "to");
   assert.equal(built().toConnectionPoint.location, null);

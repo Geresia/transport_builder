@@ -2,7 +2,7 @@
   "schema": "transitline.through-handover-site-geometry/1",
   "contractVersion": 1,
   "handoverSiteId": "through-handover-site:a2635255a39c62b3",
-  "siteRevision": "through-handover-site-revision:76037f9073282c5a",
+  "siteRevision": "through-handover-site-revision:fab0d94c9bc94b4e",
   "key": "example:corridor:handover-river",
   "sourcePackId": "example-corridor",
   "sourcePackVersion": "0.1.0",
@@ -67,8 +67,10 @@
   ],
   "connectionLengthMeters": 1771.4,
   "minimumCurveRadiusMeters": 213,
-  "structureHint": "bridge",
-  "structureHintBasis": "player",
+  "structureType": "bridge",
+  "structureTypeBasis": "player",
+  "maximumGradientPermille": 25,
+  "maximumGradientBasis": "player",
   "endpointGapMeters": 0,
   "turnoutCandidates": [],
   "selectedTurnoutPoints": [],
@@ -91,6 +93,7 @@
   "averageSlopePercent": 1.45,
   "maximumSlopePercent": 1.45,
   "workAreaCandidates": [],
+  "selectedWorkAreaCandidateId": null,
   "spatialFlags": [
     "connection-through-buildings",
     "connection-crosses-water",
@@ -130,10 +133,12 @@
   },
   "dataQuality": "medium",
   "unknown": [
-    "existingRailwayCrossingCount"
+    "existingRailwayCrossingCount",
+    "selectedWorkAreaCandidateId"
   ],
   "unknownReasons": {
-    "existingRailwayCrossingCount": "no-layer"
+    "existingRailwayCrossingCount": "no-layer",
+    "selectedWorkAreaCandidateId": "no-work-area-drawn"
   },
   "warnings": [],
   "sourceLayers": [
@@ -220,7 +225,8 @@
           0
         ]
       ],
-      "structureHint": "bridge"
+      "structureType": "bridge",
+      "maximumGradientPermille": 25
     },
     "generatedBy": "scripts/build-through-handover-examples.mjs"
   }

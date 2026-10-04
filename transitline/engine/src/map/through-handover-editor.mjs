@@ -35,7 +35,7 @@ const clone = (v) => structuredClone(v);
 // Picks the handover to design a connection for. Records the route revision the player is looking at.
 export function addSite(doc, route, handoverId, { name = null } = {}) {
   const handover = handoverOf(route, handoverId);
-  const site = { key: nextHandoverSiteKey(doc), name, ...target(route, handover), fromConnectionPoint: null, toConnectionPoint: null, via: [], structureHint: null, turnoutCandidates: [], workAreas: [] };
+  const site = { key: nextHandoverSiteKey(doc), name, ...target(route, handover), fromConnectionPoint: null, toConnectionPoint: null, via: [], structureType: null, maximumGradientPermille: null, selectedWorkAreaKey: null, turnoutCandidates: [], workAreas: [] };
   doc.sites.push(site);
   return site;
 }
@@ -44,7 +44,7 @@ export function addSite(doc, route, handoverId, { name = null } = {}) {
 export function selectHandover(doc, key, route, handoverId) {
   const site = find(doc, key);
   const handover = handoverOf(route, handoverId);
-  Object.assign(site, target(route, handover), { fromConnectionPoint: null, toConnectionPoint: null, via: [], structureHint: null, turnoutCandidates: [], workAreas: [] });
+  Object.assign(site, target(route, handover), { fromConnectionPoint: null, toConnectionPoint: null, via: [], structureType: null, maximumGradientPermille: null, selectedWorkAreaKey: null, turnoutCandidates: [], workAreas: [] });
   return site;
 }
 
@@ -109,10 +109,15 @@ export function clearWaypoints(doc, key) {
   return site;
 }
 
-// The structure type of the connection, as the player states it (null clears it). Never inferred.
-export function setStructureHint(doc, key, hint) {
+// The structure type and designed gradient of the connection, as the player states them (null clears). Never inferred.
+export function setStructureType(doc, key, structureType) {
   const site = find(doc, key);
-  site.structureHint = hint ?? null;
+  site.structureType = structureType ?? null;
+  return site;
+}
+export function setMaximumGradient(doc, key, permille) {
+  const site = find(doc, key);
+  site.maximumGradientPermille = permille ?? null;
   return site;
 }
 
@@ -161,10 +166,18 @@ export function redrawWorkArea(doc, key, areaKey, polygon) {
   area.polygon = clone(polygon);
   return area;
 }
+// The work area the player chose among the ones drawn (null clears the choice).
+export function selectWorkArea(doc, key, areaKey) {
+  const site = find(doc, key);
+  if (areaKey !== null) findArea(site, areaKey);
+  site.selectedWorkAreaKey = areaKey;
+  return site;
+}
 export function removeWorkArea(doc, key, areaKey) {
   const site = find(doc, key);
   findArea(site, areaKey);
   site.workAreas = site.workAreas.filter((w) => w.key !== areaKey);
+  if (site.selectedWorkAreaKey === areaKey) site.selectedWorkAreaKey = null;
 }
 
 // The input of buildThroughHandoverSite: the drawn connection is the two points with the waypoints between them.
@@ -176,7 +189,9 @@ export function toDrawnSite(site) {
     routeGeometryRevision: site.routeGeometryRevision,
     fromConnectionPoint: site.fromConnectionPoint, toConnectionPoint: site.toConnectionPoint,
     connectionAlignment: line.length ? line : null,
-    structureHint: site.structureHint ?? null,
+    structureType: site.structureType ?? null,
+    maximumGradientPermille: site.maximumGradientPermille ?? null,
+    selectedWorkAreaKey: site.selectedWorkAreaKey ?? null,
     turnoutCandidates: site.turnoutCandidates, workAreas: site.workAreas,
   };
 }

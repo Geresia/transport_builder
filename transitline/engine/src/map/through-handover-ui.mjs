@@ -4,10 +4,10 @@
 // and the management engine's state are read, never written. Not imported by node tests (needs the DOM); the logic
 // lives in through-handover-editor.mjs, through-handover-site.mjs and through-handover-view.mjs.
 import {
-  addSite, addTurnout, addWaypoint, addWorkArea, clearWaypoints, moveTurnout, moveWaypoint, rebindRoute, removeSite, removeTurnout,
+  addSite, addTurnout, selectWorkArea, setMaximumGradient, setStructureType, addWaypoint, addWorkArea, clearWaypoints, moveTurnout, moveWaypoint, rebindRoute, removeSite, removeTurnout,
   removeWaypoint, removeWorkArea, restoreThroughHandoverDoc, selectHandover, serializeThroughHandoverDoc, setConnectionPoint, toDrawnSite, updateSite,
 } from "./through-handover-editor.mjs";
-import { buildThroughHandoverExport, keyedHandoverSiteId } from "./through-handover-site.mjs";
+import { CONNECTION_STRUCTURE_TYPES, buildThroughHandoverExport, keyedHandoverSiteId } from "./through-handover-site.mjs";
 import { buildThroughHandoverView, renderThroughHandoverLegend, renderThroughHandoverPanel } from "./through-handover-view.mjs";
 import { makeSpatialContext } from "./spatial.mjs";
 
@@ -117,6 +117,21 @@ export function attachThroughHandoverEditor({ canvas, projection, pack, state, g
           row.append(stale);
         }
       } else row.append(el("div", "diag warning", "⚠ 직통 경로를 찾을 수 없음"));
+      const structure = el("select");
+      structure.append(new Option("구조형식 미지정", ""), ...CONNECTION_STRUCTURE_TYPES.map((t) => new Option(t, t)));
+      structure.value = site.structureType ?? "";
+      structure.addEventListener("change", () => { setStructureType(doc, site.key, structure.value || null); save(); refresh(); });
+      const gradient = el("input");
+      gradient.type = "number";
+      gradient.min = "0";
+      gradient.placeholder = "최대 구배 ‰ (설계값)";
+      gradient.value = site.maximumGradientPermille ?? "";
+      gradient.addEventListener("change", () => { setMaximumGradient(doc, site.key, gradient.value === "" ? null : Number(gradient.value)); save(); refresh(); });
+      const workArea = el("select");
+      workArea.append(new Option("작업구역 선택 안 함", ""), ...site.workAreas.map((w) => new Option(w.key, w.key)));
+      workArea.value = site.selectedWorkAreaKey ?? "";
+      workArea.addEventListener("change", () => { selectWorkArea(doc, site.key, workArea.value || null); save(); refresh(); });
+      row.append(structure, gradient, workArea);
       const actions = el("div", "handover-bar");
       const act = (label, fn) => { const b = el("button", "", label); b.type = "button"; b.addEventListener("click", (e) => { e.stopPropagation(); selectedKey = site.key; fn(); }); actions.append(b); };
       act("앞 접속점", () => { tool = { kind: "from" }; refresh(); });

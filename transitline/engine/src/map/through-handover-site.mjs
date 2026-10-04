@@ -12,7 +12,7 @@
 import { stableId, round6, roundTo, coordKey } from "./ids.mjs";
 import { THROUGH_ROUTE_SCHEMA, NEAR_ENDPOINT_METERS } from "./through-route.mjs";
 import { sampleAlong, overlaps, bboxOf, ringsOverlap, inRing, makeSpatialContext } from "./spatial.mjs";
-import { withRailLayer, STRUCTURE_HINTS } from "./plan-geometry.mjs";
+import { withRailLayer } from "./plan-geometry.mjs";
 import { frameAt, sub, len, areaAndCentroid, qualityOf, worse } from "./local-geometry.mjs";
 import { canonicalRing, selfIntersects } from "./depot-site.mjs";
 
@@ -21,6 +21,8 @@ export const THROUGH_HANDOVER_EXPORT_SCHEMA = "transitline.through-handover-site
 // Positions this close are the same place (plan alignments are rounded to ~0.1 m, a player's click is snapped to them).
 export const JOIN_TOLERANCE_METERS = 1;
 export { NEAR_ENDPOINT_METERS };
+// The structure types a drawn connection can be built as (the management engine prices exactly these). Player-stated only.
+export const CONNECTION_STRUCTURE_TYPES = Object.freeze(["at-grade", "cut-cover", "tunnel", "viaduct", "bridge"]);
 const SLOPE_STEP_METERS = 25;
 const CURVE_CAP_METERS = 100_000; // a straight connection reports this radius, as PlanGeometry does (JSON has no Infinity)
 
@@ -85,7 +87,9 @@ const sortedReasons = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]
 //          routeGeometryRevision  (the route revision the player designed this against),
 //          fromConnectionPoint?, toConnectionPoint?  ([lon,lat], on the leg the player picked),
 //          connectionAlignment?  ([[lon,lat]...] the track the player drew, either direction),
-//          structureHint?  (one of PlanGeometry's STRUCTURE_HINTS, only what the player states: never inferred here),
+//          structureType?  (one of CONNECTION_STRUCTURE_TYPES), maximumGradientPermille?  (the designed track gradient):
+//            both only what the player states, never inferred or derived from the ground here,
+//          selectedWorkAreaKey?  (the key of the work area the player chose among workAreas),
 //          turnoutCandidates?: [{ key?, location, selected? }],
 //          workAreas?: [{ key?, polygon }] }
 // ctx:   { pack, route (ThroughRouteGeometry v1), plans?, externalNetworks?, externalAlignments?, spatial? }
@@ -118,10 +122,15 @@ export function buildThroughHandoverSite(drawn, ctx) {
   let alignment = drawnLine.line;
 
   const warnings = [];
-  let structureHint = null;
-  if (hasKey(drawn.structureHint)) {
-    if (STRUCTURE_HINTS.includes(drawn.structureHint)) structureHint = drawn.structureHint;
-    else warnings.push({ code: "invalid-structure-hint", key: drawn.key ?? null, value: String(drawn.structureHint) });
+  let structureType = null;
+  if (hasKey(drawn.structureType)) {
+    if (CONNECTION_STRUCTURE_TYPES.includes(drawn.structureType)) structureType = drawn.structureType;
+    else warnings.push({ code: "invalid-structure-type", key: drawn.key ?? null, value: String(drawn.structureType) });
+  }
+  let maximumGradientPermille = null;
+  if (drawn.maximumGradientPermille !== undefined && drawn.maximumGradientPermille !== null) {
+    if (typeof drawn.maximumGradientPermille === "number" && Number.isFinite(drawn.maximumGradientPermille) && drawn.maximumGradientPermille >= 0) maximumGradientPermille = roundTo(drawn.maximumGradientPermille, 1);
+    else warnings.push({ code: "invalid-gradient", key: drawn.key ?? null, value: String(drawn.maximumGradientPermille) });
   }
   const turnouts = [];
   for (const [i, t] of (drawn.turnoutCandidates ?? []).entries()) {
@@ -214,7 +223,9 @@ export function buildThroughHandoverSite(drawn, ctx) {
     });
     minimumCurveRadiusMeters = roundTo(radii.length ? Math.min(...radii) : CURVE_CAP_METERS, 0);
   } else mark("minimumCurveRadiusMeters", alignXY ? "zero-length-connection" : "no-connection-drawn");
-  if (!structureHint) mark("structureHint", "structure-not-stated");
+  if (!structureType) mark("structureType", "structure-not-stated");
+  // the ground's slope (averageSlopePercent) is not a track gradient: only a designed value the player states fills this
+  if (maximumGradientPermille === null) mark("maximumGradientPermille", "track-profile-not-designed");
 
   // --- evidence: does the drawn track measurably meet both legs? ---
   const staleReason = drawn.routeGeometryRevision === undefined || drawn.routeGeometryRevision === null ? "design-revision-not-recorded"
@@ -354,6 +365,15 @@ export function buildThroughHandoverSite(drawn, ctx) {
     };
   }).sort((a, b) => (a.workAreaId < b.workAreaId ? -1 : 1));
 
+  // the work area the player chose among the ones they drew
+  let selectedWorkAreaCandidateId = null;
+  if (hasKey(drawn.selectedWorkAreaKey)) {
+    const chosen = workAreaCandidates.find((w) => w.key === drawn.selectedWorkAreaKey);
+    if (chosen) selectedWorkAreaCandidateId = chosen.workAreaId;
+    else warnings.push({ code: "selected-work-area-missing", key: drawn.key ?? null, selectedWorkAreaKey: drawn.selectedWorkAreaKey });
+  }
+  if (selectedWorkAreaCandidateId === null) mark("selectedWorkAreaCandidateId", workAreaCandidates.length ? "work-area-not-selected" : "no-work-area-drawn");
+
   // --- spatial flags: facts about the drawing, not scores ---
   const flags = [];
   if (!alignment) flags.push("no-connection-drawn");
@@ -385,8 +405,8 @@ export function buildThroughHandoverSite(drawn, ctx) {
 
   const facts = {
     routeGeometryRevision: route.geometryRevision,
-    fromConnectionPoint: points.from, toConnectionPoint: points.to, connectionAlignment: alignment, connectionLengthMeters, minimumCurveRadiusMeters, structureHint, endpointGapMeters,
-    turnoutCandidates, selectedTurnoutPoints, connectedPlanSegmentIds, buildingIntersectionCount, waterCrossingCount, roadCrossingCount, existingRailwayCrossingCount,
+    fromConnectionPoint: points.from, toConnectionPoint: points.to, connectionAlignment: alignment, connectionLengthMeters, minimumCurveRadiusMeters, structureType, maximumGradientPermille, endpointGapMeters,
+    turnoutCandidates, selectedTurnoutPoints, connectedPlanSegmentIds, selectedWorkAreaCandidateId, buildingIntersectionCount, waterCrossingCount, roadCrossingCount, existingRailwayCrossingCount,
     averageSlopePercent, maximumSlopePercent, workAreaCandidates, physicalConnectionEvidence,
   };
   return {
@@ -411,9 +431,11 @@ export function buildThroughHandoverSite(drawn, ctx) {
       connectionAlignment: alignment,
       connectionLengthMeters,
       minimumCurveRadiusMeters,
-      // only what the player stated; no source or inference supplies a structure type for a drawn connection
-      structureHint,
-      structureHintBasis: structureHint ? "player" : null,
+      // only what the player stated; no source or inference supplies these for a drawn connection
+      structureType,
+      structureTypeBasis: structureType ? "player" : null,
+      maximumGradientPermille,
+      maximumGradientBasis: maximumGradientPermille === null ? null : "player",
       endpointGapMeters,
       turnoutCandidates,
       selectedTurnoutPoints,
@@ -430,6 +452,7 @@ export function buildThroughHandoverSite(drawn, ctx) {
       averageSlopePercent,
       maximumSlopePercent,
       workAreaCandidates,
+      selectedWorkAreaCandidateId,
       spatialFlags: flags,
       physicalConnectionEvidence,
       dataQuality,
