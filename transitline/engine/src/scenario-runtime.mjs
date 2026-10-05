@@ -44,6 +44,7 @@ import { createRailwayDisruption, railwayDisruptionReport, resolveRailwayDisrupt
 import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail-capacity-integration.mjs";
 import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from "./railway-disruption-response.mjs";
 import { clearRailwayControlOrder, createRailwayControlOrder, createRailwayControlOrderFromGeometry, railwayControlOrderReport } from "./railway-service-control.mjs";
+import { assessRailwayDetourAuthorization, authorizeRailwayDetour, railwayDetourAuthorizationReport, syncRailwayDetourAuthorizations } from "./railway-detour-authorization.mjs";
 import {
   advanceRailReplacementOperations,
   assessRailReplacementOperation,
@@ -226,6 +227,7 @@ export class ScenarioRuntime {
       railwayDisruptions: railwayDisruptionReport(this.operationalState),
       railCapacityApplications: railCapacityApplicationReport(this.operationalState),
       railwayControlOrders: railwayControlOrderReport(this.operationalState),
+      railwayDetourAuthorizations: railwayDetourAuthorizationReport(this.operationalState),
       railReplacementOperations: railReplacementOperationReport(this.operationalState),
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
       throughFareAgreements: this.game.throughFareAgreementReport(),
@@ -1195,6 +1197,7 @@ export class ScenarioRuntime {
   resolveRailwayDisruption(eventId, options = {}) {
     const result = resolveRailwayDisruption(this.operationalState, eventId, options);
     advanceRailReplacementOperations(this.operationalState, 0);
+    syncRailwayDetourAuthorizations(this.operationalState);
     return result;
   }
 
@@ -1239,11 +1242,40 @@ export class ScenarioRuntime {
   }
 
   clearRailwayControlOrder(orderId, options = {}) {
-    return clearRailwayControlOrder(this.operationalState, orderId, options);
+    const result = clearRailwayControlOrder(this.operationalState, orderId, options);
+    syncRailwayDetourAuthorizations(this.operationalState);
+    return result;
   }
 
   railwayControlOrderReport(lineId = null) {
     return railwayControlOrderReport(this.operationalState, lineId);
+  }
+
+  assessRailwayDetourAuthorization(input) {
+    return assessRailwayDetourAuthorization(this.operationalState, {
+      ...input,
+      operatorId: input?.operatorId ?? this.game.player.id,
+      trackAccessAgreements: input?.trackAccessAgreements ?? this.game.trackAccessAgreements,
+    });
+  }
+
+  authorizeRailwayDetour(input) {
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("railway-detour-authorized", () => authorizeRailwayDetour(this.operationalState, {
+        ...input,
+        operatorId: input?.operatorId ?? this.game.player.id,
+        trackAccessAgreements: input?.trackAccessAgreements ?? this.game.trackAccessAgreements,
+      }));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
+  }
+
+  railwayDetourAuthorizationReport() {
+    return railwayDetourAuthorizationReport(this.operationalState);
   }
 
   startRailReplacementOperation(input) {
