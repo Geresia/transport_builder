@@ -20,6 +20,7 @@ import { computeJourneyFare } from "./fares.mjs";
 import { journeyRevenue, trainOperatingCost, maintenanceCost, issueBond, bondHour } from "./economy.mjs";
 import { trackCost, stationCost } from "./construction-cost.mjs";
 import { advanceRailwayDisruptions } from "./railway-disruptions.mjs";
+import { advanceRailReplacementOperations, dispatchRailReplacementBuses, railReplacementTripViews, stepRailReplacementBuses } from "./rail-replacement-operations.mjs";
 
 const DAY_S = 86400;
 const URBAN_DRIVE_MPS = 9; // ~32 km/h door to door
@@ -133,13 +134,17 @@ function releaseJourneys(sim, state, nowS) {
 export function popSimStep(sim, state, seconds = 1) {
   state.simMinutes += seconds / 60;
   advanceRailwayDisruptions(state);
+  advanceRailReplacementOperations(state, seconds);
   const nowS = Math.round(state.simMinutes * 60 * 1000) / 1000; // simMinutes accumulates 1/60 per step: drop the float dust
   billNewConstruction(sim, state);
   refreshTimetable(sim, state, nowS);
   dispatchTrains(state);
+  dispatchRailReplacementBuses(state);
 
   const before = new Map(state.trains.map((t) => [t.id, t]));
+  const replacementBefore = new Map(railReplacementTripViews(state).map((trip) => [trip.id, trip]));
   stepTrains(state, seconds);
+  stepRailReplacementBuses(state, seconds);
   const alive = new Set(state.trains.map((t) => t.id));
   const removed = new Set(), ghosts = [];
   for (const [id, t] of before) {
@@ -147,6 +152,11 @@ export function popSimStep(sim, state, seconds = 1) {
     removed.add(id);
     const line = state.lines.find((l) => l.id === t.lineId);
     if (line) ghosts.push(terminalGhost(t, line, sim.trainType));
+  }
+  const replacementAlive = new Set(railReplacementTripViews(state).map((trip) => trip.id));
+  for (const [id, trip] of replacementBefore) if (!replacementAlive.has(id)) {
+    removed.add(id);
+    ghosts.push({ ...trip, stopped: true, stationId: trip.stationsAhead.at(-1), stationsAhead: [trip.stationsAhead.at(-1)] });
   }
 
   if (nowS >= sim.nextReleaseS) {

@@ -35,6 +35,10 @@ export function restoreOperationalState(snapshot) {
     // JSON encodes the initial -Infinity dispatch sentinel as null. Restore its operational meaning.
     if (line.lastDispatch === null) line.lastDispatch = -Infinity;
   }
+  for (const operation of state.railReplacementOperations?.operations ?? []) {
+    // JSON encodes the initial -Infinity dispatch sentinel as null.
+    if (operation.lastDispatchMinute === null) operation.lastDispatchMinute = -Infinity;
+  }
   return state;
 }
 

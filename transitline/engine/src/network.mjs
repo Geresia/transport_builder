@@ -3,6 +3,7 @@
 // costs a transfer penalty in routing.mjs's Dijkstra.
 import { haversineMetres } from "./projection.mjs";
 import { effectiveLineStationGroups } from "./railway-service-control.mjs";
+import { railReplacementGraphServices } from "./rail-replacement-operations.mjs";
 
 export const TRAIN_SPEED_MPS = 12; // running speed between stops (~43 km/h)
 export const DWELL_SECONDS = 20; // Subway Builder's STATION_STOP_TIME default
@@ -31,6 +32,20 @@ export function buildRouteGraph(state) {
         addEdge(`${ids[i]}|${line.id}`, `${ids[i + 1]}|${line.id}`, weight);
         addEdge(`${ids[i + 1]}|${line.id}`, `${ids[i]}|${line.id}`, weight);
       }
+    }
+  }
+
+  for (const service of railReplacementGraphServices(state)) {
+    for (const stationId of service.stationIds) {
+      if (!stationLines.has(stationId)) stationLines.set(stationId, new Set());
+      stationLines.get(stationId).add(service.lineId);
+    }
+    for (let index = 0; index < service.stationIds.length - 1; index += 1) {
+      const from = service.stationIds[index];
+      const to = service.stationIds[index + 1];
+      const weight = service.legSeconds[index] + service.dwellSeconds;
+      addEdge(`${from}|${service.lineId}`, `${to}|${service.lineId}`, weight);
+      addEdge(`${to}|${service.lineId}`, `${from}|${service.lineId}`, weight);
     }
   }
 

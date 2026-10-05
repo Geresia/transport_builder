@@ -2,6 +2,7 @@ import { buildRouteGraph } from "./network.mjs";
 import { dispatchTrains, stepTrains } from "./trains.mjs";
 import { expirePassengers, retryPendingRoutes, spawnPassengers } from "./passengers.mjs";
 import { advanceRailwayDisruptions } from "./railway-disruptions.mjs";
+import { advanceRailReplacementOperations, dispatchRailReplacementBuses, stepRailReplacementBuses } from "./rail-replacement-operations.mjs";
 
 export const FIXED_SIM_STEP_SECONDS = 1;
 
@@ -18,10 +19,13 @@ export function simulationStep(state, demandModel, runtime, seconds = FIXED_SIM_
   if (seconds <= 0) return;
   state.simMinutes += seconds / 60;
   advanceRailwayDisruptions(state);
+  advanceRailReplacementOperations(state, seconds);
   spawnPassengers(state, demandModel, runtime.graph, seconds / 60);
   expirePassengers(state);
   dispatchTrains(state);
+  dispatchRailReplacementBuses(state);
   stepTrains(state, seconds);
+  stepRailReplacementBuses(state, seconds);
 }
 
 export function advanceSimulation(state, demandModel, runtime, simSeconds) {

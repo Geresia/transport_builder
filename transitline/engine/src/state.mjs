@@ -114,6 +114,7 @@ export function createState(pack, options = {}) {
     },
     railCapacityApplications: [],
     railwayControlOrders: { orders: [], nextSequence: 1 },
+    railReplacementOperations: { operations: [], trips: [], nextSequence: 1, nextTripSequence: 1, nextVirtualLineId: -1 },
   };
 }
 

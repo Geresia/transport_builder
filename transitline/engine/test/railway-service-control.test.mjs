@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { restoreOperationalState, snapshotOperationalState } from "../src/integrated-save.mjs";
 import { buildRouteGraph } from "../src/network.mjs";
+import { patternsFromState, popTrains } from "../src/pop-adapter.mjs";
 import { advanceRailwayDisruptions, railwayDisruptionEffect } from "../src/railway-disruptions.mjs";
 import { ScenarioRuntime } from "../src/scenario-runtime.mjs";
 import {
@@ -116,6 +117,8 @@ test("M7 selections split a middle suspension into two independently routed and 
   dispatchTrains(state);
   assert.deepEqual(state.trains.map((train) => train.serviceStationIds), [["A", "B"], ["C", "D"]]);
   assert.deepEqual(state.trains.map((train) => train.terminalResourceId), ["terminal:B", "terminal:C"]);
+  assert.deepEqual(patternsFromState(state, state.simMinutes * 60).map((pattern) => pattern.stops), [["A", "B", "A"], ["C", "D", "C"]]);
+  assert.deepEqual(popTrains(state).map((train) => train.stationsAhead), [["A", "B", "A"], ["C", "D", "C"]]);
 });
 
 test("M7 selections reject stale, detached and unknown turnbacks unless the unknown fact is explicitly confirmed", () => {
