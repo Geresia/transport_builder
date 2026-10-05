@@ -32,10 +32,19 @@ test("coarse or unassessed source data is never allocated to a small station cat
   }
 });
 
-test("a drawn empty catchment is distinct from a catchment the player has not drawn", () => {
-  const result = assessStationDemandAccess({ stationDemandAccess: access([site("empty", []), site("none", [], localSource, false)]), pack });
-  assert.equal(result.sites.find((entry) => entry.stationAccessId === "empty").catchmentStatus, "empty");
-  assert.equal(result.sites.find((entry) => entry.stationAccessId === "none").catchmentStatus, "not-drawn");
+test("confirmed empty, unseen empty and an un-drawn boundary preserve distinct null/zero meanings", () => {
+  const result = assessStationDemandAccess({ stationDemandAccess: access([
+    site("empty", []), site("unseen", [], coarseSource), site("none", [], localSource, false),
+  ]), pack });
+  const empty = result.sites.find((entry) => entry.stationAccessId === "empty");
+  const unseen = result.sites.find((entry) => entry.stationAccessId === "unseen");
+  const none = result.sites.find((entry) => entry.stationAccessId === "none");
+  assert.equal(empty.catchmentStatus, "empty-confirmed");
+  assert.deepEqual(empty.totals.exclusive, { residents: 0, jobs: 0 });
+  assert.equal(unseen.catchmentStatus, "empty-unseen");
+  assert.equal(unseen.totals.exclusive, null);
+  assert.equal(none.catchmentStatus, "not-drawn");
+  assert.equal(none.totals.exclusive, null);
 });
 
 test("overlapping catchments keep candidate values separate and demand an allocation policy", () => {
@@ -55,7 +64,24 @@ test("missing node values and ids remain unknown rather than becoming zero", () 
   assert.deepEqual(inputs.map((entry) => [entry.demandNodeId, entry.reason, entry.residents, entry.jobs]), [
     ["missing", "demand-node-missing-from-pack", null, null], ["partial", "demand-node-values-missing", null, null],
   ]);
-  assert.deepEqual(result.sites[0].totals.exclusive, { residents: 0, jobs: 0 });
+  assert.equal(result.sites[0].totals.exclusive, null);
+  assert.equal(result.sites[0].totalsComplete, false);
+});
+
+test("cross-site node claims prevent duplicate exclusivity even if the map omitted its overlap record", () => {
+  const result = assessStationDemandAccess({ stationDemandAccess: access([site("a"), site("b")]) , pack });
+  for (const item of result.sites) {
+    assert.equal(item.catchmentStatus, "shared");
+    assert.equal(item.demandNodeInputs[0].status, "shared");
+    assert.deepEqual(item.demandNodeInputs[0].claimedByStationAccessIds, ["a", "b"]);
+  }
+});
+
+test("a polygon overlap without a shared node does not turn either node into a shared demand claim", () => {
+  const result = assessStationDemandAccess({ stationDemandAccess: access([
+    site("a", ["local"]), site("b", ["other"]),
+  ], [{ stationAccessIds: ["a", "b"], catchmentIds: ["catch:a", "catch:b"] }]), pack });
+  assert.deepEqual(result.sites.map((item) => item.demandNodeInputs[0].status), ["available", "available"]);
 });
 
 test("pack identity and contract version are strict, and inputs are not modified", () => {
