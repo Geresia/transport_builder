@@ -210,6 +210,16 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #scenario-panel .rail-replacement-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
 #scenario-panel .rail-replacement-management summary { cursor: pointer; color: #e5b65e; font-weight: 600; }
 #scenario-rail-replacement { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-panel .rail-capacity-application-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
+#scenario-panel .rail-capacity-application-management summary { cursor: pointer; color: #8cc9ff; font-weight: 600; }
+#scenario-rail-capacity-application { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-rail-capacity-application .rail-capacity-apply-notice, #scenario-rail-capacity-application .rail-capacity-apply-empty { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+#scenario-rail-capacity-application .rail-capacity-apply-field { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 5px; align-items: center; margin: 0; font-size: 10px; }
+#scenario-rail-capacity-application select { min-width: 0; box-sizing: border-box; padding: 4px 6px; color: var(--text); background: var(--chip); border: 1px solid var(--chip-line); border-radius: 5px; font: inherit; }
+#scenario-rail-capacity-application .rail-capacity-apply-error, #scenario-rail-capacity-application .rail-capacity-apply-ok, #scenario-rail-capacity-application .rail-capacity-apply-row { margin: 0; padding: 5px 6px; border: 1px solid var(--chip-line); border-radius: 5px; background: var(--chip); font-size: 10px; overflow-wrap: anywhere; }
+#scenario-rail-capacity-application .rail-capacity-apply-error { border-left: 3px solid var(--danger); color: var(--danger); }
+#scenario-rail-capacity-application .rail-capacity-apply-ok { border-left: 3px solid var(--ok); color: var(--ok); }
+#scenario-rail-capacity-application .rail-capacity-apply-heading { color: var(--muted); font-size: 10px; }
 #scenario-panel .railway-detour-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
 #scenario-panel .railway-detour-management summary { cursor: pointer; color: #d6a6ff; font-weight: 600; }
 #scenario-railway-detour { display: grid; gap: 6px; margin-top: 6px; }

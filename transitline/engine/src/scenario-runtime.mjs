@@ -1426,6 +1426,18 @@ export class ScenarioRuntime {
     return railCapacityApplicationReport(this.operationalState, lineId);
   }
 
+  // Read-only line facts for map-to-operation binding.  The UI receives stable ids and the
+  // physical topology it must name explicitly, never a guessed map/track correspondence.
+  operationalLineReport() {
+    return structuredClone((this.operationalState?.lines ?? []).map((line) => ({
+      id: String(line.id),
+      name: typeof line.name === "string" ? line.name : null,
+      trackSegmentIds: [...(line.trackSegmentIds ?? [])].map(String),
+      stationIds: [...(line.stationIds ?? [])].map(String),
+      suspended: line.suspended === true,
+    })).filter((line) => line.trackSegmentIds.length > 0).sort((a, b) => a.id.localeCompare(b.id)));
+  }
+
   evaluate() {
     return evaluateScenario(this.game, this.operationalState);
   }
