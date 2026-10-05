@@ -1391,7 +1391,14 @@ export class ScenarioRuntime {
   }
 
   applyRailCapacityGeometry(lineId, geometry) {
-    return applyRailCapacityGeometry(this.operationalState, { lineId, geometry });
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("rail-capacity-geometry-applied", () => applyRailCapacityGeometry(this.operationalState, { lineId, geometry }));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
   }
 
   railCapacityApplicationReport(lineId = null) {
