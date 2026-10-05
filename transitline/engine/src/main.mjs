@@ -29,6 +29,7 @@ import { mountThroughServiceManagementPanel } from "./through-service-management
 import { mountRailReplacementManagementPanel } from "./rail-replacement-management-ui.mjs";
 import { mountRailwayDetourManagementPanel } from "./railway-detour-management-ui.mjs";
 import { mountRailCapacityApplicationPanel } from "./rail-capacity-application-ui.mjs";
+import { mountRailwayDisruptionManagementPanel } from "./railway-disruption-management-ui.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
 
@@ -344,6 +345,7 @@ async function main() {
   let railReplacementManagement = null;
   let railwayDetourManagement = null;
   let railCapacityApplicationManagement = null;
+  let railwayDisruptionManagement = null;
   let railReplacementGeometries = [];
   let mapInputPipeline = null;
   let mapInputOutput = null;
@@ -365,6 +367,7 @@ async function main() {
     mapInputPipeline?.refresh();
     railwayDetourManagement?.refresh();
     railCapacityApplicationManagement?.refresh();
+    railwayDisruptionManagement?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -1481,6 +1484,7 @@ async function main() {
       railReplacementManagement?.refresh();
       railwayDetourManagement?.refresh();
       railCapacityApplicationManagement?.refresh();
+      railwayDisruptionManagement?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1519,6 +1523,11 @@ async function main() {
       getRailGeometries: () => mapInputPipeline?.output().railGeometries ?? [],
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
+    railwayDisruptionManagement = mountRailwayDisruptionManagementPanel({
+      container: $("scenario-railway-disruptions"),
+      runtime,
+      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+    });
     railwayDetourManagement = mountRailwayDetourManagementPanel({
       container: $("scenario-railway-detour"),
       runtime,
@@ -1534,6 +1543,7 @@ async function main() {
       throughServiceManagement?.refresh();
       railwayDetourManagement?.refresh();
       railCapacityApplicationManagement?.refresh();
+      railwayDisruptionManagement?.refresh();
     }), true);
 
     $("scenario-opportunity-view").addEventListener("click", () => run(() => {
@@ -1735,6 +1745,7 @@ async function main() {
     lastUi = now;
     updateRoutePanelLive(state);
     if (runtime) {
+      railwayDisruptionManagement?.refresh();
       const settlements = runtime.settleOperatingDays();
       if (settlements.length) refreshScenarioPanel();
     }

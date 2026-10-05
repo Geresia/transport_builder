@@ -220,6 +220,18 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #scenario-rail-capacity-application .rail-capacity-apply-error { border-left: 3px solid var(--danger); color: var(--danger); }
 #scenario-rail-capacity-application .rail-capacity-apply-ok { border-left: 3px solid var(--ok); color: var(--ok); }
 #scenario-rail-capacity-application .rail-capacity-apply-heading { color: var(--muted); font-size: 10px; }
+#scenario-panel .railway-disruption-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
+#scenario-panel .railway-disruption-management summary { cursor: pointer; color: #ff9c83; font-weight: 600; }
+#scenario-railway-disruptions { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-railway-disruptions .railway-disruption-notice, #scenario-railway-disruptions .railway-disruption-empty { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+#scenario-railway-disruptions .railway-disruption-card { display: grid; gap: 4px; padding: 6px; border: 1px solid var(--chip-line); border-radius: 5px; background: var(--chip); }
+#scenario-railway-disruptions .railway-disruption-card.active { border-left: 3px solid var(--danger); }
+#scenario-railway-disruptions .railway-disruption-card.responding { border-left: 3px solid var(--warn); }
+#scenario-railway-disruptions .railway-disruption-card.resolved { opacity: .62; border-left: 3px solid var(--ok); }
+#scenario-railway-disruptions .railway-disruption-facts, #scenario-railway-disruptions .railway-disruption-count { color: var(--muted); font: 9px var(--mono); overflow-wrap: anywhere; }
+#scenario-railway-disruptions .railway-disruption-response { padding: 4px; border-left: 3px solid var(--warn); background: color-mix(in srgb, var(--warn) 7%, var(--chip)); font-size: 10px; }
+#scenario-railway-disruptions select { min-width: 0; box-sizing: border-box; padding: 4px 6px; color: var(--text); background: var(--chip); border: 1px solid var(--chip-line); border-radius: 5px; font: inherit; }
+#scenario-railway-disruptions .railway-disruption-error { padding: 5px 6px; border-left: 3px solid var(--danger); color: var(--danger); background: var(--chip); font-size: 10px; }
 #scenario-panel .railway-detour-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
 #scenario-panel .railway-detour-management summary { cursor: pointer; color: #d6a6ff; font-weight: 600; }
 #scenario-railway-detour { display: grid; gap: 6px; margin-top: 6px; }
