@@ -210,6 +210,25 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #scenario-panel .rail-replacement-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
 #scenario-panel .rail-replacement-management summary { cursor: pointer; color: #e5b65e; font-weight: 600; }
 #scenario-rail-replacement { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-panel .railway-detour-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
+#scenario-panel .railway-detour-management summary { cursor: pointer; color: #d6a6ff; font-weight: 600; }
+#scenario-railway-detour { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-railway-detour .detour-notice, #scenario-railway-detour .detour-empty { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+#scenario-railway-detour .detour-field { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 5px; align-items: center; margin: 0; font-size: 10px; }
+#scenario-railway-detour input, #scenario-railway-detour select { min-width: 0; box-sizing: border-box; padding: 4px 6px; color: var(--text); background: var(--chip); border: 1px solid var(--chip-line); border-radius: 5px; font: inherit; }
+#scenario-railway-detour .detour-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; }
+#scenario-railway-detour .detour-metric { min-width: 0; padding: 4px; background: var(--chip); }
+#scenario-railway-detour .detour-metric span, #scenario-railway-detour .detour-metric b { display: block; overflow-wrap: anywhere; }
+#scenario-railway-detour .detour-metric span { color: var(--muted); font-size: 9px; }
+#scenario-railway-detour .detour-metric b { margin-top: 2px; font: 9px var(--mono); }
+#scenario-railway-detour .detour-check { display: flex; gap: 5px; align-items: center; font-size: 10px; }
+#scenario-railway-detour .detour-check input { width: auto; }
+#scenario-railway-detour .detour-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+#scenario-railway-detour .detour-connection, #scenario-railway-detour .detour-assessment, #scenario-railway-detour .detour-authorization, #scenario-railway-detour .detour-operation { padding: 5px 6px; border: 1px solid var(--chip-line); border-radius: 5px; background: var(--chip); font-size: 10px; overflow-wrap: anywhere; }
+#scenario-railway-detour .state-true, #scenario-railway-detour .possible, #scenario-railway-detour .authorized, #scenario-railway-detour .active { border-left: 3px solid var(--ok); }
+#scenario-railway-detour .state-false, #scenario-railway-detour .impossible, #scenario-railway-detour .detour-error { border-left: 3px solid var(--danger); color: var(--danger); }
+#scenario-railway-detour .state-null, #scenario-railway-detour .unknown, #scenario-railway-detour .conditional { border-left: 3px solid var(--warn); }
+#scenario-railway-detour .detour-diag { margin-top: 3px; color: var(--muted); font: 9px var(--mono); overflow-wrap: anywhere; }
 #scenario-panel .rail-replacement-intro { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
 #scenario-panel .rail-replacement-form { display: grid; gap: 3px; }
 #scenario-panel .rail-replacement-form label { grid-template-columns: 66px 1fr; margin: 0; }

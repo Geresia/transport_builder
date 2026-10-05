@@ -87,7 +87,9 @@ export function mountRailwayDetourManagementPanel({ container, runtime, getDetou
       picks: structuredClone(output().picks?.[planKey(geometry.eventId, geometry.selectedDetourCandidateId ?? "")] ?? {}),
       vehicleModelId: form.vehicleModelId, trainsPerHour: Number(form.trainsPerHour), trackAccessAgreementIds: [...form.agreementIds],
       confirmUnknownConnections: form.confirmUnknownConnections, confirmConditionalTechnical: form.confirmConditionalTechnical,
-      externalInfrastructureCatalog: getExternalInfrastructureCatalog() ?? null,
+      // A catalog may be route-specific. Passing the current geometry lets the host avoid
+      // merging two routes that share one external line into ambiguous evidence.
+      externalInfrastructureCatalog: getExternalInfrastructureCatalog(geometry) ?? null,
     };
     // Omitted when no getter is wired, so the runtime falls back to its own agreements.
     if (typeof getTrackAccessAgreements === "function") input.trackAccessAgreements = structuredClone(agreements());

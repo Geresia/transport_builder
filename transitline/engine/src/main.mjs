@@ -27,7 +27,9 @@ import { mountStationManagementPanel } from "./station-management-ui.mjs";
 import { mountConstructionContractorPanel } from "./construction-contractor-ui.mjs";
 import { mountThroughServiceManagementPanel } from "./through-service-management-ui.mjs";
 import { mountRailReplacementManagementPanel } from "./rail-replacement-management-ui.mjs";
+import { mountRailwayDetourManagementPanel } from "./railway-detour-management-ui.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
+import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
 
 const params = new URLSearchParams(location.search);
 const packPath = params.get("pack") ?? "../packs/example-radial";
@@ -339,6 +341,7 @@ async function main() {
   let throughHandoverUi = null;
   let throughServiceManagement = null;
   let railReplacementManagement = null;
+  let railwayDetourManagement = null;
   let railReplacementGeometries = [];
   let mapInputPipeline = null;
   let mapInputOutput = null;
@@ -358,6 +361,7 @@ async function main() {
     constructionWorkfront?.refresh();
     throughHandoverUi?.refresh();
     mapInputPipeline?.refresh();
+    railwayDetourManagement?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -529,6 +533,17 @@ async function main() {
     const pipelineButton = $("btn-railway-control");
     const throughRoutesForMap = () => (runtime.report().throughRoutes ?? []).map((entry) => entry?.route ?? entry)
       .filter((route) => route?.schema === "transitline.through-route-geometry/1");
+    // A catalog is route-specific. Combining entries for two through routes that use the same
+    // external line would make ownership/specification evidence ambiguous.
+    const externalCatalogForDetour = (detour = null) => {
+      const routes = throughRoutesForMap();
+      const route = detour?.throughRouteId
+        ? routes.find((candidate) => candidate.throughRouteId === detour.throughRouteId)
+        : routes.length === 1 ? routes[0] : null;
+      if (!route) return null;
+      try { return externalInfrastructureCatalogForRoute(pack, route); }
+      catch { return null; }
+    };
     mapInputPipeline = mountMapInputPipeline({
       canvas,
       projection,
@@ -536,9 +551,9 @@ async function main() {
       getPlans: () => currentMapExport?.plans ?? [],
       getRoutes: throughRoutesForMap,
       getExternalNetworks: () => currentMapExport?.externalNetworks ?? [],
-      // No verified catalog is published by this screen yet.  The map keeps those technical facts
-      // unknown; authorization independently requires a sourced catalog before it can approve use.
-      getExternalCatalog: () => null,
+      // A multi-route generic catalog would merge duplicate external-line evidence. The selected
+      // detour gets its precise route catalog in the management panel below.
+      getExternalCatalog: () => externalCatalogForDetour(),
       getStationSites: () => stationUi?.stationExport?.sites ?? [],
       getSpatial: getCurrentSpatial,
       getRailCapacityApplication: () => runtime.railCapacityApplicationReport(),
@@ -1461,6 +1476,7 @@ async function main() {
       constructionContractorManagement?.refresh();
       throughServiceManagement?.refresh();
       railReplacementManagement?.refresh();
+      railwayDetourManagement?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1493,9 +1509,20 @@ async function main() {
       getReplacementGeometries: () => railReplacementGeometries,
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
+    railwayDetourManagement = mountRailwayDetourManagementPanel({
+      container: $("scenario-railway-detour"),
+      runtime,
+      // The pipeline's top-level output intentionally stores only the M10 export. M11 also
+      // needs the player picks, which are preserved by the M10 stage itself.
+      getDetourOutput: () => mapInputPipeline?.stages.detour.output() ?? { export: { detours: [] }, picks: {} },
+      getExternalInfrastructureCatalog: externalCatalogForDetour,
+      getTrackAccessAgreements: () => runtime.game.trackAccessAgreements,
+      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+    });
     canvas.addEventListener("pointerup", () => queueMicrotask(() => {
       stationManagement?.refresh();
       throughServiceManagement?.refresh();
+      railwayDetourManagement?.refresh();
     }), true);
 
     $("scenario-opportunity-view").addEventListener("click", () => run(() => {

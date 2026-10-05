@@ -93,7 +93,8 @@ test("unknown distance and connection facts are shown as unknown, never filled i
 test("review sends the exact request, copies instead of aliasing inputs, and shows the engine assessment as given", () => {
   const output = deepFreeze(outputOf()); const frozenCatalog = deepFreeze(catalog());
   const spy = spyRuntime({ assessment: assessmentOf("conditional", { violations: ["leg:leg:1:capacity-exceeded"], missingInputs: ["connection:connection:1:physicalConnection"], conditions: ["leg:leg:1:trackAccessAgreementRequired"], detourLengthMeters: null }) });
-  const env = mount({ getDetourOutput: () => output, getExternalInfrastructureCatalog: () => frozenCatalog }, spy);
+  let catalogGeometry = null;
+  const env = mount({ getDetourOutput: () => output, getExternalInfrastructureCatalog: (current) => { catalogGeometry = current; return frozenCatalog; } }, spy);
   type(control(env.container, "관제명령"), " order:1 ");
   type(control(env.container, "시간당 운행횟수"), "9");
   const model = control(env.container, "차량 모델"); model.value = "large_8car"; model.fire("change");
@@ -101,6 +102,7 @@ test("review sends the exact request, copies instead of aliasing inputs, and sho
   assert.equal(spy.calls.assess.length, 0);
   click(env.container, "사전 검토");
   assert.equal(spy.calls.assess.length, 1);
+  assert.equal(catalogGeometry?.detourGeometryId, "detour:1");
   assert.deepEqual(spy.calls.assess[0], {
     eventId: "event:1", controlOrderId: "order:1", detourGeometry: geometry(), detourGeometryRevision: "detour-rev:1",
     picks: { legIds: ["leg:1"], connectionIds: ["connection:1"], transferIds: [] },

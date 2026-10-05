@@ -18,7 +18,7 @@ const panel = mountRailwayDetourManagementPanel({
   container,                         // 필수. 패널을 채울 요소
   runtime,                           // 필수. ScenarioRuntime (아래 5개 메서드가 없으면 던진다)
   getDetourOutput,                   // M10 bridge.output() -> { export: { detours }, picks }
-  getExternalInfrastructureCatalog,  // buildExternalInfrastructureCatalog 결과 (없으면 null)
+  getExternalInfrastructureCatalog,  // (geometry) => 이 우회안의 buildExternalInfrastructureCatalog 결과 (없으면 null)
   getTrackAccessAgreements,          // 선택. 선로사용 계약 목록
   onChange,                          // 승인/운행 시작이 성공한 뒤 호출 (저장 시점으로 쓰면 된다)
 });
@@ -46,7 +46,7 @@ mountRailwayDetourManagementPanel({
   container: document.getElementById("detour-management"),   // 새 컨테이너가 필요하다 (index.html 수정)
   runtime,
   getDetourOutput: () => detourBridge.output(),
-  getExternalInfrastructureCatalog: () => externalCatalog,    // M10에 넘기는 것과 같은 카탈로그
+  getExternalInfrastructureCatalog: (geometry) => catalogForRoute(geometry.throughRouteId),
   getTrackAccessAgreements: () => runtime.game.trackAccessAgreements,
   onChange: () => saveIntegrated(),                           // 통합 저장 호출
 });
