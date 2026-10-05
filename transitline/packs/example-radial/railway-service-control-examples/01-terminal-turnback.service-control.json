@@ -1,0 +1,891 @@
+{
+  "schema": "transitline.railway-service-control-geometry/1",
+  "contractVersion": 1,
+  "controlGeometryId": "railway-service-control:ced289424406f8d8",
+  "controlGeometryRevision": "railway-service-control-revision:2ea03ea1dec77bdf",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "eventId": "railway-disruption:1",
+  "disruptionSiteId": "railway-disruption-site:ced289424406f8d8",
+  "disruptionSiteRevision": "railway-disruption-site-revision:9c9afd7482fc1c52",
+  "railGeometryId": "rail-geometry:ddbdab13279c8fb1",
+  "railGeometryRevision": "rail-geometry-revision:74095bd437f59bfa",
+  "throughRouteId": null,
+  "operationalLineId": "line:1",
+  "affectedTrackSegmentIds": [
+    "track-segment:1"
+  ],
+  "affectedSectionIds": [
+    "rail-section:0f9605c63320a140"
+  ],
+  "affectedBlockIds": [
+    "rail-block:832d9880c287a506"
+  ],
+  "scope": "section",
+  "affectedAlignment": [
+    [
+      0.02,
+      0
+    ],
+    [
+      0.04347,
+      0.01165
+    ]
+  ],
+  "disruptionLocation": [
+    0.031735,
+    0.005825
+  ],
+  "turnbackCandidates": [
+    {
+      "candidateId": "railway-control-turnback:12f031fa5ec10584",
+      "stationId": "stn:1c7dc899c704388b",
+      "terminalResourceId": null,
+      "junctionResourceIds": null,
+      "approachSectionIds": [
+        "rail-section:aeac86fb60845a0d"
+      ],
+      "platformCandidateIds": null,
+      "turnbackTrackCandidateIds": null,
+      "location": [
+        0.04347,
+        0.01165
+      ],
+      "physicalAttachment": null,
+      "facilityAttachments": null,
+      "adjacentToDisruption": true,
+      "sectionsFromDisruption": 0,
+      "unknown": [
+        "facilityAttachments",
+        "junctionResourceIds",
+        "physicalAttachment",
+        "platformCandidateIds",
+        "terminalResourceId",
+        "turnbackTrackCandidateIds"
+      ],
+      "unknownReasons": {
+        "facilityAttachments": "terminal-not-stated",
+        "junctionResourceIds": "no-junction-data",
+        "physicalAttachment": "terminal-not-stated",
+        "platformCandidateIds": "terminal-not-stated",
+        "terminalResourceId": "terminal-not-stated",
+        "turnbackTrackCandidateIds": "terminal-not-stated"
+      }
+    },
+    {
+      "candidateId": "railway-control-turnback:275c41a05093b122",
+      "stationId": "stn:cbcf9940f43b2516",
+      "terminalResourceId": "rail-terminal:648359f0e87aaf86",
+      "junctionResourceIds": null,
+      "approachSectionIds": [
+        "rail-section:a313651c76603b96"
+      ],
+      "platformCandidateIds": [
+        "rail-platform-candidate:846848c3fd84b9a9"
+      ],
+      "turnbackTrackCandidateIds": [
+        "rail-turnback-candidate:aadfdad2c6453d38"
+      ],
+      "location": [
+        0,
+        0
+      ],
+      "physicalAttachment": true,
+      "facilityAttachments": [
+        {
+          "kind": "platform",
+          "facilityId": "rail-platform-candidate:846848c3fd84b9a9",
+          "attached": true
+        },
+        {
+          "kind": "turnback-track",
+          "facilityId": "rail-turnback-candidate:aadfdad2c6453d38",
+          "attached": true
+        }
+      ],
+      "adjacentToDisruption": false,
+      "sectionsFromDisruption": 1,
+      "unknown": [
+        "junctionResourceIds"
+      ],
+      "unknownReasons": {
+        "junctionResourceIds": "no-junction-data"
+      }
+    },
+    {
+      "candidateId": "railway-control-turnback:d629a2d187bced9b",
+      "stationId": "stn:12eab25d4b99dd0f",
+      "terminalResourceId": "rail-terminal:3ec966529e087034",
+      "junctionResourceIds": null,
+      "approachSectionIds": [
+        "rail-section:aeac86fb60845a0d"
+      ],
+      "platformCandidateIds": [
+        "rail-platform-candidate:25d9d86f4822048d"
+      ],
+      "turnbackTrackCandidateIds": [
+        "rail-turnback-candidate:5f4b39e0d8d57cb6"
+      ],
+      "location": [
+        0.06495,
+        0.0375
+      ],
+      "physicalAttachment": true,
+      "facilityAttachments": [
+        {
+          "kind": "platform",
+          "facilityId": "rail-platform-candidate:25d9d86f4822048d",
+          "attached": true
+        },
+        {
+          "kind": "turnback-track",
+          "facilityId": "rail-turnback-candidate:5f4b39e0d8d57cb6",
+          "attached": true
+        }
+      ],
+      "adjacentToDisruption": false,
+      "sectionsFromDisruption": 1,
+      "unknown": [
+        "junctionResourceIds"
+      ],
+      "unknownReasons": {
+        "junctionResourceIds": "no-junction-data"
+      }
+    },
+    {
+      "candidateId": "railway-control-turnback:d9a69f1a1dabd704",
+      "stationId": "stn:350dbe3a0551f15c",
+      "terminalResourceId": null,
+      "junctionResourceIds": null,
+      "approachSectionIds": [
+        "rail-section:a313651c76603b96"
+      ],
+      "platformCandidateIds": null,
+      "turnbackTrackCandidateIds": null,
+      "location": [
+        0.02,
+        0
+      ],
+      "physicalAttachment": null,
+      "facilityAttachments": null,
+      "adjacentToDisruption": true,
+      "sectionsFromDisruption": 0,
+      "unknown": [
+        "facilityAttachments",
+        "junctionResourceIds",
+        "physicalAttachment",
+        "platformCandidateIds",
+        "terminalResourceId",
+        "turnbackTrackCandidateIds"
+      ],
+      "unknownReasons": {
+        "facilityAttachments": "terminal-not-stated",
+        "junctionResourceIds": "no-junction-data",
+        "physicalAttachment": "terminal-not-stated",
+        "platformCandidateIds": "terminal-not-stated",
+        "terminalResourceId": "terminal-not-stated",
+        "turnbackTrackCandidateIds": "terminal-not-stated"
+      }
+    }
+  ],
+  "partialSuspensionCandidates": [
+    {
+      "candidateId": "railway-control-suspension:44883921ac87ee63",
+      "startStationId": "stn:12eab25d4b99dd0f",
+      "endStationId": "stn:350dbe3a0551f15c",
+      "suspendedSectionIds": [
+        "rail-section:0f9605c63320a140",
+        "rail-section:aeac86fb60845a0d"
+      ],
+      "suspendedBlockIds": [
+        "rail-block:532f4d0c311ed332",
+        "rail-block:832d9880c287a506"
+      ],
+      "retainedSectionIds": [
+        "rail-section:a313651c76603b96"
+      ],
+      "boundaryJunctionResourceIds": null,
+      "isolatedStationIds": [
+        "stn:12eab25d4b99dd0f",
+        "stn:1c7dc899c704388b"
+      ],
+      "replacementConnectionStationIds": null,
+      "startTurnbackCandidateId": "railway-control-turnback:d629a2d187bced9b",
+      "endTurnbackCandidateId": "railway-control-turnback:d9a69f1a1dabd704",
+      "geometry": {
+        "boundaryLocations": [
+          [
+            0.06495,
+            0.0375
+          ],
+          [
+            0.02,
+            0
+          ]
+        ],
+        "sectionAlignments": [
+          {
+            "sectionId": "rail-section:0f9605c63320a140",
+            "alignment": [
+              [
+                0.02,
+                0
+              ],
+              [
+                0.04347,
+                0.01165
+              ]
+            ]
+          },
+          {
+            "sectionId": "rail-section:aeac86fb60845a0d",
+            "alignment": [
+              [
+                0.04347,
+                0.01165
+              ],
+              [
+                0.06495,
+                0.0375
+              ]
+            ]
+          }
+        ],
+        "suspendedLengthMeters": 6650.8,
+        "unknown": [],
+        "unknownReasons": {}
+      },
+      "unknown": [
+        "boundaryJunctionResourceIds",
+        "replacementConnectionStationIds"
+      ],
+      "unknownReasons": {
+        "boundaryJunctionResourceIds": "no-junction-data",
+        "replacementConnectionStationIds": "no-existing-line-in-geometry"
+      }
+    },
+    {
+      "candidateId": "railway-control-suspension:4d94a93f4a81e5b1",
+      "startStationId": "stn:1c7dc899c704388b",
+      "endStationId": "stn:350dbe3a0551f15c",
+      "suspendedSectionIds": [
+        "rail-section:0f9605c63320a140"
+      ],
+      "suspendedBlockIds": [
+        "rail-block:832d9880c287a506"
+      ],
+      "retainedSectionIds": [
+        "rail-section:a313651c76603b96",
+        "rail-section:aeac86fb60845a0d"
+      ],
+      "boundaryJunctionResourceIds": null,
+      "isolatedStationIds": [],
+      "replacementConnectionStationIds": null,
+      "startTurnbackCandidateId": "railway-control-turnback:12f031fa5ec10584",
+      "endTurnbackCandidateId": "railway-control-turnback:d9a69f1a1dabd704",
+      "geometry": {
+        "boundaryLocations": [
+          [
+            0.04347,
+            0.01165
+          ],
+          [
+            0.02,
+            0
+          ]
+        ],
+        "sectionAlignments": [
+          {
+            "sectionId": "rail-section:0f9605c63320a140",
+            "alignment": [
+              [
+                0.02,
+                0
+              ],
+              [
+                0.04347,
+                0.01165
+              ]
+            ]
+          }
+        ],
+        "suspendedLengthMeters": 2913.6,
+        "unknown": [],
+        "unknownReasons": {}
+      },
+      "unknown": [
+        "boundaryJunctionResourceIds",
+        "replacementConnectionStationIds"
+      ],
+      "unknownReasons": {
+        "boundaryJunctionResourceIds": "no-junction-data",
+        "replacementConnectionStationIds": "no-existing-line-in-geometry"
+      }
+    },
+    {
+      "candidateId": "railway-control-suspension:7056e6b68f4c3464",
+      "startStationId": "stn:1c7dc899c704388b",
+      "endStationId": "stn:cbcf9940f43b2516",
+      "suspendedSectionIds": [
+        "rail-section:0f9605c63320a140",
+        "rail-section:a313651c76603b96"
+      ],
+      "suspendedBlockIds": [
+        "rail-block:832d9880c287a506",
+        "rail-block:b2e9c7835aacdd7d"
+      ],
+      "retainedSectionIds": [
+        "rail-section:aeac86fb60845a0d"
+      ],
+      "boundaryJunctionResourceIds": null,
+      "isolatedStationIds": [
+        "stn:350dbe3a0551f15c",
+        "stn:cbcf9940f43b2516"
+      ],
+      "replacementConnectionStationIds": null,
+      "startTurnbackCandidateId": "railway-control-turnback:12f031fa5ec10584",
+      "endTurnbackCandidateId": "railway-control-turnback:275c41a05093b122",
+      "geometry": {
+        "boundaryLocations": [
+          [
+            0.04347,
+            0.01165
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "sectionAlignments": [
+          {
+            "sectionId": "rail-section:0f9605c63320a140",
+            "alignment": [
+              [
+                0.02,
+                0
+              ],
+              [
+                0.04347,
+                0.01165
+              ]
+            ]
+          },
+          {
+            "sectionId": "rail-section:a313651c76603b96",
+            "alignment": [
+              [
+                0,
+                0
+              ],
+              [
+                0.02,
+                0
+              ]
+            ]
+          }
+        ],
+        "suspendedLengthMeters": 5137.5,
+        "unknown": [],
+        "unknownReasons": {}
+      },
+      "unknown": [
+        "boundaryJunctionResourceIds",
+        "replacementConnectionStationIds"
+      ],
+      "unknownReasons": {
+        "boundaryJunctionResourceIds": "no-junction-data",
+        "replacementConnectionStationIds": "no-existing-line-in-geometry"
+      }
+    },
+    {
+      "candidateId": "railway-control-suspension:bc16b7c044bb8e66",
+      "startStationId": "stn:12eab25d4b99dd0f",
+      "endStationId": "stn:cbcf9940f43b2516",
+      "suspendedSectionIds": [
+        "rail-section:0f9605c63320a140",
+        "rail-section:a313651c76603b96",
+        "rail-section:aeac86fb60845a0d"
+      ],
+      "suspendedBlockIds": [
+        "rail-block:532f4d0c311ed332",
+        "rail-block:832d9880c287a506",
+        "rail-block:b2e9c7835aacdd7d"
+      ],
+      "retainedSectionIds": [],
+      "boundaryJunctionResourceIds": null,
+      "isolatedStationIds": [
+        "stn:12eab25d4b99dd0f",
+        "stn:1c7dc899c704388b",
+        "stn:350dbe3a0551f15c",
+        "stn:cbcf9940f43b2516"
+      ],
+      "replacementConnectionStationIds": null,
+      "startTurnbackCandidateId": "railway-control-turnback:d629a2d187bced9b",
+      "endTurnbackCandidateId": "railway-control-turnback:275c41a05093b122",
+      "geometry": {
+        "boundaryLocations": [
+          [
+            0.06495,
+            0.0375
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "sectionAlignments": [
+          {
+            "sectionId": "rail-section:0f9605c63320a140",
+            "alignment": [
+              [
+                0.02,
+                0
+              ],
+              [
+                0.04347,
+                0.01165
+              ]
+            ]
+          },
+          {
+            "sectionId": "rail-section:a313651c76603b96",
+            "alignment": [
+              [
+                0,
+                0
+              ],
+              [
+                0.02,
+                0
+              ]
+            ]
+          },
+          {
+            "sectionId": "rail-section:aeac86fb60845a0d",
+            "alignment": [
+              [
+                0.04347,
+                0.01165
+              ],
+              [
+                0.06495,
+                0.0375
+              ]
+            ]
+          }
+        ],
+        "suspendedLengthMeters": 8874.7,
+        "unknown": [],
+        "unknownReasons": {}
+      },
+      "unknown": [
+        "boundaryJunctionResourceIds",
+        "replacementConnectionStationIds"
+      ],
+      "unknownReasons": {
+        "boundaryJunctionResourceIds": "no-junction-data",
+        "replacementConnectionStationIds": "no-existing-line-in-geometry"
+      }
+    }
+  ],
+  "detourCandidates": [],
+  "evacuationAccessCandidates": [
+    {
+      "candidateId": "railway-control-evacuation:6f1279d756bec161",
+      "kind": "station",
+      "refId": "stn:350dbe3a0551f15c",
+      "stationId": "stn:350dbe3a0551f15c",
+      "name": null,
+      "location": [
+        0.02,
+        0
+      ],
+      "basis": "source",
+      "distanceMeters": 1458.4,
+      "distanceBasis": "location",
+      "roadAdjacent": null,
+      "nearestRoad": null,
+      "roadWidthMeters": null,
+      "roadWidthAtLeastVehicleWidth": null,
+      "nearestOfKind": true,
+      "unknown": [
+        "nearestRoad",
+        "roadAdjacent",
+        "roadWidthAtLeastVehicleWidth",
+        "roadWidthMeters"
+      ],
+      "unknownReasons": {
+        "nearestRoad": "outside-road-coverage",
+        "roadAdjacent": "outside-road-coverage",
+        "roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+        "roadWidthMeters": "road-width-not-in-source"
+      }
+    },
+    {
+      "candidateId": "railway-control-evacuation:e00c9759df00b853",
+      "kind": "road-point",
+      "refId": "0.031735,0.011950",
+      "stationId": null,
+      "name": null,
+      "location": [
+        0.031735,
+        0.01195
+      ],
+      "basis": "source",
+      "distanceMeters": 681.8,
+      "distanceBasis": "location",
+      "roadAdjacent": true,
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 0,
+        "location": [
+          0.031735,
+          0.01195
+        ]
+      },
+      "roadWidthMeters": null,
+      "roadWidthAtLeastVehicleWidth": null,
+      "nearestOfKind": true,
+      "unknown": [
+        "roadWidthAtLeastVehicleWidth",
+        "roadWidthMeters"
+      ],
+      "unknownReasons": {
+        "roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+        "roadWidthMeters": "road-width-not-in-source"
+      }
+    },
+    {
+      "candidateId": "railway-control-evacuation:f941bc67ad376c19",
+      "kind": "station",
+      "refId": "stn:1c7dc899c704388b",
+      "stationId": "stn:1c7dc899c704388b",
+      "name": null,
+      "location": [
+        0.04347,
+        0.01165
+      ],
+      "basis": "source",
+      "distanceMeters": 1458.4,
+      "distanceBasis": "location",
+      "roadAdjacent": true,
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 33.4,
+        "location": [
+          0.04347,
+          0.01195
+        ]
+      },
+      "roadWidthMeters": null,
+      "roadWidthAtLeastVehicleWidth": null,
+      "nearestOfKind": true,
+      "unknown": [
+        "roadWidthAtLeastVehicleWidth",
+        "roadWidthMeters"
+      ],
+      "unknownReasons": {
+        "roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+        "roadWidthMeters": "road-width-not-in-source"
+      }
+    }
+  ],
+  "spatialFlags": [
+    "double-track-section-affected",
+    "entrance-data-missing",
+    "no-detour-in-geometry",
+    "through-route-not-supplied",
+    "turnback-attachment-confirmed",
+    "whole-section-affected"
+  ],
+  "dataQuality": "low",
+  "unknown": [
+    "evacuation:railway-control-evacuation:6f1279d756bec161:nearestRoad",
+    "evacuation:railway-control-evacuation:6f1279d756bec161:roadAdjacent",
+    "evacuation:railway-control-evacuation:6f1279d756bec161:roadWidthAtLeastVehicleWidth",
+    "evacuation:railway-control-evacuation:6f1279d756bec161:roadWidthMeters",
+    "evacuation:railway-control-evacuation:e00c9759df00b853:roadWidthAtLeastVehicleWidth",
+    "evacuation:railway-control-evacuation:e00c9759df00b853:roadWidthMeters",
+    "evacuation:railway-control-evacuation:f941bc67ad376c19:roadWidthAtLeastVehicleWidth",
+    "evacuation:railway-control-evacuation:f941bc67ad376c19:roadWidthMeters",
+    "suspension:railway-control-suspension:44883921ac87ee63:boundaryJunctionResourceIds",
+    "suspension:railway-control-suspension:44883921ac87ee63:replacementConnectionStationIds",
+    "suspension:railway-control-suspension:4d94a93f4a81e5b1:boundaryJunctionResourceIds",
+    "suspension:railway-control-suspension:4d94a93f4a81e5b1:replacementConnectionStationIds",
+    "suspension:railway-control-suspension:7056e6b68f4c3464:boundaryJunctionResourceIds",
+    "suspension:railway-control-suspension:7056e6b68f4c3464:replacementConnectionStationIds",
+    "suspension:railway-control-suspension:bc16b7c044bb8e66:boundaryJunctionResourceIds",
+    "suspension:railway-control-suspension:bc16b7c044bb8e66:replacementConnectionStationIds",
+    "turnback:railway-control-turnback:12f031fa5ec10584:facilityAttachments",
+    "turnback:railway-control-turnback:12f031fa5ec10584:junctionResourceIds",
+    "turnback:railway-control-turnback:12f031fa5ec10584:physicalAttachment",
+    "turnback:railway-control-turnback:12f031fa5ec10584:platformCandidateIds",
+    "turnback:railway-control-turnback:12f031fa5ec10584:terminalResourceId",
+    "turnback:railway-control-turnback:12f031fa5ec10584:turnbackTrackCandidateIds",
+    "turnback:railway-control-turnback:275c41a05093b122:junctionResourceIds",
+    "turnback:railway-control-turnback:d629a2d187bced9b:junctionResourceIds",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:facilityAttachments",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:junctionResourceIds",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:physicalAttachment",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:platformCandidateIds",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:terminalResourceId",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:turnbackTrackCandidateIds"
+  ],
+  "unknownReasons": {
+    "evacuation:railway-control-evacuation:6f1279d756bec161:nearestRoad": "outside-road-coverage",
+    "evacuation:railway-control-evacuation:6f1279d756bec161:roadAdjacent": "outside-road-coverage",
+    "evacuation:railway-control-evacuation:6f1279d756bec161:roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+    "evacuation:railway-control-evacuation:6f1279d756bec161:roadWidthMeters": "road-width-not-in-source",
+    "evacuation:railway-control-evacuation:e00c9759df00b853:roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+    "evacuation:railway-control-evacuation:e00c9759df00b853:roadWidthMeters": "road-width-not-in-source",
+    "evacuation:railway-control-evacuation:f941bc67ad376c19:roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+    "evacuation:railway-control-evacuation:f941bc67ad376c19:roadWidthMeters": "road-width-not-in-source",
+    "suspension:railway-control-suspension:44883921ac87ee63:boundaryJunctionResourceIds": "no-junction-data",
+    "suspension:railway-control-suspension:44883921ac87ee63:replacementConnectionStationIds": "no-existing-line-in-geometry",
+    "suspension:railway-control-suspension:4d94a93f4a81e5b1:boundaryJunctionResourceIds": "no-junction-data",
+    "suspension:railway-control-suspension:4d94a93f4a81e5b1:replacementConnectionStationIds": "no-existing-line-in-geometry",
+    "suspension:railway-control-suspension:7056e6b68f4c3464:boundaryJunctionResourceIds": "no-junction-data",
+    "suspension:railway-control-suspension:7056e6b68f4c3464:replacementConnectionStationIds": "no-existing-line-in-geometry",
+    "suspension:railway-control-suspension:bc16b7c044bb8e66:boundaryJunctionResourceIds": "no-junction-data",
+    "suspension:railway-control-suspension:bc16b7c044bb8e66:replacementConnectionStationIds": "no-existing-line-in-geometry",
+    "turnback:railway-control-turnback:12f031fa5ec10584:facilityAttachments": "terminal-not-stated",
+    "turnback:railway-control-turnback:12f031fa5ec10584:junctionResourceIds": "no-junction-data",
+    "turnback:railway-control-turnback:12f031fa5ec10584:physicalAttachment": "terminal-not-stated",
+    "turnback:railway-control-turnback:12f031fa5ec10584:platformCandidateIds": "terminal-not-stated",
+    "turnback:railway-control-turnback:12f031fa5ec10584:terminalResourceId": "terminal-not-stated",
+    "turnback:railway-control-turnback:12f031fa5ec10584:turnbackTrackCandidateIds": "terminal-not-stated",
+    "turnback:railway-control-turnback:275c41a05093b122:junctionResourceIds": "no-junction-data",
+    "turnback:railway-control-turnback:d629a2d187bced9b:junctionResourceIds": "no-junction-data",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:facilityAttachments": "terminal-not-stated",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:junctionResourceIds": "no-junction-data",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:physicalAttachment": "terminal-not-stated",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:platformCandidateIds": "terminal-not-stated",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:terminalResourceId": "terminal-not-stated",
+    "turnback:railway-control-turnback:d9a69f1a1dabd704:turnbackTrackCandidateIds": "terminal-not-stated"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "railway-disruption-site-geometry",
+      "quality": "low",
+      "name": "RailwayDisruptionSiteGeometry railway-disruption-site:ced289424406f8d8",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "rail-capacity-geometry",
+      "quality": "low",
+      "name": "RailCapacityGeometry rail-geometry:ddbdab13279c8fb1",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "terminal-turnback"
+    ],
+    "synthetic": true,
+    "note": "Synthetic event, application, through route and track facts written by hand for this example in the shape of transitline.railway-disruption/1, transitline.rail-capacity-application/1 and the player's statements. They were not produced by the running engine; the plans are real plan examples of this pack.",
+    "layers": {
+      "kind": "synthetic-fixture",
+      "generator": "scripts/lib/synthetic-layers.mjs",
+      "center": [
+        0.04347,
+        0.01165
+      ]
+    },
+    "existingRail": false,
+    "input": {
+      "drawnDesign": {
+        "key": "example:radial:control-terminal",
+        "name": "Spoke with a platform and a turnback track stated at both terminals",
+        "planIds": [
+          "plan:0ecd95b1d71018d3"
+        ],
+        "designedRevisions": {
+          "plans": {
+            "plan:0ecd95b1d71018d3": "plan-revision:a1748c9a1569ac0c"
+          },
+          "routes": {}
+        },
+        "sectionFacts": [
+          {
+            "ref": {
+              "planId": "plan:0ecd95b1d71018d3",
+              "segmentId": "seg:9756d646c00e7a0c"
+            },
+            "basis": "player",
+            "directionMode": "double"
+          }
+        ],
+        "blockBoundaries": [],
+        "terminals": [
+          {
+            "key": "terminal-west",
+            "stationId": "stn:cbcf9940f43b2516",
+            "platforms": [
+              {
+                "key": "platform-west",
+                "approach": {
+                  "planId": "plan:0ecd95b1d71018d3",
+                  "segmentId": "seg:3dfc854cd7a7747a"
+                },
+                "polyline": [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    -0.0016,
+                    0
+                  ]
+                ],
+                "platformLengthMeters": 120
+              }
+            ],
+            "turnbackTracks": [
+              {
+                "key": "turnback-west",
+                "kind": "turnback",
+                "polyline": [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    -0.0014,
+                    0.0004
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "key": "terminal-east",
+            "stationId": "stn:12eab25d4b99dd0f",
+            "platforms": [
+              {
+                "key": "platform-east",
+                "approach": {
+                  "planId": "plan:0ecd95b1d71018d3",
+                  "segmentId": "seg:093a835d10ac7a0b"
+                },
+                "polyline": [
+                  [
+                    0.06495,
+                    0.0375
+                  ],
+                  [
+                    0.06655,
+                    0.0375
+                  ]
+                ],
+                "platformLengthMeters": 120
+              }
+            ],
+            "turnbackTracks": [
+              {
+                "key": "pull-out-east",
+                "kind": "pull-out",
+                "polyline": [
+                  [
+                    0.06495,
+                    0.0375
+                  ],
+                  [
+                    0.06625,
+                    0.0379
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "drawnRoute": null,
+      "event": {
+        "schema": "transitline.railway-disruption/1",
+        "contractVersion": 1,
+        "id": "railway-disruption:1",
+        "kind": "track-obstruction",
+        "status": "active",
+        "lineId": "line:1",
+        "trackSegmentId": "track-segment:1",
+        "blockId": null,
+        "trainId": null,
+        "startedAtMinute": 600,
+        "expectedEndMinute": 660,
+        "resolvedAtMinute": null,
+        "resolutionReason": null,
+        "severity": "major",
+        "effect": {
+          "closed": true,
+          "speedLimitMps": 0
+        },
+        "infrastructureOwnerId": null,
+        "operatorId": null,
+        "responsibility": "unknown",
+        "source": "example-fixture"
+      },
+      "application": {
+        "schema": "transitline.rail-capacity-application/1",
+        "contractVersion": 1,
+        "operationalLineId": "line:1",
+        "railGeometryId": "rail-geometry:ddbdab13279c8fb1",
+        "railGeometryRevision": "rail-geometry-revision:74095bd437f59bfa",
+        "sections": [
+          {
+            "trackSegmentId": "track-segment:1",
+            "railCapacitySectionId": "rail-section:0f9605c63320a140"
+          },
+          {
+            "trackSegmentId": "track-segment:2",
+            "railCapacitySectionId": "rail-section:a313651c76603b96"
+          },
+          {
+            "trackSegmentId": "track-segment:3",
+            "railCapacitySectionId": "rail-section:aeac86fb60845a0d"
+          }
+        ]
+      },
+      "siteDrawn": {
+        "eventId": "railway-disruption:1",
+        "designedRailGeometryRevision": "rail-geometry-revision:74095bd437f59bfa",
+        "location": [
+          0.031735,
+          0.005825
+        ],
+        "locationBasis": "player"
+      },
+      "savedDocument": {
+        "version": 1,
+        "packId": "example-radial",
+        "packVersion": "0.1.0",
+        "controls": [
+          {
+            "eventId": "railway-disruption:1",
+            "active": true,
+            "accessPoints": null,
+            "emergencyVehicleWidthMeters": null,
+            "selected": {
+              "turnback": [],
+              "partialSuspension": [],
+              "detour": [],
+              "evacuation": []
+            }
+          }
+        ]
+      }
+    },
+    "selection": {},
+    "generatedBy": "scripts/build-railway-service-control-examples.mjs"
+  }
+}

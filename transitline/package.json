@@ -17,6 +17,8 @@
     "external-rail-technical-examples": "node scripts/build-external-rail-technical-examples.mjs",
     "through-handover-examples": "node scripts/build-through-handover-examples.mjs",
     "rail-capacity-examples": "node scripts/build-rail-capacity-examples.mjs",
+    "railway-disruption-examples": "node scripts/build-railway-disruption-site-examples.mjs",
+    "railway-service-control-examples": "node scripts/build-railway-service-control-examples.mjs",
     "regen": "node packs/example-radial/generate.mjs && node packs/example-corridor/generate.mjs"
   }
 }
