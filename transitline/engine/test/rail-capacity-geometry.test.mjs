@@ -256,6 +256,26 @@ test("an existing line gives station-level sections with no alignment, length or
   assert.ok(d.sourceLayers.some((l) => l.layer === "existing-network" && /station level/.test(l.name)));
 });
 
+test("an external line that traverses the same station pair twice gets unique reversal-stable section ids", () => {
+  const loopPack = {
+    ...pack,
+    existingNetwork: { lines: [{ name: "Loop", operator: "Operator X", osmRelationId: 99, stationIds: ["d1", "d2", "d1", "d3"] }] },
+  };
+  const loopMap = buildMapExport({ pack: loopPack, mode: "existing", drawnLines: [] });
+  const network = loopMap.externalNetworks[0];
+  const externalLineId = network.lines[0].id;
+  const drawn = design({ externalLineIds: [externalLineId] });
+  const forward = buildRailGeometry(drawn, { pack: loopPack, plans: mapExport.plans, externalNetworks: [network], routes: [] }).design;
+  const reversedNetwork = structuredClone(network);
+  reversedNetwork.lines[0].stationIds.reverse();
+  const reverse = buildRailGeometry(drawn, { pack: loopPack, plans: mapExport.plans, externalNetworks: [reversedNetwork], routes: [] }).design;
+  const forwardIds = forward.sections.filter((section) => section.externalLineId === externalLineId).map((section) => section.sectionId).sort();
+  const reverseIds = reverse.sections.filter((section) => section.externalLineId === externalLineId).map((section) => section.sectionId).sort();
+  assert.equal(forwardIds.length, 3);
+  assert.equal(new Set(forwardIds).size, 3);
+  assert.deepEqual(reverseIds, forwardIds);
+});
+
 test("single / double track is only what the player or a named source states; nothing is inferred", () => {
   const d = build(design({ sectionFacts: [player(A, 0, { directionMode: "double" }), { ref: ref(A, 1), basis: "source", sourceName: "line book", directionMode: "single" }] }));
   assert.deepEqual([sectionOf(d, A, 0).directionMode, sectionOf(d, A, 0).directionModeBasis], ["double", "player"]);

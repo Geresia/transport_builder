@@ -2,16 +2,16 @@
   "schema": "transitline.railway-disruption-site-geometry/1",
   "contractVersion": 1,
   "disruptionSiteId": "railway-disruption-site:f711a3c0789bb972",
-  "siteRevision": "railway-disruption-site-revision:bd391871c4bcc04b",
+  "siteRevision": "railway-disruption-site-revision:5d0357a6b31ba4c0",
   "sourcePackId": "tokyo",
   "sourcePackVersion": "0.1.0",
   "eventId": "railway-disruption:1",
   "railGeometryId": "rail-geometry:4142e9d1954dfe47",
-  "railGeometryRevision": "rail-geometry-revision:3ba1b171b7952b13",
-  "designedRailGeometryRevision": "rail-geometry-revision:3ba1b171b7952b13",
+  "railGeometryRevision": "rail-geometry-revision:202fe8c321ede985",
+  "designedRailGeometryRevision": "rail-geometry-revision:202fe8c321ede985",
   "lineId": "line:1",
   "trackSegmentId": "track-segment:1",
-  "railCapacitySectionId": "rail-section:23fa09287af988a6",
+  "railCapacitySectionId": "rail-section:0f46a8b6981e27b8",
   "sectionLinkBasis": "application",
   "blockId": null,
   "trainId": null,
@@ -28,12 +28,12 @@
   "alignment": null,
   "affectedExtent": {
     "startLocation": [
-      139.93268,
-      35.72642
+      139.81276,
+      35.67399
     ],
     "endLocation": [
-      139.87118,
-      35.7136
+      139.81254,
+      35.70474
     ],
     "lengthMeters": null,
     "unknown": [
@@ -46,14 +46,14 @@
   "affectedPolygon": null,
   "polygonFacts": null,
   "affectedSectionIds": [
-    "rail-section:23fa09287af988a6"
+    "rail-section:0f46a8b6981e27b8"
   ],
   "affectedBlockIds": null,
   "affectedSignalCandidateIds": null,
   "affectedJunctionResourceIds": null,
   "affectedStationIds": [
-    "kanto-12203",
-    "ward-edogawa"
+    "ward-koto",
+    "ward-sumida"
   ],
   "affectedTerminalResourceIds": null,
   "alternativeAccessCandidates": null,
@@ -161,19 +161,19 @@
         "contractVersion": 1,
         "operationalLineId": "line:1",
         "railGeometryId": "rail-geometry:4142e9d1954dfe47",
-        "railGeometryRevision": "rail-geometry-revision:3ba1b171b7952b13",
+        "railGeometryRevision": "rail-geometry-revision:202fe8c321ede985",
         "sections": [
           {
             "trackSegmentId": "track-segment:1",
+            "railCapacitySectionId": "rail-section:0f46a8b6981e27b8"
+          },
+          {
+            "trackSegmentId": "track-segment:2",
+            "railCapacitySectionId": "rail-section:1046aa49991e294b"
+          },
+          {
+            "trackSegmentId": "track-segment:3",
             "railCapacitySectionId": "rail-section:23fa09287af988a6"
-          },
-          {
-            "trackSegmentId": "track-segment:2",
-            "railCapacitySectionId": "rail-section:36977ec52e86d79b"
-          },
-          {
-            "trackSegmentId": "track-segment:2",
-            "railCapacitySectionId": "rail-section:36977ec52e86d79b"
           },
           {
             "trackSegmentId": "track-segment:4",
@@ -203,7 +203,7 @@
       },
       "drawn": {
         "eventId": "railway-disruption:1",
-        "designedRailGeometryRevision": "rail-geometry-revision:3ba1b171b7952b13"
+        "designedRailGeometryRevision": "rail-geometry-revision:202fe8c321ede985"
       }
     },
     "generatedBy": "scripts/build-railway-disruption-site-examples.mjs"

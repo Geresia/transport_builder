@@ -2,14 +2,14 @@
   "schema": "transitline.railway-service-control-geometry/1",
   "contractVersion": 1,
   "controlGeometryId": "railway-service-control:f711a3c0789bb972",
-  "controlGeometryRevision": "railway-service-control-revision:5f6dd36d8d078777",
+  "controlGeometryRevision": "railway-service-control-revision:489fb2a6a1af3fd4",
   "sourcePackId": "tokyo",
   "sourcePackVersion": "0.1.0",
   "eventId": "railway-disruption:1",
   "disruptionSiteId": "railway-disruption-site:f711a3c0789bb972",
-  "disruptionSiteRevision": "railway-disruption-site-revision:822580de1b031dac",
+  "disruptionSiteRevision": "railway-disruption-site-revision:5eff9406739cde04",
   "railGeometryId": "rail-geometry:acdb18c04475bb16",
-  "railGeometryRevision": "rail-geometry-revision:27b90b2dd5f085ab",
+  "railGeometryRevision": "rail-geometry-revision:307ae30b950a4ac9",
   "throughRouteId": "through-route:acdb18c04475bb16",
   "operationalLineId": "line:1",
   "affectedTrackSegmentIds": [
@@ -149,8 +149,9 @@
       ],
       "suspendedBlockIds": null,
       "retainedSectionIds": [
+        "rail-section:0f46a8b6981e27b8",
+        "rail-section:1046aa49991e294b",
         "rail-section:23fa09287af988a6",
-        "rail-section:36977ec52e86d79b",
         "rail-section:785f3d5fced8b7e9",
         "rail-section:860b30270966df91",
         "rail-section:a74429b170434cdb",
@@ -213,8 +214,9 @@
       ],
       "suspendedBlockIds": null,
       "retainedSectionIds": [
+        "rail-section:0f46a8b6981e27b8",
+        "rail-section:1046aa49991e294b",
         "rail-section:23fa09287af988a6",
-        "rail-section:36977ec52e86d79b",
         "rail-section:785f3d5fced8b7e9",
         "rail-section:860b30270966df91",
         "rail-section:a74429b170434cdb",
@@ -521,7 +523,6 @@
   ],
   "spatialFlags": [
     "double-track-section-affected",
-    "duplicate-section-id",
     "entrance-data-missing",
     "no-turnback-facility-stated",
     "road-data-missing",
@@ -627,14 +628,7 @@
     "turnback:railway-control-turnback:d5ac3bec20b4e2e6:terminalResourceId": "no-terminal-data",
     "turnback:railway-control-turnback:d5ac3bec20b4e2e6:turnbackTrackCandidateIds": "no-terminal-data"
   },
-  "warnings": [
-    {
-      "code": "duplicate-section-id",
-      "sectionIds": [
-        "rail-section:36977ec52e86d79b"
-      ]
-    }
-  ],
+  "warnings": [],
   "sourceLayers": [
     {
       "layer": "railway-disruption-site-geometry",
@@ -772,19 +766,19 @@
         "contractVersion": 1,
         "operationalLineId": "line:1",
         "railGeometryId": "rail-geometry:acdb18c04475bb16",
-        "railGeometryRevision": "rail-geometry-revision:27b90b2dd5f085ab",
+        "railGeometryRevision": "rail-geometry-revision:307ae30b950a4ac9",
         "sections": [
           {
             "trackSegmentId": "track-segment:1",
+            "railCapacitySectionId": "rail-section:0f46a8b6981e27b8"
+          },
+          {
+            "trackSegmentId": "track-segment:2",
+            "railCapacitySectionId": "rail-section:1046aa49991e294b"
+          },
+          {
+            "trackSegmentId": "track-segment:3",
             "railCapacitySectionId": "rail-section:23fa09287af988a6"
-          },
-          {
-            "trackSegmentId": "track-segment:2",
-            "railCapacitySectionId": "rail-section:36977ec52e86d79b"
-          },
-          {
-            "trackSegmentId": "track-segment:2",
-            "railCapacitySectionId": "rail-section:36977ec52e86d79b"
           },
           {
             "trackSegmentId": "track-segment:4",
@@ -814,7 +808,7 @@
       },
       "siteDrawn": {
         "eventId": "railway-disruption:1",
-        "designedRailGeometryRevision": "rail-geometry-revision:27b90b2dd5f085ab",
+        "designedRailGeometryRevision": "rail-geometry-revision:307ae30b950a4ac9",
         "location": [
           139.84186,
           35.70917
@@ -837,7 +831,7 @@
               "detour": [
                 {
                   "candidateId": "railway-control-detour:e251640bec1c2c8d",
-                  "designedControlGeometryRevision": "railway-service-control-revision:5f6dd36d8d078777"
+                  "designedControlGeometryRevision": "railway-service-control-revision:489fb2a6a1af3fd4"
                 }
               ],
               "evacuation": []

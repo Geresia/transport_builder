@@ -110,16 +110,28 @@ export function buildRailGeometry(drawn, ctx) {
   }
   for (const { net, line } of externalLines) {
     const at = new Map(net.stations.map((s) => [s.id, s.location]));
+    const stationSequence = line.stationIds.map(String);
+    const reverseSequence = [...stationSequence].reverse();
+    const canonicalForward = stationSequence.join("\u0000") <= reverseSequence.join("\u0000");
+    const pairCounts = new Map();
+    line.stationIds.slice(1).forEach((to, i) => {
+      const pair = [String(line.stationIds[i]), String(to)].sort().join("\u0000");
+      pairCounts.set(pair, (pairCounts.get(pair) ?? 0) + 1);
+    });
     line.stationIds.slice(1).forEach((to, i) => {
       const from = line.stationIds[i];
       if (!at.has(from) || !at.has(to)) { warnings.push({ code: "external-station-missing", externalLineId: line.id, stationId: at.has(from) ? to : from }); return; }
+      const pair = [String(from), String(to)].sort();
+      const repeatedPair = pairCounts.get(pair.join("\u0000")) > 1;
+      const canonicalEdgeIndex = canonicalForward ? i : line.stationIds.length - 2 - i;
       const section = {
-        sectionId: stableId("rail-section", packId, "ext", net.id, line.id, ...[from, to].sort()), sourceKind: "external", planId: null, segmentId: null,
+        sectionId: stableId("rail-section", packId, "ext", net.id, line.id, ...pair, ...(repeatedPair ? ["occurrence", canonicalEdgeIndex] : [])), sourceKind: "external", planId: null, segmentId: null,
         externalNetworkId: net.id, externalLineId: line.id, fromStationId: from, toStationId: to,
         startLocation: at.get(from).map(round6), endLocation: at.get(to).map(round6), alignment: null, alignmentXY: null, lengthMeters: null, seg: null, throughLegIds: null,
       };
       sections.push(section);
-      sectionByRef.set(refKey({ externalLineId: line.id, fromStationId: from, toStationId: to }), section);
+      const referenceKey = refKey({ externalLineId: line.id, fromStationId: from, toStationId: to });
+      sectionByRef.set(referenceKey, sectionByRef.has(referenceKey) ? null : section);
     });
   }
   sections.sort((a, b) => byText(a.sectionId, b.sectionId));
