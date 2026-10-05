@@ -1,5 +1,7 @@
 export const RAIL_REPLACEMENT_OPERATION_SCHEMA = "transitline.rail-replacement-operation/1";
 
+import { candidateFromRailReplacementGeometry } from "./rail-replacement-geometry-adapter.mjs";
+
 export const REPLACEMENT_BUS_CLASSES = Object.freeze({
   minibus: Object.freeze({ id: "minibus", label: "Minibus", passengerCapacity: 25, widthMeters: 2.1, averageSpeedMps: 7.0, dwellSeconds: 25, layoverSeconds: 240 }),
   standard: Object.freeze({ id: "standard", label: "Standard route bus", passengerCapacity: 70, widthMeters: 2.5, averageSpeedMps: 7.5, dwellSeconds: 30, layoverSeconds: 300 }),
@@ -68,9 +70,16 @@ function normaliseCandidate(state, line, candidate) {
   if (candidate.minimumRoadWidthMeters !== null && !(Number.isFinite(candidate.minimumRoadWidthMeters) && candidate.minimumRoadWidthMeters > 0)) {
     throw new Error("Replacement minimum road width must be positive or null");
   }
-  return { candidateId: key(candidate.candidateId), stationIds, legDistancesMeters: [...legDistancesMeters], roadConnection: candidate.roadConnection,
+  const stopConnection = candidate.stopConnection === undefined ? true : candidate.stopConnection;
+  if (![true, false, null].includes(stopConnection)) throw new Error("Replacement stop connection must be true, false or null");
+  return { candidateId: key(candidate.candidateId), routeId: candidate.routeId ? key(candidate.routeId) : null,
+    sourceStationIds: sourceStationIds.map(key), stationIds, legDistancesMeters: [...legDistancesMeters], roadConnection: candidate.roadConnection,
+    stopConnection,
     minimumRoadWidthMeters: candidate.minimumRoadWidthMeters, geometryId: candidate.geometryId ?? candidate.replacementTransportGeometryId ?? null,
-    geometryRevision: candidate.geometryRevision ?? candidate.replacementTransportGeometryRevision ?? null };
+    geometryRevision: candidate.geometryRevision ?? candidate.replacementTransportGeometryRevision ?? null,
+    controlGeometryId: candidate.controlGeometryId ?? null, controlGeometryRevision: candidate.controlGeometryRevision ?? null,
+    partialSuspensionCandidateId: candidate.partialSuspensionCandidateId ?? null,
+    spatialConstraintIds: Array.isArray(candidate.spatialConstraintIds) ? [...candidate.spatialConstraintIds].map(key).sort() : null };
 }
 
 export function assessRailReplacementOperation(state, input = {}) {
@@ -79,7 +88,10 @@ export function assessRailReplacementOperation(state, input = {}) {
   const order = activeControlOrder(state, input.controlOrderId, event.id);
   const line = state.lines.find((entry) => key(entry.id) === key(order.lineId));
   if (!line) throw new Error(`Unknown operational line ${order.lineId}`);
-  const candidate = normaliseCandidate(state, line, input.candidate);
+  const candidateInput = input.replacementGeometry
+    ? candidateFromRailReplacementGeometry({ ...input, eventId: event.id, controlOrder: order })
+    : input.candidate;
+  const candidate = normaliseCandidate(state, line, candidateInput);
   const vehicleClass = REPLACEMENT_BUS_CLASSES[input.vehicleClassId];
   const procurement = REPLACEMENT_BUS_PROCUREMENT[input.procurementStrategyId];
   if (!vehicleClass) throw new Error(`Unknown replacement bus class ${input.vehicleClassId}`);
@@ -91,11 +103,17 @@ export function assessRailReplacementOperation(state, input = {}) {
   const confirmations = [];
   if (candidate.roadConnection === false) failures.push("replacement-road-disconnected");
   if (candidate.roadConnection === null) confirmations.push("replacement-road-connection-unknown");
+  if (candidate.stopConnection === false) failures.push("replacement-stop-disconnected");
+  if (candidate.stopConnection === null) confirmations.push("replacement-stop-connection-unknown");
   if (candidate.minimumRoadWidthMeters === null) confirmations.push("replacement-road-width-unknown");
   else if (candidate.minimumRoadWidthMeters + 1e-9 < vehicleClass.widthMeters) failures.push("replacement-road-too-narrow");
-  const assumptions = [];
-  if (confirmations.length && input.confirmUnknownRoadFacts === true) assumptions.push(...confirmations);
-  const verdict = failures.length ? "infeasible" : confirmations.length && !input.confirmUnknownRoadFacts ? "conditional" : "feasible";
+  if (candidate.spatialConstraintIds?.length) confirmations.push("replacement-spatial-constraints-unassessed");
+  const unconfirmed = confirmations.filter((confirmation) => confirmation === "replacement-spatial-constraints-unassessed"
+    ? input.confirmSpatialConstraints !== true
+    : input.confirmUnknownRoadFacts !== true);
+  const confirmed = confirmations.filter((confirmation) => !unconfirmed.includes(confirmation));
+  const assumptions = [...confirmed];
+  const verdict = failures.length ? "infeasible" : unconfirmed.length ? "conditional" : "feasible";
   const oneWayRunSeconds = candidate.legDistancesMeters.reduce((total, distance) => total + distance / vehicleClass.averageSpeedMps, 0);
   const oneWaySeconds = oneWayRunSeconds + Math.max(0, candidate.stationIds.length - 2) * vehicleClass.dwellSeconds;
   const cycleSeconds = oneWaySeconds * 2 + vehicleClass.layoverSeconds * 2;
@@ -128,9 +146,14 @@ export function startRailReplacementOperation(state, input = {}) {
     schema: RAIL_REPLACEMENT_OPERATION_SCHEMA, contractVersion: 1, id: input.id ?? `rail-replacement-operation:${sequence}`,
     status: assessment.mobilisationMinutes > 0 ? "mobilising" : "active",
     eventId: assessment.eventId, controlOrderId: assessment.controlOrderId, operationalLineId: assessment.operationalLineId,
-    candidateId: assessment.candidate.candidateId, geometryId: assessment.candidate.geometryId, geometryRevision: assessment.candidate.geometryRevision,
-    virtualLineId: store.nextVirtualLineId, stationIds: assessment.candidate.stationIds, legDistancesMeters: assessment.candidate.legDistancesMeters,
-    roadConnection: assessment.candidate.roadConnection, minimumRoadWidthMeters: assessment.candidate.minimumRoadWidthMeters,
+    candidateId: assessment.candidate.candidateId, routeId: assessment.candidate.routeId,
+    geometryId: assessment.candidate.geometryId, geometryRevision: assessment.candidate.geometryRevision,
+    controlGeometryId: assessment.candidate.controlGeometryId, controlGeometryRevision: assessment.candidate.controlGeometryRevision,
+    partialSuspensionCandidateId: assessment.candidate.partialSuspensionCandidateId,
+    virtualLineId: store.nextVirtualLineId, sourceStationIds: assessment.candidate.sourceStationIds,
+    stationIds: assessment.candidate.stationIds, legDistancesMeters: assessment.candidate.legDistancesMeters,
+    roadConnection: assessment.candidate.roadConnection, stopConnection: assessment.candidate.stopConnection,
+    minimumRoadWidthMeters: assessment.candidate.minimumRoadWidthMeters, spatialConstraintIds: assessment.candidate.spatialConstraintIds,
     vehicleClassId: assessment.vehicleClassId, procurementStrategyId: assessment.procurementStrategyId, vehicleCount: assessment.vehicleCount,
     passengerCapacityPerDeparture: assessment.passengerCapacityPerDeparture, headwaySeconds: assessment.headwaySeconds,
     oneWaySeconds: assessment.oneWaySeconds, cycleSeconds: assessment.cycleSeconds,

@@ -41,21 +41,29 @@ revision, 가상 노선 ID, 정류 역, 구간별 도로거리, 버스 종류·�
 - 각 정류 역 사이의 측정 도로거리가 없으면 직선거리로 대신하지 않고 거절한다.
 - 지도 역 ID는 운영 노선의 `sourceStationId`를 통해 정확히 하나의 운영 역으로 연결돼야 한다.
 
-M8 계약이 확정되기 전 사용하는 후보 입력 경계는 다음과 같다.
+M8 계약이 확정되어 `replacementGeometry`와 선택한 `routeId`를 직접 받을 수 있다. 시작 요청에는
+선택 당시의 `replacementGeometryRevision`을 반드시 함께 보내야 하며, M7 관제명령의 geometry ID/revision,
+부분운휴 후보, 회차 후보, 운영 선로 매핑과 모두 일치해야 한다. 하나라도 오래됐으면 운행을 만들지 않는다.
 
 ```js
 {
-  candidateId,
-  replacementTransportGeometryId,
-  replacementTransportGeometryRevision,
-  stationIds,
-  legDistancesMeters,
-  roadConnection,             // true | false | null
-  minimumRoadWidthMeters      // number | null
+  eventId,
+  controlOrderId,
+  replacementGeometry,          // transitline.rail-replacement-transport-geometry/1
+  replacementGeometryRevision,  // 플레이어가 선택한 당시 revision
+  routeId,
+  vehicleClassId,
+  procurementStrategyId,
+  vehicleCount,
+  confirmUnknownRoadFacts?,
+  confirmSpatialConstraints?
 }
 ```
 
-M8 필드가 달라지면 이 구조로 변환하는 얇은 어댑터만 추가하고 운행 엔진은 바꾸지 않는다.
+어댑터는 `stationSequence`를 운영 역으로 연결하고, 경로의 역별 `alongMeters` 차이로 각 구간의 실제
+경로 길이를 만든다. 도로 이탈, 양 끝 도로 미접속, 경계역 미도달, 역 순서 불일치는 확정 실패다.
+도로·정류장 접속 미상과 폭 미상은 명시적 확인 없이는 조건부이며, 경로 주변에 교량·터널·중량·높이
+제약이 있으면 별도의 `confirmSpatialConstraints`가 필요하다. 직선거리를 도로거리로 대신하지 않는다.
 
 ## 실제 시뮬레이션 연결
 
@@ -77,7 +85,6 @@ M8 필드가 달라지면 이 구조로 변환하는 얇은 어댑터만 추가�
 
 ## 남은 작업
 
-- M8 최종 계약 필드에 맞춘 후보 어댑터와 stale revision 검증.
 - 지도 후보 선택 UI와 대체버스 운행 현황 패널.
 - 도로 혼잡과 시간대별 버스 속도.
 - 실제 보유 버스 자산·기사 근무·차고지와의 연결.

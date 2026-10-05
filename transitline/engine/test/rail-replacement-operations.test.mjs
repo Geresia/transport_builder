@@ -34,8 +34,10 @@ function fixture(candidateOverrides = {}) {
   state.railwayDisruptions.events.push(event);
   const order = createRailwayControlOrder(state, {
     kind: "partial-suspension", eventId: event.id, lineId: line.id,
+    candidateId: "partial-suspension:1", controlGeometryId: "control-geometry:1", controlGeometryRevision: "control-revision:1",
     retainedServices: [{ serviceId: "west", stationIds: ["A", "B"] }, { serviceId: "east", stationIds: ["C", "D"] }],
     suspendedTrackSegmentIds: ["bc"],
+    turnbackCandidateIds: ["turnback:B", "turnback:C"],
   });
   const candidate = {
     candidateId: "replacement:B-C", geometryId: "replacement-geometry:1", geometryRevision: "revision:1",
@@ -44,6 +46,39 @@ function fixture(candidateOverrides = {}) {
   };
   const input = { eventId: event.id, controlOrderId: order.id, candidate, vehicleClassId: "standard", procurementStrategyId: "emergency-charter", vehicleCount: 2 };
   return { state, line, event, order, candidate, input };
+}
+
+function replacementGeometry(overrides = {}) {
+  const route = {
+    routeId: "replacement-route:1", lengthMeters: 3_000,
+    stationApproaches: [
+      { stationId: "B", distanceMeters: 5, alongMeters: 100, passesNear: true },
+      { stationId: "C", distanceMeters: 5, alongMeters: 3_100, passesNear: true },
+    ],
+    reachesStartStation: true, reachesEndStation: true, orderMatchesRail: true,
+    alongRoad: { fullyOnRoad: true },
+    roadAttachment: { start: { attached: true }, end: { attached: true } },
+    roadWidthMeters: 3, roadWidthAtLeastVehicleWidth: true,
+    constraintIdsNear: [], stopCandidateIdsNear: ["stop:B", "stop:C"],
+  };
+  return {
+    schema: "transitline.rail-replacement-transport-geometry/1", contractVersion: 1,
+    replacementGeometryId: "replacement-geometry:current", replacementGeometryRevision: "replacement-revision:1",
+    eventId: "event:1", controlGeometryId: "control-geometry:1", controlGeometryRevision: "control-revision:1",
+    operationalLineId: "1", partialSuspensionCandidateId: "partial-suspension:1",
+    selectedTurnbackCandidateIds: ["turnback:B", "turnback:C"], suspendedTrackSegmentIds: ["bc"],
+    stationSequence: ["B", "C"],
+    stations: [
+      { stationId: "B", derivedStopCandidateIds: ["stop:B"], playerStopCandidateIds: [] },
+      { stationId: "C", derivedStopCandidateIds: ["stop:C"], playerStopCandidateIds: [] },
+    ],
+    stopCandidates: [
+      { stopCandidateId: "stop:B", stationId: "B", roadAdjacent: true },
+      { stopCandidateId: "stop:C", stationId: "C", roadAdjacent: true },
+    ],
+    routeCandidates: [route],
+    ...overrides,
+  };
 }
 
 test("assessment exposes mobilisation, headway, capacity and 2026-JPY assumptions without mutating operations", () => {
@@ -69,6 +104,81 @@ test("unknown road facts require confirmation, while measured disconnection and 
   assert.equal(assessRailReplacementOperation(disconnected.state, disconnected.input).verdict, "infeasible");
   const narrow = fixture({ minimumRoadWidthMeters: 2.2 });
   assert.deepEqual(assessRailReplacementOperation(narrow.state, narrow.input).failures, ["replacement-road-too-narrow"]);
+});
+
+test("M8 geometry maps the current route revision to measured operational legs", () => {
+  const { state, input } = fixture();
+  const geometry = replacementGeometry();
+  const before = structuredClone(geometry);
+  const assessment = assessRailReplacementOperation(state, {
+    ...input, candidate: undefined, replacementGeometry: geometry,
+    replacementGeometryRevision: geometry.replacementGeometryRevision, routeId: "replacement-route:1",
+  });
+  assert.equal(assessment.verdict, "feasible");
+  assert.deepEqual(assessment.candidate.sourceStationIds, ["B", "C"]);
+  assert.deepEqual(assessment.candidate.stationIds, ["B", "C"]);
+  assert.deepEqual(assessment.candidate.legDistancesMeters, [3_000]);
+  assert.equal(assessment.candidate.geometryId, "replacement-geometry:current");
+  assert.equal(assessment.candidate.geometryRevision, "replacement-revision:1");
+  assert.equal(assessment.candidate.stopConnection, true);
+  assert.deepEqual(geometry, before);
+});
+
+test("M8 adapter rejects stale revisions and links before charging or starting service", () => {
+  const { state, input } = fixture();
+  const geometry = replacementGeometry();
+  const request = { ...input, candidate: undefined, replacementGeometry: geometry, routeId: "replacement-route:1" };
+  assert.throws(() => assessRailReplacementOperation(state, { ...request, replacementGeometryRevision: "old" }), /revision is stale/);
+  assert.throws(() => assessRailReplacementOperation(state, {
+    ...request, replacementGeometryRevision: geometry.replacementGeometryRevision,
+    replacementGeometry: { ...geometry, controlGeometryRevision: "old" },
+  }), /stale against the active control order/);
+  assert.throws(() => assessRailReplacementOperation(state, {
+    ...request, replacementGeometryRevision: geometry.replacementGeometryRevision,
+    replacementGeometry: { ...geometry, suspendedTrackSegmentIds: ["ab"] },
+  }), /stale operational track mappings/);
+});
+
+test("M8 false spatial facts remain impossible and unknown facts require explicit confirmation", () => {
+  const disconnected = fixture();
+  const falseGeometry = replacementGeometry({ routeCandidates: [{
+    ...replacementGeometry().routeCandidates[0], alongRoad: { fullyOnRoad: false },
+  }] });
+  const base = {
+    ...disconnected.input, candidate: undefined, replacementGeometry: falseGeometry,
+    replacementGeometryRevision: falseGeometry.replacementGeometryRevision, routeId: "replacement-route:1",
+  };
+  assert.deepEqual(assessRailReplacementOperation(disconnected.state, base).failures, ["replacement-road-disconnected"]);
+
+  const conditional = fixture();
+  const unknownGeometry = replacementGeometry({
+    stopCandidates: null,
+    routeCandidates: [{
+      ...replacementGeometry().routeCandidates[0], alongRoad: { fullyOnRoad: null }, roadWidthMeters: null,
+      constraintIdsNear: ["constraint:bridge"],
+    }],
+  });
+  const unknownRequest = {
+    ...conditional.input, candidate: undefined, replacementGeometry: unknownGeometry,
+    replacementGeometryRevision: unknownGeometry.replacementGeometryRevision, routeId: "replacement-route:1",
+  };
+  const assessment = assessRailReplacementOperation(conditional.state, unknownRequest);
+  assert.equal(assessment.verdict, "conditional");
+  assert.deepEqual(assessment.candidate.spatialConstraintIds, ["constraint:bridge"]);
+  assert.equal(unknownRequest.confirmSpatialConstraints, undefined);
+  assert.deepEqual(assessment.confirmations.sort(), [
+    "replacement-road-connection-unknown",
+    "replacement-road-width-unknown",
+    "replacement-spatial-constraints-unassessed",
+    "replacement-stop-connection-unknown",
+  ]);
+  const roadOnly = assessRailReplacementOperation(conditional.state, { ...unknownRequest, confirmUnknownRoadFacts: true });
+  assert.equal(roadOnly.verdict, "conditional");
+  const confirmed = assessRailReplacementOperation(conditional.state, {
+    ...unknownRequest, confirmUnknownRoadFacts: true, confirmSpatialConstraints: true,
+  });
+  assert.equal(confirmed.verdict, "feasible");
+  assert.deepEqual(confirmed.assumptions.sort(), assessment.confirmations.sort());
 });
 
 test("an active replacement bus reconnects split rail services in both routers and carries waiting passengers", () => {
