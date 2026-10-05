@@ -1,0 +1,116 @@
+{
+  "schema": "transitline.station-demand-access-geometry/1",
+  "contractVersion": 1,
+  "stationAccessId": "stn-access:474d6c07d2fafd19",
+  "stationAccessRevision": "stn-access-revision:2122d7e8f25b4ec6",
+  "sourcePackId": "example-corridor",
+  "sourcePackVersion": "0.1.0",
+  "name": "Corridor terminal before the player drew anything",
+  "coordinateReference": "EPSG:4326",
+  "location": [
+    -0.05,
+    0
+  ],
+  "locationBasis": "plan-station",
+  "stationKind": "plan",
+  "connectedPlanId": "plan:6c4c613145a2a1b3",
+  "connectedStationId": "stn:8442bc4fe5e68e95",
+  "connectedNetworkId": "plan:6c4c613145a2a1b3",
+  "offsetFromConnectedStationMeters": 0,
+  "entrances": [],
+  "accessPoints": [],
+  "walkLinks": [],
+  "transfers": [],
+  "catchments": [],
+  "demandZones": [],
+  "demandSourceRefs": [
+    {
+      "sourceId": "demand-source:995ae3ecd0242246",
+      "kind": "demand-points",
+      "file": "demand.json",
+      "formatVersion": 1,
+      "model": "matrix",
+      "source": null,
+      "unit": null,
+      "attribution": [],
+      "license": "CC0-1.0",
+      "spatialResolution": "synthetic-node",
+      "quality": null,
+      "unknown": [
+        "quality",
+        "source",
+        "unit"
+      ],
+      "unknownReasons": {
+        "quality": "not-assessed",
+        "source": "not-stated-in-file",
+        "unit": "not-stated-in-file"
+      }
+    }
+  ],
+  "spatialFlags": [
+    "no-catchment-drawn",
+    "no-demand-zone-drawn",
+    "no-entrance-drawn"
+  ],
+  "model": {
+    "transferRadiusMeters": 500,
+    "roadSearchRadiusMeters": 60,
+    "crossingProbe": "walk alignment as a polyline"
+  },
+  "dataQuality": "medium",
+  "unknown": [
+    "demandSourceRefs:demand-source:995ae3ecd0242246:quality",
+    "demandSourceRefs:demand-source:995ae3ecd0242246:source",
+    "demandSourceRefs:demand-source:995ae3ecd0242246:unit"
+  ],
+  "unknownReasons": {
+    "demandSourceRefs:demand-source:995ae3ecd0242246:quality": "not-assessed",
+    "demandSourceRefs:demand-source:995ae3ecd0242246:source": "not-stated-in-file",
+    "demandSourceRefs:demand-source:995ae3ecd0242246:unit": "not-stated-in-file"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "nothing-drawn"
+    ],
+    "synthetic": true,
+    "note": "Synthetic drawing placed by hand for this example on a real plan station of this pack; the entrances, walking links, boundaries and zones are not any real station's. Demand and OD files are linked by source and quality only.",
+    "layers": {
+      "kind": "none"
+    },
+    "input": {
+      "drawn": {
+        "name": "Corridor terminal before the player drew anything",
+        "location": null,
+        "connect": {
+          "planId": "plan:6c4c613145a2a1b3",
+          "stationId": "stn:8442bc4fe5e68e95"
+        },
+        "key": "example:corridor:access-nothing",
+        "entrances": [],
+        "accessPoints": [],
+        "walkLinks": [],
+        "transfers": [],
+        "catchments": [],
+        "demandZones": [],
+        "seq": {},
+        "deleted": false
+      },
+      "mode": "scratch"
+    },
+    "generatedBy": "scripts/build-station-demand-access-examples.mjs"
+  }
+}

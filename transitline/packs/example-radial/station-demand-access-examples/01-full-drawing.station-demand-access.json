@@ -1,0 +1,727 @@
+{
+  "schema": "transitline.station-demand-access-geometry/1",
+  "contractVersion": 1,
+  "stationAccessId": "stn-access:24f042ad55aa9a4f",
+  "stationAccessRevision": "stn-access-revision:719668bbaba477e1",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "name": "Inner station with a full access drawing",
+  "coordinateReference": "EPSG:4326",
+  "location": [
+    -0.02,
+    0
+  ],
+  "locationBasis": "plan-station",
+  "stationKind": "plan",
+  "connectedPlanId": "plan:a7b82bfea8635d94",
+  "connectedStationId": "stn:ee2a71cbfab3eed9",
+  "connectedNetworkId": "plan:a7b82bfea8635d94",
+  "offsetFromConnectedStationMeters": 0,
+  "entrances": [
+    {
+      "entranceId": "acc-ent:0e2299df65318425",
+      "key": "entrance-1",
+      "name": "North entrance",
+      "location": [
+        -0.019731,
+        0.000225
+      ],
+      "distanceToStationMeters": 39,
+      "insideBuildingCount": 0,
+      "insideWaterCount": 0,
+      "roadsNearby": {
+        "highway": 0,
+        "major": 1,
+        "minor": 0
+      },
+      "spatialFlags": [],
+      "linkedWalkLinkIds": [
+        "acc-walk:b5ab61ab706621c5"
+      ],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "entranceId": "acc-ent:0f229b7262317f6c",
+      "key": "entrance-2",
+      "name": "South entrance",
+      "location": [
+        -0.020314,
+        -0.00018
+      ],
+      "distanceToStationMeters": 40.2,
+      "insideBuildingCount": 0,
+      "insideWaterCount": 0,
+      "roadsNearby": {
+        "highway": 0,
+        "major": 1,
+        "minor": 0
+      },
+      "spatialFlags": [],
+      "linkedWalkLinkIds": [],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "accessPoints": [
+    {
+      "accessPointId": "acc-pt:b27b9a5c8945d6d2",
+      "key": "access-point-1",
+      "name": "Crossing",
+      "location": [
+        -0.019731,
+        0.000988
+      ],
+      "distanceToStationMeters": 113.9,
+      "insideBuildingCount": 0,
+      "insideWaterCount": 0,
+      "roadsNearby": {
+        "highway": 0,
+        "major": 0,
+        "minor": 0
+      },
+      "spatialFlags": [],
+      "kind": "crossing",
+      "linkedWalkLinkIds": [
+        "acc-walk:b5ab61ab706621c5",
+        "acc-walk:b6ab633e6d661d0c"
+      ],
+      "drawnConnection": {
+        "connected": true,
+        "lengthMeters": 84.8,
+        "linkIds": [
+          "acc-walk:b5ab61ab706621c5"
+        ]
+      },
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "accessPointId": "acc-pt:b57b9f158845d53f",
+      "key": "access-point-2",
+      "name": "Back street",
+      "location": [
+        -0.020359,
+        -0.001258
+      ],
+      "distanceToStationMeters": 145.5,
+      "insideBuildingCount": 0,
+      "insideWaterCount": 0,
+      "roadsNearby": {
+        "highway": 0,
+        "major": 0,
+        "minor": 0
+      },
+      "spatialFlags": [],
+      "kind": "street",
+      "linkedWalkLinkIds": [
+        "acc-walk:b7ab64d16e661e9f"
+      ],
+      "drawnConnection": {
+        "connected": true,
+        "lengthMeters": 145.5,
+        "linkIds": [
+          "acc-walk:b7ab64d16e661e9f"
+        ]
+      },
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "walkLinks": [
+    {
+      "walkLinkId": "acc-walk:b5ab61ab706621c5",
+      "key": "walk-link-1",
+      "name": "North entrance to crossing",
+      "from": {
+        "kind": "entrance",
+        "id": "acc-ent:0e2299df65318425"
+      },
+      "to": {
+        "kind": "access-point",
+        "id": "acc-pt:b27b9a5c8945d6d2"
+      },
+      "alignment": [
+        [
+          -0.019731,
+          0.000225
+        ],
+        [
+          -0.019731,
+          0.000629
+        ],
+        [
+          -0.019731,
+          0.000988
+        ]
+      ],
+      "alignmentBasis": "player",
+      "lengthMeters": 84.8,
+      "straightDistanceMeters": 84.8,
+      "widthMeters": null,
+      "crossings": {
+        "river": 0,
+        "road": {
+          "highway": 0,
+          "major": 1,
+          "minor": 0
+        },
+        "railway": 0,
+        "building": 0,
+        "utility": null
+      },
+      "dataQuality": "medium",
+      "unknown": [
+        "crossings.utility",
+        "widthMeters"
+      ],
+      "unknownReasons": {
+        "crossings.utility": "no-dataset",
+        "widthMeters": "not-provided"
+      }
+    },
+    {
+      "walkLinkId": "acc-walk:b6ab633e6d661d0c",
+      "key": "walk-link-2",
+      "name": "Crossing to the homes",
+      "from": {
+        "kind": "access-point",
+        "id": "acc-pt:b27b9a5c8945d6d2"
+      },
+      "to": {
+        "kind": "demand-zone",
+        "id": "acc-zone:a9988a3378c7811d"
+      },
+      "alignment": [
+        [
+          -0.019731,
+          0.000988
+        ],
+        [
+          -0.018562,
+          0.001752
+        ]
+      ],
+      "alignmentBasis": "player",
+      "lengthMeters": 155.3,
+      "straightDistanceMeters": 155.3,
+      "widthMeters": 4,
+      "crossings": {
+        "river": 0,
+        "road": {
+          "highway": 0,
+          "major": 0,
+          "minor": 1
+        },
+        "railway": 0,
+        "building": 0,
+        "utility": null
+      },
+      "dataQuality": "medium",
+      "unknown": [
+        "crossings.utility"
+      ],
+      "unknownReasons": {
+        "crossings.utility": "no-dataset"
+      }
+    },
+    {
+      "walkLinkId": "acc-walk:b7ab64d16e661e9f",
+      "key": "walk-link-3",
+      "name": "Station to back street",
+      "from": {
+        "kind": "station",
+        "id": "stn-access:24f042ad55aa9a4f"
+      },
+      "to": {
+        "kind": "access-point",
+        "id": "acc-pt:b57b9f158845d53f"
+      },
+      "alignment": [
+        [
+          -0.02,
+          0
+        ],
+        [
+          -0.020359,
+          -0.001258
+        ]
+      ],
+      "alignmentBasis": "player",
+      "lengthMeters": 145.5,
+      "straightDistanceMeters": 145.5,
+      "widthMeters": null,
+      "crossings": {
+        "river": 0,
+        "road": {
+          "highway": 0,
+          "major": 0,
+          "minor": 0
+        },
+        "railway": 0,
+        "building": 0,
+        "utility": null
+      },
+      "dataQuality": "medium",
+      "unknown": [
+        "crossings.utility",
+        "widthMeters"
+      ],
+      "unknownReasons": {
+        "crossings.utility": "no-dataset",
+        "widthMeters": "not-provided"
+      }
+    }
+  ],
+  "transfers": [],
+  "catchments": [
+    {
+      "catchmentId": "acc-catch:82964580b2d4c3fe",
+      "key": "catchment-1",
+      "name": "Access boundary",
+      "scope": "station",
+      "polygon": [
+        [
+          -0.024042,
+          -0.003144
+        ],
+        [
+          -0.015958,
+          -0.003144
+        ],
+        [
+          -0.015958,
+          0.003144
+        ],
+        [
+          -0.024042,
+          0.003144
+        ]
+      ],
+      "polygonBasis": "player",
+      "areaSquareMeters": 629919.8,
+      "containsStation": true,
+      "containsEntranceIds": [
+        "acc-ent:0e2299df65318425",
+        "acc-ent:0f229b7262317f6c"
+      ],
+      "containsAccessPointIds": [
+        "acc-pt:b27b9a5c8945d6d2",
+        "acc-pt:b57b9f158845d53f"
+      ],
+      "demandZoneIds": [
+        "acc-zone:a9988a3378c7811d"
+      ],
+      "demandNodeIdsInside": [
+        "inner-4"
+      ],
+      "buildingCount": 60,
+      "waterOverlapCount": 0,
+      "spatialFlags": [],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "catchmentId": "acc-catch:85964a39b1d4c26b",
+      "key": "catchment-2",
+      "name": "North entrance boundary",
+      "scope": "entrance",
+      "entranceId": "acc-ent:0e2299df65318425",
+      "polygon": [
+        [
+          -0.020719,
+          -0.000539
+        ],
+        [
+          -0.017305,
+          -0.000539
+        ],
+        [
+          -0.017305,
+          0.002695
+        ],
+        [
+          -0.020719,
+          0.002695
+        ]
+      ],
+      "polygonBasis": "player",
+      "areaSquareMeters": 136820.1,
+      "containsStation": true,
+      "containsEntranceIds": [
+        "acc-ent:0e2299df65318425",
+        "acc-ent:0f229b7262317f6c"
+      ],
+      "containsAccessPointIds": [
+        "acc-pt:b27b9a5c8945d6d2"
+      ],
+      "demandZoneIds": [
+        "acc-zone:a9988a3378c7811d"
+      ],
+      "demandNodeIdsInside": [
+        "inner-4"
+      ],
+      "buildingCount": 5,
+      "waterOverlapCount": 0,
+      "spatialFlags": [],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "demandZones": [
+    {
+      "demandZoneId": "acc-zone:a9988a3378c7811d",
+      "key": "demand-zone-1",
+      "name": "Homes north-east",
+      "kind": "residential",
+      "polygon": [
+        [
+          -0.019461,
+          0.001168
+        ],
+        [
+          -0.017664,
+          0.001168
+        ],
+        [
+          -0.017664,
+          0.002336
+        ],
+        [
+          -0.019461,
+          0.002336
+        ]
+      ],
+      "areaSquareMeters": 26009.8,
+      "centroid": [
+        -0.018562,
+        0.001752
+      ],
+      "buildingCount": 0,
+      "waterOverlapCount": 0,
+      "demandNodeRefs": [],
+      "nearestDemandNode": {
+        "demandNodeId": "inner-4",
+        "distanceMeters": 143.2
+      },
+      "nearestEntrance": {
+        "entranceId": "acc-ent:0e2299df65318425",
+        "distanceMeters": 109.2
+      },
+      "demandSourceRefIds": [
+        "demand-source:e9cb006deb9d4733"
+      ],
+      "linkedWalkLinkIds": [
+        "acc-walk:b6ab633e6d661d0c"
+      ],
+      "drawnConnection": {
+        "connected": true,
+        "lengthMeters": 240.1,
+        "linkIds": [
+          "acc-walk:b5ab61ab706621c5",
+          "acc-walk:b6ab633e6d661d0c"
+        ]
+      },
+      "spatialFlags": [
+        "no-demand-node-inside"
+      ],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "demandSourceRefs": [
+    {
+      "sourceId": "demand-source:e9cb006deb9d4733",
+      "kind": "demand-points",
+      "file": "demand.json",
+      "formatVersion": 1,
+      "model": "gravity",
+      "source": null,
+      "unit": null,
+      "attribution": [],
+      "license": "CC0-1.0",
+      "spatialResolution": "synthetic-node",
+      "quality": null,
+      "unknown": [
+        "quality",
+        "source",
+        "unit"
+      ],
+      "unknownReasons": {
+        "quality": "not-assessed",
+        "source": "not-stated-in-file",
+        "unit": "not-stated-in-file"
+      }
+    }
+  ],
+  "spatialFlags": [],
+  "model": {
+    "transferRadiusMeters": 500,
+    "roadSearchRadiusMeters": 60,
+    "crossingProbe": "walk alignment as a polyline"
+  },
+  "dataQuality": "medium",
+  "unknown": [
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:quality",
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:source",
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:unit",
+    "walkLinks:acc-walk:b5ab61ab706621c5:crossings.utility",
+    "walkLinks:acc-walk:b5ab61ab706621c5:widthMeters",
+    "walkLinks:acc-walk:b6ab633e6d661d0c:crossings.utility",
+    "walkLinks:acc-walk:b7ab64d16e661e9f:crossings.utility",
+    "walkLinks:acc-walk:b7ab64d16e661e9f:widthMeters"
+  ],
+  "unknownReasons": {
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:quality": "not-assessed",
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:source": "not-stated-in-file",
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:unit": "not-stated-in-file",
+    "walkLinks:acc-walk:b5ab61ab706621c5:crossings.utility": "no-dataset",
+    "walkLinks:acc-walk:b5ab61ab706621c5:widthMeters": "not-provided",
+    "walkLinks:acc-walk:b6ab633e6d661d0c:crossings.utility": "no-dataset",
+    "walkLinks:acc-walk:b7ab64d16e661e9f:crossings.utility": "no-dataset",
+    "walkLinks:acc-walk:b7ab64d16e661e9f:widthMeters": "not-provided"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "entrances",
+      "access-points",
+      "walk-links",
+      "catchments",
+      "demand-zone"
+    ],
+    "synthetic": true,
+    "note": "Synthetic drawing placed by hand for this example on a real plan station of this pack; the entrances, walking links, boundaries and zones are not any real station's. Demand and OD files are linked by source and quality only.",
+    "layers": {
+      "kind": "synthetic-layers",
+      "options": {
+        "clearing": 0.003
+      }
+    },
+    "input": {
+      "drawn": {
+        "name": "Inner station with a full access drawing",
+        "location": null,
+        "connect": {
+          "planId": "plan:a7b82bfea8635d94",
+          "stationId": "stn:ee2a71cbfab3eed9"
+        },
+        "key": "example:radial:access-full",
+        "entrances": [
+          {
+            "name": "North entrance",
+            "location": [
+              -0.019731,
+              0.000225
+            ],
+            "key": "entrance-1"
+          },
+          {
+            "name": "South entrance",
+            "location": [
+              -0.020314,
+              -0.00018
+            ],
+            "key": "entrance-2"
+          }
+        ],
+        "accessPoints": [
+          {
+            "name": "Crossing",
+            "location": [
+              -0.019731,
+              0.000988
+            ],
+            "kind": "crossing",
+            "key": "access-point-1"
+          },
+          {
+            "name": "Back street",
+            "location": [
+              -0.020359,
+              -0.001258
+            ],
+            "kind": "street",
+            "key": "access-point-2"
+          }
+        ],
+        "walkLinks": [
+          {
+            "name": "North entrance to crossing",
+            "from": {
+              "kind": "entrance",
+              "key": "entrance-1"
+            },
+            "to": {
+              "kind": "access-point",
+              "key": "access-point-1"
+            },
+            "via": [
+              [
+                -0.019731,
+                0.000629
+              ]
+            ],
+            "key": "walk-link-1"
+          },
+          {
+            "name": "Crossing to the homes",
+            "from": {
+              "kind": "access-point",
+              "key": "access-point-1"
+            },
+            "to": {
+              "kind": "demand-zone",
+              "key": "demand-zone-1"
+            },
+            "widthMeters": 4,
+            "key": "walk-link-2"
+          },
+          {
+            "name": "Station to back street",
+            "from": {
+              "kind": "station"
+            },
+            "to": {
+              "kind": "access-point",
+              "key": "access-point-2"
+            },
+            "key": "walk-link-3"
+          }
+        ],
+        "transfers": [],
+        "catchments": [
+          {
+            "name": "Access boundary",
+            "polygon": [
+              [
+                -0.024042,
+                -0.003144
+              ],
+              [
+                -0.015958,
+                -0.003144
+              ],
+              [
+                -0.015958,
+                0.003144
+              ],
+              [
+                -0.024042,
+                0.003144
+              ]
+            ],
+            "key": "catchment-1"
+          },
+          {
+            "name": "North entrance boundary",
+            "entranceKey": "entrance-1",
+            "polygon": [
+              [
+                -0.020719,
+                -0.000539
+              ],
+              [
+                -0.017305,
+                -0.000539
+              ],
+              [
+                -0.017305,
+                0.002695
+              ],
+              [
+                -0.020719,
+                0.002695
+              ]
+            ],
+            "key": "catchment-2"
+          }
+        ],
+        "demandZones": [
+          {
+            "name": "Homes north-east",
+            "kind": "residential",
+            "polygon": [
+              [
+                -0.019461,
+                0.001168
+              ],
+              [
+                -0.017664,
+                0.001168
+              ],
+              [
+                -0.017664,
+                0.002336
+              ],
+              [
+                -0.019461,
+                0.002336
+              ]
+            ],
+            "key": "demand-zone-1"
+          }
+        ],
+        "seq": {
+          "entrance": 2,
+          "access-point": 2,
+          "demand-zone": 1,
+          "walk-link": 3,
+          "catchment": 2
+        },
+        "deleted": false
+      },
+      "mode": "scratch"
+    },
+    "generatedBy": "scripts/build-station-demand-access-examples.mjs"
+  }
+}

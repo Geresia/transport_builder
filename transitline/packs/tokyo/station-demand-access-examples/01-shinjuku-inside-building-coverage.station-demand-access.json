@@ -1,0 +1,783 @@
+{
+  "schema": "transitline.station-demand-access-geometry/1",
+  "contractVersion": 1,
+  "stationAccessId": "stn-access:d6af0af2bfe52018",
+  "stationAccessRevision": "stn-access-revision:580853ecae182652",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "name": "Free-placed Shinjuku station inside the footprint coverage",
+  "coordinateReference": "EPSG:4326",
+  "location": [
+    139.697945,
+    35.695943
+  ],
+  "locationBasis": "plan-station",
+  "stationKind": "plan",
+  "connectedPlanId": "plan:fecf90025bb0baa8",
+  "connectedStationId": "stn:f2c1d30755698c75",
+  "connectedNetworkId": "plan:fecf90025bb0baa8",
+  "offsetFromConnectedStationMeters": 0,
+  "entrances": [
+    {
+      "entranceId": "acc-ent:561380cb603d632d",
+      "key": "entrance-1",
+      "name": "North entrance",
+      "location": [
+        139.698277,
+        35.696168
+      ],
+      "distanceToStationMeters": 39,
+      "insideBuildingCount": 0,
+      "insideWaterCount": 0,
+      "roadsNearby": null,
+      "spatialFlags": [],
+      "linkedWalkLinkIds": [
+        "acc-walk:b9bbe96f755f176d"
+      ],
+      "dataQuality": "medium",
+      "unknown": [
+        "roadsNearby"
+      ],
+      "unknownReasons": {
+        "roadsNearby": "no-layer"
+      }
+    },
+    {
+      "entranceId": "acc-ent:5713825e5d3d5e74",
+      "key": "entrance-2",
+      "name": "South entrance",
+      "location": [
+        139.697558,
+        35.695763
+      ],
+      "distanceToStationMeters": 40.3,
+      "insideBuildingCount": 1,
+      "insideWaterCount": 0,
+      "roadsNearby": null,
+      "spatialFlags": [
+        "inside-building"
+      ],
+      "linkedWalkLinkIds": [],
+      "dataQuality": "medium",
+      "unknown": [
+        "roadsNearby"
+      ],
+      "unknownReasons": {
+        "roadsNearby": "no-layer"
+      }
+    }
+  ],
+  "accessPoints": [
+    {
+      "accessPointId": "acc-pt:d8666f084467b35a",
+      "key": "access-point-1",
+      "name": "Crossing",
+      "location": [
+        139.698277,
+        35.696931
+      ],
+      "distanceToStationMeters": 113.9,
+      "insideBuildingCount": 1,
+      "insideWaterCount": 0,
+      "roadsNearby": null,
+      "spatialFlags": [
+        "inside-building"
+      ],
+      "kind": "crossing",
+      "linkedWalkLinkIds": [
+        "acc-walk:b9bbe96f755f176d",
+        "acc-walk:babbeb02725f12b4"
+      ],
+      "drawnConnection": {
+        "connected": true,
+        "lengthMeters": 84.8,
+        "linkIds": [
+          "acc-walk:b9bbe96f755f176d"
+        ]
+      },
+      "dataQuality": "medium",
+      "unknown": [
+        "roadsNearby"
+      ],
+      "unknownReasons": {
+        "roadsNearby": "no-layer"
+      }
+    },
+    {
+      "accessPointId": "acc-pt:db6673c14367b1c7",
+      "key": "access-point-2",
+      "name": "Back street",
+      "location": [
+        139.697503,
+        35.694685
+      ],
+      "distanceToStationMeters": 145.5,
+      "insideBuildingCount": 0,
+      "insideWaterCount": 0,
+      "roadsNearby": null,
+      "spatialFlags": [],
+      "kind": "street",
+      "linkedWalkLinkIds": [
+        "acc-walk:bbbbec95735f1447"
+      ],
+      "drawnConnection": {
+        "connected": true,
+        "lengthMeters": 145.5,
+        "linkIds": [
+          "acc-walk:bbbbec95735f1447"
+        ]
+      },
+      "dataQuality": "medium",
+      "unknown": [
+        "roadsNearby"
+      ],
+      "unknownReasons": {
+        "roadsNearby": "no-layer"
+      }
+    }
+  ],
+  "walkLinks": [
+    {
+      "walkLinkId": "acc-walk:b9bbe96f755f176d",
+      "key": "walk-link-1",
+      "name": "North entrance to crossing",
+      "from": {
+        "kind": "entrance",
+        "id": "acc-ent:561380cb603d632d"
+      },
+      "to": {
+        "kind": "access-point",
+        "id": "acc-pt:d8666f084467b35a"
+      },
+      "alignment": [
+        [
+          139.698277,
+          35.696168
+        ],
+        [
+          139.698277,
+          35.696572
+        ],
+        [
+          139.698277,
+          35.696931
+        ]
+      ],
+      "alignmentBasis": "player",
+      "lengthMeters": 84.8,
+      "straightDistanceMeters": 84.8,
+      "widthMeters": null,
+      "crossings": {
+        "river": 0,
+        "road": null,
+        "railway": 0,
+        "building": 6,
+        "utility": null
+      },
+      "dataQuality": "medium",
+      "unknown": [
+        "crossings.road",
+        "crossings.utility",
+        "widthMeters"
+      ],
+      "unknownReasons": {
+        "crossings.road": "no-layer",
+        "crossings.utility": "no-dataset",
+        "widthMeters": "not-provided"
+      }
+    },
+    {
+      "walkLinkId": "acc-walk:babbeb02725f12b4",
+      "key": "walk-link-2",
+      "name": "Crossing to the homes",
+      "from": {
+        "kind": "access-point",
+        "id": "acc-pt:d8666f084467b35a"
+      },
+      "to": {
+        "kind": "demand-zone",
+        "id": "acc-zone:233dac376ab58715"
+      },
+      "alignment": [
+        [
+          139.698277,
+          35.696931
+        ],
+        [
+          139.699715,
+          35.697695
+        ]
+      ],
+      "alignmentBasis": "player",
+      "lengthMeters": 155.2,
+      "straightDistanceMeters": 155.2,
+      "widthMeters": 4,
+      "crossings": {
+        "river": 0,
+        "road": null,
+        "railway": 0,
+        "building": 3,
+        "utility": null
+      },
+      "dataQuality": "medium",
+      "unknown": [
+        "crossings.road",
+        "crossings.utility"
+      ],
+      "unknownReasons": {
+        "crossings.road": "no-layer",
+        "crossings.utility": "no-dataset"
+      }
+    },
+    {
+      "walkLinkId": "acc-walk:bbbbec95735f1447",
+      "key": "walk-link-3",
+      "name": "Station to back street",
+      "from": {
+        "kind": "station",
+        "id": "stn-access:d6af0af2bfe52018"
+      },
+      "to": {
+        "kind": "access-point",
+        "id": "acc-pt:db6673c14367b1c7"
+      },
+      "alignment": [
+        [
+          139.697945,
+          35.695943
+        ],
+        [
+          139.697503,
+          35.694685
+        ]
+      ],
+      "alignmentBasis": "player",
+      "lengthMeters": 145.5,
+      "straightDistanceMeters": 145.5,
+      "widthMeters": null,
+      "crossings": {
+        "river": 0,
+        "road": null,
+        "railway": 0,
+        "building": 5,
+        "utility": null
+      },
+      "dataQuality": "medium",
+      "unknown": [
+        "crossings.road",
+        "crossings.utility",
+        "widthMeters"
+      ],
+      "unknownReasons": {
+        "crossings.road": "no-layer",
+        "crossings.utility": "no-dataset",
+        "widthMeters": "not-provided"
+      }
+    }
+  ],
+  "transfers": [],
+  "catchments": [
+    {
+      "catchmentId": "acc-catch:92b505a45c1bb786",
+      "key": "catchment-1",
+      "name": "Access boundary",
+      "scope": "station",
+      "polygon": [
+        [
+          139.692967,
+          35.692799
+        ],
+        [
+          139.702923,
+          35.692799
+        ],
+        [
+          139.702923,
+          35.699087
+        ],
+        [
+          139.692967,
+          35.699087
+        ]
+      ],
+      "polygonBasis": "player",
+      "areaSquareMeters": 630037.8,
+      "containsStation": true,
+      "containsEntranceIds": [
+        "acc-ent:561380cb603d632d",
+        "acc-ent:5713825e5d3d5e74"
+      ],
+      "containsAccessPointIds": [
+        "acc-pt:d8666f084467b35a",
+        "acc-pt:db6673c14367b1c7"
+      ],
+      "demandZoneIds": [
+        "acc-zone:233dac376ab58715"
+      ],
+      "demandNodeIdsInside": [],
+      "buildingCount": 1508,
+      "waterOverlapCount": 0,
+      "spatialFlags": [],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "catchmentId": "acc-catch:95b50a5d5b1bb5f3",
+      "key": "catchment-2",
+      "name": "North entrance boundary",
+      "scope": "entrance",
+      "entranceId": "acc-ent:561380cb603d632d",
+      "polygon": [
+        [
+          139.69706,
+          35.695404
+        ],
+        [
+          139.701263,
+          35.695404
+        ],
+        [
+          139.701263,
+          35.698638
+        ],
+        [
+          139.69706,
+          35.698638
+        ]
+      ],
+      "polygonBasis": "player",
+      "areaSquareMeters": 136794.5,
+      "containsStation": true,
+      "containsEntranceIds": [
+        "acc-ent:561380cb603d632d",
+        "acc-ent:5713825e5d3d5e74"
+      ],
+      "containsAccessPointIds": [
+        "acc-pt:d8666f084467b35a"
+      ],
+      "demandZoneIds": [
+        "acc-zone:233dac376ab58715"
+      ],
+      "demandNodeIdsInside": [],
+      "buildingCount": 252,
+      "waterOverlapCount": 0,
+      "spatialFlags": [],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "demandZones": [
+    {
+      "demandZoneId": "acc-zone:233dac376ab58715",
+      "key": "demand-zone-1",
+      "name": "Homes north-east",
+      "kind": "residential",
+      "polygon": [
+        [
+          139.698609,
+          35.697111
+        ],
+        [
+          139.700821,
+          35.697111
+        ],
+        [
+          139.700821,
+          35.698279
+        ],
+        [
+          139.698609,
+          35.698279
+        ]
+      ],
+      "areaSquareMeters": 26001.4,
+      "centroid": [
+        139.699715,
+        35.697695
+      ],
+      "buildingCount": 22,
+      "waterOverlapCount": 0,
+      "demandNodeRefs": [],
+      "nearestDemandNode": {
+        "demandNodeId": "ward-shinjuku",
+        "distanceMeters": 748.5
+      },
+      "nearestEntrance": {
+        "entranceId": "acc-ent:561380cb603d632d",
+        "distanceMeters": 109.2
+      },
+      "demandSourceRefIds": [
+        "demand-source:186a45dbc9caea9d"
+      ],
+      "linkedWalkLinkIds": [
+        "acc-walk:babbeb02725f12b4"
+      ],
+      "drawnConnection": {
+        "connected": true,
+        "lengthMeters": 240,
+        "linkIds": [
+          "acc-walk:b9bbe96f755f176d",
+          "acc-walk:babbeb02725f12b4"
+        ]
+      },
+      "spatialFlags": [
+        "no-demand-node-inside"
+      ],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "demandSourceRefs": [
+    {
+      "sourceId": "demand-source:186a45dbc9caea9d",
+      "kind": "demand-points",
+      "file": "demand.json",
+      "formatVersion": 1,
+      "model": "gravity",
+      "source": null,
+      "unit": null,
+      "attribution": [
+        "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+        "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値"
+      ],
+      "license": "ODbL-1.0",
+      "spatialResolution": "municipality-centroid",
+      "quality": "low",
+      "unknown": [
+        "source",
+        "unit"
+      ],
+      "unknownReasons": {
+        "source": "not-stated-in-file",
+        "unit": "not-stated-in-file"
+      }
+    },
+    {
+      "sourceId": "demand-source:8089cc64572b3c32",
+      "kind": "od-school",
+      "file": "od-school.json",
+      "formatVersion": 1,
+      "model": null,
+      "source": "令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表 (常住地), 総務省統計局 / e-Stat",
+      "unit": "通学者 (15歳未満を含む全年齢), 人",
+      "attribution": [
+        "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）"
+      ],
+      "license": "ODbL-1.0",
+      "spatialResolution": "municipality",
+      "quality": "low",
+      "unknown": [
+        "model"
+      ],
+      "unknownReasons": {
+        "model": "not-stated-in-file"
+      }
+    },
+    {
+      "sourceId": "demand-source:cf5455f3b125aa05",
+      "kind": "od-commute",
+      "file": "od.json",
+      "formatVersion": 1,
+      "model": null,
+      "source": "令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表 (常住地), 総務省統計局 / e-Stat",
+      "unit": "15歳以上就業者 (通学者を除く), 人",
+      "attribution": [
+        "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）"
+      ],
+      "license": "ODbL-1.0",
+      "spatialResolution": "municipality",
+      "quality": "low",
+      "unknown": [
+        "model"
+      ],
+      "unknownReasons": {
+        "model": "not-stated-in-file"
+      }
+    }
+  ],
+  "spatialFlags": [
+    "entrance-inside-building",
+    "walk-through-buildings"
+  ],
+  "model": {
+    "transferRadiusMeters": 500,
+    "roadSearchRadiusMeters": 60,
+    "crossingProbe": "walk alignment as a polyline"
+  },
+  "dataQuality": "low",
+  "unknown": [
+    "accessPoints:acc-pt:d8666f084467b35a:roadsNearby",
+    "accessPoints:acc-pt:db6673c14367b1c7:roadsNearby",
+    "demandSourceRefs:demand-source:186a45dbc9caea9d:source",
+    "demandSourceRefs:demand-source:186a45dbc9caea9d:unit",
+    "demandSourceRefs:demand-source:8089cc64572b3c32:model",
+    "demandSourceRefs:demand-source:cf5455f3b125aa05:model",
+    "entrances:acc-ent:561380cb603d632d:roadsNearby",
+    "entrances:acc-ent:5713825e5d3d5e74:roadsNearby",
+    "walkLinks:acc-walk:b9bbe96f755f176d:crossings.road",
+    "walkLinks:acc-walk:b9bbe96f755f176d:crossings.utility",
+    "walkLinks:acc-walk:b9bbe96f755f176d:widthMeters",
+    "walkLinks:acc-walk:babbeb02725f12b4:crossings.road",
+    "walkLinks:acc-walk:babbeb02725f12b4:crossings.utility",
+    "walkLinks:acc-walk:bbbbec95735f1447:crossings.road",
+    "walkLinks:acc-walk:bbbbec95735f1447:crossings.utility",
+    "walkLinks:acc-walk:bbbbec95735f1447:widthMeters"
+  ],
+  "unknownReasons": {
+    "accessPoints:acc-pt:d8666f084467b35a:roadsNearby": "no-layer",
+    "accessPoints:acc-pt:db6673c14367b1c7:roadsNearby": "no-layer",
+    "demandSourceRefs:demand-source:186a45dbc9caea9d:source": "not-stated-in-file",
+    "demandSourceRefs:demand-source:186a45dbc9caea9d:unit": "not-stated-in-file",
+    "demandSourceRefs:demand-source:8089cc64572b3c32:model": "not-stated-in-file",
+    "demandSourceRefs:demand-source:cf5455f3b125aa05:model": "not-stated-in-file",
+    "entrances:acc-ent:561380cb603d632d:roadsNearby": "no-layer",
+    "entrances:acc-ent:5713825e5d3d5e74:roadsNearby": "no-layer",
+    "walkLinks:acc-walk:b9bbe96f755f176d:crossings.road": "no-layer",
+    "walkLinks:acc-walk:b9bbe96f755f176d:crossings.utility": "no-dataset",
+    "walkLinks:acc-walk:b9bbe96f755f176d:widthMeters": "not-provided",
+    "walkLinks:acc-walk:babbeb02725f12b4:crossings.road": "no-layer",
+    "walkLinks:acc-walk:babbeb02725f12b4:crossings.utility": "no-dataset",
+    "walkLinks:acc-walk:bbbbec95735f1447:crossings.road": "no-layer",
+    "walkLinks:acc-walk:bbbbec95735f1447:crossings.utility": "no-dataset",
+    "walkLinks:acc-walk:bbbbec95735f1447:widthMeters": "not-provided"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json",
+      "license": "MLIT-KSJ-terms"
+    },
+    {
+      "layer": "buildings",
+      "quality": "high",
+      "name": "OpenStreetMap building footprints, packs/tokyo/obstacles.json (four districts)",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "source": {
+    "case": [
+      "footprints-known",
+      "entrance-inside-building",
+      "walk-links"
+    ],
+    "synthetic": true,
+    "note": "Synthetic drawing placed by hand for this example on a real plan station of this pack; the entrances, walking links, boundaries and zones are not any real station's. Demand and OD files are linked by source and quality only.",
+    "layers": {
+      "kind": "tokyo-tracked-layers",
+      "layers": [
+        "water",
+        "buildings"
+      ],
+      "note": "DEM and roads are git-ignored dev data and are not used, so their facts are unknown"
+    },
+    "input": {
+      "drawn": {
+        "name": "Free-placed Shinjuku station inside the footprint coverage",
+        "location": null,
+        "connect": {
+          "planId": "plan:fecf90025bb0baa8",
+          "stationId": "stn:f2c1d30755698c75"
+        },
+        "key": "example:tokyo:access-shinjuku",
+        "entrances": [
+          {
+            "name": "North entrance",
+            "location": [
+              139.698277,
+              35.696168
+            ],
+            "key": "entrance-1"
+          },
+          {
+            "name": "South entrance",
+            "location": [
+              139.697558,
+              35.695763
+            ],
+            "key": "entrance-2"
+          }
+        ],
+        "accessPoints": [
+          {
+            "name": "Crossing",
+            "location": [
+              139.698277,
+              35.696931
+            ],
+            "kind": "crossing",
+            "key": "access-point-1"
+          },
+          {
+            "name": "Back street",
+            "location": [
+              139.697503,
+              35.694685
+            ],
+            "kind": "street",
+            "key": "access-point-2"
+          }
+        ],
+        "walkLinks": [
+          {
+            "name": "North entrance to crossing",
+            "from": {
+              "kind": "entrance",
+              "key": "entrance-1"
+            },
+            "to": {
+              "kind": "access-point",
+              "key": "access-point-1"
+            },
+            "via": [
+              [
+                139.698277,
+                35.696572
+              ]
+            ],
+            "key": "walk-link-1"
+          },
+          {
+            "name": "Crossing to the homes",
+            "from": {
+              "kind": "access-point",
+              "key": "access-point-1"
+            },
+            "to": {
+              "kind": "demand-zone",
+              "key": "demand-zone-1"
+            },
+            "widthMeters": 4,
+            "key": "walk-link-2"
+          },
+          {
+            "name": "Station to back street",
+            "from": {
+              "kind": "station"
+            },
+            "to": {
+              "kind": "access-point",
+              "key": "access-point-2"
+            },
+            "key": "walk-link-3"
+          }
+        ],
+        "transfers": [],
+        "catchments": [
+          {
+            "name": "Access boundary",
+            "polygon": [
+              [
+                139.692967,
+                35.692799
+              ],
+              [
+                139.702923,
+                35.692799
+              ],
+              [
+                139.702923,
+                35.699087
+              ],
+              [
+                139.692967,
+                35.699087
+              ]
+            ],
+            "key": "catchment-1"
+          },
+          {
+            "name": "North entrance boundary",
+            "entranceKey": "entrance-1",
+            "polygon": [
+              [
+                139.69706,
+                35.695404
+              ],
+              [
+                139.701263,
+                35.695404
+              ],
+              [
+                139.701263,
+                35.698638
+              ],
+              [
+                139.69706,
+                35.698638
+              ]
+            ],
+            "key": "catchment-2"
+          }
+        ],
+        "demandZones": [
+          {
+            "name": "Homes north-east",
+            "kind": "residential",
+            "polygon": [
+              [
+                139.698609,
+                35.697111
+              ],
+              [
+                139.700821,
+                35.697111
+              ],
+              [
+                139.700821,
+                35.698279
+              ],
+              [
+                139.698609,
+                35.698279
+              ]
+            ],
+            "key": "demand-zone-1"
+          }
+        ],
+        "seq": {
+          "entrance": 2,
+          "access-point": 2,
+          "demand-zone": 1,
+          "walk-link": 3,
+          "catchment": 2
+        },
+        "deleted": false
+      },
+      "mode": "scratch"
+    },
+    "generatedBy": "scripts/build-station-demand-access-examples.mjs"
+  }
+}

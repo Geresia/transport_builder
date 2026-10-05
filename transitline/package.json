@@ -21,6 +21,7 @@
     "railway-service-control-examples": "node scripts/build-railway-service-control-examples.mjs",
     "rail-replacement-transport-examples": "node scripts/build-rail-replacement-transport-examples.mjs",
     "railway-detour-service-examples": "node scripts/build-railway-detour-service-examples.mjs",
+    "station-demand-access-examples": "node scripts/build-station-demand-access-examples.mjs",
     "regen": "node packs/example-radial/generate.mjs && node packs/example-corridor/generate.mjs"
   }
 }

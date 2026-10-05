@@ -1,0 +1,317 @@
+{
+  "schema": "transitline.station-demand-access-geometry/1",
+  "contractVersion": 1,
+  "stationAccessId": "stn-access:455ce03ba37de46d",
+  "stationAccessRevision": "stn-access-revision:e7e96d51a6d41787",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "name": "CBD station with a passage to the stub line's station",
+  "coordinateReference": "EPSG:4326",
+  "location": [
+    0,
+    0
+  ],
+  "locationBasis": "plan-station",
+  "stationKind": "plan",
+  "connectedPlanId": "plan:a7b82bfea8635d94",
+  "connectedStationId": "stn:cbcf9940f43b2516",
+  "connectedNetworkId": "plan:a7b82bfea8635d94",
+  "offsetFromConnectedStationMeters": 0,
+  "entrances": [
+    {
+      "entranceId": "acc-ent:75ce0e07f65bf4f5",
+      "key": "entrance-1",
+      "name": "Concourse entrance",
+      "location": [
+        0.000225,
+        0.000135
+      ],
+      "distanceToStationMeters": 29.2,
+      "insideBuildingCount": 0,
+      "insideWaterCount": 0,
+      "roadsNearby": {
+        "highway": 0,
+        "major": 1,
+        "minor": 0
+      },
+      "spatialFlags": [],
+      "linkedWalkLinkIds": [],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "accessPoints": [],
+  "walkLinks": [],
+  "transfers": [
+    {
+      "transferId": "acc-xfer:cb01ecd71c3a0d85",
+      "basis": "player-passage",
+      "targetStationId": "stn:40c9079e948a41dc",
+      "targetKind": "plan",
+      "targetName": null,
+      "targetNetworkId": "plan:92c8983ba0999f9d",
+      "targetLineIds": [],
+      "targetLocation": [
+        0.003,
+        0.0012
+      ],
+      "targetLocationBasis": "player-placed",
+      "from": {
+        "kind": "entrance",
+        "id": "acc-ent:75ce0e07f65bf4f5"
+      },
+      "alignment": [
+        [
+          0.000225,
+          0.000135
+        ],
+        [
+          0.000808,
+          0.000225
+        ],
+        [
+          0.003,
+          0.0012
+        ]
+      ],
+      "alignmentBasis": "player",
+      "straightDistanceMeters": 330.5,
+      "passageLengthMeters": 332.4,
+      "widthMeters": 5,
+      "crossings": {
+        "river": 0,
+        "road": {
+          "highway": 0,
+          "major": 1,
+          "minor": 1
+        },
+        "railway": 0,
+        "building": 0,
+        "utility": null
+      },
+      "dataQuality": "medium",
+      "unknown": [
+        "crossings.utility"
+      ],
+      "unknownReasons": {
+        "crossings.utility": "no-dataset"
+      }
+    }
+  ],
+  "catchments": [
+    {
+      "catchmentId": "acc-catch:eee5ae0888f0be2e",
+      "key": "catchment-1",
+      "name": "Access boundary",
+      "scope": "station",
+      "polygon": [
+        [
+          -0.003593,
+          -0.002695
+        ],
+        [
+          0.003593,
+          -0.002695
+        ],
+        [
+          0.003593,
+          0.002695
+        ],
+        [
+          -0.003593,
+          0.002695
+        ]
+      ],
+      "polygonBasis": "player",
+      "areaSquareMeters": 479979.2,
+      "containsStation": true,
+      "containsEntranceIds": [
+        "acc-ent:75ce0e07f65bf4f5"
+      ],
+      "containsAccessPointIds": [],
+      "demandZoneIds": [],
+      "demandNodeIdsInside": [
+        "cbd"
+      ],
+      "buildingCount": 40,
+      "waterOverlapCount": 0,
+      "spatialFlags": [],
+      "dataQuality": "medium",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "demandZones": [],
+  "demandSourceRefs": [
+    {
+      "sourceId": "demand-source:e9cb006deb9d4733",
+      "kind": "demand-points",
+      "file": "demand.json",
+      "formatVersion": 1,
+      "model": "gravity",
+      "source": null,
+      "unit": null,
+      "attribution": [],
+      "license": "CC0-1.0",
+      "spatialResolution": "synthetic-node",
+      "quality": null,
+      "unknown": [
+        "quality",
+        "source",
+        "unit"
+      ],
+      "unknownReasons": {
+        "quality": "not-assessed",
+        "source": "not-stated-in-file",
+        "unit": "not-stated-in-file"
+      }
+    }
+  ],
+  "spatialFlags": [
+    "no-demand-zone-drawn"
+  ],
+  "model": {
+    "transferRadiusMeters": 500,
+    "roadSearchRadiusMeters": 60,
+    "crossingProbe": "walk alignment as a polyline"
+  },
+  "dataQuality": "medium",
+  "unknown": [
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:quality",
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:source",
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:unit",
+    "transfers:acc-xfer:cb01ecd71c3a0d85:crossings.utility"
+  ],
+  "unknownReasons": {
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:quality": "not-assessed",
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:source": "not-stated-in-file",
+    "demandSourceRefs:demand-source:e9cb006deb9d4733:unit": "not-stated-in-file",
+    "transfers:acc-xfer:cb01ecd71c3a0d85:crossings.utility": "no-dataset"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "dem",
+      "quality": "medium",
+      "name": "Synthetic terrain (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "Synthetic river (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "buildings",
+      "quality": "medium",
+      "name": "Synthetic building footprints (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "landuse",
+      "quality": "medium",
+      "name": "Synthetic land use (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "ExternalNetwork (station-level, coarse)",
+      "license": "same as the pack it was derived from"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "transfer-passage",
+      "entrance-for-passage"
+    ],
+    "synthetic": true,
+    "note": "Synthetic drawing placed by hand for this example on a real plan station of this pack; the entrances, walking links, boundaries and zones are not any real station's. Demand and OD files are linked by source and quality only.",
+    "layers": {
+      "kind": "synthetic-layers",
+      "options": {
+        "clearing": 0.003
+      }
+    },
+    "input": {
+      "drawn": {
+        "name": "CBD station with a passage to the stub line's station",
+        "location": null,
+        "connect": {
+          "planId": "plan:a7b82bfea8635d94",
+          "stationId": "stn:cbcf9940f43b2516"
+        },
+        "key": "example:radial:access-transfer",
+        "entrances": [
+          {
+            "name": "Concourse entrance",
+            "location": [
+              0.000225,
+              0.000135
+            ],
+            "key": "entrance-1"
+          }
+        ],
+        "accessPoints": [],
+        "walkLinks": [],
+        "transfers": [
+          {
+            "targetStationId": "stn:40c9079e948a41dc",
+            "via": [
+              [
+                0.000808,
+                0.000225
+              ]
+            ],
+            "fromEntranceKey": "entrance-1",
+            "widthMeters": 5
+          }
+        ],
+        "catchments": [
+          {
+            "name": "Access boundary",
+            "polygon": [
+              [
+                -0.003593,
+                -0.002695
+              ],
+              [
+                0.003593,
+                -0.002695
+              ],
+              [
+                0.003593,
+                0.002695
+              ],
+              [
+                -0.003593,
+                0.002695
+              ]
+            ],
+            "key": "catchment-1"
+          }
+        ],
+        "demandZones": [],
+        "seq": {
+          "entrance": 1,
+          "catchment": 1
+        },
+        "deleted": false
+      },
+      "mode": "scratch"
+    },
+    "generatedBy": "scripts/build-station-demand-access-examples.mjs"
+  }
+}
