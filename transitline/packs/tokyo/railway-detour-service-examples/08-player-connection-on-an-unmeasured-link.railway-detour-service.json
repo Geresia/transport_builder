@@ -1,0 +1,1074 @@
+{
+  "schema": "transitline.railway-detour-service-geometry/1",
+  "contractVersion": 1,
+  "detourGeometryId": "railway-detour-service:35c87786069079f8",
+  "detourGeometryRevision": "railway-detour-service-revision:3fcec7d01b3564d6",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "eventId": "railway-disruption:1",
+  "disruptionSiteId": "railway-disruption-site:f711a3c0789bb972",
+  "disruptionSiteRevision": "railway-disruption-site-revision:5eff9406739cde04",
+  "controlGeometryId": "railway-service-control:f711a3c0789bb972",
+  "controlGeometryRevision": "railway-service-control-revision:489fb2a6a1af3fd4",
+  "railGeometryId": "rail-geometry:acdb18c04475bb16",
+  "railGeometryRevision": "rail-geometry-revision:307ae30b950a4ac9",
+  "throughRouteId": "through-route:acdb18c04475bb16",
+  "operationalLineId": "line:1",
+  "selectedDetourCandidateId": "railway-control-detour:e251640bec1c2c8d",
+  "scope": "section",
+  "originalBoundaryStationIds": [
+    "stn:b811921b26eaebbd",
+    "stn:c247c3f5a3f53c4b"
+  ],
+  "affectedSectionIds": [
+    "rail-section:fa8c8f768d1968a0"
+  ],
+  "affectedTrackSegmentIds": [
+    "track-segment:9"
+  ],
+  "affectedBlockIds": null,
+  "externalLineIds": [
+    "ext-line:443259"
+  ],
+  "handoverIds": [
+    "through-handover:1ece8566e7e0f1b8",
+    "through-handover:c609f857addcde59"
+  ],
+  "infrastructureOwnerIds": [
+    "owner:synthetic-existing-line-owner",
+    "owner:synthetic-player"
+  ],
+  "lengthMeters": null,
+  "alignment": null,
+  "physicalConnection": null,
+  "legs": [
+    {
+      "legId": "railway-detour-leg:cebd2bf41780b69e",
+      "sequenceIndex": 0,
+      "basis": "source",
+      "sectionId": "rail-section:bb57584698dddd58",
+      "sourceKind": "plan",
+      "planId": "plan:b9b153e3df14331d",
+      "segmentId": "seg:29a889cbeeb9b321",
+      "throughLegId": "through-leg:7da41e7e9d3bb850",
+      "trackSegmentId": "track-segment:7",
+      "trackSegmentIds": [
+        "track-segment:7"
+      ],
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "externalSpecificationId": null,
+      "externalSpecificationRevision": null,
+      "fromStationId": "stn:b811921b26eaebbd",
+      "toStationId": "stn:b00d2c67f5415425",
+      "alignment": [
+        [
+          139.81254,
+          35.70474
+        ],
+        [
+          139.81276,
+          35.67399
+        ]
+      ],
+      "lengthMeters": 3419.3,
+      "infrastructureOwnerId": "owner:synthetic-player",
+      "infrastructureOwnerBasis": "through-route",
+      "spatialConstraints": {
+        "minimumCurveRadiusMeters": 2047,
+        "groundGradientPermille": 0,
+        "designedGradientPermille": null,
+        "structureHint": "elevated",
+        "directionMode": null,
+        "directionModeBasis": null,
+        "buildingIntersectionCount": null,
+        "waterCrossingCount": null,
+        "roadCrossingCount": null,
+        "existingRailwayCrossingCount": 6
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "legId": "railway-detour-leg:0648e46eadeea6d4",
+      "sequenceIndex": 1,
+      "basis": "source",
+      "sectionId": "rail-section:a74429b170434cdb",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "throughLegId": "through-leg:6f10aa5230489d68",
+      "trackSegmentId": "track-segment:6",
+      "trackSegmentIds": [
+        "track-segment:6"
+      ],
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "externalSpecificationId": null,
+      "externalSpecificationRevision": null,
+      "fromStationId": "ward-shinjuku",
+      "toStationId": "ward-chiyoda",
+      "alignment": null,
+      "lengthMeters": null,
+      "infrastructureOwnerId": "owner:synthetic-existing-line-owner",
+      "infrastructureOwnerBasis": "through-route",
+      "spatialConstraints": {
+        "minimumCurveRadiusMeters": null,
+        "groundGradientPermille": null,
+        "designedGradientPermille": null,
+        "structureHint": null,
+        "directionMode": null,
+        "directionModeBasis": null,
+        "buildingIntersectionCount": null,
+        "waterCrossingCount": null,
+        "roadCrossingCount": null,
+        "existingRailwayCrossingCount": null
+      },
+      "unknown": [
+        "alignment",
+        "externalSpecificationId",
+        "externalSpecificationRevision",
+        "lengthMeters"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "externalSpecificationId": "no-catalog",
+        "externalSpecificationRevision": "no-catalog",
+        "lengthMeters": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "legId": "railway-detour-leg:4ec418c0b9722542",
+      "sequenceIndex": 2,
+      "basis": "source",
+      "sectionId": "rail-section:860b30270966df91",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "throughLegId": "through-leg:6f10aa5230489d68",
+      "trackSegmentId": "track-segment:5",
+      "trackSegmentIds": [
+        "track-segment:5"
+      ],
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "externalSpecificationId": null,
+      "externalSpecificationRevision": null,
+      "fromStationId": "ward-chiyoda",
+      "toStationId": "ward-chuo",
+      "alignment": null,
+      "lengthMeters": null,
+      "infrastructureOwnerId": "owner:synthetic-existing-line-owner",
+      "infrastructureOwnerBasis": "through-route",
+      "spatialConstraints": {
+        "minimumCurveRadiusMeters": null,
+        "groundGradientPermille": null,
+        "designedGradientPermille": null,
+        "structureHint": null,
+        "directionMode": null,
+        "directionModeBasis": null,
+        "buildingIntersectionCount": null,
+        "waterCrossingCount": null,
+        "roadCrossingCount": null,
+        "existingRailwayCrossingCount": null
+      },
+      "unknown": [
+        "alignment",
+        "externalSpecificationId",
+        "externalSpecificationRevision",
+        "lengthMeters"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "externalSpecificationId": "no-catalog",
+        "externalSpecificationRevision": "no-catalog",
+        "lengthMeters": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "legId": "railway-detour-leg:57a4843a7c292530",
+      "sequenceIndex": 3,
+      "basis": "source",
+      "sectionId": "rail-section:785f3d5fced8b7e9",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "throughLegId": "through-leg:6f10aa5230489d68",
+      "trackSegmentId": "track-segment:4",
+      "trackSegmentIds": [
+        "track-segment:4"
+      ],
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "externalSpecificationId": null,
+      "externalSpecificationRevision": null,
+      "fromStationId": "ward-chuo",
+      "toStationId": "ward-koto",
+      "alignment": null,
+      "lengthMeters": null,
+      "infrastructureOwnerId": "owner:synthetic-existing-line-owner",
+      "infrastructureOwnerBasis": "through-route",
+      "spatialConstraints": {
+        "minimumCurveRadiusMeters": null,
+        "groundGradientPermille": null,
+        "designedGradientPermille": null,
+        "structureHint": null,
+        "directionMode": null,
+        "directionModeBasis": null,
+        "buildingIntersectionCount": null,
+        "waterCrossingCount": null,
+        "roadCrossingCount": null,
+        "existingRailwayCrossingCount": null
+      },
+      "unknown": [
+        "alignment",
+        "externalSpecificationId",
+        "externalSpecificationRevision",
+        "lengthMeters"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "externalSpecificationId": "no-catalog",
+        "externalSpecificationRevision": "no-catalog",
+        "lengthMeters": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "legId": "railway-detour-leg:b9e6392a5f9de5d4",
+      "sequenceIndex": 4,
+      "basis": "source",
+      "sectionId": "rail-section:eae5c8fc4e19300e",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "throughLegId": "through-leg:6f10aa5230489d68",
+      "trackSegmentId": "track-segment:8",
+      "trackSegmentIds": [
+        "track-segment:8"
+      ],
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "externalSpecificationId": null,
+      "externalSpecificationRevision": null,
+      "fromStationId": "ward-koto",
+      "toStationId": "ward-edogawa",
+      "alignment": null,
+      "lengthMeters": null,
+      "infrastructureOwnerId": "owner:synthetic-existing-line-owner",
+      "infrastructureOwnerBasis": "through-route",
+      "spatialConstraints": {
+        "minimumCurveRadiusMeters": null,
+        "groundGradientPermille": null,
+        "designedGradientPermille": null,
+        "structureHint": null,
+        "directionMode": null,
+        "directionModeBasis": null,
+        "buildingIntersectionCount": null,
+        "waterCrossingCount": null,
+        "roadCrossingCount": null,
+        "existingRailwayCrossingCount": null
+      },
+      "unknown": [
+        "alignment",
+        "externalSpecificationId",
+        "externalSpecificationRevision",
+        "lengthMeters"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "externalSpecificationId": "no-catalog",
+        "externalSpecificationRevision": "no-catalog",
+        "lengthMeters": "external-alignment-not-in-source"
+      }
+    },
+    {
+      "legId": "railway-detour-leg:593f6b069440ad94",
+      "sequenceIndex": 5,
+      "basis": "source",
+      "sectionId": "rail-section:23fa09287af988a6",
+      "sourceKind": "external",
+      "planId": null,
+      "segmentId": null,
+      "throughLegId": "through-leg:6f10aa5230489d68",
+      "trackSegmentId": "track-segment:3",
+      "trackSegmentIds": [
+        "track-segment:3"
+      ],
+      "externalNetworkId": "external:tokyo",
+      "externalLineId": "ext-line:443259",
+      "externalSpecificationId": null,
+      "externalSpecificationRevision": null,
+      "fromStationId": "ward-edogawa",
+      "toStationId": "kanto-12203",
+      "alignment": null,
+      "lengthMeters": null,
+      "infrastructureOwnerId": "owner:synthetic-existing-line-owner",
+      "infrastructureOwnerBasis": "through-route",
+      "spatialConstraints": {
+        "minimumCurveRadiusMeters": null,
+        "groundGradientPermille": null,
+        "designedGradientPermille": null,
+        "structureHint": null,
+        "directionMode": null,
+        "directionModeBasis": null,
+        "buildingIntersectionCount": null,
+        "waterCrossingCount": null,
+        "roadCrossingCount": null,
+        "existingRailwayCrossingCount": null
+      },
+      "unknown": [
+        "alignment",
+        "externalSpecificationId",
+        "externalSpecificationRevision",
+        "lengthMeters"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "externalSpecificationId": "no-catalog",
+        "externalSpecificationRevision": "no-catalog",
+        "lengthMeters": "external-alignment-not-in-source"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "connectionId": "railway-detour-connection:9acfca663c92ada0",
+      "sequenceIndex": 0,
+      "kind": "shared-station",
+      "basis": "source",
+      "stationId": "stn:b811921b26eaebbd",
+      "viaStationIds": null,
+      "location": [
+        139.81254,
+        35.70474
+      ],
+      "viaLocations": null,
+      "fromSectionId": "rail-section:fa8c8f768d1968a0",
+      "toSectionId": "rail-section:bb57584698dddd58",
+      "handoverId": null,
+      "junctionResourceIds": null,
+      "physicalConnection": true,
+      "gapMeters": 0,
+      "evidence": "measured-alignments",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "connectionId": "railway-detour-connection:4dc0161a9a8fa8f8",
+      "sequenceIndex": 1,
+      "kind": "handover-link",
+      "basis": "source",
+      "stationId": null,
+      "viaStationIds": [
+        "ward-shinjuku",
+        "stn:b00d2c67f5415425"
+      ],
+      "location": null,
+      "viaLocations": [
+        [
+          139.70422,
+          35.70441
+        ],
+        [
+          139.81276,
+          35.67399
+        ]
+      ],
+      "fromSectionId": "rail-section:bb57584698dddd58",
+      "toSectionId": "rail-section:a74429b170434cdb",
+      "handoverId": "through-handover:c609f857addcde59",
+      "junctionResourceIds": null,
+      "physicalConnection": null,
+      "gapMeters": null,
+      "evidence": "no-measurement",
+      "unknown": [
+        "gapMeters",
+        "physicalConnection"
+      ],
+      "unknownReasons": {
+        "gapMeters": "external-topology-not-in-source",
+        "physicalConnection": "external-topology-not-in-source"
+      }
+    },
+    {
+      "connectionId": "railway-detour-connection:b1ce36bf0e18be19",
+      "sequenceIndex": 2,
+      "kind": "shared-station",
+      "basis": "source",
+      "stationId": "ward-chiyoda",
+      "viaStationIds": null,
+      "location": [
+        139.75764,
+        35.69088
+      ],
+      "viaLocations": null,
+      "fromSectionId": "rail-section:a74429b170434cdb",
+      "toSectionId": "rail-section:860b30270966df91",
+      "handoverId": null,
+      "junctionResourceIds": null,
+      "physicalConnection": null,
+      "gapMeters": null,
+      "evidence": "no-measurement",
+      "unknown": [
+        "gapMeters",
+        "physicalConnection"
+      ],
+      "unknownReasons": {
+        "gapMeters": "external-alignment-not-in-source",
+        "physicalConnection": "external-topology-not-in-source"
+      }
+    },
+    {
+      "connectionId": "railway-detour-connection:df7e63fcb750e76e",
+      "sequenceIndex": 3,
+      "kind": "shared-station",
+      "basis": "source",
+      "stationId": "ward-chuo",
+      "viaStationIds": null,
+      "location": [
+        139.77747,
+        35.67927
+      ],
+      "viaLocations": null,
+      "fromSectionId": "rail-section:860b30270966df91",
+      "toSectionId": "rail-section:785f3d5fced8b7e9",
+      "handoverId": null,
+      "junctionResourceIds": null,
+      "physicalConnection": null,
+      "gapMeters": null,
+      "evidence": "no-measurement",
+      "unknown": [
+        "gapMeters",
+        "physicalConnection"
+      ],
+      "unknownReasons": {
+        "gapMeters": "external-alignment-not-in-source",
+        "physicalConnection": "external-topology-not-in-source"
+      }
+    },
+    {
+      "connectionId": "railway-detour-connection:b7ff53e7b853c435",
+      "sequenceIndex": 4,
+      "kind": "shared-station",
+      "basis": "source",
+      "stationId": "ward-koto",
+      "viaStationIds": null,
+      "location": [
+        139.81276,
+        35.67399
+      ],
+      "viaLocations": null,
+      "fromSectionId": "rail-section:785f3d5fced8b7e9",
+      "toSectionId": "rail-section:eae5c8fc4e19300e",
+      "handoverId": null,
+      "junctionResourceIds": null,
+      "physicalConnection": null,
+      "gapMeters": null,
+      "evidence": "no-measurement",
+      "unknown": [
+        "gapMeters",
+        "physicalConnection"
+      ],
+      "unknownReasons": {
+        "gapMeters": "external-alignment-not-in-source",
+        "physicalConnection": "external-topology-not-in-source"
+      }
+    },
+    {
+      "connectionId": "railway-detour-connection:0daf202cb5925c0a",
+      "sequenceIndex": 5,
+      "kind": "shared-station",
+      "basis": "source",
+      "stationId": "ward-edogawa",
+      "viaStationIds": null,
+      "location": [
+        139.87118,
+        35.7136
+      ],
+      "viaLocations": null,
+      "fromSectionId": "rail-section:eae5c8fc4e19300e",
+      "toSectionId": "rail-section:23fa09287af988a6",
+      "handoverId": null,
+      "junctionResourceIds": null,
+      "physicalConnection": null,
+      "gapMeters": null,
+      "evidence": "no-measurement",
+      "unknown": [
+        "gapMeters",
+        "physicalConnection"
+      ],
+      "unknownReasons": {
+        "gapMeters": "external-alignment-not-in-source",
+        "physicalConnection": "external-topology-not-in-source"
+      }
+    },
+    {
+      "connectionId": "railway-detour-connection:11c75b2ef84c6b00",
+      "sequenceIndex": 6,
+      "kind": "handover-link",
+      "basis": "source",
+      "stationId": null,
+      "viaStationIds": [
+        "stn:c247c3f5a3f53c4b",
+        "kanto-12203"
+      ],
+      "location": null,
+      "viaLocations": [
+        [
+          139.87118,
+          35.7136
+        ],
+        [
+          139.93268,
+          35.72642
+        ]
+      ],
+      "fromSectionId": "rail-section:23fa09287af988a6",
+      "toSectionId": "rail-section:fa8c8f768d1968a0",
+      "handoverId": "through-handover:1ece8566e7e0f1b8",
+      "junctionResourceIds": null,
+      "physicalConnection": null,
+      "gapMeters": null,
+      "evidence": "no-measurement",
+      "unknown": [
+        "gapMeters",
+        "physicalConnection"
+      ],
+      "unknownReasons": {
+        "gapMeters": "external-topology-not-in-source",
+        "physicalConnection": "external-topology-not-in-source"
+      }
+    }
+  ],
+  "stations": [
+    {
+      "stationId": "stn:b811921b26eaebbd",
+      "role": "origin-boundary",
+      "location": [
+        139.81254,
+        35.70474
+      ],
+      "external": false,
+      "handoverEndpoint": false,
+      "isInterchange": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "platformType": null,
+      "unknown": [
+        "entrances",
+        "platformType"
+      ],
+      "unknownReasons": {
+        "entrances": "no-station-site",
+        "platformType": "no-station-site"
+      }
+    },
+    {
+      "stationId": "stn:b00d2c67f5415425",
+      "role": "detour-via",
+      "location": [
+        139.81276,
+        35.67399
+      ],
+      "external": false,
+      "handoverEndpoint": true,
+      "isInterchange": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "platformType": null,
+      "unknown": [
+        "entrances",
+        "platformType"
+      ],
+      "unknownReasons": {
+        "entrances": "no-station-site",
+        "platformType": "no-station-site"
+      }
+    },
+    {
+      "stationId": "ward-shinjuku",
+      "role": "detour-via",
+      "location": [
+        139.70422,
+        35.70441
+      ],
+      "external": true,
+      "handoverEndpoint": true,
+      "isInterchange": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "platformType": null,
+      "unknown": [
+        "entrances",
+        "platformType"
+      ],
+      "unknownReasons": {
+        "entrances": "external-station-detail-not-in-source",
+        "platformType": "external-station-detail-not-in-source"
+      }
+    },
+    {
+      "stationId": "ward-chiyoda",
+      "role": "detour-via",
+      "location": [
+        139.75764,
+        35.69088
+      ],
+      "external": true,
+      "handoverEndpoint": false,
+      "isInterchange": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "platformType": null,
+      "unknown": [
+        "entrances",
+        "platformType"
+      ],
+      "unknownReasons": {
+        "entrances": "external-station-detail-not-in-source",
+        "platformType": "external-station-detail-not-in-source"
+      }
+    },
+    {
+      "stationId": "ward-chuo",
+      "role": "detour-via",
+      "location": [
+        139.77747,
+        35.67927
+      ],
+      "external": true,
+      "handoverEndpoint": false,
+      "isInterchange": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "platformType": null,
+      "unknown": [
+        "entrances",
+        "platformType"
+      ],
+      "unknownReasons": {
+        "entrances": "external-station-detail-not-in-source",
+        "platformType": "external-station-detail-not-in-source"
+      }
+    },
+    {
+      "stationId": "ward-koto",
+      "role": "detour-via",
+      "location": [
+        139.81276,
+        35.67399
+      ],
+      "external": true,
+      "handoverEndpoint": false,
+      "isInterchange": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "platformType": null,
+      "unknown": [
+        "entrances",
+        "platformType"
+      ],
+      "unknownReasons": {
+        "entrances": "external-station-detail-not-in-source",
+        "platformType": "external-station-detail-not-in-source"
+      }
+    },
+    {
+      "stationId": "ward-edogawa",
+      "role": "detour-via",
+      "location": [
+        139.87118,
+        35.7136
+      ],
+      "external": true,
+      "handoverEndpoint": false,
+      "isInterchange": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "platformType": null,
+      "unknown": [
+        "entrances",
+        "platformType"
+      ],
+      "unknownReasons": {
+        "entrances": "external-station-detail-not-in-source",
+        "platformType": "external-station-detail-not-in-source"
+      }
+    },
+    {
+      "stationId": "kanto-12203",
+      "role": "detour-via",
+      "location": [
+        139.93268,
+        35.72642
+      ],
+      "external": true,
+      "handoverEndpoint": true,
+      "isInterchange": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "platformType": null,
+      "unknown": [
+        "entrances",
+        "platformType"
+      ],
+      "unknownReasons": {
+        "entrances": "external-station-detail-not-in-source",
+        "platformType": "external-station-detail-not-in-source"
+      }
+    },
+    {
+      "stationId": "stn:c247c3f5a3f53c4b",
+      "role": "destination-boundary",
+      "location": [
+        139.87118,
+        35.7136
+      ],
+      "external": false,
+      "handoverEndpoint": true,
+      "isInterchange": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "platformType": null,
+      "unknown": [
+        "entrances",
+        "platformType"
+      ],
+      "unknownReasons": {
+        "entrances": "no-station-site",
+        "platformType": "no-station-site"
+      }
+    }
+  ],
+  "transferLinks": [
+    {
+      "transferLinkId": "railway-detour-transfer:99c4e40951e128f3",
+      "basis": "source",
+      "connectionId": "railway-detour-connection:4dc0161a9a8fa8f8",
+      "handoverId": "through-handover:c609f857addcde59",
+      "fromStationId": "ward-shinjuku",
+      "toStationId": "stn:b00d2c67f5415425",
+      "straightDistanceMeters": 10379.5,
+      "entrancePairs": null,
+      "unknown": [
+        "entrancePairs"
+      ],
+      "unknownReasons": {
+        "entrancePairs": "entrance-data-missing"
+      }
+    },
+    {
+      "transferLinkId": "railway-detour-transfer:d70243e9e5bf807b",
+      "basis": "source",
+      "connectionId": "railway-detour-connection:11c75b2ef84c6b00",
+      "handoverId": "through-handover:1ece8566e7e0f1b8",
+      "fromStationId": "stn:c247c3f5a3f53c4b",
+      "toStationId": "kanto-12203",
+      "straightDistanceMeters": 5739.6,
+      "entrancePairs": null,
+      "unknown": [
+        "entrancePairs"
+      ],
+      "unknownReasons": {
+        "entrancePairs": "entrance-data-missing"
+      }
+    }
+  ],
+  "playerConnections": [
+    {
+      "playerConnectionId": "railway-detour-player-connection:09df854e081c3238",
+      "basis": "player",
+      "key": "drawn-link",
+      "name": "Connection drawn by the player",
+      "polyline": [
+        [
+          139.81276,
+          35.67399
+        ],
+        [
+          139.70422,
+          35.70441
+        ]
+      ],
+      "lengthMeters": 10383.1,
+      "ends": [
+        {
+          "location": [
+            139.81276,
+            35.67399
+          ],
+          "nearestStationId": "stn:b00d2c67f5415425",
+          "distanceMeters": 0,
+          "attached": true,
+          "unknown": [],
+          "unknownReasons": {}
+        },
+        {
+          "location": [
+            139.70422,
+            35.70441
+          ],
+          "nearestStationId": "ward-shinjuku",
+          "distanceMeters": 0,
+          "attached": true,
+          "unknown": [],
+          "unknownReasons": {}
+        }
+      ],
+      "measuredAgainst": "station-location",
+      "joinedAtBothEnds": true,
+      "bridgesConnectionIds": [
+        "railway-detour-connection:4dc0161a9a8fa8f8"
+      ],
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "playerTransferPaths": null,
+  "walkNetwork": null,
+  "spatialFlags": [
+    "connection-unmeasured",
+    "entrance-data-missing",
+    "existing-line-leg",
+    "existing-line-not-in-catalog",
+    "external-alignment-unknown",
+    "handover-between-different-stations",
+    "long-detour",
+    "platform-detail-missing",
+    "player-connection-drawn"
+  ],
+  "dataQuality": "low",
+  "unknown": [
+    "alignment",
+    "connection:railway-detour-connection:0daf202cb5925c0a:gapMeters",
+    "connection:railway-detour-connection:0daf202cb5925c0a:physicalConnection",
+    "connection:railway-detour-connection:11c75b2ef84c6b00:gapMeters",
+    "connection:railway-detour-connection:11c75b2ef84c6b00:physicalConnection",
+    "connection:railway-detour-connection:4dc0161a9a8fa8f8:gapMeters",
+    "connection:railway-detour-connection:4dc0161a9a8fa8f8:physicalConnection",
+    "connection:railway-detour-connection:b1ce36bf0e18be19:gapMeters",
+    "connection:railway-detour-connection:b1ce36bf0e18be19:physicalConnection",
+    "connection:railway-detour-connection:b7ff53e7b853c435:gapMeters",
+    "connection:railway-detour-connection:b7ff53e7b853c435:physicalConnection",
+    "connection:railway-detour-connection:df7e63fcb750e76e:gapMeters",
+    "connection:railway-detour-connection:df7e63fcb750e76e:physicalConnection",
+    "leg:railway-detour-leg:0648e46eadeea6d4:alignment",
+    "leg:railway-detour-leg:0648e46eadeea6d4:externalSpecificationId",
+    "leg:railway-detour-leg:0648e46eadeea6d4:externalSpecificationRevision",
+    "leg:railway-detour-leg:0648e46eadeea6d4:lengthMeters",
+    "leg:railway-detour-leg:4ec418c0b9722542:alignment",
+    "leg:railway-detour-leg:4ec418c0b9722542:externalSpecificationId",
+    "leg:railway-detour-leg:4ec418c0b9722542:externalSpecificationRevision",
+    "leg:railway-detour-leg:4ec418c0b9722542:lengthMeters",
+    "leg:railway-detour-leg:57a4843a7c292530:alignment",
+    "leg:railway-detour-leg:57a4843a7c292530:externalSpecificationId",
+    "leg:railway-detour-leg:57a4843a7c292530:externalSpecificationRevision",
+    "leg:railway-detour-leg:57a4843a7c292530:lengthMeters",
+    "leg:railway-detour-leg:593f6b069440ad94:alignment",
+    "leg:railway-detour-leg:593f6b069440ad94:externalSpecificationId",
+    "leg:railway-detour-leg:593f6b069440ad94:externalSpecificationRevision",
+    "leg:railway-detour-leg:593f6b069440ad94:lengthMeters",
+    "leg:railway-detour-leg:b9e6392a5f9de5d4:alignment",
+    "leg:railway-detour-leg:b9e6392a5f9de5d4:externalSpecificationId",
+    "leg:railway-detour-leg:b9e6392a5f9de5d4:externalSpecificationRevision",
+    "leg:railway-detour-leg:b9e6392a5f9de5d4:lengthMeters",
+    "lengthMeters",
+    "physicalConnection",
+    "playerTransferPaths",
+    "station:kanto-12203:entrances",
+    "station:kanto-12203:platformType",
+    "station:stn:b00d2c67f5415425:entrances",
+    "station:stn:b00d2c67f5415425:platformType",
+    "station:stn:b811921b26eaebbd:entrances",
+    "station:stn:b811921b26eaebbd:platformType",
+    "station:stn:c247c3f5a3f53c4b:entrances",
+    "station:stn:c247c3f5a3f53c4b:platformType",
+    "station:ward-chiyoda:entrances",
+    "station:ward-chiyoda:platformType",
+    "station:ward-chuo:entrances",
+    "station:ward-chuo:platformType",
+    "station:ward-edogawa:entrances",
+    "station:ward-edogawa:platformType",
+    "station:ward-koto:entrances",
+    "station:ward-koto:platformType",
+    "station:ward-shinjuku:entrances",
+    "station:ward-shinjuku:platformType",
+    "transfer:railway-detour-transfer:99c4e40951e128f3:entrancePairs",
+    "transfer:railway-detour-transfer:d70243e9e5bf807b:entrancePairs",
+    "walkNetwork"
+  ],
+  "unknownReasons": {
+    "alignment": "external-alignment-not-in-source",
+    "connection:railway-detour-connection:0daf202cb5925c0a:gapMeters": "external-alignment-not-in-source",
+    "connection:railway-detour-connection:0daf202cb5925c0a:physicalConnection": "external-topology-not-in-source",
+    "connection:railway-detour-connection:11c75b2ef84c6b00:gapMeters": "external-topology-not-in-source",
+    "connection:railway-detour-connection:11c75b2ef84c6b00:physicalConnection": "external-topology-not-in-source",
+    "connection:railway-detour-connection:4dc0161a9a8fa8f8:gapMeters": "external-topology-not-in-source",
+    "connection:railway-detour-connection:4dc0161a9a8fa8f8:physicalConnection": "external-topology-not-in-source",
+    "connection:railway-detour-connection:b1ce36bf0e18be19:gapMeters": "external-alignment-not-in-source",
+    "connection:railway-detour-connection:b1ce36bf0e18be19:physicalConnection": "external-topology-not-in-source",
+    "connection:railway-detour-connection:b7ff53e7b853c435:gapMeters": "external-alignment-not-in-source",
+    "connection:railway-detour-connection:b7ff53e7b853c435:physicalConnection": "external-topology-not-in-source",
+    "connection:railway-detour-connection:df7e63fcb750e76e:gapMeters": "external-alignment-not-in-source",
+    "connection:railway-detour-connection:df7e63fcb750e76e:physicalConnection": "external-topology-not-in-source",
+    "leg:railway-detour-leg:0648e46eadeea6d4:alignment": "external-alignment-not-in-source",
+    "leg:railway-detour-leg:0648e46eadeea6d4:externalSpecificationId": "no-catalog",
+    "leg:railway-detour-leg:0648e46eadeea6d4:externalSpecificationRevision": "no-catalog",
+    "leg:railway-detour-leg:0648e46eadeea6d4:lengthMeters": "external-alignment-not-in-source",
+    "leg:railway-detour-leg:4ec418c0b9722542:alignment": "external-alignment-not-in-source",
+    "leg:railway-detour-leg:4ec418c0b9722542:externalSpecificationId": "no-catalog",
+    "leg:railway-detour-leg:4ec418c0b9722542:externalSpecificationRevision": "no-catalog",
+    "leg:railway-detour-leg:4ec418c0b9722542:lengthMeters": "external-alignment-not-in-source",
+    "leg:railway-detour-leg:57a4843a7c292530:alignment": "external-alignment-not-in-source",
+    "leg:railway-detour-leg:57a4843a7c292530:externalSpecificationId": "no-catalog",
+    "leg:railway-detour-leg:57a4843a7c292530:externalSpecificationRevision": "no-catalog",
+    "leg:railway-detour-leg:57a4843a7c292530:lengthMeters": "external-alignment-not-in-source",
+    "leg:railway-detour-leg:593f6b069440ad94:alignment": "external-alignment-not-in-source",
+    "leg:railway-detour-leg:593f6b069440ad94:externalSpecificationId": "no-catalog",
+    "leg:railway-detour-leg:593f6b069440ad94:externalSpecificationRevision": "no-catalog",
+    "leg:railway-detour-leg:593f6b069440ad94:lengthMeters": "external-alignment-not-in-source",
+    "leg:railway-detour-leg:b9e6392a5f9de5d4:alignment": "external-alignment-not-in-source",
+    "leg:railway-detour-leg:b9e6392a5f9de5d4:externalSpecificationId": "no-catalog",
+    "leg:railway-detour-leg:b9e6392a5f9de5d4:externalSpecificationRevision": "no-catalog",
+    "leg:railway-detour-leg:b9e6392a5f9de5d4:lengthMeters": "external-alignment-not-in-source",
+    "lengthMeters": "external-alignment-not-in-source",
+    "physicalConnection": "external-topology-not-in-source",
+    "playerTransferPaths": "no-player-transfer-path-stated",
+    "station:kanto-12203:entrances": "external-station-detail-not-in-source",
+    "station:kanto-12203:platformType": "external-station-detail-not-in-source",
+    "station:stn:b00d2c67f5415425:entrances": "no-station-site",
+    "station:stn:b00d2c67f5415425:platformType": "no-station-site",
+    "station:stn:b811921b26eaebbd:entrances": "no-station-site",
+    "station:stn:b811921b26eaebbd:platformType": "no-station-site",
+    "station:stn:c247c3f5a3f53c4b:entrances": "no-station-site",
+    "station:stn:c247c3f5a3f53c4b:platformType": "no-station-site",
+    "station:ward-chiyoda:entrances": "external-station-detail-not-in-source",
+    "station:ward-chiyoda:platformType": "external-station-detail-not-in-source",
+    "station:ward-chuo:entrances": "external-station-detail-not-in-source",
+    "station:ward-chuo:platformType": "external-station-detail-not-in-source",
+    "station:ward-edogawa:entrances": "external-station-detail-not-in-source",
+    "station:ward-edogawa:platformType": "external-station-detail-not-in-source",
+    "station:ward-koto:entrances": "external-station-detail-not-in-source",
+    "station:ward-koto:platformType": "external-station-detail-not-in-source",
+    "station:ward-shinjuku:entrances": "external-station-detail-not-in-source",
+    "station:ward-shinjuku:platformType": "external-station-detail-not-in-source",
+    "transfer:railway-detour-transfer:99c4e40951e128f3:entrancePairs": "entrance-data-missing",
+    "transfer:railway-detour-transfer:d70243e9e5bf807b:entrancePairs": "entrance-data-missing",
+    "walkNetwork": "walk-network-not-in-source"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "railway-disruption-site-geometry",
+      "quality": "low",
+      "name": "RailwayDisruptionSiteGeometry railway-disruption-site:f711a3c0789bb972",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "railway-service-control-geometry",
+      "quality": "low",
+      "name": "RailwayServiceControlGeometry railway-service-control:f711a3c0789bb972",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "rail-capacity-geometry",
+      "quality": "low",
+      "name": "RailCapacityGeometry rail-geometry:acdb18c04475bb16",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "through-route-geometry",
+      "quality": "low",
+      "name": "ThroughRouteGeometry through-route:acdb18c04475bb16",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "player-drawing",
+      "quality": null,
+      "name": "Connection lines and transfer passages the player drew",
+      "license": "player"
+    }
+  ],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "source": {
+    "case": [
+      "player-connection",
+      "connection-unmeasured",
+      "external-alignment-unknown"
+    ],
+    "synthetic": true,
+    "note": "Synthetic: the event, the application, the through route, the infrastructure owners, the player's choice and everything the player drew were written by hand for this example. The plans are real plan examples of this pack; station sites and the infrastructure catalog are the pack's own examples. Nothing was produced by the running engine.",
+    "m7Example": "01-existing-line-detour-connection-unknown",
+    "custom": null,
+    "stationSiteExamples": [],
+    "catalogExample": null,
+    "externalNetworkOwners": false,
+    "input": {
+      "savedDocument": {
+        "version": 1,
+        "packId": "tokyo",
+        "packVersion": "0.1.0",
+        "plans": [
+          {
+            "eventId": "railway-disruption:1",
+            "detourCandidateId": "railway-control-detour:e251640bec1c2c8d",
+            "active": true,
+            "selectedOnControlGeometryRevision": "railway-service-control-revision:489fb2a6a1af3fd4",
+            "selectedOnDetourGeometryRevision": "railway-detour-service-revision:3fcec7d01b3564d6",
+            "picked": {
+              "legIds": [],
+              "connectionIds": [
+                "railway-detour-player-connection:09df854e081c3238"
+              ],
+              "transferIds": []
+            },
+            "connections": [
+              {
+                "key": "drawn-link",
+                "name": "Connection drawn by the player",
+                "polyline": [
+                  [
+                    139.70422,
+                    35.70441
+                  ],
+                  [
+                    139.81276,
+                    35.67399
+                  ]
+                ]
+              }
+            ],
+            "transferPaths": null
+          }
+        ]
+      }
+    },
+    "picked": {
+      "connection": [
+        "railway-detour-player-connection:09df854e081c3238"
+      ]
+    },
+    "generatedBy": "scripts/build-railway-detour-service-examples.mjs"
+  }
+}

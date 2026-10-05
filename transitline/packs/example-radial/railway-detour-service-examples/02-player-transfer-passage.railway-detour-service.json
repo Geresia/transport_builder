@@ -1,0 +1,646 @@
+{
+  "schema": "transitline.railway-detour-service-geometry/1",
+  "contractVersion": 1,
+  "detourGeometryId": "railway-detour-service:bcb47c4a282b67c4",
+  "detourGeometryRevision": "railway-detour-service-revision:0c83c1b76f4fd351",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "eventId": "railway-disruption:1",
+  "disruptionSiteId": "railway-disruption-site:ced289424406f8d8",
+  "disruptionSiteRevision": "railway-disruption-site-revision:47f906cb0324a031",
+  "controlGeometryId": "railway-service-control:ced289424406f8d8",
+  "controlGeometryRevision": "railway-service-control-revision:5cc4330a0ce61690",
+  "railGeometryId": "rail-geometry:0f71dda639bef1bc",
+  "railGeometryRevision": "rail-geometry-revision:294b7bbad2020a40",
+  "throughRouteId": "through-route:2a36574465fc2e1e",
+  "operationalLineId": "line:1",
+  "selectedDetourCandidateId": "railway-control-detour:5d26bfd3d646adb9",
+  "scope": "section",
+  "originalBoundaryStationIds": [
+    "stn:12eab25d4b99dd0f",
+    "stn:cbcf9940f43b2516"
+  ],
+  "affectedSectionIds": [
+    "rail-section:fcb6ae7da49710ab"
+  ],
+  "affectedTrackSegmentIds": [
+    "track-segment:7"
+  ],
+  "affectedBlockIds": null,
+  "externalLineIds": [],
+  "handoverIds": [],
+  "infrastructureOwnerIds": [
+    "owner:synthetic-other-company"
+  ],
+  "lengthMeters": 8874.7,
+  "alignment": [
+    [
+      0.06495,
+      0.0375
+    ],
+    [
+      0.04347,
+      0.01165
+    ],
+    [
+      0.02,
+      0
+    ],
+    [
+      0,
+      0
+    ]
+  ],
+  "physicalConnection": true,
+  "legs": [
+    {
+      "legId": "railway-detour-leg:4c336e5d7e388f1b",
+      "sequenceIndex": 0,
+      "basis": "source",
+      "sectionId": "rail-section:2d4d302dc23862f3",
+      "sourceKind": "plan",
+      "planId": "plan:a7b82bfea8635d94",
+      "segmentId": "seg:093a835d10ac7a0b",
+      "throughLegId": "through-leg:7dafbddbe3b27955",
+      "trackSegmentId": "track-segment:1",
+      "trackSegmentIds": [
+        "track-segment:1"
+      ],
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "externalSpecificationId": null,
+      "externalSpecificationRevision": null,
+      "fromStationId": "stn:12eab25d4b99dd0f",
+      "toStationId": "stn:1c7dc899c704388b",
+      "alignment": [
+        [
+          0.06495,
+          0.0375
+        ],
+        [
+          0.04347,
+          0.01165
+        ]
+      ],
+      "lengthMeters": 3737.2,
+      "infrastructureOwnerId": "owner:synthetic-other-company",
+      "infrastructureOwnerBasis": "through-route",
+      "spatialConstraints": {
+        "minimumCurveRadiusMeters": 6898,
+        "groundGradientPermille": null,
+        "designedGradientPermille": null,
+        "structureHint": "shield",
+        "directionMode": null,
+        "directionModeBasis": null,
+        "buildingIntersectionCount": null,
+        "waterCrossingCount": null,
+        "roadCrossingCount": null,
+        "existingRailwayCrossingCount": null
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "legId": "railway-detour-leg:ffe6786f92b3ecfd",
+      "sequenceIndex": 1,
+      "basis": "source",
+      "sectionId": "rail-section:cff66de0afa6ac5e",
+      "sourceKind": "plan",
+      "planId": "plan:a7b82bfea8635d94",
+      "segmentId": "seg:9756d646c00e7a0c",
+      "throughLegId": "through-leg:7dafbddbe3b27955",
+      "trackSegmentId": "track-segment:4",
+      "trackSegmentIds": [
+        "track-segment:4"
+      ],
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "externalSpecificationId": null,
+      "externalSpecificationRevision": null,
+      "fromStationId": "stn:1c7dc899c704388b",
+      "toStationId": "stn:350dbe3a0551f15c",
+      "alignment": [
+        [
+          0.04347,
+          0.01165
+        ],
+        [
+          0.02,
+          0
+        ]
+      ],
+      "lengthMeters": 2913.6,
+      "infrastructureOwnerId": "owner:synthetic-other-company",
+      "infrastructureOwnerBasis": "through-route",
+      "spatialConstraints": {
+        "minimumCurveRadiusMeters": 4746,
+        "groundGradientPermille": null,
+        "designedGradientPermille": null,
+        "structureHint": "cut-cover",
+        "directionMode": null,
+        "directionModeBasis": null,
+        "buildingIntersectionCount": null,
+        "waterCrossingCount": null,
+        "roadCrossingCount": null,
+        "existingRailwayCrossingCount": null
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "legId": "railway-detour-leg:75e5f1d97bd230df",
+      "sequenceIndex": 2,
+      "basis": "source",
+      "sectionId": "rail-section:3cc81b36217d71c4",
+      "sourceKind": "plan",
+      "planId": "plan:a7b82bfea8635d94",
+      "segmentId": "seg:3dfc854cd7a7747a",
+      "throughLegId": "through-leg:7dafbddbe3b27955",
+      "trackSegmentId": "track-segment:2",
+      "trackSegmentIds": [
+        "track-segment:2"
+      ],
+      "externalNetworkId": null,
+      "externalLineId": null,
+      "externalSpecificationId": null,
+      "externalSpecificationRevision": null,
+      "fromStationId": "stn:350dbe3a0551f15c",
+      "toStationId": "stn:cbcf9940f43b2516",
+      "alignment": [
+        [
+          0.02,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "lengthMeters": 2223.9,
+      "infrastructureOwnerId": "owner:synthetic-other-company",
+      "infrastructureOwnerBasis": "through-route",
+      "spatialConstraints": {
+        "minimumCurveRadiusMeters": 4746,
+        "groundGradientPermille": null,
+        "designedGradientPermille": null,
+        "structureHint": "deep",
+        "directionMode": null,
+        "directionModeBasis": null,
+        "buildingIntersectionCount": 0,
+        "waterCrossingCount": 0,
+        "roadCrossingCount": 1,
+        "existingRailwayCrossingCount": null
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "connections": [
+    {
+      "connectionId": "railway-detour-connection:e70430509ba96f72",
+      "sequenceIndex": 0,
+      "kind": "shared-station",
+      "basis": "source",
+      "stationId": "stn:12eab25d4b99dd0f",
+      "viaStationIds": null,
+      "location": [
+        0.06495,
+        0.0375
+      ],
+      "viaLocations": null,
+      "fromSectionId": "rail-section:fcb6ae7da49710ab",
+      "toSectionId": "rail-section:2d4d302dc23862f3",
+      "handoverId": null,
+      "junctionResourceIds": [],
+      "physicalConnection": true,
+      "gapMeters": 0,
+      "evidence": "measured-alignments",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "connectionId": "railway-detour-connection:e3705a1e0f2c1ef4",
+      "sequenceIndex": 1,
+      "kind": "shared-station",
+      "basis": "source",
+      "stationId": "stn:1c7dc899c704388b",
+      "viaStationIds": null,
+      "location": [
+        0.04347,
+        0.01165
+      ],
+      "viaLocations": null,
+      "fromSectionId": "rail-section:2d4d302dc23862f3",
+      "toSectionId": "rail-section:cff66de0afa6ac5e",
+      "handoverId": null,
+      "junctionResourceIds": [],
+      "physicalConnection": true,
+      "gapMeters": 0,
+      "evidence": "measured-alignments",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "connectionId": "railway-detour-connection:4171ca3f55377421",
+      "sequenceIndex": 2,
+      "kind": "shared-station",
+      "basis": "source",
+      "stationId": "stn:350dbe3a0551f15c",
+      "viaStationIds": null,
+      "location": [
+        0.02,
+        0
+      ],
+      "viaLocations": null,
+      "fromSectionId": "rail-section:cff66de0afa6ac5e",
+      "toSectionId": "rail-section:3cc81b36217d71c4",
+      "handoverId": null,
+      "junctionResourceIds": [],
+      "physicalConnection": true,
+      "gapMeters": 0,
+      "evidence": "measured-alignments",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "connectionId": "railway-detour-connection:89ec01d14e806fb7",
+      "sequenceIndex": 3,
+      "kind": "shared-station",
+      "basis": "source",
+      "stationId": "stn:cbcf9940f43b2516",
+      "viaStationIds": null,
+      "location": [
+        0,
+        0
+      ],
+      "viaLocations": null,
+      "fromSectionId": "rail-section:3cc81b36217d71c4",
+      "toSectionId": "rail-section:fcb6ae7da49710ab",
+      "handoverId": null,
+      "junctionResourceIds": [
+        "rail-junction:30fca22ad7598d90"
+      ],
+      "physicalConnection": true,
+      "gapMeters": 0,
+      "evidence": "measured-alignments",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "stations": [
+    {
+      "stationId": "stn:12eab25d4b99dd0f",
+      "role": "origin-boundary",
+      "location": [
+        0.06495,
+        0.0375
+      ],
+      "external": false,
+      "handoverEndpoint": false,
+      "isInterchange": true,
+      "stationSiteId": "stn-site:7e73c1a00776e3ce",
+      "entrances": [
+        {
+          "entranceId": "ent:65a62a48a67bbbe2",
+          "name": null,
+          "location": [
+            0.065102,
+            0.037374
+          ]
+        },
+        {
+          "entranceId": "ent:66a62bdba77bbd75",
+          "name": null,
+          "location": [
+            0.06464,
+            0.037127
+          ]
+        },
+        {
+          "entranceId": "ent:67a62d6ea47bb8bc",
+          "name": null,
+          "location": [
+            0.06526,
+            0.037873
+          ]
+        },
+        {
+          "entranceId": "ent:6ca6354da17bb403",
+          "name": null,
+          "location": [
+            0.064798,
+            0.037626
+          ]
+        }
+      ],
+      "platformType": "side",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "stationId": "stn:1c7dc899c704388b",
+      "role": "detour-via",
+      "location": [
+        0.04347,
+        0.01165
+      ],
+      "external": false,
+      "handoverEndpoint": false,
+      "isInterchange": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "platformType": null,
+      "unknown": [
+        "entrances",
+        "platformType"
+      ],
+      "unknownReasons": {
+        "entrances": "no-station-site",
+        "platformType": "no-station-site"
+      }
+    },
+    {
+      "stationId": "stn:350dbe3a0551f15c",
+      "role": "detour-via",
+      "location": [
+        0.02,
+        0
+      ],
+      "external": false,
+      "handoverEndpoint": false,
+      "isInterchange": false,
+      "stationSiteId": "stn-site:67f005b69a8b079c",
+      "entrances": [
+        {
+          "entranceId": "ent:f57af2994ac0cf3b",
+          "name": null,
+          "location": [
+            0.019955,
+            0.000192
+          ]
+        },
+        {
+          "entranceId": "ent:f67af42c4fc0d71a",
+          "name": null,
+          "location": [
+            0.020045,
+            -0.000192
+          ]
+        },
+        {
+          "entranceId": "ent:f77af5bf50c0d8ad",
+          "name": null,
+          "location": [
+            0.019528,
+            -0.000111
+          ]
+        },
+        {
+          "entranceId": "ent:f87af7524dc0d3f4",
+          "name": null,
+          "location": [
+            0.020472,
+            0.000111
+          ]
+        }
+      ],
+      "platformType": "side",
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "stationId": "stn:cbcf9940f43b2516",
+      "role": "destination-boundary",
+      "location": [
+        0,
+        0
+      ],
+      "external": false,
+      "handoverEndpoint": false,
+      "isInterchange": true,
+      "stationSiteId": "stn-site:1c3f9ac638c47774",
+      "entrances": [
+        {
+          "entranceId": "ent:870bbb11e7706d83",
+          "name": null,
+          "location": [
+            0,
+            0.000198
+          ]
+        },
+        {
+          "entranceId": "ent:880bbca4ec707562",
+          "name": null,
+          "location": [
+            0,
+            -0.000198
+          ]
+        },
+        {
+          "entranceId": "ent:890bbe37ed7076f5",
+          "name": null,
+          "location": [
+            -0.000485,
+            0
+          ]
+        },
+        {
+          "entranceId": "ent:8a0bbfcaea70723c",
+          "name": null,
+          "location": [
+            0.000485,
+            0
+          ]
+        }
+      ],
+      "platformType": "island",
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "transferLinks": [],
+  "playerConnections": null,
+  "playerTransferPaths": [
+    {
+      "transferPathId": "railway-detour-transfer-path:19e3963d67c940af",
+      "basis": "player",
+      "key": "passage-1",
+      "name": "Passage between the two lines",
+      "polyline": [
+        [
+          0.020255,
+          0.000392
+        ],
+        [
+          0.019955,
+          0.000192
+        ]
+      ],
+      "lengthMeters": 40.1,
+      "ends": [
+        {
+          "location": [
+            0.020255,
+            0.000392
+          ],
+          "nearestStationId": "stn:350dbe3a0551f15c",
+          "distanceMeters": 52.1,
+          "attached": false,
+          "nearestEntranceId": "ent:f87af7524dc0d3f4",
+          "entranceDistanceMeters": 39.5,
+          "unknown": [],
+          "unknownReasons": {}
+        },
+        {
+          "location": [
+            0.019955,
+            0.000192
+          ],
+          "nearestStationId": "stn:350dbe3a0551f15c",
+          "distanceMeters": 22,
+          "attached": null,
+          "nearestEntranceId": "ent:f57af2994ac0cf3b",
+          "entranceDistanceMeters": 0,
+          "unknown": [
+            "attached"
+          ],
+          "unknownReasons": {
+            "attached": "end-near-station-not-on-it"
+          }
+        }
+      ],
+      "stationIdsAtEnds": [],
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "walkNetwork": null,
+  "spatialFlags": [
+    "all-connections-measured-joined",
+    "entrance-data-missing",
+    "platform-detail-missing",
+    "player-transfer-path-drawn"
+  ],
+  "dataQuality": "low",
+  "unknown": [
+    "playerConnections",
+    "playerTransferPath:railway-detour-transfer-path:19e3963d67c940af:end:1:attached",
+    "station:stn:1c7dc899c704388b:entrances",
+    "station:stn:1c7dc899c704388b:platformType",
+    "walkNetwork"
+  ],
+  "unknownReasons": {
+    "playerConnections": "no-player-connection-stated",
+    "playerTransferPath:railway-detour-transfer-path:19e3963d67c940af:end:1:attached": "end-near-station-not-on-it",
+    "station:stn:1c7dc899c704388b:entrances": "no-station-site",
+    "station:stn:1c7dc899c704388b:platformType": "no-station-site",
+    "walkNetwork": "walk-network-not-in-source"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "railway-disruption-site-geometry",
+      "quality": "low",
+      "name": "RailwayDisruptionSiteGeometry railway-disruption-site:ced289424406f8d8",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "railway-service-control-geometry",
+      "quality": "low",
+      "name": "RailwayServiceControlGeometry railway-service-control:ced289424406f8d8",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "rail-capacity-geometry",
+      "quality": "low",
+      "name": "RailCapacityGeometry rail-geometry:0f71dda639bef1bc",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "through-route-geometry",
+      "quality": "low",
+      "name": "ThroughRouteGeometry through-route:2a36574465fc2e1e",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "station-site-geometry",
+      "quality": null,
+      "name": "StationSiteGeometry entrance candidates",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "player-drawing",
+      "quality": null,
+      "name": "Connection lines and transfer passages the player drew",
+      "license": "player"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "player-transfer-path",
+      "station-entrances",
+      "measured-joined"
+    ],
+    "synthetic": true,
+    "note": "Synthetic: the event, the application, the through route, the infrastructure owners, the player's choice and everything the player drew were written by hand for this example. The plans are real plan examples of this pack; station sites and the infrastructure catalog are the pack's own examples. Nothing was produced by the running engine.",
+    "m7Example": "04-detour-over-another-companys-track",
+    "custom": null,
+    "stationSiteExamples": [
+      "04-deep-station",
+      "03-shallow-cut-cover",
+      "06-terminal-turnback"
+    ],
+    "catalogExample": null,
+    "externalNetworkOwners": false,
+    "input": {
+      "savedDocument": {
+        "version": 1,
+        "packId": "example-radial",
+        "packVersion": "0.1.0",
+        "plans": [
+          {
+            "eventId": "railway-disruption:1",
+            "detourCandidateId": "railway-control-detour:5d26bfd3d646adb9",
+            "active": true,
+            "selectedOnControlGeometryRevision": "railway-service-control-revision:5cc4330a0ce61690",
+            "selectedOnDetourGeometryRevision": "railway-detour-service-revision:0c83c1b76f4fd351",
+            "picked": {
+              "legIds": [],
+              "connectionIds": [],
+              "transferIds": [
+                "railway-detour-transfer-path:19e3963d67c940af"
+              ]
+            },
+            "connections": null,
+            "transferPaths": [
+              {
+                "key": "passage-1",
+                "name": "Passage between the two lines",
+                "polyline": [
+                  [
+                    0.019955,
+                    0.000192
+                  ],
+                  [
+                    0.020255,
+                    0.000392
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "picked": {
+      "transfer": [
+        "railway-detour-transfer-path:19e3963d67c940af"
+      ]
+    },
+    "generatedBy": "scripts/build-railway-detour-service-examples.mjs"
+  }
+}
