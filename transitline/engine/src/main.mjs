@@ -27,6 +27,7 @@ import { mountStationManagementPanel } from "./station-management-ui.mjs";
 import { mountConstructionContractorPanel } from "./construction-contractor-ui.mjs";
 import { mountThroughServiceManagementPanel } from "./through-service-management-ui.mjs";
 import { mountRailReplacementManagementPanel } from "./rail-replacement-management-ui.mjs";
+import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 
 const params = new URLSearchParams(location.search);
 const packPath = params.get("pack") ?? "../packs/example-radial";
@@ -339,6 +340,8 @@ async function main() {
   let throughServiceManagement = null;
   let railReplacementManagement = null;
   let railReplacementGeometries = [];
+  let mapInputPipeline = null;
+  let mapInputOutput = null;
   const getCurrentSpatial = () => withRailLayer(packSpatial, currentMapExport?.externalNetworks ?? []);
   refreshMapOverlay = () => {
     currentMapExport = buildMapExport({ pack, mode: networkMode, drawnLines: drawnLinesFromState(state), spatial: packSpatial });
@@ -354,6 +357,7 @@ async function main() {
     constructionImpact?.refresh();
     constructionWorkfront?.refresh();
     throughHandoverUi?.refresh();
+    mapInputPipeline?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -363,6 +367,7 @@ async function main() {
       railReplacementGeometries = structuredClone(Array.isArray(geometries) ? geometries : []);
       railReplacementManagement?.refresh();
     },
+    mapInputPipelineOutput() { return structuredClone(mapInputPipeline?.output() ?? mapInputOutput); },
   };
   if (scenarioPlay) renderPhaseLegend($("map-legend"));
   $("map-legend").hidden = !scenarioPlay;
@@ -519,6 +524,42 @@ async function main() {
     });
     $("btn-through-handover").hidden = false;
 
+    // B14 map inputs are spatial/player facts only.  They become engine state only when a later
+    // explicit ScenarioRuntime command accepts a current application, control choice or detour.
+    const pipelineButton = $("btn-railway-control");
+    const throughRoutesForMap = () => (runtime.report().throughRoutes ?? []).map((entry) => entry?.route ?? entry)
+      .filter((route) => route?.schema === "transitline.through-route-geometry/1");
+    mapInputPipeline = mountMapInputPipeline({
+      canvas,
+      projection,
+      pack,
+      getPlans: () => currentMapExport?.plans ?? [],
+      getRoutes: throughRoutesForMap,
+      getExternalNetworks: () => currentMapExport?.externalNetworks ?? [],
+      // No verified catalog is published by this screen yet.  The map keeps those technical facts
+      // unknown; authorization independently requires a sourced catalog before it can approve use.
+      getExternalCatalog: () => null,
+      getStationSites: () => stationUi?.stationExport?.sites ?? [],
+      getSpatial: getCurrentSpatial,
+      getRailCapacityApplication: () => runtime.railCapacityApplicationReport(),
+      getDisruptionEvents: () => runtime.railwayDisruptionReport().events,
+      enabled: false,
+      onChange: (output) => {
+        mapInputOutput = output;
+        queueMicrotask(() => refreshScenarioPanel());
+      },
+    });
+    pipelineButton.hidden = false;
+    pipelineButton.addEventListener("click", () => {
+      const enabled = !pipelineButton.classList.contains("active");
+      if (enabled) for (const id of ["btn-depot", "btn-station", "btn-construction", "btn-through-handover", "btn-station-design", "btn-construction-select", "btn-construction-impact", "btn-construction-workfront"]) {
+        if ($(id).classList.contains("active")) $(id).click();
+      }
+      pipelineButton.classList.toggle("active", enabled);
+      mapInputPipeline.setEnabled(enabled);
+      pipelineButton.blur();
+    });
+
     // 3D station-site editor (packs/tokyo/site-design.html), opened for the currently selected station
     // candidate. The bridge owns the iframe/postMessage plumbing and spatial collision recheck; this module
     // only decides what "submitted" means for the management engine (request → approve, or reject with a
@@ -577,7 +618,7 @@ async function main() {
     });
   }
   // Map editors own the pointer while active: keep exactly one drawing editor on.
-  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-construction"), $("btn-through-handover")];
+  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control")];
   for (const activeButton of drawingButtons) {
     activeButton.addEventListener("click", () => {
       if (!activeButton.classList.contains("active")) return;
@@ -1602,6 +1643,7 @@ async function main() {
         // M8 geometry is player-authored map state. Preserve its exact revision so an operating
         // order cannot silently attach to a freshly recalculated, different road route on load.
         railReplacementGeometries,
+        mapInputPipelineDoc: mapInputPipeline?.serialize() ?? null,
       });
       localStorage.setItem(storageKey, payload);
       message("지도·공사·차량·회사 상태와 작업면·대체수송 계획을 함께 저장했습니다.");
@@ -1617,6 +1659,8 @@ async function main() {
       railReplacementGeometries = wrapped && Array.isArray(payload.railReplacementGeometries)
         ? structuredClone(payload.railReplacementGeometries)
         : [];
+      if (wrapped && payload.mapInputPipelineDoc) mapInputPipeline?.loadDoc(payload.mapInputPipelineDoc);
+      else mapInputPipeline?.refresh();
       selectedLineId = null;
       message("통합 저장본을 불러왔습니다.");
     }));
