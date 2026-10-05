@@ -8,7 +8,7 @@ import { bandAt } from "./state.mjs";
 import { recordThroughStationStop, recordThroughTrainMovement } from "./through-operation-integration.mjs";
 import { recordRailwayTraffic, releaseTrainSectionJunctions, signalBlockForTrain, trainSection } from "./railway-traffic-control.mjs";
 import { railwayDisruptionEffect } from "./railway-disruptions.mjs";
-import { effectiveLineStationIds } from "./railway-service-control.mjs";
+import { activeRailwayControlOrder, effectiveLineStationGroups, effectiveLineStationIds } from "./railway-service-control.mjs";
 
 function recordDisruptionDelay(state, line, train, seconds) {
   if (!(seconds > 0)) return;
@@ -18,16 +18,30 @@ function recordDisruptionDelay(state, line, train, seconds) {
   recordRailwayTraffic(state, line.id, Math.floor(state.simMinutes / 1440), "disruptionDelaySeconds", seconds);
 }
 
-export function lineRoundTripMinutes(state, line) {
-  const stationIds = effectiveLineStationIds(state, line);
-  let metres = 0;
-  for (let i = 0; i < stationIds.length - 1; i++) {
-    metres += haversineMetres(
-      state.stations.get(stationIds[i]).location,
-      state.stations.get(stationIds[i + 1]).location
-    );
+function originalLineSegmentIndex(line, leftStationId, rightStationId) {
+  const left = String(leftStationId);
+  const right = String(rightStationId);
+  const matches = [];
+  for (let index = 0; index < line.stationIds.length - 1; index += 1) {
+    const from = String(line.stationIds[index]);
+    const to = String(line.stationIds[index + 1]);
+    if ((from === left && to === right) || (from === right && to === left)) matches.push(index);
   }
-  const stops = 2 * (stationIds.length - 1);
+  return matches.length === 1 ? matches[0] : -1;
+}
+
+export function lineRoundTripMinutes(state, line) {
+  let metres = 0;
+  let stops = 0;
+  for (const stationIds of effectiveLineStationGroups(state, line)) {
+    for (let i = 0; i < stationIds.length - 1; i++) {
+      metres += haversineMetres(
+        state.stations.get(stationIds[i]).location,
+        state.stations.get(stationIds[i + 1]).location
+      );
+    }
+    stops += 2 * (stationIds.length - 1);
+  }
   return ((2 * metres) / TRAIN_SPEED_MPS + stops * DWELL_SECONDS) / 60;
 }
 
@@ -42,9 +56,7 @@ function dayTypeAt(simMinutes) {
   return weekday >= 5 ? "weekend" : "weekday";
 }
 
-function startTrain(state, line, scheduledDepartureMinute = null, scheduledReturnMinute = null, scheduledCompletionMinute = null, terminalResourceId = null) {
-  line.lastDispatch = state.simMinutes;
-  const serviceStationIds = effectiveLineStationIds(state, line);
+function startTrain(state, line, serviceStationIds, scheduledDepartureMinute = null, scheduledReturnMinute = null, scheduledCompletionMinute = null, terminalResourceId = null) {
   const train = { id: state.nextTrainId++, lineId: line.id, segIndex: 0, t: 0, dir: 1, dwell: DWELL_SECONDS, serviceStationIds };
   if (scheduledDepartureMinute !== null) train.scheduledDepartureMinute = scheduledDepartureMinute;
   if (scheduledReturnMinute !== null) train.scheduledReturnMinute = scheduledReturnMinute;
@@ -76,7 +88,12 @@ function dispatchScheduledTrains(state, line, schedule, allowDispatch = true) {
       const completionMinute = trip.completionMinute === null || trip.completionMinute === undefined ? null : day * 1440 + trip.completionMinute;
       if (absoluteMinute <= previous + 1e-9 || absoluteMinute > now + 1e-9) continue;
       const graceMinutes = Number.isFinite(schedule.dispatchGraceMinutes) ? Math.max(0, schedule.dispatchGraceMinutes) : 1;
-      if (allowDispatch && now - absoluteMinute <= graceMinutes + 1e-9) startTrain(state, line, absoluteMinute, returnMinute, completionMinute, trip.terminalResourceId ?? null);
+      if (allowDispatch && now - absoluteMinute <= graceMinutes + 1e-9) {
+        const order = activeRailwayControlOrder(state, line.id);
+        const groups = effectiveLineStationGroups(state, line);
+        groups.forEach((stationIds, index) => startTrain(state, line, stationIds, absoluteMinute, returnMinute, completionMinute,
+          order?.retainedServices?.[index]?.terminalResourceIds?.[0] ?? trip.terminalResourceId ?? null));
+      }
       else {
         schedule.missedDepartures = (schedule.missedDepartures ?? 0) + 1;
         recordRailwayTraffic(state, line.id, day, "missedDepartures");
@@ -89,7 +106,8 @@ function dispatchScheduledTrains(state, line, schedule, allowDispatch = true) {
 export function dispatchTrains(state) {
   const band = bandAt(state);
   for (const line of state.lines) {
-    if (effectiveLineStationIds(state, line).length < 2) continue;
+    const groups = effectiveLineStationGroups(state, line);
+    if (!groups.length) continue;
     const currentDayType = dayTypeAt(state.simMinutes);
     const scheduled = line.timetableDispatches?.[currentDayType] ?? null;
     for (const timetable of Object.values(line.timetableDispatches ?? {})) dispatchScheduledTrains(state, line, timetable, !line.suspended);
@@ -98,7 +116,10 @@ export function dispatchTrains(state) {
     const perHour = line.frequency[band.id];
     if (perHour <= 0) continue;
     if (state.simMinutes - line.lastDispatch < 60 / perHour) continue;
-    startTrain(state, line);
+    line.lastDispatch = state.simMinutes;
+    const order = activeRailwayControlOrder(state, line.id);
+    groups.forEach((stationIds, index) => startTrain(state, line, stationIds, null, null, null,
+      order?.retainedServices?.[index]?.terminalResourceIds?.[0] ?? null));
   }
 }
 
@@ -169,7 +190,7 @@ export function stepTrains(state, dtSeconds) {
         const movedMetres = speedMps * remaining;
         train.t += movedMetres / segLength;
         state.stats.trainKmByLine[String(line.id)] = (state.stats.trainKmByLine[String(line.id)] ?? 0) + movedMetres / 1000;
-        recordThroughTrainMovement(state, line, Math.min(train.segIndex, nextIndex), movedMetres);
+        recordThroughTrainMovement(state, line, originalLineSegmentIndex(line, ids[train.segIndex], ids[nextIndex]), movedMetres);
         if (speedMps < TRAIN_SPEED_MPS) recordDisruptionDelay(state, line, train, remaining * (1 - speedMps / TRAIN_SPEED_MPS));
         remaining = 0;
         break;
@@ -178,7 +199,7 @@ export function stepTrains(state, dtSeconds) {
       remaining -= secondsToBoundary;
       const movedMetres = (nextBoundaryProgress - train.t) * segLength;
       state.stats.trainKmByLine[String(line.id)] = (state.stats.trainKmByLine[String(line.id)] ?? 0) + movedMetres / 1000;
-      recordThroughTrainMovement(state, line, Math.min(train.segIndex, nextIndex), movedMetres);
+      recordThroughTrainMovement(state, line, originalLineSegmentIndex(line, ids[train.segIndex], ids[nextIndex]), movedMetres);
       if (speedMps < TRAIN_SPEED_MPS) recordDisruptionDelay(state, line, train, secondsToBoundary * (1 - speedMps / TRAIN_SPEED_MPS));
       train.t = nextBoundaryProgress;
       if (train.t < 1 - 1e-9) continue;

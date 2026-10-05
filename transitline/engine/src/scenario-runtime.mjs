@@ -43,7 +43,7 @@ import { railwayTrafficReport } from "./railway-traffic-control.mjs";
 import { createRailwayDisruption, railwayDisruptionReport, resolveRailwayDisruption } from "./railway-disruptions.mjs";
 import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail-capacity-integration.mjs";
 import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from "./railway-disruption-response.mjs";
-import { clearRailwayControlOrder, createRailwayControlOrder, railwayControlOrderReport } from "./railway-service-control.mjs";
+import { clearRailwayControlOrder, createRailwayControlOrder, createRailwayControlOrderFromGeometry, railwayControlOrderReport } from "./railway-service-control.mjs";
 
 const VEHICLE_BY_PROFILE = Object.freeze({
   medium_steel: "medium_4car",
@@ -1204,6 +1204,10 @@ export class ScenarioRuntime {
 
   issueRailwayControlOrder(input) {
     return createRailwayControlOrder(this.operationalState, input);
+  }
+
+  issueRailwayControlSelection(input) {
+    return createRailwayControlOrderFromGeometry(this.operationalState, input);
   }
 
   clearRailwayControlOrder(orderId, options = {}) {

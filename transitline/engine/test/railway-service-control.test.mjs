@@ -8,6 +8,8 @@ import {
   activeRailwayControlOrder,
   clearRailwayControlOrder,
   createRailwayControlOrder,
+  createRailwayControlOrderFromGeometry,
+  effectiveLineStationGroups,
   effectiveLineStationIds,
   railwayControlOrderReport,
 } from "../src/railway-service-control.mjs";
@@ -36,6 +38,37 @@ function fixture() {
   return { state, line, event };
 }
 
+function mappedControlFixture({ attachment = true } = {}) {
+  const { state, line, event } = fixture();
+  event.trackSegmentId = "bc";
+  const application = {
+    schema: "transitline.rail-capacity-application/1", contractVersion: 1,
+    operationalLineId: String(line.id), railGeometryId: "geometry:1", railGeometryRevision: "revision:1",
+    sections: [
+      { trackSegmentId: "ab", railCapacitySectionId: "map:ab" },
+      { trackSegmentId: "bc", railCapacitySectionId: "map:bc" },
+      { trackSegmentId: "cd", railCapacitySectionId: "map:cd" },
+    ],
+  };
+  state.railCapacityApplications = [application];
+  const controlGeometry = {
+    schema: "transitline.railway-service-control-geometry/1", contractVersion: 1,
+    controlGeometryId: "control:1", controlGeometryRevision: "control-revision:1",
+    eventId: event.id, operationalLineId: String(line.id),
+    railGeometryId: application.railGeometryId, railGeometryRevision: application.railGeometryRevision,
+    turnbackCandidates: [
+      { candidateId: "turnback:B", stationId: "B", terminalResourceId: "terminal:B", physicalAttachment: attachment },
+      { candidateId: "turnback:C", stationId: "C", terminalResourceId: "terminal:C", physicalAttachment: attachment },
+    ],
+    partialSuspensionCandidates: [{
+      candidateId: "suspension:bc", startStationId: "B", endStationId: "C",
+      suspendedSectionIds: ["map:bc"], retainedSectionIds: ["map:ab", "map:cd"],
+    }],
+  };
+  const selection = { partialSuspension: ["suspension:bc"], turnback: ["turnback:B", "turnback:C"] };
+  return { state, line, event, controlGeometry, selection };
+}
+
 test("a partial suspension removes the disrupted tail from routing and new train movement", () => {
   const { state, line, event } = fixture();
   state.passengers.push({ id: 1, state: "waiting", currentStationId: "A", destinationId: "D", hopIndex: 0, route: [{ lineId: line.id, boardStationId: "A", alightStationId: "D" }] });
@@ -62,6 +95,53 @@ test("a short-turn keeps its terminal resource and records trains already commit
   assert.equal(order.terminalResourceId, "terminal:C:1");
   assert.deepEqual(order.pendingTrainIds, [91]);
   assert.equal(activeRailwayControlOrder(state, line.id).candidateId, "candidate:turnback:C");
+});
+
+test("M7 selections split a middle suspension into two independently routed and dispatched services", () => {
+  const { state, line, event, controlGeometry, selection } = mappedControlFixture();
+  const order = createRailwayControlOrderFromGeometry(state, { controlGeometry, controlGeometryRevision: controlGeometry.controlGeometryRevision, selection });
+  assert.equal(order.eventId, event.id);
+  assert.equal(order.candidateId, "suspension:bc");
+  assert.deepEqual(order.suspendedTrackSegmentIds, ["bc"]);
+  assert.deepEqual(order.retainedServices.map((service) => service.stationIds), [["A", "B"], ["C", "D"]]);
+  assert.deepEqual(order.retainedServices.map((service) => service.terminalResourceIds), [["terminal:B"], ["terminal:C"]]);
+  assert.deepEqual(effectiveLineStationGroups(state, line), [["A", "B"], ["C", "D"]]);
+
+  const graph = buildRouteGraph(state);
+  assert.ok(graph.adj.get(`A|${line.id}`).some((edge) => edge.to === `B|${line.id}`));
+  assert.ok(graph.adj.get(`C|${line.id}`).some((edge) => edge.to === `D|${line.id}`));
+  assert.equal(graph.adj.get(`B|${line.id}`)?.some((edge) => edge.to === `C|${line.id}`) ?? false, false);
+
+  state.simMinutes += 11;
+  dispatchTrains(state);
+  assert.deepEqual(state.trains.map((train) => train.serviceStationIds), [["A", "B"], ["C", "D"]]);
+  assert.deepEqual(state.trains.map((train) => train.terminalResourceId), ["terminal:B", "terminal:C"]);
+});
+
+test("M7 selections reject stale, detached and unknown turnbacks unless the unknown fact is explicitly confirmed", () => {
+  const stale = mappedControlFixture();
+  stale.controlGeometry.controlGeometryRevision = "control-revision:2";
+  assert.throws(() => createRailwayControlOrderFromGeometry(stale.state, {
+    controlGeometry: stale.controlGeometry, controlGeometryRevision: "control-revision:1", selection: stale.selection,
+  }), /revision is stale/);
+  assert.equal(stale.state.railwayControlOrders.orders.length, 0);
+
+  const detached = mappedControlFixture({ attachment: false });
+  assert.throws(() => createRailwayControlOrderFromGeometry(detached.state, { ...detached, controlGeometryRevision: detached.controlGeometry.controlGeometryRevision }), /physically detached/);
+  assert.equal(detached.state.railwayControlOrders.orders.length, 0);
+
+  const unknown = mappedControlFixture({ attachment: null });
+  assert.throws(() => createRailwayControlOrderFromGeometry(unknown.state, { ...unknown, controlGeometryRevision: unknown.controlGeometry.controlGeometryRevision }), /unconfirmed physical attachment/);
+  const order = createRailwayControlOrderFromGeometry(unknown.state, { ...unknown, controlGeometryRevision: unknown.controlGeometry.controlGeometryRevision, confirmUnknownPhysicalAttachment: true });
+  assert.deepEqual(order.assumptions, ["turnback-attachment-unconfirmed:turnback:B", "turnback-attachment-unconfirmed:turnback:C"]);
+});
+
+test("multi-section control orders survive save and restore without collapsing to the first side", () => {
+  const { state, line, controlGeometry, selection } = mappedControlFixture();
+  createRailwayControlOrderFromGeometry(state, { controlGeometry, controlGeometryRevision: controlGeometry.controlGeometryRevision, selection });
+  const restored = restoreOperationalState(JSON.parse(JSON.stringify(snapshotOperationalState(state))));
+  assert.deepEqual(effectiveLineStationGroups(restored, restored.lines.find((entry) => entry.id === line.id)), [["A", "B"], ["C", "D"]]);
+  assert.deepEqual(restored.railwayControlOrders, state.railwayControlOrders);
 });
 
 test("a physical disruption can control another service sharing the same track", () => {

@@ -2,7 +2,7 @@
 // `${stationId}|${lineId}` pairs rather than bare stations so a line change
 // costs a transfer penalty in routing.mjs's Dijkstra.
 import { haversineMetres } from "./projection.mjs";
-import { effectiveLineStationIds } from "./railway-service-control.mjs";
+import { effectiveLineStationGroups } from "./railway-service-control.mjs";
 
 export const TRAIN_SPEED_MPS = 12; // running speed between stops (~43 km/h)
 export const DWELL_SECONDS = 20; // Subway Builder's STATION_STOP_TIME default
@@ -19,17 +19,18 @@ export function buildRouteGraph(state) {
 
   for (const line of state.lines) {
     if (line.suspended) continue;
-    const ids = effectiveLineStationIds(state, line);
-    for (const sid of ids) {
-      if (!stationLines.has(sid)) stationLines.set(sid, new Set());
-      stationLines.get(sid).add(line.id);
-    }
-    for (let i = 0; i < ids.length - 1; i++) {
-      const a = state.stations.get(ids[i]);
-      const b = state.stations.get(ids[i + 1]);
-      const weight = haversineMetres(a.location, b.location) / TRAIN_SPEED_MPS + DWELL_SECONDS;
-      addEdge(`${ids[i]}|${line.id}`, `${ids[i + 1]}|${line.id}`, weight);
-      addEdge(`${ids[i + 1]}|${line.id}`, `${ids[i]}|${line.id}`, weight);
+    for (const ids of effectiveLineStationGroups(state, line)) {
+      for (const sid of ids) {
+        if (!stationLines.has(sid)) stationLines.set(sid, new Set());
+        stationLines.get(sid).add(line.id);
+      }
+      for (let i = 0; i < ids.length - 1; i++) {
+        const a = state.stations.get(ids[i]);
+        const b = state.stations.get(ids[i + 1]);
+        const weight = haversineMetres(a.location, b.location) / TRAIN_SPEED_MPS + DWELL_SECONDS;
+        addEdge(`${ids[i]}|${line.id}`, `${ids[i + 1]}|${line.id}`, weight);
+        addEdge(`${ids[i + 1]}|${line.id}`, `${ids[i]}|${line.id}`, weight);
+      }
     }
   }
 

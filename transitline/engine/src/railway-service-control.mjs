@@ -1,4 +1,5 @@
 export const RAILWAY_CONTROL_ORDER_SCHEMA = "transitline.railway-control-order/1";
+export const RAILWAY_SERVICE_CONTROL_GEOMETRY_SCHEMA = "transitline.railway-service-control-geometry/1";
 
 const clone = (value) => structuredClone(value);
 const key = (value) => String(value);
@@ -34,6 +35,85 @@ function retainedPath(line, input) {
   return { stationIds, startIndex: low, endIndex: high };
 }
 
+function serviceOf(stationIds, extra = {}) {
+  return {
+    serviceId: extra.serviceId ?? `retained-service:${stationIds.map(key).join(":")}`,
+    stationIds: stationIds.map(key),
+    turnbackCandidateIds: [...(extra.turnbackCandidateIds ?? [])].map(key).sort(),
+    terminalResourceIds: [...(extra.terminalResourceIds ?? [])].map(key).sort(),
+  };
+}
+
+function validateRetainedServices(state, line, event, services) {
+  if (!Array.isArray(services) || !services.length) throw new Error("A control order requires at least one retained service");
+  const seenIds = new Set();
+  for (const service of services) {
+    if (!service?.serviceId || seenIds.has(key(service.serviceId))) throw new Error("Retained service ids must be unique");
+    seenIds.add(key(service.serviceId));
+    if (!Array.isArray(service.stationIds) || service.stationIds.length < 2) throw new Error("A retained service requires at least two stations");
+    for (let index = 0; index < service.stationIds.length - 1; index += 1) {
+      const matches = segmentBetween(state, line, service.stationIds[index], service.stationIds[index + 1]);
+      if (matches.length !== 1) throw new Error(`Retained service path is ${matches.length ? "ambiguous" : "unmapped"}`);
+      if (event.trackSegmentId !== null && key(matches[0].id) === key(event.trackSegmentId)) throw new Error("Retained service path still crosses the disrupted track segment");
+    }
+  }
+}
+
+function sourceStationId(state, stationId) {
+  const station = state.stations?.get(stationId) ?? state.stations?.get(key(stationId));
+  return key(station?.sourceStationId ?? stationId);
+}
+
+function operationalStationId(state, line, sourceId) {
+  const matches = line.stationIds.filter((stationId) => sourceStationId(state, stationId) === key(sourceId));
+  if (matches.length !== 1) throw new Error(matches.length
+    ? `Map station ${sourceId} is ambiguous on operational line ${line.id}`
+    : `Map station ${sourceId} is not on operational line ${line.id}`);
+  return key(matches[0]);
+}
+
+function mappedTrackIds(application, sectionIds) {
+  const result = [];
+  for (const sectionId of sectionIds) {
+    const matches = (application.sections ?? []).filter((entry) => key(entry.railCapacitySectionId) === key(sectionId));
+    if (matches.length !== 1) throw new Error(matches.length
+      ? `Rail capacity section ${sectionId} maps to several operational tracks`
+      : `Rail capacity section ${sectionId} is not applied to the operational line`);
+    result.push(key(matches[0].trackSegmentId));
+  }
+  return [...new Set(result)].sort();
+}
+
+function retainedComponents(state, line, suspendedTrackIds) {
+  const suspended = new Set(suspendedTrackIds.map(key));
+  const components = [];
+  let current = [key(line.stationIds[0])];
+  for (let index = 0; index < line.stationIds.length - 1; index += 1) {
+    const left = line.stationIds[index];
+    const right = line.stationIds[index + 1];
+    const matches = segmentBetween(state, line, left, right);
+    if (matches.length !== 1) throw new Error(`Operational line path is ${matches.length ? "ambiguous" : "unmapped"}`);
+    if (suspended.has(key(matches[0].id))) {
+      if (current.length >= 2) components.push(current);
+      current = [key(right)];
+    } else current.push(key(right));
+  }
+  if (current.length >= 2) components.push(current);
+  return components;
+}
+
+function selectionList(selection, kind) {
+  const values = selection?.[kind] ?? [];
+  if (!Array.isArray(values)) throw new Error(`Service-control selection ${kind} must be an array`);
+  return values.map((value) => key(value?.candidateId ?? value));
+}
+
+function candidateById(list, candidateId, kind) {
+  const matches = (list ?? []).filter((candidate) => key(candidate.candidateId) === key(candidateId));
+  if (matches.length !== 1) throw new Error(`Selected ${kind} candidate ${candidateId} is not current`);
+  return matches[0];
+}
+
 function segmentBetween(state, line, left, right) {
   const allowed = new Set((line.trackSegmentIds ?? []).map(key));
   return state.trackSegments?.filter((segment) => allowed.has(key(segment.id))
@@ -58,12 +138,14 @@ export function createRailwayControlOrder(state, input = {}) {
   const usesAffectedTrack = event.trackSegmentId !== null && (line.trackSegmentIds ?? []).map(key).includes(key(event.trackSegmentId));
   const ownsAffectedTrain = event.trainId !== null && key(line.id) === key(event.lineId);
   if (!usesAffectedTrack && !ownsAffectedTrain) throw new Error(`Disruption ${event.id} does not affect line ${line.id}`);
-  const path = retainedPath(line, input);
-  for (let index = 0; index < path.stationIds.length - 1; index += 1) {
-    const matches = segmentBetween(state, line, path.stationIds[index], path.stationIds[index + 1]);
-    if (matches.length !== 1) throw new Error(`Retained service path is ${matches.length ? "ambiguous" : "unmapped"}`);
-    if (event.trackSegmentId !== null && key(matches[0].id) === key(event.trackSegmentId)) throw new Error("Retained service path still crosses the disrupted track segment");
-  }
+  const path = input.retainedServices ? null : retainedPath(line, input);
+  const retainedServices = input.retainedServices
+    ? input.retainedServices.map((service) => serviceOf(service.stationIds, service))
+    : [serviceOf(path.stationIds, {
+      turnbackCandidateIds: input.candidateId ? [input.candidateId] : [],
+      terminalResourceIds: input.terminalResourceId ? [input.terminalResourceId] : [],
+    })];
+  validateRetainedServices(state, line, event, retainedServices);
   const current = state.railwayControlOrders?.orders?.find((order) => order.status === "active" && key(order.lineId) === key(line.id));
   if (current) throw new Error(`Operational line ${line.id} already has an active control order`);
   const existingStore = state.railwayControlOrders;
@@ -81,12 +163,18 @@ export function createRailwayControlOrder(state, input = {}) {
     eventId: event.id,
     lineId: key(line.id),
     candidateId: input.candidateId ?? null,
-    startStationId: key(path.stationIds[0]),
-    endStationId: key(path.stationIds.at(-1)),
-    retainedStationIds: path.stationIds.map(key),
-    omittedStationIds: line.stationIds.filter((_, index) => index < path.startIndex || index > path.endIndex).map(key),
-    turnbackStationId: input.kind === "short-turn" ? key(input.turnbackStationId ?? path.stationIds.at(-1)) : null,
+    startStationId: key(retainedServices[0].stationIds[0]),
+    endStationId: key(retainedServices[0].stationIds.at(-1)),
+    retainedStationIds: [...retainedServices[0].stationIds],
+    retainedServices,
+    omittedStationIds: line.stationIds.filter((stationId) => !retainedServices.some((service) => service.stationIds.includes(key(stationId)))).map(key),
+    turnbackStationId: input.kind === "short-turn" ? key(input.turnbackStationId ?? retainedServices[0].stationIds.at(-1)) : null,
     terminalResourceId: input.terminalResourceId ?? null,
+    controlGeometryId: input.controlGeometryId ?? null,
+    controlGeometryRevision: input.controlGeometryRevision ?? null,
+    suspendedTrackSegmentIds: [...(input.suspendedTrackSegmentIds ?? [])].map(key).sort(),
+    turnbackCandidateIds: [...(input.turnbackCandidateIds ?? [])].map(key).sort(),
+    assumptions: [...(input.assumptions ?? [])].map(key).sort(),
     issuedAtMinute: Number(state.simMinutes ?? 0),
     endedAtMinute: null,
     endReason: null,
@@ -98,6 +186,78 @@ export function createRailwayControlOrder(state, input = {}) {
   state.networkDirty = true;
   invalidateWaitingRoutes(state, line.id);
   return clone(order);
+}
+
+export function createRailwayControlOrderFromGeometry(state, input = {}) {
+  const control = input.controlGeometry;
+  if (control?.schema !== RAILWAY_SERVICE_CONTROL_GEOMETRY_SCHEMA || control.contractVersion !== 1) throw new Error("RailwayServiceControlGeometry v1 is required");
+  const event = ongoingEvent(state, input.eventId ?? control.eventId);
+  if (key(control.eventId) !== key(event.id)) throw new Error("Service-control geometry belongs to another disruption");
+  const line = requireLine(state, input.lineId ?? control.operationalLineId ?? event.lineId);
+  if (control.operationalLineId !== null && key(control.operationalLineId) !== key(line.id)) throw new Error("Service-control geometry belongs to another operational line");
+  const application = (state.railCapacityApplications ?? []).find((entry) => key(entry.operationalLineId) === key(line.id));
+  if (!application) throw new Error(`Operational line ${line.id} has no rail-capacity application`);
+  if (key(application.railGeometryId) !== key(control.railGeometryId) || key(application.railGeometryRevision) !== key(control.railGeometryRevision)) {
+    throw new Error("Service-control geometry is stale against the applied rail geometry");
+  }
+  if (input.controlGeometryRevision === undefined || key(input.controlGeometryRevision) !== key(control.controlGeometryRevision)) {
+    throw new Error("Selected service-control geometry revision is stale");
+  }
+  const suspensionIds = selectionList(input.selection, "partialSuspension");
+  if (suspensionIds.length !== 1) throw new Error("Exactly one partial-suspension candidate must be selected");
+  const suspension = candidateById(control.partialSuspensionCandidates, suspensionIds[0], "partial-suspension");
+  const suspendedTrackSegmentIds = mappedTrackIds(application, suspension.suspendedSectionIds ?? []);
+  if (!suspendedTrackSegmentIds.length) throw new Error("The selected suspension does not map to an operational track");
+  if (event.trackSegmentId !== null && !suspendedTrackSegmentIds.includes(key(event.trackSegmentId))) {
+    throw new Error("The selected suspension does not include the disrupted track segment");
+  }
+  const components = retainedComponents(state, line, suspendedTrackSegmentIds);
+  if (!components.length) throw new Error("The selected suspension leaves no operable service section");
+
+  const turnbackIds = selectionList(input.selection, "turnback");
+  const turnbacks = turnbackIds.map((id) => candidateById(control.turnbackCandidates, id, "turnback"));
+  const byOperationalStation = new Map();
+  for (const candidate of turnbacks) {
+    const stationId = operationalStationId(state, line, candidate.stationId);
+    if (byOperationalStation.has(stationId)) throw new Error(`Several selected turnback candidates cover boundary ${stationId}`);
+    byOperationalStation.set(stationId, candidate);
+  }
+  const assumptions = [];
+  const usedTurnbackIds = new Set();
+  const services = components.map((stationIds, index) => {
+    const internalBoundaries = [stationIds[0], stationIds.at(-1)].filter((stationId) => stationId !== key(line.stationIds[0]) && stationId !== key(line.stationIds.at(-1)));
+    const selected = internalBoundaries.map((stationId) => {
+      const candidate = byOperationalStation.get(key(stationId));
+      if (!candidate) throw new Error(`No selected turnback candidate covers retained-service boundary ${stationId}`);
+      if (![true, false, null].includes(candidate.physicalAttachment)) throw new Error(`Turnback candidate ${candidate.candidateId} has invalid physical attachment`);
+      if (candidate.physicalAttachment === false) throw new Error(`Turnback candidate ${candidate.candidateId} is physically detached`);
+      if (candidate.physicalAttachment === null) {
+        if (!input.confirmUnknownPhysicalAttachment) throw new Error(`Turnback candidate ${candidate.candidateId} has unconfirmed physical attachment`);
+        assumptions.push(`turnback-attachment-unconfirmed:${candidate.candidateId}`);
+      }
+      usedTurnbackIds.add(key(candidate.candidateId));
+      return candidate;
+    });
+    return serviceOf(stationIds, {
+      serviceId: `retained-service:${index + 1}`,
+      turnbackCandidateIds: selected.map((candidate) => candidate.candidateId),
+      terminalResourceIds: selected.map((candidate) => candidate.terminalResourceId).filter(Boolean),
+    });
+  });
+  const unusedTurnbackIds = turnbackIds.filter((id) => !usedTurnbackIds.has(id));
+  if (unusedTurnbackIds.length) throw new Error(`Selected turnback candidates do not match a retained-service boundary: ${unusedTurnbackIds.join(", ")}`);
+  return createRailwayControlOrder(state, {
+    kind: "partial-suspension",
+    eventId: event.id,
+    lineId: line.id,
+    candidateId: suspension.candidateId,
+    retainedServices: services,
+    controlGeometryId: control.controlGeometryId,
+    controlGeometryRevision: control.controlGeometryRevision,
+    suspendedTrackSegmentIds,
+    turnbackCandidateIds: turnbackIds,
+    assumptions,
+  });
 }
 
 export function clearRailwayControlOrder(state, orderId, { atMinute = state.simMinutes, reason = "manual-clear" } = {}) {
@@ -141,6 +301,14 @@ export function effectiveLineStationIds(state, line, train = null) {
   if (Array.isArray(train?.serviceStationIds) && train.serviceStationIds.length >= 2) return [...train.serviceStationIds];
   const order = state?.railwayControlOrders?.orders?.find((entry) => entry.status === "active" && key(entry.lineId) === key(line.id));
   return order ? [...order.retainedStationIds] : [...line.stationIds];
+}
+
+export function effectiveLineStationGroups(state, line, train = null) {
+  if (Array.isArray(train?.serviceStationIds) && train.serviceStationIds.length >= 2) return [[...train.serviceStationIds]];
+  const order = state?.railwayControlOrders?.orders?.find((entry) => entry.status === "active" && key(entry.lineId) === key(line.id));
+  if (!order) return [[...line.stationIds]];
+  if (Array.isArray(order.retainedServices) && order.retainedServices.length) return order.retainedServices.map((service) => [...service.stationIds]);
+  return [[...order.retainedStationIds]];
 }
 
 export function railwayControlOrderReport(state, lineId = null) {
