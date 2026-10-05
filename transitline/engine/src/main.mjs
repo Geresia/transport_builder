@@ -30,6 +30,7 @@ import { mountRailReplacementManagementPanel } from "./rail-replacement-manageme
 import { mountRailwayDetourManagementPanel } from "./railway-detour-management-ui.mjs";
 import { mountRailCapacityApplicationPanel } from "./rail-capacity-application-ui.mjs";
 import { mountRailwayDisruptionManagementPanel } from "./railway-disruption-management-ui.mjs";
+import { mountRailwayServiceControlManagementPanel } from "./railway-service-control-management-ui.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
 
@@ -346,6 +347,7 @@ async function main() {
   let railwayDetourManagement = null;
   let railCapacityApplicationManagement = null;
   let railwayDisruptionManagement = null;
+  let railwayServiceControlManagement = null;
   let railReplacementGeometries = [];
   let mapInputPipeline = null;
   let mapInputOutput = null;
@@ -368,6 +370,7 @@ async function main() {
     railwayDetourManagement?.refresh();
     railCapacityApplicationManagement?.refresh();
     railwayDisruptionManagement?.refresh();
+    railwayServiceControlManagement?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -1485,6 +1488,7 @@ async function main() {
       railwayDetourManagement?.refresh();
       railCapacityApplicationManagement?.refresh();
       railwayDisruptionManagement?.refresh();
+      railwayServiceControlManagement?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1528,6 +1532,13 @@ async function main() {
       runtime,
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
+    railwayServiceControlManagement = mountRailwayServiceControlManagementPanel({
+      container: $("scenario-railway-service-control"),
+      runtime,
+      // Unlike the pipeline summary, the M7 stage also preserves the player's candidate selections.
+      getServiceControlOutput: () => mapInputPipeline?.stages.serviceControl.output() ?? { controls: [], selections: {} },
+      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+    });
     railwayDetourManagement = mountRailwayDetourManagementPanel({
       container: $("scenario-railway-detour"),
       runtime,
@@ -1544,6 +1555,7 @@ async function main() {
       railwayDetourManagement?.refresh();
       railCapacityApplicationManagement?.refresh();
       railwayDisruptionManagement?.refresh();
+      railwayServiceControlManagement?.refresh();
     }), true);
 
     $("scenario-opportunity-view").addEventListener("click", () => run(() => {
@@ -1746,6 +1758,7 @@ async function main() {
     updateRoutePanelLive(state);
     if (runtime) {
       railwayDisruptionManagement?.refresh();
+      railwayServiceControlManagement?.refresh();
       const settlements = runtime.settleOperatingDays();
       if (settlements.length) refreshScenarioPanel();
     }
