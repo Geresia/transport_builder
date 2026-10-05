@@ -3,6 +3,7 @@ import { dispatchTrains, stepTrains } from "./trains.mjs";
 import { expirePassengers, retryPendingRoutes, spawnPassengers } from "./passengers.mjs";
 import { advanceRailwayDisruptions } from "./railway-disruptions.mjs";
 import { advanceRailReplacementOperations, dispatchRailReplacementBuses, stepRailReplacementBuses } from "./rail-replacement-operations.mjs";
+import { advanceRailwayDetourOperations } from "./railway-detour-operations.mjs";
 
 export const FIXED_SIM_STEP_SECONDS = 1;
 
@@ -20,6 +21,7 @@ export function simulationStep(state, demandModel, runtime, seconds = FIXED_SIM_
   state.simMinutes += seconds / 60;
   advanceRailwayDisruptions(state);
   advanceRailReplacementOperations(state, seconds);
+  advanceRailwayDetourOperations(state, seconds);
   spawnPassengers(state, demandModel, runtime.graph, seconds / 60);
   expirePassengers(state);
   dispatchTrains(state);

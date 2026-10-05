@@ -94,7 +94,7 @@ export function assessRailwayDetourAuthorization(state, input = {}) {
   const unresolvedTechnicalConditions = conditions.filter((entry) => entry.includes(":technicalConfirmationRequired") && input.confirmConditionalTechnical !== true);
   const unresolvedConditions = conditions.filter((entry) => !entry.includes(":technicalConfirmationRequired") || unresolvedTechnicalConditions.includes(entry));
   const verdict = violations.length ? "impossible" : unresolvedMissing.length ? "unknown" : unresolvedConditions.length ? "conditional" : "possible";
-  return { schema: "transitline.railway-detour-assessment/1", contractVersion: 1, eventId: event.id, controlOrderId: order.id, detourGeometryId: geometry.detourGeometryId, detourGeometryRevision: geometry.detourGeometryRevision, operatorId, vehicleModelId: model.id, trainsPerHour, verdict, violations: [...new Set(violations)].sort(), missingInputs: [...new Set(missingInputs)].sort(), conditions: [...new Set(conditions)].sort(), legs, trackAccessAgreementIds: [...usedAgreementIds].sort() };
+  return { schema: "transitline.railway-detour-assessment/1", contractVersion: 1, eventId: event.id, controlOrderId: order.id, detourGeometryId: geometry.detourGeometryId, detourGeometryRevision: geometry.detourGeometryRevision, detourLengthMeters: Number.isFinite(geometry.lengthMeters) && geometry.lengthMeters > 0 ? geometry.lengthMeters : null, operatorId, vehicleModelId: model.id, trainsPerHour, verdict, violations: [...new Set(violations)].sort(), missingInputs: [...new Set(missingInputs)].sort(), conditions: [...new Set(conditions)].sort(), legs, trackAccessAgreementIds: [...usedAgreementIds].sort() };
 }
 
 export function authorizeRailwayDetour(state, input = {}) {

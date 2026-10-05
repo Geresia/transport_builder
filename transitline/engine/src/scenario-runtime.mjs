@@ -45,6 +45,7 @@ import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail
 import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from "./railway-disruption-response.mjs";
 import { clearRailwayControlOrder, createRailwayControlOrder, createRailwayControlOrderFromGeometry, railwayControlOrderReport } from "./railway-service-control.mjs";
 import { assessRailwayDetourAuthorization, authorizeRailwayDetour, railwayDetourAuthorizationReport, syncRailwayDetourAuthorizations } from "./railway-detour-authorization.mjs";
+import { advanceRailwayDetourOperations, markRailwayDetourSettled, railwayDetourOperationReport, railwayDetourSettlementDue, startRailwayDetourOperation } from "./railway-detour-operations.mjs";
 import {
   advanceRailReplacementOperations,
   assessRailReplacementOperation,
@@ -228,6 +229,7 @@ export class ScenarioRuntime {
       railCapacityApplications: railCapacityApplicationReport(this.operationalState),
       railwayControlOrders: railwayControlOrderReport(this.operationalState),
       railwayDetourAuthorizations: railwayDetourAuthorizationReport(this.operationalState),
+      railwayDetourOperations: railwayDetourOperationReport(this.operationalState),
       railReplacementOperations: railReplacementOperationReport(this.operationalState),
       vehicleRetrofits: this.game.vehicleRetrofitReport(),
       throughFareAgreements: this.game.throughFareAgreementReport(),
@@ -823,18 +825,26 @@ export class ScenarioRuntime {
       .map((binding) => (binding.startedAtGameMinute ?? this.game.clock.minute)
         + Math.max(0, this.operationalState.simMinutes - binding.startedAtSimMinute));
     const replacementDue = railReplacementSettlementDue(this.operationalState);
+    const detourDue = railwayDetourSettlementDue(this.operationalState);
     const replacementCalendarTargets = replacementDue.map((entry) => {
       const operation = this.operationalState.railReplacementOperations?.operations?.find((candidate) => candidate.id === entry.operationId);
       return operation?.requestedAtGameMinute === null || operation?.requestedAtGameMinute === undefined
         ? this.game.clock.minute
         : operation.requestedAtGameMinute + Math.max(0, this.operationalState.simMinutes - operation.requestedAtMinute);
     });
-    const calendarTarget = dueServices.length || dueThrough.length || replacementDue.length
+    const detourCalendarTargets = detourDue.map((entry) => {
+      const operation = this.operationalState.railwayDetourOperations?.operations?.find((candidate) => candidate.id === entry.operationId);
+      return operation?.startedAtGameMinute === null || operation?.startedAtGameMinute === undefined
+        ? this.game.clock.minute
+        : operation.startedAtGameMinute + Math.max(0, this.operationalState.simMinutes - operation.startedAtMinute);
+    });
+    const calendarTarget = dueServices.length || dueThrough.length || replacementDue.length || detourDue.length
       ? Math.max(
         this.game.clock.minute + maximumDueDays * 1440,
         ...commissioned.map((service) => service.operationsStartedAtGameMinute + Math.max(0, this.operationalState.simMinutes - service.operationsStartedAtSimMinute)),
         ...throughCalendarTargets,
         ...replacementCalendarTargets,
+        ...detourCalendarTargets,
       )
       : this.game.clock.minute;
     const targetMonth = Math.floor(calendarTarget / (30 * 1440));
@@ -842,7 +852,7 @@ export class ScenarioRuntime {
       && entry.firstDueMonth !== undefined
       && (entry.lastServicedMonth ?? entry.firstDueMonth - 1) < targetMonth
       && !["repaid", "closed"].includes(entry.status))).map((service) => service.projectId));
-    if (!dueServices.length && !dueThrough.length && !replacementDue.length && !projectsWithFinanceDue.size) return [];
+    if (!dueServices.length && !dueThrough.length && !replacementDue.length && !detourDue.length && !projectsWithFinanceDue.size) return [];
 
     const managementCheckpoint = this.game.snapshot();
     const operationalCheckpoint = snapshotOperationalState(this.operationalState);
@@ -864,6 +874,15 @@ export class ScenarioRuntime {
           settlements.push(entry);
         }
         return replacementDue;
+      });
+      if (detourDue.length) this.game.transact("railway-detour-operations-settled", () => {
+        for (const entry of detourDue) {
+          if (entry.operatingDueJPY) this.game.ledger.post({ atMinute: this.game.clock.minute, amount: -entry.operatingDueJPY, category: "railway-detour-operation", reference: entry.operationId });
+          if (entry.accessDueJPY) this.game.ledger.post({ atMinute: this.game.clock.minute, amount: -entry.accessDueJPY, category: "railway-detour-track-access", reference: entry.operationId });
+          markRailwayDetourSettled(this.operationalState, entry.operationId, entry);
+          settlements.push(entry);
+        }
+        return detourDue;
       });
       const seenProjects = new Set();
       for (const service of commissioned) {
@@ -1198,6 +1217,7 @@ export class ScenarioRuntime {
     const result = resolveRailwayDisruption(this.operationalState, eventId, options);
     advanceRailReplacementOperations(this.operationalState, 0);
     syncRailwayDetourAuthorizations(this.operationalState);
+    advanceRailwayDetourOperations(this.operationalState, 0);
     return result;
   }
 
@@ -1244,6 +1264,7 @@ export class ScenarioRuntime {
   clearRailwayControlOrder(orderId, options = {}) {
     const result = clearRailwayControlOrder(this.operationalState, orderId, options);
     syncRailwayDetourAuthorizations(this.operationalState);
+    advanceRailwayDetourOperations(this.operationalState, 0);
     return result;
   }
 
@@ -1276,6 +1297,42 @@ export class ScenarioRuntime {
 
   railwayDetourAuthorizationReport() {
     return railwayDetourAuthorizationReport(this.operationalState);
+  }
+
+  startRailwayDetourOperation(input) {
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("railway-detour-operation-started", () => startRailwayDetourOperation(this.operationalState, {
+        ...input,
+        startedAtGameMinute: this.game.clock.minute,
+      }));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
+  }
+
+  settleRailwayDetourOperations() {
+    const due = railwayDetourSettlementDue(this.operationalState);
+    if (!due.length) return [];
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("railway-detour-operations-settled", () => due.map((entry) => {
+        if (entry.operatingDueJPY) this.game.ledger.post({ atMinute: this.game.clock.minute, amount: -entry.operatingDueJPY, category: "railway-detour-operation", reference: entry.operationId });
+        if (entry.accessDueJPY) this.game.ledger.post({ atMinute: this.game.clock.minute, amount: -entry.accessDueJPY, category: "railway-detour-track-access", reference: entry.operationId });
+        markRailwayDetourSettled(this.operationalState, entry.operationId, entry);
+        return entry;
+      }));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
+  }
+
+  railwayDetourOperationReport() {
+    return railwayDetourOperationReport(this.operationalState);
   }
 
   startRailReplacementOperation(input) {

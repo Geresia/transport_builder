@@ -21,6 +21,7 @@ import { journeyRevenue, trainOperatingCost, maintenanceCost, issueBond, bondHou
 import { trackCost, stationCost } from "./construction-cost.mjs";
 import { advanceRailwayDisruptions } from "./railway-disruptions.mjs";
 import { advanceRailReplacementOperations, dispatchRailReplacementBuses, railReplacementTripViews, stepRailReplacementBuses } from "./rail-replacement-operations.mjs";
+import { advanceRailwayDetourOperations } from "./railway-detour-operations.mjs";
 
 const DAY_S = 86400;
 const URBAN_DRIVE_MPS = 9; // ~32 km/h door to door
@@ -135,6 +136,7 @@ export function popSimStep(sim, state, seconds = 1) {
   state.simMinutes += seconds / 60;
   advanceRailwayDisruptions(state);
   advanceRailReplacementOperations(state, seconds);
+  advanceRailwayDetourOperations(state, seconds);
   const nowS = Math.round(state.simMinutes * 60 * 1000) / 1000; // simMinutes accumulates 1/60 per step: drop the float dust
   billNewConstruction(sim, state);
   refreshTimetable(sim, state, nowS);
