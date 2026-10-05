@@ -1,0 +1,394 @@
+{
+  "schema": "transitline.rail-replacement-transport-geometry/1",
+  "contractVersion": 1,
+  "replacementGeometryId": "rail-replacement-transport:e9c20367ee88f671",
+  "replacementGeometryRevision": "rail-replacement-transport-revision:534afe77801807f9",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "eventId": "railway-disruption:1",
+  "disruptionSiteId": "railway-disruption-site:f711a3c0789bb972",
+  "disruptionSiteRevision": "railway-disruption-site-revision:6bdbe914d844a362",
+  "controlGeometryId": "railway-service-control:f711a3c0789bb972",
+  "controlGeometryRevision": "railway-service-control-revision:650e25273512e58d",
+  "railGeometryId": "rail-geometry:acdb18c04475bb16",
+  "railGeometryRevision": "rail-geometry-revision:307ae30b950a4ac9",
+  "operationalLineId": "line:1",
+  "partialSuspensionCandidateId": "railway-control-suspension:662f921c90e90412",
+  "selectedTurnbackCandidateIds": [],
+  "startStationId": "ward-chuo",
+  "endStationId": "ward-koto",
+  "suspendedSectionIds": [
+    "rail-section:785f3d5fced8b7e9"
+  ],
+  "suspendedTrackSegmentIds": [
+    "track-segment:4"
+  ],
+  "suspendedBlockIds": null,
+  "retainedSectionIds": [
+    "rail-section:0f46a8b6981e27b8",
+    "rail-section:1046aa49991e294b",
+    "rail-section:23fa09287af988a6",
+    "rail-section:860b30270966df91",
+    "rail-section:a74429b170434cdb",
+    "rail-section:bb57584698dddd58",
+    "rail-section:eae5c8fc4e19300e",
+    "rail-section:fa8c8f768d1968a0"
+  ],
+  "stationSequence": [
+    "ward-chuo",
+    "ward-koto"
+  ],
+  "railSections": [
+    {
+      "sectionId": "rail-section:785f3d5fced8b7e9",
+      "fromStationId": "ward-chuo",
+      "toStationId": "ward-koto",
+      "sourceKind": "external",
+      "lengthMeters": null,
+      "alignment": null,
+      "blockIds": null,
+      "unknown": [
+        "alignment",
+        "lengthMeters"
+      ],
+      "unknownReasons": {
+        "alignment": "external-alignment-not-in-source",
+        "lengthMeters": "external-alignment-not-in-source"
+      }
+    }
+  ],
+  "railLengthMeters": null,
+  "boundaryStationsConnectedByRetainedRail": false,
+  "boundaryConnections": [
+    {
+      "stationId": "ward-chuo",
+      "side": "start",
+      "retainedSectionIds": [
+        "rail-section:860b30270966df91"
+      ],
+      "turnbackCandidateId": "railway-control-turnback:0260a29bce1a5931",
+      "turnbackSelected": false,
+      "routeIdsReaching": [
+        "rail-replacement-route:fee6f3d937374e6f"
+      ],
+      "stopCandidateIds": [],
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "stationId": "ward-koto",
+      "side": "end",
+      "retainedSectionIds": [
+        "rail-section:0f46a8b6981e27b8",
+        "rail-section:1046aa49991e294b",
+        "rail-section:eae5c8fc4e19300e"
+      ],
+      "turnbackCandidateId": "railway-control-turnback:8459f53b8c301d5d",
+      "turnbackSelected": false,
+      "routeIdsReaching": [
+        "rail-replacement-route:fee6f3d937374e6f"
+      ],
+      "stopCandidateIds": [],
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "stations": [
+    {
+      "stationId": "ward-chuo",
+      "sequenceIndex": 0,
+      "role": "start-boundary",
+      "location": [
+        139.77747,
+        35.67927
+      ],
+      "external": true,
+      "isolated": false,
+      "turnbackCandidateId": "railway-control-turnback:0260a29bce1a5931",
+      "turnbackSelected": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "derivedStopCandidateIds": null,
+      "playerStopCandidateIds": null,
+      "walkLinks": null,
+      "unknown": [
+        "derivedStopCandidateIds",
+        "entrances",
+        "playerStopCandidateIds",
+        "walkLinks"
+      ],
+      "unknownReasons": {
+        "derivedStopCandidateIds": "external-station-detail-not-in-source",
+        "entrances": "external-station-detail-not-in-source",
+        "playerStopCandidateIds": "no-temporary-stop-stated",
+        "walkLinks": "no-entrance-data"
+      }
+    },
+    {
+      "stationId": "ward-koto",
+      "sequenceIndex": 1,
+      "role": "end-boundary",
+      "location": [
+        139.81276,
+        35.67399
+      ],
+      "external": true,
+      "isolated": false,
+      "turnbackCandidateId": "railway-control-turnback:8459f53b8c301d5d",
+      "turnbackSelected": false,
+      "stationSiteId": null,
+      "entrances": null,
+      "derivedStopCandidateIds": null,
+      "playerStopCandidateIds": null,
+      "walkLinks": null,
+      "unknown": [
+        "derivedStopCandidateIds",
+        "entrances",
+        "playerStopCandidateIds",
+        "walkLinks"
+      ],
+      "unknownReasons": {
+        "derivedStopCandidateIds": "external-station-detail-not-in-source",
+        "entrances": "external-station-detail-not-in-source",
+        "playerStopCandidateIds": "no-temporary-stop-stated",
+        "walkLinks": "no-entrance-data"
+      }
+    }
+  ],
+  "stopCandidates": null,
+  "routeCandidates": [
+    {
+      "routeId": "rail-replacement-route:fee6f3d937374e6f",
+      "key": "bus-between-stations",
+      "name": null,
+      "basis": "player",
+      "polyline": [
+        [
+          139.77747,
+          35.67927
+        ],
+        [
+          139.81276,
+          35.67399
+        ]
+      ],
+      "lengthMeters": 3244.8,
+      "stationApproaches": [
+        {
+          "stationId": "ward-chuo",
+          "distanceMeters": 0,
+          "alongMeters": 0,
+          "passesNear": true
+        },
+        {
+          "stationId": "ward-koto",
+          "distanceMeters": 0,
+          "alongMeters": 3244.8,
+          "passesNear": true
+        }
+      ],
+      "visitedStationIds": [
+        "ward-chuo",
+        "ward-koto"
+      ],
+      "orderMatchesRail": true,
+      "reachesStartStation": true,
+      "reachesEndStation": true,
+      "alongRoad": null,
+      "roadAttachment": null,
+      "roadClassesNear": null,
+      "roadWidthMeters": null,
+      "roadWidthAtLeastVehicleWidth": null,
+      "waterCrossingCount": null,
+      "buildingIntersectionCount": null,
+      "constraintIdsNear": null,
+      "stopCandidateIdsNear": [],
+      "unknown": [
+        "alongRoad",
+        "buildingIntersectionCount",
+        "constraintIdsNear",
+        "roadAttachment",
+        "roadClassesNear",
+        "roadWidthAtLeastVehicleWidth",
+        "roadWidthMeters",
+        "waterCrossingCount"
+      ],
+      "unknownReasons": {
+        "alongRoad": "no-road-layer",
+        "buildingIntersectionCount": "no-layer",
+        "constraintIdsNear": "no-constraint-data",
+        "roadAttachment": "no-road-layer",
+        "roadClassesNear": "no-road-layer",
+        "roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+        "roadWidthMeters": "road-width-not-in-source",
+        "waterCrossingCount": "no-layer"
+      }
+    }
+  ],
+  "derivedRouteCandidates": null,
+  "turnaroundAreas": null,
+  "spatialConstraints": null,
+  "walkNetwork": null,
+  "vehicleWidthMeters": null,
+  "spatialFlags": [
+    "boundary-stations-separated",
+    "entrance-data-missing",
+    "external-station-detail-missing",
+    "no-road-graph",
+    "player-route-drawn",
+    "road-layer-missing",
+    "turnaround-not-stated"
+  ],
+  "dataQuality": "low",
+  "unknown": [
+    "derivedRouteCandidates",
+    "railLengthMeters",
+    "railSection:rail-section:785f3d5fced8b7e9:alignment",
+    "railSection:rail-section:785f3d5fced8b7e9:lengthMeters",
+    "route:rail-replacement-route:fee6f3d937374e6f:alongRoad",
+    "route:rail-replacement-route:fee6f3d937374e6f:buildingIntersectionCount",
+    "route:rail-replacement-route:fee6f3d937374e6f:constraintIdsNear",
+    "route:rail-replacement-route:fee6f3d937374e6f:roadAttachment",
+    "route:rail-replacement-route:fee6f3d937374e6f:roadClassesNear",
+    "route:rail-replacement-route:fee6f3d937374e6f:roadWidthAtLeastVehicleWidth",
+    "route:rail-replacement-route:fee6f3d937374e6f:roadWidthMeters",
+    "route:rail-replacement-route:fee6f3d937374e6f:waterCrossingCount",
+    "spatialConstraints",
+    "station:ward-chuo:derivedStopCandidateIds",
+    "station:ward-chuo:entrances",
+    "station:ward-chuo:playerStopCandidateIds",
+    "station:ward-chuo:walkLinks",
+    "station:ward-koto:derivedStopCandidateIds",
+    "station:ward-koto:entrances",
+    "station:ward-koto:playerStopCandidateIds",
+    "station:ward-koto:walkLinks",
+    "stopCandidates",
+    "turnaroundAreas",
+    "vehicleWidthMeters",
+    "walkNetwork"
+  ],
+  "unknownReasons": {
+    "derivedRouteCandidates": "road-graph-not-in-source",
+    "railLengthMeters": "external-alignment-not-in-source",
+    "railSection:rail-section:785f3d5fced8b7e9:alignment": "external-alignment-not-in-source",
+    "railSection:rail-section:785f3d5fced8b7e9:lengthMeters": "external-alignment-not-in-source",
+    "route:rail-replacement-route:fee6f3d937374e6f:alongRoad": "no-road-layer",
+    "route:rail-replacement-route:fee6f3d937374e6f:buildingIntersectionCount": "no-layer",
+    "route:rail-replacement-route:fee6f3d937374e6f:constraintIdsNear": "no-constraint-data",
+    "route:rail-replacement-route:fee6f3d937374e6f:roadAttachment": "no-road-layer",
+    "route:rail-replacement-route:fee6f3d937374e6f:roadClassesNear": "no-road-layer",
+    "route:rail-replacement-route:fee6f3d937374e6f:roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+    "route:rail-replacement-route:fee6f3d937374e6f:roadWidthMeters": "road-width-not-in-source",
+    "route:rail-replacement-route:fee6f3d937374e6f:waterCrossingCount": "no-layer",
+    "spatialConstraints": "no-constraint-data",
+    "station:ward-chuo:derivedStopCandidateIds": "external-station-detail-not-in-source",
+    "station:ward-chuo:entrances": "external-station-detail-not-in-source",
+    "station:ward-chuo:playerStopCandidateIds": "no-temporary-stop-stated",
+    "station:ward-chuo:walkLinks": "no-entrance-data",
+    "station:ward-koto:derivedStopCandidateIds": "external-station-detail-not-in-source",
+    "station:ward-koto:entrances": "external-station-detail-not-in-source",
+    "station:ward-koto:playerStopCandidateIds": "no-temporary-stop-stated",
+    "station:ward-koto:walkLinks": "no-entrance-data",
+    "stopCandidates": "no-stop-candidate-data",
+    "turnaroundAreas": "no-turnaround-area-stated",
+    "vehicleWidthMeters": "vehicle-width-not-stated",
+    "walkNetwork": "walk-network-not-in-source"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "railway-disruption-site-geometry",
+      "quality": "low",
+      "name": "RailwayDisruptionSiteGeometry railway-disruption-site:f711a3c0789bb972",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "railway-service-control-geometry",
+      "quality": "low",
+      "name": "RailwayServiceControlGeometry railway-service-control:f711a3c0789bb972",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "rail-capacity-geometry",
+      "quality": "low",
+      "name": "RailCapacityGeometry rail-geometry:acdb18c04475bb16",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "player-drawing",
+      "quality": null,
+      "name": "Routes, stops, turning places and constraints the player stated",
+      "license": "player"
+    }
+  ],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "source": {
+    "case": [
+      "external-station",
+      "no-detailed-spatial-data"
+    ],
+    "synthetic": true,
+    "note": "Synthetic: the player's choice, routes, stops, turning places, constraints, vehicle width and the road lines were written by hand for this example. The plans are real plan examples of this pack; the disruption site and the control geometry are rebuilt from the recorded input of the named railway service control example. Nothing was produced by the running engine.",
+    "m7Example": "01-existing-line-detour-connection-unknown",
+    "retargeted": true,
+    "roadLayers": "no road layer is loaded",
+    "stationSiteExamples": [],
+    "input": {
+      "savedDocument": {
+        "version": 1,
+        "packId": "tokyo",
+        "packVersion": "0.1.0",
+        "plans": [
+          {
+            "eventId": "railway-disruption:1",
+            "partialSuspensionCandidateId": "railway-control-suspension:662f921c90e90412",
+            "active": true,
+            "selectedOnControlGeometryRevision": "railway-service-control-revision:650e25273512e58d",
+            "turnbackCandidateIds": [],
+            "routes": [
+              {
+                "key": "bus-between-stations",
+                "polyline": [
+                  [
+                    139.77747,
+                    35.67927
+                  ],
+                  [
+                    139.81276,
+                    35.67399
+                  ]
+                ]
+              }
+            ],
+            "temporaryStops": null,
+            "turnaroundAreas": null,
+            "constraints": null,
+            "vehicleWidthMeters": null
+          }
+        ]
+      }
+    },
+    "generatedBy": "scripts/build-rail-replacement-transport-examples.mjs"
+  }
+}

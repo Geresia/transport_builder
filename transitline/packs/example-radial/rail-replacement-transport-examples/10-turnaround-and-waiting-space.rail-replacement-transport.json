@@ -1,0 +1,973 @@
+{
+  "schema": "transitline.rail-replacement-transport-geometry/1",
+  "contractVersion": 1,
+  "replacementGeometryId": "rail-replacement-transport:7eb6773f09f5a841",
+  "replacementGeometryRevision": "rail-replacement-transport-revision:f3c48a029c304ef0",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "eventId": "railway-disruption:1",
+  "disruptionSiteId": "railway-disruption-site:ced289424406f8d8",
+  "disruptionSiteRevision": "railway-disruption-site-revision:b22da49a964757dc",
+  "controlGeometryId": "railway-service-control:ced289424406f8d8",
+  "controlGeometryRevision": "railway-service-control-revision:e417e7fc9c4d2a3e",
+  "railGeometryId": "rail-geometry:ddecc3a2bb5efd04",
+  "railGeometryRevision": "rail-geometry-revision:38dc0c58a1c5f792",
+  "operationalLineId": "line:1",
+  "partialSuspensionCandidateId": "railway-control-suspension:8714d4a8f0639646",
+  "selectedTurnbackCandidateIds": [
+    "railway-control-turnback:275c41a05093b122",
+    "railway-control-turnback:d9a69f1a1dabd704"
+  ],
+  "startStationId": "stn:350dbe3a0551f15c",
+  "endStationId": "stn:cbcf9940f43b2516",
+  "suspendedSectionIds": [
+    "rail-section:a313651c76603b96"
+  ],
+  "suspendedTrackSegmentIds": [
+    "track-segment:2"
+  ],
+  "suspendedBlockIds": [
+    "rail-block:b2e9c7835aacdd7d"
+  ],
+  "retainedSectionIds": [
+    "rail-section:0f9605c63320a140",
+    "rail-section:aeac86fb60845a0d"
+  ],
+  "stationSequence": [
+    "stn:350dbe3a0551f15c",
+    "stn:cbcf9940f43b2516"
+  ],
+  "railSections": [
+    {
+      "sectionId": "rail-section:a313651c76603b96",
+      "fromStationId": "stn:350dbe3a0551f15c",
+      "toStationId": "stn:cbcf9940f43b2516",
+      "sourceKind": "plan",
+      "lengthMeters": 2223.9,
+      "alignment": [
+        [
+          0.02,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "blockIds": [
+        "rail-block:b2e9c7835aacdd7d"
+      ],
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "railLengthMeters": 2223.9,
+  "boundaryStationsConnectedByRetainedRail": false,
+  "boundaryConnections": [
+    {
+      "stationId": "stn:350dbe3a0551f15c",
+      "side": "start",
+      "retainedSectionIds": [
+        "rail-section:0f9605c63320a140"
+      ],
+      "turnbackCandidateId": "railway-control-turnback:d9a69f1a1dabd704",
+      "turnbackSelected": true,
+      "routeIdsReaching": [
+        "rail-replacement-route:c6e6e49aff0c7b38"
+      ],
+      "stopCandidateIds": [],
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "stationId": "stn:cbcf9940f43b2516",
+      "side": "end",
+      "retainedSectionIds": [],
+      "turnbackCandidateId": "railway-control-turnback:275c41a05093b122",
+      "turnbackSelected": true,
+      "routeIdsReaching": [
+        "rail-replacement-route:c6e6e49aff0c7b38"
+      ],
+      "stopCandidateIds": [
+        "rail-replacement-stop:2a97f3c876e22cee",
+        "rail-replacement-stop:6c25b7e72f5407b1",
+        "rail-replacement-stop:cb499302e0daac7c"
+      ],
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "stations": [
+    {
+      "stationId": "stn:350dbe3a0551f15c",
+      "sequenceIndex": 0,
+      "role": "start-boundary",
+      "location": [
+        0.02,
+        0
+      ],
+      "external": false,
+      "isolated": false,
+      "turnbackCandidateId": "railway-control-turnback:d9a69f1a1dabd704",
+      "turnbackSelected": true,
+      "stationSiteId": "stn-site:67f005b69a8b079c",
+      "entrances": [
+        {
+          "entranceId": "ent:f57af2994ac0cf3b",
+          "name": null,
+          "location": [
+            0.019955,
+            0.000192
+          ],
+          "roadside": true,
+          "roadsideDistanceMeters": 12,
+          "nearestRoad": {
+            "roadClass": "major",
+            "distanceMeters": 12,
+            "location": [
+              0.019955,
+              0.0003
+            ]
+          },
+          "unknown": [],
+          "unknownReasons": {}
+        },
+        {
+          "entranceId": "ent:f67af42c4fc0d71a",
+          "name": null,
+          "location": [
+            0.020045,
+            -0.000192
+          ],
+          "roadside": null,
+          "roadsideDistanceMeters": null,
+          "nearestRoad": null,
+          "unknown": [
+            "nearestRoad",
+            "roadside",
+            "roadsideDistanceMeters"
+          ],
+          "unknownReasons": {
+            "nearestRoad": "outside-road-coverage",
+            "roadside": "outside-road-coverage",
+            "roadsideDistanceMeters": "outside-road-coverage"
+          }
+        },
+        {
+          "entranceId": "ent:f77af5bf50c0d8ad",
+          "name": null,
+          "location": [
+            0.019528,
+            -0.000111
+          ],
+          "roadside": true,
+          "roadsideDistanceMeters": 45.8,
+          "nearestRoad": {
+            "roadClass": "major",
+            "distanceMeters": 45.8,
+            "location": [
+              0.019528,
+              0.0003
+            ]
+          },
+          "unknown": [],
+          "unknownReasons": {}
+        },
+        {
+          "entranceId": "ent:f87af7524dc0d3f4",
+          "name": null,
+          "location": [
+            0.020472,
+            0.000111
+          ],
+          "roadside": null,
+          "roadsideDistanceMeters": null,
+          "nearestRoad": null,
+          "unknown": [
+            "nearestRoad",
+            "roadside",
+            "roadsideDistanceMeters"
+          ],
+          "unknownReasons": {
+            "nearestRoad": "outside-road-coverage",
+            "roadside": "outside-road-coverage",
+            "roadsideDistanceMeters": "outside-road-coverage"
+          }
+        }
+      ],
+      "derivedStopCandidateIds": null,
+      "playerStopCandidateIds": null,
+      "walkLinks": null,
+      "unknown": [
+        "derivedStopCandidateIds",
+        "playerStopCandidateIds",
+        "walkLinks"
+      ],
+      "unknownReasons": {
+        "derivedStopCandidateIds": "outside-road-coverage",
+        "playerStopCandidateIds": "no-temporary-stop-stated",
+        "walkLinks": "no-stop-candidates"
+      }
+    },
+    {
+      "stationId": "stn:cbcf9940f43b2516",
+      "sequenceIndex": 1,
+      "role": "end-boundary",
+      "location": [
+        0,
+        0
+      ],
+      "external": false,
+      "isolated": true,
+      "turnbackCandidateId": "railway-control-turnback:275c41a05093b122",
+      "turnbackSelected": true,
+      "stationSiteId": "stn-site:1c3f9ac638c47774",
+      "entrances": [
+        {
+          "entranceId": "ent:870bbb11e7706d83",
+          "name": null,
+          "location": [
+            0,
+            0.000198
+          ],
+          "roadside": true,
+          "roadsideDistanceMeters": 11.4,
+          "nearestRoad": {
+            "roadClass": "major",
+            "distanceMeters": 11.4,
+            "location": [
+              0,
+              0.0003
+            ]
+          },
+          "unknown": [],
+          "unknownReasons": {}
+        },
+        {
+          "entranceId": "ent:880bbca4ec707562",
+          "name": null,
+          "location": [
+            0,
+            -0.000198
+          ],
+          "roadside": false,
+          "roadsideDistanceMeters": 55.4,
+          "nearestRoad": {
+            "roadClass": "major",
+            "distanceMeters": 55.4,
+            "location": [
+              0,
+              0.0003
+            ]
+          },
+          "unknown": [],
+          "unknownReasons": {}
+        },
+        {
+          "entranceId": "ent:890bbe37ed7076f5",
+          "name": null,
+          "location": [
+            -0.000485,
+            0
+          ],
+          "roadside": true,
+          "roadsideDistanceMeters": 33.4,
+          "nearestRoad": {
+            "roadClass": "major",
+            "distanceMeters": 33.4,
+            "location": [
+              -0.000485,
+              0.0003
+            ]
+          },
+          "unknown": [],
+          "unknownReasons": {}
+        },
+        {
+          "entranceId": "ent:8a0bbfcaea70723c",
+          "name": null,
+          "location": [
+            0.000485,
+            0
+          ],
+          "roadside": true,
+          "roadsideDistanceMeters": 33.4,
+          "nearestRoad": {
+            "roadClass": "major",
+            "distanceMeters": 33.4,
+            "location": [
+              0.000485,
+              0.0003
+            ]
+          },
+          "unknown": [],
+          "unknownReasons": {}
+        }
+      ],
+      "derivedStopCandidateIds": [
+        "rail-replacement-stop:2a97f3c876e22cee",
+        "rail-replacement-stop:6c25b7e72f5407b1",
+        "rail-replacement-stop:cb499302e0daac7c"
+      ],
+      "playerStopCandidateIds": null,
+      "walkLinks": [
+        {
+          "walkLinkId": "rail-replacement-walk:04a39b834aedcd21",
+          "entranceId": "ent:880bbca4ec707562",
+          "stopCandidateId": "rail-replacement-stop:6c25b7e72f5407b1",
+          "straightDistanceMeters": 77.4,
+          "withinNearDistance": false
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:0861d898410abed6",
+          "entranceId": "ent:890bbe37ed7076f5",
+          "stopCandidateId": "rail-replacement-stop:2a97f3c876e22cee",
+          "straightDistanceMeters": 113,
+          "withinNearDistance": false
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:163e684ee9e7b5c4",
+          "entranceId": "ent:890bbe37ed7076f5",
+          "stopCandidateId": "rail-replacement-stop:6c25b7e72f5407b1",
+          "straightDistanceMeters": 33.4,
+          "withinNearDistance": true
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:6c95d0b71237c835",
+          "entranceId": "ent:8a0bbfcaea70723c",
+          "stopCandidateId": "rail-replacement-stop:cb499302e0daac7c",
+          "straightDistanceMeters": 63.5,
+          "withinNearDistance": false
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:6fc83c0dad55e223",
+          "entranceId": "ent:870bbb11e7706d83",
+          "stopCandidateId": "rail-replacement-stop:6c25b7e72f5407b1",
+          "straightDistanceMeters": 55.2,
+          "withinNearDistance": false
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:7281c111e89a8cbf",
+          "entranceId": "ent:880bbca4ec707562",
+          "stopCandidateId": "rail-replacement-stop:2a97f3c876e22cee",
+          "straightDistanceMeters": 77.4,
+          "withinNearDistance": false
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:7e39bae76099c4f1",
+          "entranceId": "ent:8a0bbfcaea70723c",
+          "stopCandidateId": "rail-replacement-stop:6c25b7e72f5407b1",
+          "straightDistanceMeters": 113,
+          "withinNearDistance": false
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:9e123e8b4dfd3031",
+          "entranceId": "ent:870bbb11e7706d83",
+          "stopCandidateId": "rail-replacement-stop:2a97f3c876e22cee",
+          "straightDistanceMeters": 55.2,
+          "withinNearDistance": false
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:9f2027490290b30b",
+          "entranceId": "ent:870bbb11e7706d83",
+          "stopCandidateId": "rail-replacement-stop:cb499302e0daac7c",
+          "straightDistanceMeters": 11.4,
+          "withinNearDistance": true
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:b38b2b7201183c74",
+          "entranceId": "ent:890bbe37ed7076f5",
+          "stopCandidateId": "rail-replacement-stop:cb499302e0daac7c",
+          "straightDistanceMeters": 63.5,
+          "withinNearDistance": false
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:e51620eb4212da85",
+          "entranceId": "ent:880bbca4ec707562",
+          "stopCandidateId": "rail-replacement-stop:cb499302e0daac7c",
+          "straightDistanceMeters": 55.4,
+          "withinNearDistance": false
+        },
+        {
+          "walkLinkId": "rail-replacement-walk:fe3268654daed94f",
+          "entranceId": "ent:8a0bbfcaea70723c",
+          "stopCandidateId": "rail-replacement-stop:2a97f3c876e22cee",
+          "straightDistanceMeters": 33.4,
+          "withinNearDistance": true
+        }
+      ],
+      "unknown": [
+        "playerStopCandidateIds"
+      ],
+      "unknownReasons": {
+        "playerStopCandidateIds": "no-temporary-stop-stated"
+      }
+    }
+  ],
+  "stopCandidates": [
+    {
+      "stopCandidateId": "rail-replacement-stop:2a97f3c876e22cee",
+      "kind": "entrance-roadside",
+      "stationId": "stn:cbcf9940f43b2516",
+      "entranceId": "ent:8a0bbfcaea70723c",
+      "key": null,
+      "name": null,
+      "location": [
+        0.000485,
+        0.0003
+      ],
+      "basis": "source",
+      "roadAdjacent": true,
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 33.4,
+        "location": [
+          0.000485,
+          0.0003
+        ]
+      },
+      "roadWidthMeters": null,
+      "roadWidthAtLeastVehicleWidth": null,
+      "unknown": [
+        "roadWidthAtLeastVehicleWidth",
+        "roadWidthMeters"
+      ],
+      "unknownReasons": {
+        "roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+        "roadWidthMeters": "road-width-not-in-source"
+      }
+    },
+    {
+      "stopCandidateId": "rail-replacement-stop:6c25b7e72f5407b1",
+      "kind": "entrance-roadside",
+      "stationId": "stn:cbcf9940f43b2516",
+      "entranceId": "ent:890bbe37ed7076f5",
+      "key": null,
+      "name": null,
+      "location": [
+        -0.000485,
+        0.0003
+      ],
+      "basis": "source",
+      "roadAdjacent": true,
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 33.4,
+        "location": [
+          -0.000485,
+          0.0003
+        ]
+      },
+      "roadWidthMeters": null,
+      "roadWidthAtLeastVehicleWidth": null,
+      "unknown": [
+        "roadWidthAtLeastVehicleWidth",
+        "roadWidthMeters"
+      ],
+      "unknownReasons": {
+        "roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+        "roadWidthMeters": "road-width-not-in-source"
+      }
+    },
+    {
+      "stopCandidateId": "rail-replacement-stop:cb499302e0daac7c",
+      "kind": "entrance-roadside",
+      "stationId": "stn:cbcf9940f43b2516",
+      "entranceId": "ent:870bbb11e7706d83",
+      "key": null,
+      "name": null,
+      "location": [
+        0,
+        0.0003
+      ],
+      "basis": "source",
+      "roadAdjacent": true,
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 11.4,
+        "location": [
+          0,
+          0.0003
+        ]
+      },
+      "roadWidthMeters": null,
+      "roadWidthAtLeastVehicleWidth": null,
+      "unknown": [
+        "roadWidthAtLeastVehicleWidth",
+        "roadWidthMeters"
+      ],
+      "unknownReasons": {
+        "roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+        "roadWidthMeters": "road-width-not-in-source"
+      }
+    }
+  ],
+  "routeCandidates": [
+    {
+      "routeId": "rail-replacement-route:c6e6e49aff0c7b38",
+      "key": "bus-1",
+      "name": null,
+      "basis": "player",
+      "polyline": [
+        [
+          0.0198,
+          0.0003
+        ],
+        [
+          0.0099,
+          0.0003
+        ],
+        [
+          0.0002,
+          0.0003
+        ]
+      ],
+      "lengthMeters": 2181.9,
+      "stationApproaches": [
+        {
+          "stationId": "stn:350dbe3a0551f15c",
+          "distanceMeters": 40.1,
+          "alongMeters": 0,
+          "passesNear": true
+        },
+        {
+          "stationId": "stn:cbcf9940f43b2516",
+          "distanceMeters": 40.1,
+          "alongMeters": 2181.9,
+          "passesNear": true
+        }
+      ],
+      "visitedStationIds": [
+        "stn:350dbe3a0551f15c",
+        "stn:cbcf9940f43b2516"
+      ],
+      "orderMatchesRail": true,
+      "reachesStartStation": true,
+      "reachesEndStation": true,
+      "alongRoad": {
+        "sampleSpacingMeters": 20,
+        "sampleCount": 111,
+        "onRoadCount": 111,
+        "nearRoadCount": 0,
+        "offRoadCount": 0,
+        "unmeasuredCount": 0,
+        "offRoadRuns": [],
+        "fullyOnRoad": true,
+        "unknown": [],
+        "unknownReasons": {}
+      },
+      "roadAttachment": {
+        "start": {
+          "gapMeters": 0,
+          "attached": true,
+          "unknown": [],
+          "unknownReasons": {}
+        },
+        "end": {
+          "gapMeters": 0,
+          "attached": true,
+          "unknown": [],
+          "unknownReasons": {}
+        }
+      },
+      "roadClassesNear": [
+        "major"
+      ],
+      "roadWidthMeters": null,
+      "roadWidthAtLeastVehicleWidth": null,
+      "waterCrossingCount": 0,
+      "buildingIntersectionCount": 6,
+      "constraintIdsNear": null,
+      "stopCandidateIdsNear": [
+        "rail-replacement-stop:2a97f3c876e22cee",
+        "rail-replacement-stop:cb499302e0daac7c"
+      ],
+      "unknown": [
+        "constraintIdsNear",
+        "roadWidthAtLeastVehicleWidth",
+        "roadWidthMeters"
+      ],
+      "unknownReasons": {
+        "constraintIdsNear": "no-constraint-data",
+        "roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+        "roadWidthMeters": "road-width-not-in-source"
+      }
+    }
+  ],
+  "derivedRouteCandidates": null,
+  "turnaroundAreas": [
+    {
+      "turnaroundAreaId": "rail-replacement-turnaround:43f120160ab4d998",
+      "key": "boarding-west",
+      "name": "West temporary boarding point",
+      "kind": "boarding",
+      "basis": "player",
+      "location": [
+        0.0004,
+        0.0004
+      ],
+      "polygon": null,
+      "areaSquareMeters": null,
+      "roadAdjacent": true,
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 11.1,
+        "location": [
+          0.0004,
+          0.0003
+        ]
+      },
+      "buildingOverlapCount": 0,
+      "waterOverlapCount": 0,
+      "distancesToStationsMeters": [
+        {
+          "stationId": "stn:350dbe3a0551f15c",
+          "distanceMeters": 2182.3
+        },
+        {
+          "stationId": "stn:cbcf9940f43b2516",
+          "distanceMeters": 63
+        }
+      ],
+      "routeIdsNear": [
+        "rail-replacement-route:c6e6e49aff0c7b38"
+      ],
+      "unknown": [
+        "areaSquareMeters"
+      ],
+      "unknownReasons": {
+        "areaSquareMeters": "no-polygon-drawn"
+      }
+    },
+    {
+      "turnaroundAreaId": "rail-replacement-turnaround:4a602c06808e036c",
+      "key": "turnaround-east",
+      "name": "East turning place",
+      "kind": "turnaround",
+      "basis": "player",
+      "location": [
+        0.01955,
+        0.00065
+      ],
+      "polygon": [
+        [
+          0.0192,
+          0.0004
+        ],
+        [
+          0.0199,
+          0.0004
+        ],
+        [
+          0.0199,
+          0.0009
+        ],
+        [
+          0.0192,
+          0.0009
+        ]
+      ],
+      "areaSquareMeters": 4337.2,
+      "roadAdjacent": true,
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 39,
+        "location": [
+          0.01955,
+          0.0003
+        ]
+      },
+      "buildingOverlapCount": 0,
+      "waterOverlapCount": 0,
+      "distancesToStationsMeters": [
+        {
+          "stationId": "stn:350dbe3a0551f15c",
+          "distanceMeters": 88
+        },
+        {
+          "stationId": "stn:cbcf9940f43b2516",
+          "distanceMeters": 2177.5
+        }
+      ],
+      "routeIdsNear": [
+        "rail-replacement-route:c6e6e49aff0c7b38"
+      ],
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "turnaroundAreaId": "rail-replacement-turnaround:4f167cb7cbe176f5",
+      "key": "waiting-west",
+      "name": "West waiting space",
+      "kind": "waiting",
+      "basis": "player",
+      "location": [
+        0.002,
+        0.00085
+      ],
+      "polygon": [
+        [
+          0.0016,
+          0.0006
+        ],
+        [
+          0.0024,
+          0.0006
+        ],
+        [
+          0.0024,
+          0.0011
+        ],
+        [
+          0.0016,
+          0.0011
+        ]
+      ],
+      "areaSquareMeters": 4956.9,
+      "roadAdjacent": false,
+      "nearestRoad": {
+        "roadClass": "major",
+        "distanceMeters": 61.2,
+        "location": [
+          0.002,
+          0.0003
+        ]
+      },
+      "buildingOverlapCount": 2,
+      "waterOverlapCount": 0,
+      "distancesToStationsMeters": [
+        {
+          "stationId": "stn:350dbe3a0551f15c",
+          "distanceMeters": 2006
+        },
+        {
+          "stationId": "stn:cbcf9940f43b2516",
+          "distanceMeters": 241.9
+        }
+      ],
+      "routeIdsNear": [],
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "spatialConstraints": null,
+  "walkNetwork": null,
+  "vehicleWidthMeters": null,
+  "spatialFlags": [
+    "boundary-stations-separated",
+    "no-road-graph",
+    "player-route-drawn",
+    "stations-left-without-rail"
+  ],
+  "dataQuality": "low",
+  "unknown": [
+    "derivedRouteCandidates",
+    "route:rail-replacement-route:c6e6e49aff0c7b38:constraintIdsNear",
+    "route:rail-replacement-route:c6e6e49aff0c7b38:roadWidthAtLeastVehicleWidth",
+    "route:rail-replacement-route:c6e6e49aff0c7b38:roadWidthMeters",
+    "spatialConstraints",
+    "station:stn:350dbe3a0551f15c:derivedStopCandidateIds",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f67af42c4fc0d71a:nearestRoad",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f67af42c4fc0d71a:roadside",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f67af42c4fc0d71a:roadsideDistanceMeters",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f87af7524dc0d3f4:nearestRoad",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f87af7524dc0d3f4:roadside",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f87af7524dc0d3f4:roadsideDistanceMeters",
+    "station:stn:350dbe3a0551f15c:playerStopCandidateIds",
+    "station:stn:350dbe3a0551f15c:walkLinks",
+    "station:stn:cbcf9940f43b2516:playerStopCandidateIds",
+    "stop:rail-replacement-stop:2a97f3c876e22cee:roadWidthAtLeastVehicleWidth",
+    "stop:rail-replacement-stop:2a97f3c876e22cee:roadWidthMeters",
+    "stop:rail-replacement-stop:6c25b7e72f5407b1:roadWidthAtLeastVehicleWidth",
+    "stop:rail-replacement-stop:6c25b7e72f5407b1:roadWidthMeters",
+    "stop:rail-replacement-stop:cb499302e0daac7c:roadWidthAtLeastVehicleWidth",
+    "stop:rail-replacement-stop:cb499302e0daac7c:roadWidthMeters",
+    "turnaround:rail-replacement-turnaround:43f120160ab4d998:areaSquareMeters",
+    "vehicleWidthMeters",
+    "walkNetwork"
+  ],
+  "unknownReasons": {
+    "derivedRouteCandidates": "road-graph-not-in-source",
+    "route:rail-replacement-route:c6e6e49aff0c7b38:constraintIdsNear": "no-constraint-data",
+    "route:rail-replacement-route:c6e6e49aff0c7b38:roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+    "route:rail-replacement-route:c6e6e49aff0c7b38:roadWidthMeters": "road-width-not-in-source",
+    "spatialConstraints": "no-constraint-data",
+    "station:stn:350dbe3a0551f15c:derivedStopCandidateIds": "outside-road-coverage",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f67af42c4fc0d71a:nearestRoad": "outside-road-coverage",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f67af42c4fc0d71a:roadside": "outside-road-coverage",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f67af42c4fc0d71a:roadsideDistanceMeters": "outside-road-coverage",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f87af7524dc0d3f4:nearestRoad": "outside-road-coverage",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f87af7524dc0d3f4:roadside": "outside-road-coverage",
+    "station:stn:350dbe3a0551f15c:entrance:ent:f87af7524dc0d3f4:roadsideDistanceMeters": "outside-road-coverage",
+    "station:stn:350dbe3a0551f15c:playerStopCandidateIds": "no-temporary-stop-stated",
+    "station:stn:350dbe3a0551f15c:walkLinks": "no-stop-candidates",
+    "station:stn:cbcf9940f43b2516:playerStopCandidateIds": "no-temporary-stop-stated",
+    "stop:rail-replacement-stop:2a97f3c876e22cee:roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+    "stop:rail-replacement-stop:2a97f3c876e22cee:roadWidthMeters": "road-width-not-in-source",
+    "stop:rail-replacement-stop:6c25b7e72f5407b1:roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+    "stop:rail-replacement-stop:6c25b7e72f5407b1:roadWidthMeters": "road-width-not-in-source",
+    "stop:rail-replacement-stop:cb499302e0daac7c:roadWidthAtLeastVehicleWidth": "road-width-not-in-source",
+    "stop:rail-replacement-stop:cb499302e0daac7c:roadWidthMeters": "road-width-not-in-source",
+    "turnaround:rail-replacement-turnaround:43f120160ab4d998:areaSquareMeters": "no-polygon-drawn",
+    "vehicleWidthMeters": "vehicle-width-not-stated",
+    "walkNetwork": "walk-network-not-in-source"
+  },
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "railway-disruption-site-geometry",
+      "quality": "low",
+      "name": "RailwayDisruptionSiteGeometry railway-disruption-site:ced289424406f8d8",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "railway-service-control-geometry",
+      "quality": "low",
+      "name": "RailwayServiceControlGeometry railway-service-control:ced289424406f8d8",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "rail-capacity-geometry",
+      "quality": "low",
+      "name": "RailCapacityGeometry rail-geometry:ddecc3a2bb5efd04",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "station-site-geometry",
+      "quality": null,
+      "name": "StationSiteGeometry entrance candidates",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "medium",
+      "name": "Synthetic roads (generated for the synthetic example packs)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "player-drawing",
+      "quality": null,
+      "name": "Routes, stops, turning places and constraints the player stated",
+      "license": "player"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "bus-turnaround",
+      "waiting-space",
+      "boarding-space"
+    ],
+    "synthetic": true,
+    "note": "Synthetic: the player's choice, routes, stops, turning places, constraints, vehicle width and the road lines were written by hand for this example. The plans are real plan examples of this pack; the disruption site and the control geometry are rebuilt from the recorded input of the named railway service control example. Nothing was produced by the running engine.",
+    "m7Example": "02-midway-turnback-candidate",
+    "retargeted": false,
+    "roadLayers": "the synthetic road, water, building and land-use layers around the origin",
+    "stationSiteExamples": [
+      "04-deep-station",
+      "03-shallow-cut-cover"
+    ],
+    "input": {
+      "savedDocument": {
+        "version": 1,
+        "packId": "example-radial",
+        "packVersion": "0.1.0",
+        "plans": [
+          {
+            "eventId": "railway-disruption:1",
+            "partialSuspensionCandidateId": "railway-control-suspension:8714d4a8f0639646",
+            "active": true,
+            "selectedOnControlGeometryRevision": "railway-service-control-revision:e417e7fc9c4d2a3e",
+            "turnbackCandidateIds": [
+              "railway-control-turnback:275c41a05093b122",
+              "railway-control-turnback:d9a69f1a1dabd704"
+            ],
+            "routes": [
+              {
+                "key": "bus-1",
+                "polyline": [
+                  [
+                    0.0002,
+                    0.0003
+                  ],
+                  [
+                    0.0099,
+                    0.0003
+                  ],
+                  [
+                    0.0198,
+                    0.0003
+                  ]
+                ]
+              }
+            ],
+            "temporaryStops": null,
+            "turnaroundAreas": [
+              {
+                "key": "turnaround-east",
+                "kind": "turnaround",
+                "polygon": [
+                  [
+                    0.0192,
+                    0.0004
+                  ],
+                  [
+                    0.0199,
+                    0.0004
+                  ],
+                  [
+                    0.0199,
+                    0.0009
+                  ],
+                  [
+                    0.0192,
+                    0.0009
+                  ]
+                ],
+                "name": "East turning place"
+              },
+              {
+                "key": "waiting-west",
+                "kind": "waiting",
+                "polygon": [
+                  [
+                    0.0016,
+                    0.0006
+                  ],
+                  [
+                    0.0024,
+                    0.0006
+                  ],
+                  [
+                    0.0024,
+                    0.0011
+                  ],
+                  [
+                    0.0016,
+                    0.0011
+                  ]
+                ],
+                "name": "West waiting space"
+              },
+              {
+                "key": "boarding-west",
+                "kind": "boarding",
+                "location": [
+                  0.0004,
+                  0.0004
+                ],
+                "name": "West temporary boarding point"
+              }
+            ],
+            "constraints": null,
+            "vehicleWidthMeters": null
+          }
+        ]
+      }
+    },
+    "generatedBy": "scripts/build-rail-replacement-transport-examples.mjs"
+  }
+}
