@@ -1595,9 +1595,16 @@ async function main() {
       message("통합시험과 인허가를 통과해 실제 영업 노선으로 개통했습니다.");
     }));
     $("scenario-save").addEventListener("click", () => run(() => {
-      const payload = JSON.stringify({ schemaVersion: 1, runtime: runtime.save(), workfrontDoc: constructionWorkfront?.workfrontDoc ?? null });
+      const payload = JSON.stringify({
+        schemaVersion: 1,
+        runtime: runtime.save(),
+        workfrontDoc: constructionWorkfront?.workfrontDoc ?? null,
+        // M8 geometry is player-authored map state. Preserve its exact revision so an operating
+        // order cannot silently attach to a freshly recalculated, different road route on load.
+        railReplacementGeometries,
+      });
       localStorage.setItem(storageKey, payload);
-      message("지도·공사·차량·회사 상태와 작업면을 함께 저장했습니다.");
+      message("지도·공사·차량·회사 상태와 작업면·대체수송 계획을 함께 저장했습니다.");
     }));
     $("scenario-load").addEventListener("click", () => run(() => {
       const saved = localStorage.getItem(storageKey);
@@ -1607,6 +1614,9 @@ async function main() {
       const wrapped = payload && typeof payload === "object" && typeof payload.runtime === "string";
       runtime.load(wrapped ? payload.runtime : saved); // older saves stored runtime.save()'s own JSON string directly
       if (wrapped && payload.workfrontDoc) constructionWorkfront?.loadDoc(payload.workfrontDoc);
+      railReplacementGeometries = wrapped && Array.isArray(payload.railReplacementGeometries)
+        ? structuredClone(payload.railReplacementGeometries)
+        : [];
       selectedLineId = null;
       message("통합 저장본을 불러왔습니다.");
     }));
