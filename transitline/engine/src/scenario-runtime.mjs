@@ -1210,7 +1210,14 @@ export class ScenarioRuntime {
   }
 
   triggerRailwayDisruption(input) {
-    return createRailwayDisruption(this.operationalState, input);
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("railway-disruption-triggered", () => createRailwayDisruption(this.operationalState, input));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
   }
 
   resolveRailwayDisruption(eventId, options = {}) {
@@ -1254,11 +1261,25 @@ export class ScenarioRuntime {
   }
 
   issueRailwayControlOrder(input) {
-    return createRailwayControlOrder(this.operationalState, input);
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("railway-control-order-issued", () => createRailwayControlOrder(this.operationalState, input));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
   }
 
   issueRailwayControlSelection(input) {
-    return createRailwayControlOrderFromGeometry(this.operationalState, input);
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("railway-control-selection-issued", () => createRailwayControlOrderFromGeometry(this.operationalState, input));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
   }
 
   clearRailwayControlOrder(orderId, options = {}) {
