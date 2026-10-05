@@ -26,6 +26,7 @@ import { planIdForKey, planningDefaults, ScenarioRuntime, stablePlanKey } from "
 import { mountStationManagementPanel } from "./station-management-ui.mjs";
 import { mountConstructionContractorPanel } from "./construction-contractor-ui.mjs";
 import { mountThroughServiceManagementPanel } from "./through-service-management-ui.mjs";
+import { mountRailReplacementManagementPanel } from "./rail-replacement-management-ui.mjs";
 
 const params = new URLSearchParams(location.search);
 const packPath = params.get("pack") ?? "../packs/example-radial";
@@ -336,6 +337,8 @@ async function main() {
   let constructionWorkfront = null;
   let throughHandoverUi = null;
   let throughServiceManagement = null;
+  let railReplacementManagement = null;
+  let railReplacementGeometries = [];
   const getCurrentSpatial = () => withRailLayer(packSpatial, currentMapExport?.externalNetworks ?? []);
   refreshMapOverlay = () => {
     currentMapExport = buildMapExport({ pack, mode: networkMode, drawnLines: drawnLinesFromState(state), spatial: packSpatial });
@@ -352,7 +355,15 @@ async function main() {
     constructionWorkfront?.refresh();
     throughHandoverUi?.refresh();
   };
-  window.transitlineMap = { setEngineReport(report) { engineReport = report; refreshMapOverlay(); } };
+  window.transitlineMap = {
+    setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
+    // This is the narrow M8 -> operations boundary. Map code can publish completed geometry,
+    // but never prices or validates an operating decision.
+    setRailReplacementGeometries(geometries) {
+      railReplacementGeometries = structuredClone(Array.isArray(geometries) ? geometries : []);
+      railReplacementManagement?.refresh();
+    },
+  };
   if (scenarioPlay) renderPhaseLegend($("map-legend"));
   $("map-legend").hidden = !scenarioPlay;
   // ?od=0 forces gravity destinations, for both files - it means "ignore measured O/D", not "ignore commuters only"
@@ -1408,6 +1419,7 @@ async function main() {
       stationManagement?.refresh();
       constructionContractorManagement?.refresh();
       throughServiceManagement?.refresh();
+      railReplacementManagement?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1432,6 +1444,12 @@ async function main() {
       // physically confirmed can become a simulator line. Unknown external topology stays blocked.
       getOperationDraft: (service) => runtime.throughOperationDraft(service.throughServiceId, currentMapExport),
       getSelectedHandoverSite: () => throughHandoverUi?.selectedSite ?? null,
+      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+    });
+    railReplacementManagement = mountRailReplacementManagementPanel({
+      container: $("scenario-rail-replacement"),
+      runtime,
+      getReplacementGeometries: () => railReplacementGeometries,
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
     canvas.addEventListener("pointerup", () => queueMicrotask(() => {

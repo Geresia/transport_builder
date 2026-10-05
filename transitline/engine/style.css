@@ -207,6 +207,27 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .operations-economy { margin-top: 7px; border-top: 1px solid var(--panel-line); padding-top: 5px; }
 .operations-economy summary { cursor: pointer; color: #67d7c4; font-weight: 600; }
 #scenario-operations-economy { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-panel .rail-replacement-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
+#scenario-panel .rail-replacement-management summary { cursor: pointer; color: #e5b65e; font-weight: 600; }
+#scenario-rail-replacement { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-panel .rail-replacement-intro { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+#scenario-panel .rail-replacement-form { display: grid; gap: 3px; }
+#scenario-panel .rail-replacement-form label { grid-template-columns: 66px 1fr; margin: 0; }
+#scenario-panel .rail-replacement-form input[type="text"], #scenario-panel .rail-replacement-form input[type="number"] { min-width: 0; box-sizing: border-box; padding: 4px 6px; color: var(--text); background: var(--chip); border: 1px solid var(--chip-line); border-radius: 5px; font: inherit; }
+#scenario-panel .rail-replacement-form .rail-replacement-check { display: flex; gap: 5px; align-items: center; font-size: 10px; }
+#scenario-panel .rail-replacement-form .rail-replacement-check input { width: auto; }
+#scenario-panel .rail-replacement-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 3px; }
+#scenario-panel .rail-replacement-actions button:last-child:not(:disabled) { color: var(--ok); }
+#scenario-panel .rail-replacement-assessment, #scenario-panel .rail-replacement-operation { padding: 6px; border: 1px solid var(--chip-line); border-radius: 5px; background: #1d2330; }
+#scenario-panel .rail-replacement-assessment.feasible { border-left: 3px solid var(--ok); }
+#scenario-panel .rail-replacement-assessment.conditional { border-left: 3px solid var(--warn); }
+#scenario-panel .rail-replacement-assessment.infeasible, #scenario-panel .rail-replacement-assessment.error { border-left: 3px solid var(--danger); }
+#scenario-panel .rail-replacement-assessment small { display: block; margin-top: 4px; color: var(--muted); overflow-wrap: anywhere; }
+#scenario-panel .rail-replacement-operations-title { margin-top: 2px; color: var(--muted); font-size: 11px; }
+#scenario-panel .rail-replacement-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 6px; margin-top: 4px; font-size: 10px; }
+#scenario-panel .rail-replacement-metrics div { display: flex; justify-content: space-between; gap: 5px; color: var(--muted); }
+#scenario-panel .rail-replacement-metrics b { color: var(--text); font-family: var(--mono); font-weight: 500; }
+#scenario-panel .rail-replacement-settle { padding: 4px; color: var(--warn); }
 .operations-economy-empty { padding: 4px 0; color: var(--muted); }
 .operations-economy-card { display: grid; gap: 6px; padding: 7px; border: 1px solid color-mix(in srgb, #67d7c4 35%, var(--chip-line)); border-radius: 6px; background: color-mix(in srgb, #67d7c4 4%, var(--chip)); }
 .operations-resource-pool-card { border-color: color-mix(in srgb, #e7bb68 55%, var(--chip-line)); background: color-mix(in srgb, #e7bb68 6%, var(--chip)); }

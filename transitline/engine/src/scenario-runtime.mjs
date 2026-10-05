@@ -46,6 +46,7 @@ import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from
 import { clearRailwayControlOrder, createRailwayControlOrder, createRailwayControlOrderFromGeometry, railwayControlOrderReport } from "./railway-service-control.mjs";
 import {
   advanceRailReplacementOperations,
+  assessRailReplacementOperation,
   markRailReplacementSettled,
   railReplacementOperationReport,
   railReplacementSettlementDue,
@@ -1266,6 +1267,12 @@ export class ScenarioRuntime {
       this.bridge = createMapEngineBridge(this.game, this.operationalState);
       throw error;
     }
+  }
+
+  // Preview is deliberately read-only. startRailReplacementOperation performs the same assessment
+  // again inside its transaction, so a stale UI preview can never bypass an engine constraint.
+  assessRailReplacementOperation(input) {
+    return assessRailReplacementOperation(this.operationalState, input);
   }
 
   settleRailReplacementOperations() {

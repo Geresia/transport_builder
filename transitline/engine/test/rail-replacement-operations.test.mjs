@@ -208,6 +208,10 @@ test("an active replacement bus reconnects split rail services in both routers a
 test("runtime pays mobilisation and accrued operation cost atomically", () => {
   const { state, input } = fixture();
   const runtime = new ScenarioRuntime({ pack: pack(), operationalState: state });
+  const preflightBefore = snapshotOperationalState(state);
+  const preflight = runtime.assessRailReplacementOperation(input);
+  assert.equal(preflight.verdict, "feasible");
+  assert.deepEqual(snapshotOperationalState(state), preflightBefore);
   const cashBefore = runtime.game.ledger.cash;
   const operation = runtime.startRailReplacementOperation(input);
   assert.equal(runtime.game.ledger.cash, cashBefore - operation.mobilisationCostJPY);
