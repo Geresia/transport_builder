@@ -42,6 +42,7 @@ import {
 import { railwayTrafficReport } from "./railway-traffic-control.mjs";
 import { createRailwayDisruption, railwayDisruptionReport, resolveRailwayDisruption } from "./railway-disruptions.mjs";
 import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail-capacity-integration.mjs";
+import { applyStationDemandAccess, stationDemandAccessApplicationReport } from "./station-demand-access-integration.mjs";
 import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from "./railway-disruption-response.mjs";
 import { clearRailwayControlOrder, createRailwayControlOrder, createRailwayControlOrderFromGeometry, railwayControlOrderReport } from "./railway-service-control.mjs";
 import { assessRailwayDetourAuthorization, authorizeRailwayDetour, railwayDetourAuthorizationReport, syncRailwayDetourAuthorizations } from "./railway-detour-authorization.mjs";
@@ -227,6 +228,7 @@ export class ScenarioRuntime {
       railwayTraffic: railwayTrafficReport(this.operationalState),
       railwayDisruptions: railwayDisruptionReport(this.operationalState),
       railCapacityApplications: railCapacityApplicationReport(this.operationalState),
+      stationDemandAccess: stationDemandAccessApplicationReport(this.operationalState),
       railwayControlOrders: railwayControlOrderReport(this.operationalState),
       railwayDetourAuthorizations: railwayDetourAuthorizationReport(this.operationalState),
       railwayDetourOperations: railwayDetourOperationReport(this.operationalState),
@@ -1424,6 +1426,27 @@ export class ScenarioRuntime {
 
   railCapacityApplicationReport(lineId = null) {
     return railCapacityApplicationReport(this.operationalState, lineId);
+  }
+
+  // Stores a validated map export and its conservative engine assessment. It deliberately
+  // does not replace legacy accessLinks or alter passenger spawning; B15's allocation policy
+  // is a later explicit command.
+  applyStationDemandAccess(stationDemandAccess) {
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("station-demand-access-applied", () => applyStationDemandAccess(this.operationalState, {
+        stationDemandAccess,
+        pack: this.pack,
+      }));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
+  }
+
+  stationDemandAccessReport() {
+    return stationDemandAccessApplicationReport(this.operationalState);
   }
 
   // Read-only line facts for map-to-operation binding.  The UI receives stable ids and the
