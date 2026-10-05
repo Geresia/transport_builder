@@ -1,1 +1,2 @@
 packs/*/rail-capacity-examples/*.json text eol=lf
+packs/*/station-demand-access-examples/*.json text eol=lf
