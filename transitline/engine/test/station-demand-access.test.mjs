@@ -487,6 +487,7 @@ test("the export sorts stations by id, skips removed ones, reports duplicates an
   const input = () => [far, { key: "gone", location: S1, deleted: true }, b, a, { ...a }];
   const out = buildStationDemandAccessExport({ pack, mapExport: scratch, stations: input(), spatial: withLayers, demandSources: SOURCES });
   assert.equal(out.schema, STATION_DEMAND_ACCESS_EXPORT_SCHEMA);
+  assert.equal(out.contractVersion, 1, "the export can be passed directly to the runtime's strict E1 boundary");
   assert.deepEqual(out.sites.map((s) => s.stationAccessId), [...out.sites.map((s) => s.stationAccessId)].sort());
   assert.equal(out.sites.length, 3);
   assert.deepEqual(out.inactive, [{ key: "gone", stationAccessId: stationAccessIdOf("t", "gone") }]);

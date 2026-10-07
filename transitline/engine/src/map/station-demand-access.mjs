@@ -456,7 +456,7 @@ export function buildStationDemandAccessExport({ pack, mapExport, stations = [],
     if (ringsOverlap(a.polygon, b.polygon)) catchmentOverlaps.push({ stationAccessIds: [list[i].stationAccessId, list[j].stationAccessId], catchmentIds: [a.catchmentId, b.catchmentId] });
   }
   return {
-    schema: STATION_DEMAND_ACCESS_EXPORT_SCHEMA, packId, packVersion: pack.manifest?.version ?? null,
+    schema: STATION_DEMAND_ACCESS_EXPORT_SCHEMA, contractVersion: 1, packId, packVersion: pack.manifest?.version ?? null,
     sites: list, catchmentOverlaps: catchmentOverlaps.sort((a, b) => byText(a.catchmentIds.join(), b.catchmentIds.join())),
     inactive: inactive.sort((a, b) => byText(String(a.stationAccessId), String(b.stationAccessId))), warnings,
   };

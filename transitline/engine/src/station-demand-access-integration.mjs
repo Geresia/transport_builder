@@ -2,6 +2,7 @@
 // application below is engine state and can safely survive an integrated save.
 import { stableId } from "./map/ids.mjs";
 import { assessStationDemandAccess } from "./station-demand-access-assessment.mjs";
+import { markStationDemandAllocationStale } from "./station-demand-allocation-integration.mjs";
 
 export const STATION_DEMAND_ACCESS_APPLICATION_SCHEMA = "transitline.station-demand-access-application/1";
 
@@ -29,6 +30,7 @@ export function applyStationDemandAccess(state, { stationDemandAccess, pack, dem
     assessment,
   };
   state.stationDemandAccessApplication = application;
+  markStationDemandAllocationStale(state);
   return clone(application);
 }
 

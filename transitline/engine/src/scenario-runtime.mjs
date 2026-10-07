@@ -43,6 +43,7 @@ import { railwayTrafficReport } from "./railway-traffic-control.mjs";
 import { createRailwayDisruption, railwayDisruptionReport, resolveRailwayDisruption } from "./railway-disruptions.mjs";
 import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail-capacity-integration.mjs";
 import { applyStationDemandAccess, stationDemandAccessApplicationReport } from "./station-demand-access-integration.mjs";
+import { applyStationDemandAllocation, assessStationDemandAllocation, stationDemandAllocationApplicationReport } from "./station-demand-allocation-integration.mjs";
 import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from "./railway-disruption-response.mjs";
 import { clearRailwayControlOrder, createRailwayControlOrder, createRailwayControlOrderFromGeometry, railwayControlOrderReport } from "./railway-service-control.mjs";
 import { assessRailwayDetourAuthorization, authorizeRailwayDetour, railwayDetourAuthorizationReport, syncRailwayDetourAuthorizations } from "./railway-detour-authorization.mjs";
@@ -229,6 +230,7 @@ export class ScenarioRuntime {
       railwayDisruptions: railwayDisruptionReport(this.operationalState),
       railCapacityApplications: railCapacityApplicationReport(this.operationalState),
       stationDemandAccess: stationDemandAccessApplicationReport(this.operationalState),
+      stationDemandAllocation: stationDemandAllocationApplicationReport(this.operationalState),
       railwayControlOrders: railwayControlOrderReport(this.operationalState),
       railwayDetourAuthorizations: railwayDetourAuthorizationReport(this.operationalState),
       railwayDetourOperations: railwayDetourOperationReport(this.operationalState),
@@ -1447,6 +1449,25 @@ export class ScenarioRuntime {
 
   stationDemandAccessReport() {
     return stationDemandAccessApplicationReport(this.operationalState);
+  }
+
+  assessStationDemandAllocation(input = {}) {
+    return assessStationDemandAllocation(this.operationalState, input);
+  }
+
+  applyStationDemandAllocation(input = {}) {
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("station-demand-allocation-applied", () => applyStationDemandAllocation(this.operationalState, input));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
+  }
+
+  stationDemandAllocationReport() {
+    return stationDemandAllocationApplicationReport(this.operationalState);
   }
 
   // Read-only line facts for map-to-operation binding.  The UI receives stable ids and the

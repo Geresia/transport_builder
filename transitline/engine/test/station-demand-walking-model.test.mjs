@@ -462,9 +462,9 @@ function realExport({ layers = true } = {}) {
   return { access, realPack, otherPlan };
 }
 
-test("the real map export (which carries no contractVersion field) is read; a building and a river on the drawing block exactly those links", () => {
+test("the real map export carries contractVersion 1; a building and a river on the drawing block exactly those links", () => {
   const { access, realPack } = realExport();
-  assert.equal(access.contractVersion, undefined, "this is the shape the map really produces");
+  assert.equal(access.contractVersion, 1, "this is the shape the map really produces");
   const result = buildStationDemandWalkingAccess({ stationDemandAccess: deepFreeze(structuredClone(access)), pack: realPack });
   const idOf = (key) => access.sites[0].walkLinks.find((w) => w.key === key).walkLinkId;
   const byKey = (key) => result.links.find((l) => l.walkLinkId === idOf(key));
