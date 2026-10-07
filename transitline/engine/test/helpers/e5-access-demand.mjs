@@ -1,4 +1,6 @@
-import { findRoute } from "./routing.mjs";
+// FROZEN COPY of engine/src/access-demand.mjs as of B15-E5 (62618e1), kept only so a test can prove that the B15-E6 outcome counters
+// change nothing about routing. Do not edit; do not import from the engine.
+import { findRoute } from "../../src/routing.mjs";
 
 // B15-E5: a demand node whose applied allocation links share it (60 % here, 40 % there) is routed by an explicit, deterministic
 // schedule — never by "the closest station wins".  The schedule draws no random number: every call for such a node and role
@@ -10,9 +12,7 @@ const MICRO = 1_000_000;
 const WHOLE = 1 - 1e-9;
 const NOBODY = ""; // slot id of the share that no station takes
 
-// Read by the B15-E6 diagnostics, which must describe exactly the split the router uses.
-export const ALLOCATION_SCHEDULE = Object.freeze({ micro: MICRO, nobodySlotId: NOBODY });
-export function appliedAllocationLinksByDemandNode(state) {
+function appliedAllocationLinksByDemandNode(state) {
   const result = new Map();
   for (const link of state.stationDemandAllocationLinks ?? []) {
     if (!state.demandNodes?.has?.(link?.demandNodeId)) continue;
@@ -28,7 +28,7 @@ export function appliedAllocationLinksByDemandNode(state) {
 }
 
 // A node is split when its valid links do not simply say "this one station, all of it".
-export function splitOf(row) {
+function splitOf(row) {
   if (row.length === 1 && row[0].share >= WHOLE) return null;
   const byStation = new Map();
   for (const link of row) {
@@ -97,19 +97,6 @@ function nextSlot(state, key, split) {
 
 const unroutedTrip = () => ({ unrouted: true, originStationId: null, destinationStationId: null, route: null, accessSeconds: 0, seconds: Infinity });
 
-// B15-E6 observation: what became of a trip whose station was picked by a split node's schedule.  Passive integer counters under the
-// cursor the pick was counted in (so they restart with it, and are dropped with the links): they are never read here, never feed a
-// choice, and draw no random number.  A pick of the "nobody" slot is already `taken[""]`, so it is not counted twice.
-const OUTCOMES = Object.freeze(["routed", "partnerNobody", "partnerNoAccess", "sameStation", "noRoute"]);
-function observe(state, side, outcome) {
-  if (!side.split || side.nobody) return;
-  const cursor = state.stationDemandAllocationCursors?.[side.key];
-  if (!cursor) return;
-  const slots = (cursor.outcomes ??= {});
-  const counts = (slots[side.slotId] ??= Object.fromEntries(OUTCOMES.map((name) => [name, 0])));
-  counts[outcome] += 1;
-}
-
 export function withStationAccess(baseModel, state) {
   let cachedVersion = -1;
   let access = new Map();
@@ -125,9 +112,8 @@ export function withStationAccess(baseModel, state) {
   const side = (demandNodeId, role) => {
     const split = splits.get(demandNodeId);
     if (!split) return { options: access.get(demandNodeId) ?? [], split: false };
-    const key = `${role}|${demandNodeId}`;
-    const slot = nextSlot(state, key, split);
-    return slot.stationId === null ? { options: [], split: true, nobody: true, key, slotId: slot.id } : { options: [{ stationId: slot.stationId, walkMinutes: slot.walkMinutes }], split: true, key, slotId: slot.id };
+    const slot = nextSlot(state, `${role}|${demandNodeId}`, split);
+    return slot.stationId === null ? { options: [], split: true, nobody: true } : { options: [{ stationId: slot.stationId, walkMinutes: slot.walkMinutes }], split: true };
   };
   return {
     ...baseModel,
@@ -137,18 +123,10 @@ export function withStationAccess(baseModel, state) {
       // Both roles always advance their own schedule, so origin and destination splits stay independent of each other.
       const originSide = side(originDemandNodeId, "origin");
       const destinationSide = side(destinationDemandNodeId, "destination");
-      if (originSide.nobody || destinationSide.nobody) {
-        observe(state, originSide, "partnerNobody");
-        observe(state, destinationSide, "partnerNobody");
-        return unroutedTrip();
-      }
+      if (originSide.nobody || destinationSide.nobody) return unroutedTrip();
       let best = null;
-      let pairs = 0;
-      let samePairs = 0;
       for (const origin of originSide.options) {
         for (const destination of destinationSide.options) {
-          pairs += 1;
-          if (origin.stationId === destination.stationId) samePairs += 1;
           const route = findRoute(graph, origin.stationId, destination.stationId);
           if (!route?.hops?.length) continue;
           const accessSeconds = (origin.walkMinutes + destination.walkMinutes) * 60;
@@ -163,14 +141,7 @@ export function withStationAccess(baseModel, state) {
         }
       }
       // A split node whose scheduled station has no route does not fall back to a legacy path or to its other station.
-      if (!best && (originSide.split || destinationSide.split)) {
-        // why there is none: the other side has no station access at all / every pair is one and the same station / no route was found
-        const why = pairs === 0 ? "partnerNoAccess" : samePairs === pairs ? "sameStation" : "noRoute";
-        observe(state, originSide, why);
-        observe(state, destinationSide, why);
-        return unroutedTrip();
-      }
-      if (best) { observe(state, originSide, "routed"); observe(state, destinationSide, "routed"); }
+      if (!best && (originSide.split || destinationSide.split)) return unroutedTrip();
       return best;
     },
   };

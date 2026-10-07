@@ -44,6 +44,7 @@ import { createRailwayDisruption, railwayDisruptionReport, resolveRailwayDisrupt
 import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail-capacity-integration.mjs";
 import { applyStationDemandAccess, stationDemandAccessApplicationReport } from "./station-demand-access-integration.mjs";
 import { applyStationDemandAllocation, assessStationDemandAllocation, stationDemandAllocationApplicationReport } from "./station-demand-allocation-integration.mjs";
+import { buildStationDemandAllocationDiagnostics } from "./station-demand-allocation-diagnostics.mjs";
 import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from "./railway-disruption-response.mjs";
 import { clearRailwayControlOrder, createRailwayControlOrder, createRailwayControlOrderFromGeometry, railwayControlOrderReport } from "./railway-service-control.mjs";
 import { assessRailwayDetourAuthorization, authorizeRailwayDetour, railwayDetourAuthorizationReport, syncRailwayDetourAuthorizations } from "./railway-detour-authorization.mjs";
@@ -231,6 +232,7 @@ export class ScenarioRuntime {
       railCapacityApplications: railCapacityApplicationReport(this.operationalState),
       stationDemandAccess: stationDemandAccessApplicationReport(this.operationalState),
       stationDemandAllocation: stationDemandAllocationApplicationReport(this.operationalState),
+      stationDemandAllocationDiagnostics: buildStationDemandAllocationDiagnostics(this.operationalState),
       railwayControlOrders: railwayControlOrderReport(this.operationalState),
       railwayDetourAuthorizations: railwayDetourAuthorizationReport(this.operationalState),
       railwayDetourOperations: railwayDetourOperationReport(this.operationalState),
@@ -1468,6 +1470,11 @@ export class ScenarioRuntime {
 
   stationDemandAllocationReport() {
     return stationDemandAllocationApplicationReport(this.operationalState);
+  }
+
+  // B15-E6: read-only account of the fractional routing (shares, picks per role, unrouted reasons, known limits). It changes nothing.
+  stationDemandAllocationDiagnostics() {
+    return buildStationDemandAllocationDiagnostics(this.operationalState);
   }
 
   // Read-only line facts for map-to-operation binding.  The UI receives stable ids and the
