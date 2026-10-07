@@ -56,13 +56,14 @@ const previewOf = (over = {}) => ({
   allocation: { totals: { nodes: 3, assigned: 0, partlyAssigned: 0, held: 2, unknown: 1 }, policyIssues: [], rules: [], nodes: [], legacy: { supplied: true, overrideRequiredNodeIds: [] } },
   walking: { nodes: [], links: [] }, ...over,
 });
-function spy({ app = application(), report = null, preview = previewOf(), applied = { links: [{ demandNodeId: "n:own", stationId: "phys:A", walkMinutes: 7 }], blockedLinks: [], status: "current" }, throwOn = {} } = {}) {
+function spy({ app = application(), report = null, diagnostics = { status: "no-allocation", totals: { splitNodes: 0 }, nodes: [], limits: [] }, preview = previewOf(), applied = { links: [{ demandNodeId: "n:own", stationId: "phys:A", walkMinutes: 7 }], blockedLinks: [], status: "current" }, throwOn = {} } = {}) {
   const calls = { assess: [], apply: [], accessReads: 0, reportReads: 0 };
   let currentApp = app;
   let currentReport = report;
   const runtime = {
     stationDemandAccessReport() { calls.accessReads += 1; return currentApp; },
     stationDemandAllocationReport() { calls.reportReads += 1; return currentReport; },
+    stationDemandAllocationDiagnostics() { return diagnostics; },
     assessStationDemandAllocation(i) { calls.assess.push(i); if (throwOn.assess) throw new Error(throwOn.assess); return preview; },
     applyStationDemandAllocation(i) { calls.apply.push(i); if (throwOn.apply) throw new Error(throwOn.apply); currentReport = applied; return applied; },
   };
@@ -271,6 +272,24 @@ test("fixed shares are previewed and applied through the runtime like every othe
   assert.equal(env.changes.length, 1);
 });
 
+test("applied split diagnostics are read from the runtime with roles, causes and active limits intact", () => {
+  const diagnostics = {
+    status: "current",
+    totals: { splitNodes: 1, byRole: { origin: { picks: 10, unrouted: 2 }, destination: { picks: 8, unrouted: 1 } } },
+    nodes: [{ demandNodeId: "n:both", routing: "split", roles: {
+      origin: { role: "origin", slots: [{ stationId: "phys:A", configuredShare: 0.6, picks: 6, expectedPicks: 6 }, { stationId: "phys:B", configuredShare: 0.4, picks: 4, expectedPicks: 4 }], trips: { unroutedByReason: { noStationShare: 0, partnerNobody: 0, partnerNoAccess: 0, sameStation: 1, noRoute: 1 } } },
+      destination: { role: "destination", slots: [{ stationId: "phys:A", configuredShare: 0.6, picks: 5, expectedPicks: 4.8 }], trips: { unroutedByReason: { noStationShare: 1, partnerNobody: 0, partnerNoAccess: 0, sameStation: 0, noRoute: 0 } } },
+    } }],
+    limits: [{ code: "same-station-trips", status: "observed", text: "같은 역 선택이 실제로 발생했습니다." }, { code: "counts-selections-not-demand", status: "info", text: "선택 횟수일 뿐입니다." }],
+  };
+  const env = mount(spy({ report: { status: "current", links: [], blockedLinks: [] }, diagnostics }));
+  assert.ok(shows(env.container, "분할 배정 운행 진단"));
+  assert.ok(shows(env.container, "출발 · phys:A: 설정 60% · 선택 6회 · 엔진 기준 6회"));
+  assert.ok(shows(env.container, "같은 역 1회, 역 사이 경로 없음 1회"));
+  assert.ok(shows(env.container, "observed · 같은 역 선택이 실제로 발생했습니다."));
+  assert.equal(shows(env.container, "선택 횟수일 뿐입니다."), false, "info-only limits stay in the engine report, not the active-warning panel");
+});
+
 test("a stale preview or an unready one cannot be applied, and the reason is shown", () => {
   for (const [over, reason] of [[{ status: "stale" }, "정책이 오래됨"], [{ policyStatus: "none" }, "정책을 적용할 수 없음 (none)"]]) {
     const env = mount(spy({ preview: previewOf(over) }));
@@ -447,7 +466,7 @@ test("nothing is stored by the panel and the screen carries no money, time or de
   const source = fs.readFileSync(fileURLToPath(new URL("../src/station-demand-allocation-management-ui.mjs", import.meta.url)), "utf8").replace(/\/\/.*$/gm, "");
   assert.equal(/localStorage|sessionStorage|Math\.random|Date\.now|new Date|innerHTML|insertAdjacentHTML/.test(source), false);
   assert.deepEqual([...source.matchAll(/^import .* from "(.+)";$/gm)].map((m) => m[1]), ["./station-demand-allocation-policy.mjs"]);
-  assert.deepEqual([...new Set([...source.matchAll(/runtime\??\.(\w+)/g)].map((m) => m[1]))].sort(), ["applyStationDemandAllocation", "assessStationDemandAllocation", "stationDemandAccessReport", "stationDemandAllocationReport"]);
+  assert.deepEqual([...new Set([...source.matchAll(/runtime\??\.(\w+)/g)].map((m) => m[1]))].sort(), ["applyStationDemandAllocation", "assessStationDemandAllocation", "stationDemandAccessReport", "stationDemandAllocationDiagnostics", "stationDemandAllocationReport"]);
 });
 
 test("mount refuses a missing container or an incomplete runtime", () => {
@@ -491,6 +510,7 @@ function world() {
   const watched = {
     stationDemandAccessReport: () => runtime.stationDemandAccessReport(),
     stationDemandAllocationReport: () => runtime.stationDemandAllocationReport(),
+    stationDemandAllocationDiagnostics: () => runtime.stationDemandAllocationDiagnostics(),
     assessStationDemandAllocation: (i) => { calls.assess += 1; return runtime.assessStationDemandAllocation(i); },
     applyStationDemandAllocation: (i) => { calls.apply += 1; return runtime.applyStationDemandAllocation(i); },
   };

@@ -1,7 +1,7 @@
 // Management panel for the station-access demand allocation policy (B15-M3): the player writes a policy, previews what the
 // engine would do with it, and applies it. It sits between the map's access drawing (M2, stored by the runtime as the access
 // application) and the runtime's allocation commands (E4), and calls only these ScenarioRuntime methods:
-//   stationDemandAccessReport / stationDemandAllocationReport   (read)
+//   stationDemandAccessReport / stationDemandAllocationReport / stationDemandAllocationDiagnostics (read)
 //   assessStationDemandAllocation                               (preview: changes nothing)
 //   applyStationDemandAllocation                                (the only call that changes the engine)
 // It never computes demand, money, fares, crowding or time: every number on screen is one the engine returned (or a share the
@@ -45,6 +45,7 @@ const TEXT = Object.freeze({
 const WALK_STATUS = Object.freeze({ usable: "쓸 수 있음", estimated: "추정", blocked: "차단", unknown: "미확인", "not-drawn": "안 그림", broken: "끊김", stale: "낡음" });
 const BINDING_TEXT = Object.freeze({ unbound: "묶이지 않음", current: "현재 revision에 묶임", outdated: "오래됨 — 다시 묶어야 함", missing: "대상이 지금 접근권에 없음" });
 const RULE_STATUS = Object.freeze({ applied: "적용됨", unmatched: "해당 노드 없음", stale: "오래됨", rejected: "거절됨" });
+const DIAGNOSTIC_REASON = Object.freeze({ noStationShare: "역 없는 몫", partnerNobody: "반대편 역 없는 몫", partnerNoAccess: "반대편 접근 없음", sameStation: "같은 역", noRoute: "역 사이 경로 없음" });
 const say = (code) => (TEXT[code] ? `${TEXT[code]} (${code})` : code);
 
 const listOf = (value) => (Array.isArray(value) ? value : []);
@@ -176,7 +177,7 @@ const choose = (doc, options, value, onChange, className = "") => {
 
 export function mountStationDemandAllocationManagementPanel({ container, runtime, onChange = () => {} } = {}) {
   if (!container) throw new Error("A station demand allocation management container is required");
-  for (const method of ["stationDemandAccessReport", "assessStationDemandAllocation", "applyStationDemandAllocation", "stationDemandAllocationReport"]) {
+  for (const method of ["stationDemandAccessReport", "assessStationDemandAllocation", "applyStationDemandAllocation", "stationDemandAllocationReport", "stationDemandAllocationDiagnostics"]) {
     if (typeof runtime?.[method] !== "function") throw new Error(`A ScenarioRuntime with ${method} is required`);
   }
   const doc = container.ownerDocument ?? document;
@@ -355,7 +356,7 @@ export function mountStationDemandAllocationManagementPanel({ container, runtime
     if (error) nodes.push(text(doc, "div", "alloc-error", error));
     if (notice) nodes.push(text(doc, "div", "alloc-notice", notice));
     if (preview) nodes.push(...previewSection(preview.result));
-    nodes.push(...appliedSection(runtime.stationDemandAllocationReport()));
+    nodes.push(...appliedSection(runtime.stationDemandAllocationReport(), runtime.stationDemandAllocationDiagnostics()));
     const why = applyButton ? applyBlock() : null;
     if (why) nodes.push(text(doc, "div", "alloc-note alloc-apply-blocked", why));
     result.replaceChildren(...nodes);
@@ -389,7 +390,7 @@ export function mountStationDemandAllocationManagementPanel({ container, runtime
     return nodes;
   }
 
-  function appliedSection(report) {
+  function appliedSection(report, diagnostics) {
     const nodes = [text(doc, "strong", "alloc-section", "엔진에 적용된 배분")];
     if (!report) { nodes.push(text(doc, "p", "alloc-empty", "아직 적용된 배분이 없습니다.")); return nodes; }
     nodes.push(el(doc, "div", { className: `alloc-metrics alloc-applied ${report.status}` }, metric(doc, "상태", report.status === "current" ? "현재" : report.status === "stale" ? "오래됨" : String(report.status)),
@@ -397,6 +398,38 @@ export function mountStationDemandAllocationManagementPanel({ container, runtime
       metric(doc, "적용 시각", report.appliedAtSimMinute === null || report.appliedAtSimMinute === undefined ? "미상" : `${report.appliedAtSimMinute}분`)));
     if (report.status === "stale") nodes.push(text(doc, "div", "alloc-warning", `역 접근권 export가 바뀌어 오래됨 — 기존 링크는 그대로이고, 다시 적용해야 갱신됩니다.${listOf(report.staleReasons).length ? ` (${report.staleReasons.map(say).join(", ")})` : ""}`));
     for (const link of listOf(report.links)) nodes.push(text(doc, "div", "alloc-line alloc-link", `${link.demandNodeId} → ${link.stationId} · 도보 ${link.walkMinutes}분`));
+    nodes.push(...diagnosticsSection(diagnostics));
+    return nodes;
+  }
+
+  // E6 already counted the choices while routing. This panel only copies those facts; it does not infer riders or demand.
+  function diagnosticsSection(diagnostics) {
+    if (!diagnostics || diagnostics.status === "no-allocation") return [];
+    const totals = diagnostics.totals ?? {};
+    const splitNodes = Number.isSafeInteger(totals.splitNodes) ? totals.splitNodes : 0;
+    const nodes = [text(doc, "strong", "alloc-section", "분할 배정 운행 진단 (엔진 선택 기록)")];
+    if (!splitNodes) {
+      nodes.push(text(doc, "p", "alloc-empty", "분할 배정 선택 기록이 없습니다. 단일 역 배정 또는 기존 접근 경로입니다."));
+      return nodes;
+    }
+    const role = (id, label) => {
+      const value = totals.byRole?.[id] ?? {};
+      return metric(doc, label, `선택 ${valueText(value.picks)}회 · 경로 없음 ${valueText(value.unrouted)}회`);
+    };
+    nodes.push(el(doc, "div", { className: "alloc-metrics" }, metric(doc, "분할 노드", String(splitNodes)), role("origin", "출발"), role("destination", "도착")));
+    for (const node of listOf(diagnostics.nodes).filter((entry) => entry.routing === "split")) {
+      const card = text(doc, "div", "alloc-line alloc-routing", `노드 ${node.demandNodeId}`);
+      for (const roleEntry of [node.roles?.origin, node.roles?.destination]) {
+        if (!roleEntry) continue;
+        const slots = listOf(roleEntry.slots).map((slot) => `${slot.stationId ?? "역 없음"}: 설정 ${percent(slot.configuredShare)} · 선택 ${valueText(slot.picks)}회 · 엔진 기준 ${valueText(slot.expectedPicks)}회`).join(" / ");
+        const reasons = Object.entries(roleEntry.trips?.unroutedByReason ?? {}).filter(([, count]) => count !== null && count > 0).map(([code, count]) => `${DIAGNOSTIC_REASON[code] ?? code} ${count}회`).join(", ");
+        card.append(text(doc, "div", "alloc-fact", `${roleEntry.role === "origin" ? "출발" : "도착"} · ${slots}${reasons ? ` · 경로 없음: ${reasons}` : ""}`));
+      }
+      nodes.push(card);
+    }
+    for (const entry of listOf(diagnostics.limits).filter((limit) => !["none", "info"].includes(limit.status))) {
+      nodes.push(text(doc, "div", entry.status === "observed" || entry.status === "active" ? "alloc-warning" : "alloc-note", `${entry.status} · ${entry.text}`));
+    }
     return nodes;
   }
 
