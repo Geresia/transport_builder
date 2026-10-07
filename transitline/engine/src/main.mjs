@@ -11,6 +11,8 @@ import { startLoop } from "./loop.mjs";
 import { startPopLoop } from "./pop-loop.mjs";
 import { withStationAccess } from "./access-demand.mjs";
 import { buildMapExport, drawnLinesFromState, existingNetworkToExternal, withRailLayer } from "./map/plan-geometry.mjs";
+import { demandSourceRefsOf } from "./map/station-demand-access.mjs";
+import { mountStationDemandAccess } from "./map/station-demand-access-ui.mjs";
 import { spatialContextFromPack } from "./map/pack-spatial.mjs";
 import { buildOverlayModel, defineViewSlots, renderDiagnosticsPanel, renderPhaseLegend } from "./map/overlay.mjs";
 import { attachDepotEditor } from "./map/depot-ui.mjs";
@@ -333,6 +335,8 @@ async function main() {
   let currentMapExport = null;
   let depotUi = null;
   let stationUi = null;
+  let stationDemandAccessUi = null;
+  let stationDemandAccessOutput = null;
   let stationSelection = null;
   let stationSelectionOutput = null;
   let constructionUi = null;
@@ -359,6 +363,7 @@ async function main() {
     renderDiagnosticsPanel($("map-diagnostics"), state.mapOverlay?.diagnostics ?? []);
     depotUi?.refresh(); // depot connections are checked against the plans just exported
     stationUi?.refresh(); // station sites are checked against the plans just exported, and show the engine verdict
+    stationDemandAccessUi?.refresh();
     $("btn-station-3d").disabled = !stationUi?.selectedSite;
     stationSelection?.refresh();
     constructionUi?.refresh();
@@ -403,6 +408,29 @@ async function main() {
   depotUi = attachDepotEditor({ canvas, projection, pack, state, getMapExport: () => currentMapExport, getSpatial: getCurrentSpatial, panel: $("depot-panel"), compare: $("depot-compare"), button: $("btn-depot") });
   // Station sites: spatial facts for stations, entrances, transfers and work areas; the engine verdict is drawn read-only
   stationUi = attachStationEditor({ canvas, projection, pack, state, getMapExport: () => currentMapExport, getSpatial: getCurrentSpatial, getOverlay: () => state.mapOverlay, panel: $("station-panel"), button: $("btn-station") });
+  const stationDemandSources = () => {
+    const tokyoCoarse = pack.manifest?.id === "tokyo";
+    const quality = tokyoCoarse ? "low" : "medium";
+    const spatialResolution = tokyoCoarse ? "municipality-centroid" : "individual-demand-node";
+    const documents = [{ file: "demand.json", kind: "demand-points", document: pack.demand, quality, spatialResolution, license: pack.manifest?.data?.license ?? null }];
+    if (pack.od) documents.push({ file: "od.json", kind: "od-commute", document: pack.od, quality, spatialResolution, license: pack.manifest?.data?.license ?? null });
+    if (pack.odSchool) documents.push({ file: "od-school.json", kind: "od-school", document: pack.odSchool, quality, spatialResolution, license: pack.manifest?.data?.license ?? null });
+    return demandSourceRefsOf(documents, pack.manifest?.id);
+  };
+  stationDemandAccessUi = mountStationDemandAccess({
+    canvas, projection, pack, enabled: false,
+    getPlans: () => currentMapExport?.plans ?? [], getExternalNetworks: () => currentMapExport?.externalNetworks ?? [],
+    getDemandNodes: () => currentMapExport?.demandNodes ?? [], getDemandSources: stationDemandSources, getSpatial: getCurrentSpatial,
+    onChange: (out) => { stationDemandAccessOutput = out; },
+  });
+  const stationDemandAccessButton = $("btn-station-demand-access");
+  stationDemandAccessButton.hidden = false;
+  stationDemandAccessButton.addEventListener("click", () => {
+    const enabled = !stationDemandAccessButton.classList.contains("active");
+    stationDemandAccessButton.classList.toggle("active", enabled);
+    stationDemandAccessUi.setEnabled(enabled);
+    stationDemandAccessButton.blur();
+  });
   constructionUi = attachConstructionEditor({
     canvas,
     projection,
@@ -642,7 +670,7 @@ async function main() {
     });
   }
   // Map editors own the pointer while active: keep exactly one drawing editor on.
-  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control")];
+  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-station-demand-access"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control")];
   for (const activeButton of drawingButtons) {
     activeButton.addEventListener("click", () => {
       if (!activeButton.classList.contains("active")) return;
@@ -1655,6 +1683,14 @@ async function main() {
       message(`공사 공구 ${Object.keys(reports).length}곳을 통합 공정표에 연결했습니다${selection.length ? ` · 선택 후보 ${selection[0].kind}` : ""}.`);
       return reports;
     }));
+    $("scenario-station-demand-access-apply").addEventListener("click", () => run(() => {
+      const output = stationDemandAccessUi?.output() ?? stationDemandAccessOutput;
+      const access = output?.export;
+      if (!access?.sites?.length) throw new Error("지도에서 적용할 역 접근권을 먼저 그리세요.");
+      const application = runtime.applyStationDemandAccess(access);
+      message(`역 접근권 공간 사실 ${application.assessment.sites.length}개를 엔진에 적용했습니다. 수요 배분 규칙은 아직 적용하지 않아 승객 수는 바뀌지 않습니다.`);
+      return application;
+    }));
     $("scenario-month").addEventListener("click", () => run(() => {
       const result = runtime.advanceMonths(1)[0];
       const cycle = result.cycleReport;
@@ -1704,6 +1740,7 @@ async function main() {
         // order cannot silently attach to a freshly recalculated, different road route on load.
         railReplacementGeometries,
         mapInputPipelineDoc: mapInputPipeline?.serialize() ?? null,
+        stationDemandAccessDoc: stationDemandAccessUi?.serialize() ?? null,
       });
       localStorage.setItem(storageKey, payload);
       message("지도·공사·차량·회사 상태와 작업면·대체수송 계획을 함께 저장했습니다.");
@@ -1721,6 +1758,10 @@ async function main() {
         : [];
       if (wrapped && payload.mapInputPipelineDoc) mapInputPipeline?.loadDoc(payload.mapInputPipelineDoc);
       else mapInputPipeline?.refresh();
+      if (wrapped && payload.stationDemandAccessDoc) {
+        stationDemandAccessUi?.loadDoc(payload.stationDemandAccessDoc);
+        stationDemandAccessOutput = stationDemandAccessUi?.output() ?? null;
+      }
       selectedLineId = null;
       message("통합 저장본을 불러왔습니다.");
     }));
