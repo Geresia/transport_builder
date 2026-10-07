@@ -196,6 +196,9 @@ export function replaceStationDemandAllocationLinks(state, links) {
   if (!Array.isArray(links)) throw new Error("Allocation links must be an array");
   state.stationDemandAllocationLinks = structuredClone(links);
   state.stationDemandAllocationVersion = (state.stationDemandAllocationVersion ?? 0) + 1;
+  // B15-E5: the running counts of the fractional schedule belong to the links they were counted for. They are created on first use
+  // (never in createState, so a state that never split a node saves exactly the bytes it always did) and dropped with the links.
+  delete state.stationDemandAllocationCursors;
   return structuredClone(state.stationDemandAllocationLinks);
 }
 

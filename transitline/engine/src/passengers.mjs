@@ -21,9 +21,12 @@ export function spawnPassengers(state, model, graph, dtMinutes) {
       if (!demandDestinationId) continue;
 
       const resolved = model.resolveTrip?.(state, graph, demandOriginId, demandDestinationId) ?? null;
+      // B15-E5: a trip an allocation leaves without station access (an unallocated share, or a split node whose scheduled
+      // station has no route) has no route at all — it is never given the legacy path the policy deliberately did not choose.
+      const unrouted = resolved?.unrouted === true;
       const originStationId = resolved?.originStationId ?? demandOriginId;
       const destinationStationId = resolved?.destinationStationId ?? demandDestinationId;
-      const route = resolved?.route ?? findRoute(graph, originStationId, destinationStationId);
+      const route = unrouted ? null : resolved?.route ?? findRoute(graph, originStationId, destinationStationId);
       const perceivedRoute = route && resolved ? { ...route, seconds: route.seconds + resolved.accessSeconds } : route;
       const origin = model.locationFor?.(demandOriginId) ? { location: model.locationFor(demandOriginId) } : state.stations.get(demandOriginId);
       const destination = model.locationFor?.(demandDestinationId) ? { location: model.locationFor(demandDestinationId) } : state.stations.get(demandDestinationId);

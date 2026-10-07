@@ -10,6 +10,7 @@ export const STATION_DEMAND_ALLOCATION_APPLICATION_SCHEMA = "transitline.station
 
 const clone = (value) => structuredClone(value);
 const byText = (a, b) => String(a).localeCompare(String(b));
+const round6 = (value) => Math.round(value * 1e6) / 1e6 + 0;
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const currentRevisions = (application) => Object.fromEntries((application?.assessment?.sites ?? []).map((site) => [site.stationAccessId, site.stationAccessRevision]).sort(([a], [b]) => byText(a, b)));
 
@@ -50,11 +51,9 @@ function linkPlan(state, allocation, walking) {
   const blocked = [];
   for (const node of allocation.nodes ?? []) for (const assignment of node.assignments ?? []) {
     const base = { demandNodeId: node.demandNodeId, stationAccessId: assignment.stationAccessId, share: assignment.share };
-    // The current passenger model represents one node -> station routing path.
-    // Applying a fractional share as two ordinary links would silently turn it
-    // into shortest-path winner-takes-all, so fail closed until that model gets
-    // an explicit fractional choice mechanism.
-    if (assignment.share !== 1) { blocked.push({ ...base, code: "fractional-share-not-operational" }); continue; }
+    // B15-E5: a share below one is applied as a share.  The access model routes such a node by a deterministic schedule over the
+    // links' shares (see access-demand.mjs), so a 60 / 40 split is neither dropped nor turned into "the nearest station wins".
+    // A share that cannot become a link (no walk, no built station) stays out, and its trips are not given to the other station.
     const walk = bestWalkingRecord(walking, assignment.stationAccessId, node.demandNodeId);
     if (!walk) { blocked.push({ ...base, code: "walk-path-unavailable" }); continue; }
     const matches = operationalStationMatches(state, assignment.connectedStationId);
@@ -66,17 +65,28 @@ function linkPlan(state, allocation, walking) {
       stationAccessId: assignment.stationAccessId,
       walkNodeAccessId: walk.nodeAccessId,
       walkMinutes: walk.walkMinutes,
-      share: 1,
+      share: assignment.share,
       source: "station-demand-allocation",
     });
   }
+  // Two access sites that resolve to the same operational station are one link: the shares add up, the shorter walk is kept.
   const unique = new Map();
   for (const link of links.sort((a, b) => byText(`${a.demandNodeId}|${a.stationId}|${a.walkNodeAccessId}`, `${b.demandNodeId}|${b.stationId}|${b.walkNodeAccessId}`))) {
     const key = `${link.demandNodeId}|${link.stationId}`;
     const old = unique.get(key);
-    if (!old || link.walkMinutes < old.walkMinutes || (link.walkMinutes === old.walkMinutes && byText(link.walkNodeAccessId, old.walkNodeAccessId) < 0)) unique.set(key, link);
+    if (!old) { unique.set(key, link); continue; }
+    const better = link.walkMinutes < old.walkMinutes || (link.walkMinutes === old.walkMinutes && byText(link.walkNodeAccessId, old.walkNodeAccessId) < 0);
+    unique.set(key, { ...(better ? link : old), share: Math.min(1, round6(old.share + link.share)) });
   }
-  return { links: [...unique.values()].sort((a, b) => byText(`${a.demandNodeId}|${a.stationId}`, `${b.demandNodeId}|${b.stationId}`)), blocked: blocked.sort((a, b) => byText(JSON.stringify(a), JSON.stringify(b))) };
+  const sorted = [...unique.values()].sort((a, b) => byText(`${a.demandNodeId}|${a.stationId}`, `${b.demandNodeId}|${b.stationId}`));
+  // The nodes the passenger router will split: more than one link, or one link that is not the whole node.  What no link takes
+  // (an unallocated remainder, a share that was blocked above) is `unroutedShare`: those trips get no station access.
+  const byNode = new Map();
+  for (const link of sorted) byNode.set(link.demandNodeId, [...(byNode.get(link.demandNodeId) ?? []), link]);
+  const splitNodes = [...byNode.entries()]
+    .filter(([, row]) => row.length > 1 || row[0].share < 1)
+    .map(([demandNodeId, row]) => ({ demandNodeId, shares: row.map((link) => ({ stationId: link.stationId, share: link.share })), unroutedShare: Math.max(0, round6(1 - row.reduce((sum, link) => sum + link.share, 0))) }));
+  return { links: sorted, blocked: blocked.sort((a, b) => byText(JSON.stringify(a), JSON.stringify(b))), splitNodes };
 }
 
 // Dry run only: it never changes operational state, cash, clock, RNG or the
@@ -104,6 +114,7 @@ export function assessStationDemandAllocation(state, { policy = null, walkingPol
     allocation,
     walking,
     links: planned.links,
+    splitNodes: planned.splitNodes,
     blockedLinks: planned.blocked,
   };
 }
@@ -113,7 +124,6 @@ export function applyStationDemandAllocation(state, input = {}) {
   const preview = assessStationDemandAllocation(state, { policy: allocationPolicyOf(input), walkingPolicy: walkingPolicyOf(input) });
   if (preview.policyStatus !== "valid") throw new Error("A valid explicit allocation policy is required");
   if (preview.status !== "current") throw new Error(`Station demand allocation is ${preview.status}`);
-  if (preview.blockedLinks.some((entry) => entry.code === "fractional-share-not-operational")) throw new Error("Fractional demand shares cannot be applied to the current passenger router");
   replaceStationDemandAllocationLinks(state, preview.links);
   state.stationDemandAllocationApplication = {
     ...clone(preview),
