@@ -1,5 +1,18 @@
 import { findRoute } from "./routing.mjs";
 
+function appliedAllocationLinksByDemandNode(state) {
+  const result = new Map();
+  for (const link of state.stationDemandAllocationLinks ?? []) {
+    if (!state.demandNodes?.has?.(link?.demandNodeId)) continue;
+    if (!state.stations?.has?.(link?.stationId)) continue;
+    if (!(link.walkMinutes > 0) || !Number.isFinite(link.walkMinutes)) continue;
+    const row = result.get(link.demandNodeId) ?? [];
+    row.push({ stationId: link.stationId, walkMinutes: link.walkMinutes });
+    result.set(link.demandNodeId, row);
+  }
+  return result;
+}
+
 function availableAccessByDemandNode(state) {
   const result = new Map();
   const add = (demandNodeId, stationId, walkMinutes) => {
@@ -8,12 +21,26 @@ function availableAccessByDemandNode(state) {
     row.push({ stationId, walkMinutes });
     result.set(demandNodeId, row);
   };
-  // Legacy packs remain playable through a zero-minute adapter. New physical
-  // stations can coexist and compete through explicit access links.
+  // A B15 allocation is an explicit player decision for one demand node. It
+  // therefore replaces both the legacy zero-minute adapter and geometry's
+  // automatic-radius links only for that node; every other node stays exactly
+  // on the legacy path. Allocation links are kept in their own collection so
+  // applying a policy never overwrites project geometry facts.
+  const allocated = appliedAllocationLinksByDemandNode(state);
   for (const demandNodeId of state.demandNodes?.keys?.() ?? []) {
-    if (state.stations.has(demandNodeId)) add(demandNodeId, demandNodeId, 0);
+    const row = allocated.get(demandNodeId);
+    if (row?.length) {
+      for (const link of row) add(demandNodeId, link.stationId, link.walkMinutes);
+    } else if (state.stations.has(demandNodeId)) {
+      // Legacy packs remain playable through a zero-minute adapter. New physical
+      // stations can coexist and compete through explicit access links.
+      add(demandNodeId, demandNodeId, 0);
+    }
   }
-  for (const link of state.accessLinks ?? []) add(link.demandNodeId, link.stationId, link.walkMinutes);
+  for (const link of state.accessLinks ?? []) {
+    if (allocated.has(link.demandNodeId)) continue;
+    add(link.demandNodeId, link.stationId, link.walkMinutes);
+  }
   return result;
 }
 
@@ -21,7 +48,7 @@ export function withStationAccess(baseModel, state) {
   let cachedVersion = -1;
   let access = new Map();
   const refresh = () => {
-    const version = state.accessVersion ?? state.accessLinks?.length ?? 0;
+    const version = `${state.accessVersion ?? state.accessLinks?.length ?? 0}:${state.stationDemandAllocationVersion ?? state.stationDemandAllocationLinks?.length ?? 0}`;
     if (version !== cachedVersion) {
       access = availableAccessByDemandNode(state);
       cachedVersion = version;

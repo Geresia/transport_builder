@@ -80,6 +80,11 @@ export function createState(pack, options = {}) {
   return {
     demandNodes,
     accessLinks: [],
+    // B15 allocation links are player-approved access decisions.  They must
+    // stay separate from plan geometry's automatic accessLinks so a policy can
+    // be applied or rolled back without rewriting construction facts.
+    stationDemandAllocationLinks: [],
+    stationDemandAllocationVersion: 0,
     accessVersion: 0,
     stations,
     platforms: [],
@@ -181,6 +186,17 @@ export function addStationAccessLink(state, link) {
   else state.accessLinks.push(value);
   state.accessVersion = (state.accessVersion ?? 0) + 1;
   return value;
+}
+
+// Kept separate from addStationAccessLink: B15 policy links intentionally
+// shadow a node's automatic geometry links while an allocation is current.
+// The access model owns validity filtering because a stale restored policy is
+// still useful to report even when one of its operational stations vanished.
+export function replaceStationDemandAllocationLinks(state, links) {
+  if (!Array.isArray(links)) throw new Error("Allocation links must be an array");
+  state.stationDemandAllocationLinks = structuredClone(links);
+  state.stationDemandAllocationVersion = (state.stationDemandAllocationVersion ?? 0) + 1;
+  return structuredClone(state.stationDemandAllocationLinks);
 }
 
 export function setLineSuspended(state, lineId, suspended) {
