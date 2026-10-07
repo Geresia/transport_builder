@@ -33,6 +33,7 @@ import { mountRailwayDetourManagementPanel } from "./railway-detour-management-u
 import { mountRailCapacityApplicationPanel } from "./rail-capacity-application-ui.mjs";
 import { mountRailwayDisruptionManagementPanel } from "./railway-disruption-management-ui.mjs";
 import { mountRailwayServiceControlManagementPanel } from "./railway-service-control-management-ui.mjs";
+import { mountStationDemandAllocationManagementPanel } from "./station-demand-allocation-management-ui.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
 
@@ -749,6 +750,7 @@ async function main() {
 
   if (runtime) {
     let stationManagement = null;
+    let stationDemandAllocationManagement = null;
     let constructionContractorManagement = null;
     const scenarioPanel = $("scenario-panel");
     const profile = $("scenario-profile");
@@ -1517,6 +1519,7 @@ async function main() {
       railCapacityApplicationManagement?.refresh();
       railwayDisruptionManagement?.refresh();
       railwayServiceControlManagement?.refresh();
+      stationDemandAllocationManagement?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1525,6 +1528,11 @@ async function main() {
       getPlanId: () => selectedPlan()?.planId ?? null,
       getSelectedSite: () => stationUi?.stationExport?.sites.find((site) => site.stationSiteId === stationSelectionOutput?.stationSiteId) ?? stationUi?.selectedSite ?? null,
       getSelection: () => stationSelectionOutput,
+      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+    });
+    stationDemandAllocationManagement = mountStationDemandAllocationManagementPanel({
+      container: $("scenario-station-demand-allocation"),
+      runtime,
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
     constructionContractorManagement = mountConstructionContractorPanel({
@@ -1584,6 +1592,7 @@ async function main() {
       railCapacityApplicationManagement?.refresh();
       railwayDisruptionManagement?.refresh();
       railwayServiceControlManagement?.refresh();
+      stationDemandAllocationManagement?.refresh();
     }), true);
 
     $("scenario-opportunity-view").addEventListener("click", () => run(() => {
@@ -1741,6 +1750,7 @@ async function main() {
         railReplacementGeometries,
         mapInputPipelineDoc: mapInputPipeline?.serialize() ?? null,
         stationDemandAccessDoc: stationDemandAccessUi?.serialize() ?? null,
+        stationDemandAllocationDraft: stationDemandAllocationManagement?.serialize() ?? null,
       });
       localStorage.setItem(storageKey, payload);
       message("지도·공사·차량·회사 상태와 작업면·대체수송 계획을 함께 저장했습니다.");
@@ -1762,6 +1772,7 @@ async function main() {
         stationDemandAccessUi?.loadDoc(payload.stationDemandAccessDoc);
         stationDemandAccessOutput = stationDemandAccessUi?.output() ?? null;
       }
+      if (wrapped && payload.stationDemandAllocationDraft) stationDemandAllocationManagement?.loadDoc(payload.stationDemandAllocationDraft);
       selectedLineId = null;
       message("통합 저장본을 불러왔습니다.");
     }));

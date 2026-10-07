@@ -11,11 +11,10 @@
 import { STATION_DEMAND_ALLOCATION_POLICY_SCHEMA, bindStationDemandAllocationRule } from "./station-demand-allocation-policy.mjs";
 
 export const STATION_DEMAND_ALLOCATION_DRAFT_SCHEMA = "transitline.station-demand-allocation-draft/1";
-const FRACTIONAL = "fractional-share-not-operational";
 const RULE_KINDS = ["station-exclusive", "node-assign", "node-shares"];
 
 export const SCOPE_NOTICE = "이 패널은 정책을 쓰고 엔진의 미리보기를 읽습니다. 수요·비용·운임·혼잡·시간은 계산하지 않으며, 유효성·낡음·보행·운행역 판정은 엔진이 합니다. 미리보기와 입력 변경은 엔진 상태를 바꾸지 않고, '적용'만 바꿉니다.";
-export const FRACTIONAL_NOTICE = "분수 배정(역별 비율)은 미리보기만 가능합니다. 현재 승객 라우터는 한 노드를 나눌 수 없어 엔진이 적용을 거부합니다.";
+export const FRACTIONAL_NOTICE = "분수 배정은 각 승객을 정해진 비율에 가깝게 역별로 나눠 연결합니다. 배정되지 않은 비율은 기존 접근 경로로 보내지지 않고 경로 없음으로 남습니다.";
 
 const TEXT = Object.freeze({
   "no-access-application": "역 접근권 사실이 아직 엔진에 없습니다. 지도(M2)에서 접근권을 그린 뒤 '역 접근권 적용'을 먼저 누르세요.",
@@ -34,7 +33,6 @@ const TEXT = Object.freeze({
   "walk-path-unavailable": "보행 경로를 쓸 수 없음(없음·차단·미확인)",
   "station-not-operational": "아직 운행역이 없음(미연결)",
   "station-operational-ambiguous": "운행역이 둘 이상이라 하나로 정할 수 없음",
-  [FRACTIONAL]: "분수 배정 — 미리보기만 가능",
   "policy-rule-bound-to-invalid": "규칙이 현재 revision에 묶이지 않음",
   "policy-rule-shares-invalid": "비율이 올바르지 않음(0 초과 100 이하, 비어 있으면 안 됨)",
   "policy-shares-exceed-one": "비율의 합이 100%를 넘음",
@@ -230,7 +228,6 @@ export function mountStationDemandAllocationManagementPanel({ container, runtime
     const out = preview.result;
     if (out.policyStatus !== "valid") return `정책을 적용할 수 없음 (${out.policyStatus})`;
     if (out.status !== "current") return out.status === "stale" ? "정책이 오래됨 — 규칙을 현재 revision에 다시 묶으세요" : `정책 상태: ${out.status}`;
-    if (listOf(out.blockedLinks).some((b) => b.code === FRACTIONAL)) return FRACTIONAL_NOTICE;
     return null;
   }
 
@@ -385,7 +382,6 @@ export function mountStationDemandAllocationManagementPanel({ container, runtime
       return `${b.demandNodeId} → ${b.stationAccessId} · ${records.length ? records.map((w) => `${WALK_STATUS[w.status] ?? w.status}${listOf(w.reasons).length ? ` (${w.reasons.map(say).join(", ")})` : ""}`).join(" / ") : say(b.code)}`;
     }));
     group("운행역 미연결", "not-operational", blocked.filter((b) => b.code === "station-not-operational" || b.code === "station-operational-ambiguous").map((b) => `${b.demandNodeId} → ${b.stationAccessId} · ${say(b.code)}`));
-    group("분수 배정(미리보기만 가능)", "fractional", blocked.filter((b) => b.code === FRACTIONAL).map((b) => `${b.demandNodeId} → ${b.stationAccessId} · ${percent(b.share)}`));
     group("오래된 규칙", "stale", listOf(out.allocation?.rules).filter((r) => r.status === "stale").map((r) => `${r.ruleId} · ${listOf(r.staleStationAccessIds).join(", ") || "주장 역이 바뀜"}`));
     group("적용하면 생기는 링크", "links", listOf(out.links).map((l) => `${l.demandNodeId} → ${l.stationId} · 도보 ${l.walkMinutes}분`));
     const overrides = listOf(out.allocation?.legacy?.overrideRequiredNodeIds);

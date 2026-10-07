@@ -160,6 +160,30 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .station-package-row { padding: 4px 5px; background: var(--chip); border-radius: 4px; color: var(--muted); overflow-wrap: anywhere; }
 .station-cost-replacement { padding: 6px; border: 1px solid #3a615c; border-radius: 5px; background: #172522; color: #67d7c4; overflow-wrap: anywhere; }
 #scenario-station-management > button, .station-design-card > button { width: 100%; padding: 5px; color: #67d7c4; }
+#scenario-panel .station-demand-allocation-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
+#scenario-panel .station-demand-allocation-management summary { cursor: pointer; color: #c6a7ff; font-weight: 600; }
+#scenario-station-demand-allocation { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-station-demand-allocation .alloc-notice, #scenario-station-demand-allocation .alloc-empty, #scenario-station-demand-allocation .alloc-note { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; overflow-wrap: anywhere; }
+#scenario-station-demand-allocation .alloc-section { display: block; padding-top: 4px; border-top: 1px solid var(--panel-line); color: var(--text); font-size: 10px; }
+#scenario-station-demand-allocation .alloc-station, #scenario-station-demand-allocation .alloc-node { display: grid; gap: 4px; padding: 6px; border: 1px solid var(--chip-line); border-radius: 5px; background: var(--chip); overflow-wrap: anywhere; }
+#scenario-station-demand-allocation .alloc-coverage { color: var(--muted); font-size: 9px; }
+#scenario-station-demand-allocation .alloc-field { display: grid; grid-template-columns: minmax(0, 1fr) 68px; align-items: center; gap: 4px; margin: 0; color: var(--muted); font-size: 9px; }
+#scenario-station-demand-allocation .alloc-field select, #scenario-station-demand-allocation .alloc-field input, #scenario-station-demand-allocation .alloc-node > select { min-width: 0; box-sizing: border-box; padding: 4px; color: var(--text); background: var(--panel); border: 1px solid var(--chip-line); border-radius: 4px; font: inherit; }
+#scenario-station-demand-allocation .alloc-check { display: flex; align-items: flex-start; gap: 5px; margin: 0; color: var(--muted); font-size: 9px; line-height: 1.4; }
+#scenario-station-demand-allocation .alloc-check input { flex: none; margin: 1px 0 0; }
+#scenario-station-demand-allocation .alloc-binding { color: var(--warn); font-size: 9px; }
+#scenario-station-demand-allocation .alloc-binding.current { color: var(--ok); }
+#scenario-station-demand-allocation .alloc-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+#scenario-station-demand-allocation .alloc-actions button { min-width: 0; padding: 5px 3px; font-size: 9px; }
+#scenario-station-demand-allocation .alloc-result { display: grid; gap: 4px; }
+#scenario-station-demand-allocation .alloc-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+#scenario-station-demand-allocation .alloc-metric { padding: 4px; background: var(--chip); border-radius: 4px; overflow-wrap: anywhere; }
+#scenario-station-demand-allocation .alloc-metric span { display: block; color: var(--muted); font-size: 8px; }
+#scenario-station-demand-allocation .alloc-metric b { display: block; margin-top: 2px; color: var(--text); font: 9px var(--mono); }
+#scenario-station-demand-allocation .alloc-line, #scenario-station-demand-allocation .alloc-warning, #scenario-station-demand-allocation .alloc-error, #scenario-station-demand-allocation .alloc-issue { padding: 4px 5px; border-left: 3px solid var(--info); background: var(--chip); color: var(--muted); font-size: 9px; line-height: 1.4; overflow-wrap: anywhere; }
+#scenario-station-demand-allocation .alloc-error { border-color: var(--danger); color: var(--danger); }
+#scenario-station-demand-allocation .alloc-warning, #scenario-station-demand-allocation .alloc-issue { border-color: var(--warn); color: var(--warn); }
+#scenario-station-demand-allocation .alloc-line.assigned, #scenario-station-demand-allocation .alloc-line.links { border-color: var(--ok); }
 #scenario-panel .scenario-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 9px; }
 #scenario-panel .scenario-actions button { padding: 5px 4px; }
 /* numbered stages are the main path; +1개월 / +12개월 / 공사 중단 stay quiet */

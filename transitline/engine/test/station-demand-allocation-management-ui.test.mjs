@@ -256,23 +256,19 @@ test("apply calls only runtime.applyStationDemandAllocation, with exactly the pr
   assert.equal(env.calls.assess.length, 1);
 });
 
-test("fixed shares are preview-only: shown as such, apply stays off, and even a forced click never reaches the engine", () => {
+test("fixed shares are previewed and applied through the runtime like every other current policy", () => {
   const fractional = previewOf({
     allocation: { totals: { nodes: 1, assigned: 0, partlyAssigned: 1, held: 0, unknown: 0 }, policyIssues: [], rules: [{ ruleId: "node:n:both", status: "applied", staleStationAccessIds: [], reasons: [] }], legacy: {},
       nodes: [{ demandNodeId: "n:both", decision: "shares", assignments: [{ stationAccessId: "A", share: 0.6 }, { stationAccessId: "B", share: 0.4 }], unallocatedShare: 0, reasons: [] }] },
-    blockedLinks: [{ demandNodeId: "n:both", stationAccessId: "A", share: 0.6, code: "fractional-share-not-operational" }, { demandNodeId: "n:both", stationAccessId: "B", share: 0.4, code: "fractional-share-not-operational" }],
   });
   const env = mount(spy({ preview: fractional }));
   pick(selectIn(nodeRow(env.container, "n:both"), "alloc-node-mode"), "shares");
   click(env.container, "미리보기");
-  assert.ok(shows(env.container, "분수 배정(미리보기만 가능) 2"));
-  assert.ok(shows(env.container, "n:both → A · 60%") && shows(env.container, "n:both → B · 40%"));
   assert.ok(shows(env.container, "n:both → A 60%, B 40%"));
-  assert.equal(button(env.container, "정책 적용").disabled, true);
-  assert.ok(all(env.container, (n) => n.className === "alloc-note alloc-apply-blocked").some((n) => n.textContent === FRACTIONAL_NOTICE));
-  button(env.container, "정책 적용").fire("click");
-  assert.equal(env.calls.apply.length, 0);
-  assert.equal(env.changes.length, 0);
+  assert.equal(button(env.container, "정책 적용").disabled, false);
+  click(env.container, "정책 적용");
+  assert.equal(env.calls.apply.length, 1);
+  assert.equal(env.changes.length, 1);
 });
 
 test("a stale preview or an unready one cannot be applied, and the reason is shown", () => {
@@ -556,7 +552,7 @@ test("real runtime: no access facts, then facts; write, bind, preview and apply 
   assert.equal(w.calls.apply, 1);
 });
 
-test("real runtime: fixed shares preview but cannot be applied, and the engine is never asked to", () => {
+test("real runtime: fixed shares preview and apply as two operational links", () => {
   const w = world();
   w.runtime.applyStationDemandAccess(accessExport());
   const env = mount({ runtime: w.watched, calls: {} });
@@ -564,14 +560,12 @@ test("real runtime: fixed shares preview but cannot be applied, and the engine i
   const [a, b] = sharesInputs(nodeRow(env.container, "node:a"));
   typeInto(a, "60"); typeInto(b, "40");
   bindAll(env);
-  const before = snapshotOperationalState(w.state);
   click(env.container, "미리보기");
   assert.ok(shows(env.container, "node:a → access:a 60%, access:b 40%"));
-  assert.ok(shows(env.container, "분수 배정(미리보기만 가능)"));
-  assert.equal(button(env.container, "정책 적용").disabled, true);
-  button(env.container, "정책 적용").fire("click");
-  assert.equal(w.calls.apply, 0);
-  assert.deepEqual(snapshotOperationalState(w.state), before);
+  assert.equal(button(env.container, "정책 적용").disabled, false);
+  click(env.container, "정책 적용");
+  assert.equal(w.calls.apply, 1);
+  assert.deepEqual(w.state.stationDemandAllocationLinks.map((link) => link.share).sort(), [0.4, 0.6]);
   // 80 + 80 is the engine's rejection to report, not the panel's
   typeInto(a, "80"); typeInto(b, "80");
   click(env.container, "미리보기");
