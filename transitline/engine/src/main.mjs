@@ -13,6 +13,7 @@ import { withStationAccess } from "./access-demand.mjs";
 import { buildMapExport, drawnLinesFromState, existingNetworkToExternal, withRailLayer } from "./map/plan-geometry.mjs";
 import { demandSourceRefsOf } from "./map/station-demand-access.mjs";
 import { mountStationDemandAccess } from "./map/station-demand-access-ui.mjs";
+import { mountStationDemandAllocationOverlay } from "./map/station-demand-allocation-ui.mjs";
 import { spatialContextFromPack } from "./map/pack-spatial.mjs";
 import { buildOverlayModel, defineViewSlots, renderDiagnosticsPanel, renderPhaseLegend } from "./map/overlay.mjs";
 import { attachDepotEditor } from "./map/depot-ui.mjs";
@@ -338,6 +339,7 @@ async function main() {
   let stationUi = null;
   let stationDemandAccessUi = null;
   let stationDemandAccessOutput = null;
+  let stationDemandAllocationOverlay = null;
   let stationSelection = null;
   let stationSelectionOutput = null;
   let constructionUi = null;
@@ -365,6 +367,7 @@ async function main() {
     depotUi?.refresh(); // depot connections are checked against the plans just exported
     stationUi?.refresh(); // station sites are checked against the plans just exported, and show the engine verdict
     stationDemandAccessUi?.refresh();
+    stationDemandAllocationOverlay?.refresh();
     $("btn-station-3d").disabled = !stationUi?.selectedSite;
     stationSelection?.refresh();
     constructionUi?.refresh();
@@ -424,6 +427,18 @@ async function main() {
     getDemandNodes: () => currentMapExport?.demandNodes ?? [], getDemandSources: stationDemandSources, getSpatial: getCurrentSpatial,
     onChange: (out) => { stationDemandAccessOutput = out; },
   });
+  if (runtime) {
+    stationDemandAllocationOverlay = mountStationDemandAllocationOverlay({
+      canvas,
+      projection,
+      pack,
+      enabled: false,
+      getAllocationReport: () => runtime.stationDemandAllocationReport(),
+      getAccessReport: () => runtime.stationDemandAccessReport(),
+      getDemandNodes: () => state.demandNodes,
+      getStations: () => state.stations,
+    });
+  }
   const stationDemandAccessButton = $("btn-station-demand-access");
   stationDemandAccessButton.hidden = false;
   stationDemandAccessButton.addEventListener("click", () => {
@@ -432,6 +447,16 @@ async function main() {
     stationDemandAccessUi.setEnabled(enabled);
     stationDemandAccessButton.blur();
   });
+  const stationDemandAllocationButton = $("btn-station-demand-allocation");
+  if (runtime) {
+    stationDemandAllocationButton.hidden = false;
+    stationDemandAllocationButton.addEventListener("click", () => {
+      const enabled = !stationDemandAllocationButton.classList.contains("active");
+      stationDemandAllocationButton.classList.toggle("active", enabled);
+      stationDemandAllocationOverlay?.setEnabled(enabled);
+      stationDemandAllocationButton.blur();
+    });
+  }
   constructionUi = attachConstructionEditor({
     canvas,
     projection,
@@ -671,7 +696,7 @@ async function main() {
     });
   }
   // Map editors own the pointer while active: keep exactly one drawing editor on.
-  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-station-demand-access"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control")];
+  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-station-demand-access"), $("btn-station-demand-allocation"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control")];
   for (const activeButton of drawingButtons) {
     activeButton.addEventListener("click", () => {
       if (!activeButton.classList.contains("active")) return;
