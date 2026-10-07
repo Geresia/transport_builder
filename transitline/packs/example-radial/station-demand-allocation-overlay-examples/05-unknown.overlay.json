@@ -1,0 +1,199 @@
+{
+  "schema": "transitline.station-demand-allocation-map-view/1",
+  "status": "current",
+  "stale": false,
+  "staleReasons": [],
+  "policyStatus": "valid",
+  "policyId": "policy:overlay",
+  "allocationId": "station-demand-allocation:b69035e43b8609f2",
+  "banner": null,
+  "sites": [
+    {
+      "stationAccessId": "access:a",
+      "name": "Alpha",
+      "location": [
+        139.004,
+        35
+      ],
+      "coverage": "unknown",
+      "coverageLabel": "일부 미상",
+      "polygons": [
+        [
+          [
+            139,
+            34.9965
+          ],
+          [
+            139.012,
+            34.9965
+          ],
+          [
+            139.012,
+            35.0035
+          ],
+          [
+            139,
+            35.0035
+          ]
+        ]
+      ],
+      "unknownNodeCount": 1,
+      "complete": false
+    },
+    {
+      "stationAccessId": "access:b",
+      "name": "Beta",
+      "location": [
+        139.01,
+        35
+      ],
+      "coverage": "unknown",
+      "coverageLabel": "일부 미상",
+      "polygons": [
+        [
+          [
+            139.00199999999998,
+            34.9965
+          ],
+          [
+            139.01399999999998,
+            34.9965
+          ],
+          [
+            139.01399999999998,
+            35.0035
+          ],
+          [
+            139.00199999999998,
+            35.0035
+          ]
+        ]
+      ],
+      "unknownNodeCount": 2,
+      "complete": false
+    }
+  ],
+  "nodes": [
+    {
+      "demandNodeId": "node:a",
+      "location": [
+        139.007,
+        35.0013
+      ],
+      "selected": false,
+      "state": "unknown",
+      "stateLabel": "미상",
+      "decision": "unknown",
+      "decisionLabel": "미상 (배정 안 함)",
+      "visual": {
+        "key": "unknown",
+        "glyph": "?",
+        "color": "#9ca3af",
+        "dash": [
+          2,
+          3
+        ],
+        "label": "미상"
+      },
+      "claimants": [
+        "access:a",
+        "access:b"
+      ],
+      "residents": null,
+      "jobs": null,
+      "residentsText": "미상",
+      "jobsText": "미상",
+      "reasons": [
+        {
+          "code": "demand-source-quality-insufficient",
+          "label": "수요 자료 품질이 낮음"
+        }
+      ],
+      "assignments": [],
+      "unallocatedShare": null,
+      "unallocatedText": null,
+      "unroutedShare": null,
+      "unroutedText": null,
+      "legacy": {
+        "linkCount": 0,
+        "overrideRequired": false,
+        "conflictsWithAllocation": false,
+        "activeWhileUnallocated": null
+      }
+    },
+    {
+      "demandNodeId": "node:b",
+      "location": [
+        139.013,
+        34.9989
+      ],
+      "selected": false,
+      "state": "unknown",
+      "stateLabel": "미상",
+      "decision": "unknown",
+      "decisionLabel": "미상 (배정 안 함)",
+      "visual": {
+        "key": "unknown",
+        "glyph": "?",
+        "color": "#9ca3af",
+        "dash": [
+          2,
+          3
+        ],
+        "label": "미상"
+      },
+      "claimants": [
+        "access:b"
+      ],
+      "residents": null,
+      "jobs": null,
+      "residentsText": "미상",
+      "jobsText": "미상",
+      "reasons": [
+        {
+          "code": "demand-source-quality-insufficient",
+          "label": "수요 자료 품질이 낮음"
+        }
+      ],
+      "assignments": [],
+      "unallocatedShare": null,
+      "unallocatedText": null,
+      "unroutedShare": null,
+      "unroutedText": null,
+      "legacy": {
+        "linkCount": 0,
+        "overrideRequired": false,
+        "conflictsWithAllocation": false,
+        "activeWhileUnallocated": null
+      }
+    }
+  ],
+  "lines": [],
+  "totals": {
+    "nodes": 2,
+    "assigned": 0,
+    "split": 0,
+    "held": 0,
+    "unknown": 2,
+    "links": 0,
+    "blocked": 0
+  },
+  "missing": {
+    "nodes": [],
+    "stations": [],
+    "sites": []
+  },
+  "selectedNodeId": null,
+  "source": {
+    "case": [
+      "coarse-demand-source",
+      "unknown-nodes",
+      "nothing-assigned"
+    ],
+    "synthetic": true,
+    "note": "Synthetic: a tiny invented world run through the real engine apply path. The view model is what the map overlay draws from runtime.stationDemandAllocationReport(); shares are the policy's expected shares, not passenger counts.",
+    "world": "scripts/lib/allocation-overlay-world.mjs",
+    "variant": "unknown",
+    "generatedBy": "scripts/build-station-demand-allocation-overlay-examples.mjs"
+  }
+}

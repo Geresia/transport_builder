@@ -1,0 +1,145 @@
+{
+  "schema": "transitline.station-demand-allocation-map-view/1",
+  "status": "current",
+  "stale": false,
+  "staleReasons": [],
+  "policyStatus": "valid",
+  "policyId": "policy:overlay",
+  "allocationId": "station-demand-allocation:7d860ea45af30992",
+  "banner": null,
+  "sites": [
+    {
+      "stationAccessId": "access:a",
+      "name": "Alpha",
+      "location": [
+        139.004,
+        35
+      ],
+      "coverage": "available",
+      "coverageLabel": "단독 노드만",
+      "polygons": [
+        [
+          [
+            139,
+            34.9965
+          ],
+          [
+            139.012,
+            34.9965
+          ],
+          [
+            139.012,
+            35.0035
+          ],
+          [
+            139,
+            35.0035
+          ]
+        ]
+      ],
+      "unknownNodeCount": 0,
+      "complete": true
+    }
+  ],
+  "nodes": [
+    {
+      "demandNodeId": "node:a",
+      "location": [
+        139.007,
+        35.0013
+      ],
+      "selected": false,
+      "state": "exclusive",
+      "stateLabel": "단독 접근",
+      "decision": "assigned",
+      "decisionLabel": "전부 배정",
+      "visual": {
+        "key": "assigned",
+        "glyph": "✓",
+        "color": "#4ade80",
+        "dash": [],
+        "label": "전부 배정"
+      },
+      "claimants": [
+        "access:a"
+      ],
+      "residents": 4000,
+      "jobs": 100,
+      "residentsText": "4,000",
+      "jobsText": "100",
+      "reasons": [],
+      "assignments": [
+        {
+          "stationAccessId": "access:a",
+          "siteName": "Alpha",
+          "share": 1,
+          "percent": "100%",
+          "linkState": "linked",
+          "stationId": "physical:a",
+          "stationLocation": [
+            139.004,
+            35
+          ],
+          "walkMinutes": 8,
+          "blockCode": null,
+          "blockLabel": null
+        }
+      ],
+      "unallocatedShare": 0,
+      "unallocatedText": "0%",
+      "unroutedShare": null,
+      "unroutedText": null,
+      "legacy": {
+        "linkCount": 0,
+        "overrideRequired": false,
+        "conflictsWithAllocation": false,
+        "activeWhileUnallocated": false
+      }
+    }
+  ],
+  "lines": [
+    {
+      "kind": "link",
+      "demandNodeId": "node:a",
+      "stationAccessId": "access:a",
+      "stationId": "physical:a",
+      "from": [
+        139.007,
+        35.0013
+      ],
+      "to": [
+        139.004,
+        35
+      ],
+      "share": 1,
+      "percent": "100%",
+      "fractional": false
+    }
+  ],
+  "totals": {
+    "nodes": 1,
+    "assigned": 1,
+    "split": 0,
+    "held": 0,
+    "unknown": 0,
+    "links": 1,
+    "blocked": 0
+  },
+  "missing": {
+    "nodes": [],
+    "stations": [],
+    "sites": []
+  },
+  "selectedNodeId": null,
+  "source": {
+    "case": [
+      "single-site",
+      "whole-node-assignment"
+    ],
+    "synthetic": true,
+    "note": "Synthetic: a tiny invented world run through the real engine apply path. The view model is what the map overlay draws from runtime.stationDemandAllocationReport(); shares are the policy's expected shares, not passenger counts.",
+    "world": "scripts/lib/allocation-overlay-world.mjs",
+    "variant": "whole",
+    "generatedBy": "scripts/build-station-demand-allocation-overlay-examples.mjs"
+  }
+}

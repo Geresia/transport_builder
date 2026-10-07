@@ -1,0 +1,278 @@
+{
+  "schema": "transitline.station-demand-allocation-map-view/1",
+  "status": "current",
+  "stale": false,
+  "staleReasons": [],
+  "policyStatus": "valid",
+  "policyId": "policy:overlay",
+  "allocationId": "station-demand-allocation:b69035e43b8609f2",
+  "banner": null,
+  "sites": [
+    {
+      "stationAccessId": "access:a",
+      "name": "Alpha",
+      "location": [
+        139.004,
+        35
+      ],
+      "coverage": "shared",
+      "coverageLabel": "겹침 있음",
+      "polygons": [
+        [
+          [
+            139,
+            34.9965
+          ],
+          [
+            139.012,
+            34.9965
+          ],
+          [
+            139.012,
+            35.0035
+          ],
+          [
+            139,
+            35.0035
+          ]
+        ]
+      ],
+      "unknownNodeCount": 0,
+      "complete": true
+    },
+    {
+      "stationAccessId": "access:b",
+      "name": "Beta",
+      "location": [
+        139.01,
+        35
+      ],
+      "coverage": "shared",
+      "coverageLabel": "겹침 있음",
+      "polygons": [
+        [
+          [
+            139.00199999999998,
+            34.9965
+          ],
+          [
+            139.01399999999998,
+            34.9965
+          ],
+          [
+            139.01399999999998,
+            35.0035
+          ],
+          [
+            139.00199999999998,
+            35.0035
+          ]
+        ]
+      ],
+      "unknownNodeCount": 0,
+      "complete": true
+    }
+  ],
+  "nodes": [
+    {
+      "demandNodeId": "node:a",
+      "location": [
+        139.007,
+        35.0013
+      ],
+      "selected": false,
+      "state": "shared",
+      "stateLabel": "겹치는 접근",
+      "decision": "assigned",
+      "decisionLabel": "비율대로 나눠 배정",
+      "visual": {
+        "key": "split",
+        "glyph": "%",
+        "color": "#38bdf8",
+        "dash": [],
+        "label": "비율 배정"
+      },
+      "claimants": [
+        "access:a",
+        "access:b"
+      ],
+      "residents": 4000,
+      "jobs": 100,
+      "residentsText": "4,000",
+      "jobsText": "100",
+      "reasons": [],
+      "assignments": [
+        {
+          "stationAccessId": "access:a",
+          "siteName": "Alpha",
+          "share": 0.6,
+          "percent": "60%",
+          "linkState": "linked",
+          "stationId": "physical:a",
+          "stationLocation": [
+            139.004,
+            35
+          ],
+          "walkMinutes": 8,
+          "blockCode": null,
+          "blockLabel": null
+        },
+        {
+          "stationAccessId": "access:b",
+          "siteName": "Beta",
+          "share": 0.4,
+          "percent": "40%",
+          "linkState": "blocked",
+          "stationId": null,
+          "stationLocation": null,
+          "walkMinutes": null,
+          "blockCode": "station-not-operational",
+          "blockLabel": "운행 역이 아직 없음"
+        }
+      ],
+      "unallocatedShare": 0,
+      "unallocatedText": "0%",
+      "unroutedShare": 0.4,
+      "unroutedText": "40%",
+      "legacy": {
+        "linkCount": 0,
+        "overrideRequired": false,
+        "conflictsWithAllocation": false,
+        "activeWhileUnallocated": false
+      }
+    },
+    {
+      "demandNodeId": "node:b",
+      "location": [
+        139.013,
+        34.9989
+      ],
+      "selected": false,
+      "state": "exclusive",
+      "stateLabel": "단독 접근",
+      "decision": "assigned",
+      "decisionLabel": "전부 배정",
+      "visual": {
+        "key": "assigned",
+        "glyph": "✓",
+        "color": "#4ade80",
+        "dash": [],
+        "label": "전부 배정"
+      },
+      "claimants": [
+        "access:b"
+      ],
+      "residents": 3000,
+      "jobs": 0,
+      "residentsText": "3,000",
+      "jobsText": "0",
+      "reasons": [],
+      "assignments": [
+        {
+          "stationAccessId": "access:b",
+          "siteName": "Beta",
+          "share": 1,
+          "percent": "100%",
+          "linkState": "blocked",
+          "stationId": null,
+          "stationLocation": null,
+          "walkMinutes": null,
+          "blockCode": "station-not-operational",
+          "blockLabel": "운행 역이 아직 없음"
+        }
+      ],
+      "unallocatedShare": 0,
+      "unallocatedText": "0%",
+      "unroutedShare": null,
+      "unroutedText": null,
+      "legacy": {
+        "linkCount": 0,
+        "overrideRequired": false,
+        "conflictsWithAllocation": false,
+        "activeWhileUnallocated": false
+      }
+    }
+  ],
+  "lines": [
+    {
+      "kind": "link",
+      "demandNodeId": "node:a",
+      "stationAccessId": "access:a",
+      "stationId": "physical:a",
+      "from": [
+        139.007,
+        35.0013
+      ],
+      "to": [
+        139.004,
+        35
+      ],
+      "share": 0.6,
+      "percent": "60%",
+      "fractional": true
+    },
+    {
+      "kind": "blocked",
+      "demandNodeId": "node:a",
+      "stationAccessId": "access:b",
+      "stationId": null,
+      "from": [
+        139.007,
+        35.0013
+      ],
+      "to": [
+        139.01,
+        35
+      ],
+      "share": 0.4,
+      "percent": "40%",
+      "fractional": true,
+      "label": "운행 역이 아직 없음"
+    },
+    {
+      "kind": "blocked",
+      "demandNodeId": "node:b",
+      "stationAccessId": "access:b",
+      "stationId": null,
+      "from": [
+        139.013,
+        34.9989
+      ],
+      "to": [
+        139.01,
+        35
+      ],
+      "share": 1,
+      "percent": "100%",
+      "fractional": false,
+      "label": "운행 역이 아직 없음"
+    }
+  ],
+  "totals": {
+    "nodes": 2,
+    "assigned": 1,
+    "split": 1,
+    "held": 0,
+    "unknown": 0,
+    "links": 1,
+    "blocked": 2
+  },
+  "missing": {
+    "nodes": [],
+    "stations": [],
+    "sites": []
+  },
+  "selectedNodeId": null,
+  "source": {
+    "case": [
+      "blocked-link",
+      "station-not-operational",
+      "partly-routed"
+    ],
+    "synthetic": true,
+    "note": "Synthetic: a tiny invented world run through the real engine apply path. The view model is what the map overlay draws from runtime.stationDemandAllocationReport(); shares are the policy's expected shares, not passenger counts.",
+    "world": "scripts/lib/allocation-overlay-world.mjs",
+    "variant": "blocked",
+    "generatedBy": "scripts/build-station-demand-allocation-overlay-examples.mjs"
+  }
+}
