@@ -554,7 +554,10 @@ export class ScenarioRuntime {
       trainsPerHour,
     });
     const { fleetRequirement, requirement, quantity, modelId, inspectionSetsPerDay, site, structureId } = planning;
-    const checkpoint = this.save();
+    // Assessment only changes ManagementGame.  Do not round-trip the complete
+    // integrated save here: that can normalise unrelated operational maps even
+    // though this method has not touched them.
+    const managementCheckpoint = this.game.snapshot();
     try {
       const depot = this.game.planDepot({
         id: depotId,
@@ -577,7 +580,8 @@ export class ScenarioRuntime {
       const schedule = this.game.createIntegratedSchedule({ projectId: project.id, depotIds: [depot.id], vehicleOrderIds: [order.id] });
       return { depot, agreement, depotContract, order, schedule, fleetRequirement, requirement, usedEstimatedSite: planning.usedEstimatedSite };
     } catch (error) {
-      this.load(checkpoint);
+      this.game = new ManagementGame({ countryId: managementCheckpoint.countryId }).restore(managementCheckpoint);
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
       throw error;
     }
   }
@@ -1054,12 +1058,13 @@ export class ScenarioRuntime {
     return this.game.assessRailwayTimetable(draft);
   }
 
-  // B16-E2: map ServicePlanGeometry is only an intent document.  It first has
+  // B16-E2: map ServicePlanGeometry is only an intent document. It first has
   // to be explicitly bound to a commissioned management service and pass the
   // C1/E1 boundary before B13 is allowed to create a timetable assessment.
-  // A blocked/unknown map plan changes neither management nor map state.
-  assessServicePlanTimetable(servicePlan, binding, input = {}) {
-    const adaptation = adaptServicePlanToOperationalTimetable({
+  // This is read-only, allowing the UI to show an explanation before a game
+  // change is requested.
+  adaptServicePlanTimetable(servicePlan, binding, input = {}) {
+    return adaptServicePlanToOperationalTimetable({
       servicePlan,
       binding,
       operationalState: this.operationalState,
@@ -1075,6 +1080,34 @@ export class ScenarioRuntime {
       infrastructureAssumptions: input.infrastructureAssumptions ?? null,
       minimumAcceptanceRatio: input.minimumAcceptanceRatio ?? 1,
     });
+  }
+
+  // B13 allocates one whole day-type timetable. Running its assessment once
+  // per map plan would hide conflicts on their shared track, junctions and
+  // turnbacks. Build one request, and leave no partial assessments on error.
+  assessServicePlanTimetableBatch(entries = [], input = {}) {
+    if (!Array.isArray(entries) || !entries.length) throw new Error("At least one service plan is required for timetable assessment");
+    const adaptations = entries.map((entry) => this.adaptServicePlanTimetable(entry?.servicePlan, entry?.binding, input));
+    const notReady = adaptations.find((adaptation) => adaptation.status !== "ready" || !adaptation.operationalRequest);
+    if (notReady) throw new Error(`Service plan ${notReady.servicePlanId ?? "(unknown)"} is not ready for timetable assessment`);
+    const serviceIds = adaptations.map((adaptation) => adaptation.serviceId);
+    if (new Set(serviceIds).size !== serviceIds.length) throw new Error("A management service may appear only once in one timetable assessment");
+    const revisions = [...new Set(adaptations.map((adaptation) => adaptation.operationalRequest.infrastructureRevision))];
+    if (revisions.length !== 1) throw new Error("All service plans in one timetable assessment must use the same infrastructure revision");
+    const first = adaptations[0].operationalRequest;
+    // The only mutation below is ManagementGame.transact() in the B13
+    // assessment. It rolls its own state back if the combined request fails.
+    const timetable = this.assessOperationalRailwayTimetable({
+      ...first,
+      servicePlans: adaptations.flatMap((adaptation) => adaptation.operationalRequest.servicePlans),
+    });
+    return { adaptations, timetable };
+  }
+
+  // Keep the narrow entry point for callers that intentionally submit one
+  // service, but share the exact same adaptation boundary as batch submission.
+  assessServicePlanTimetable(servicePlan, binding, input = {}) {
+    const adaptation = this.adaptServicePlanTimetable(servicePlan, binding, input);
     if (adaptation.status !== "ready" || !adaptation.operationalRequest) return { adaptation, timetable: null };
     const timetable = this.assessOperationalRailwayTimetable(adaptation.operationalRequest);
     return { adaptation, timetable };

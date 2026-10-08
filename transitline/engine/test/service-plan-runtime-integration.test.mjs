@@ -46,3 +46,37 @@ test("an unbound or stale plan produces an explanation but cannot assess or muta
   }
   assert.equal(JSON.stringify({ game: runtime.game.snapshot(), state: snapshotOperationalState(state) }), before);
 });
+
+test("a batch is one B13 allocation, so plans using the same track compete", () => {
+  const { runtime, state, servicePlan, input } = setup();
+  const secondLine = addLine(state, ["A", "B"]);
+  secondLine.trackSegmentIds = ["ab"];
+  secondLine.managementServiceId = "service:second";
+  secondLine.suspended = false;
+  state.railCapacityApplications.push({ ...structuredClone(state.railCapacityApplications[0]), operationalLineId: secondLine.id });
+  input.technicalSpecs[secondLine.id] = structuredClone(input.technicalSpecs[1]);
+  runtime.game.services.push({ id: "service:second", operationalLineId: secondLine.id, commercialSpeedKph: 30, operatorId: "player" });
+  const second = structuredClone(servicePlan);
+  second.servicePlanId = "map-plan:2";
+  second.servicePlanRevision = "map-revision:2";
+  second.operationalLineId = String(secondLine.id);
+  const batch = runtime.assessServicePlanTimetableBatch([
+    { servicePlan, binding: { servicePlanId: "map-plan:1", serviceId: "service:actual" } },
+    { servicePlan: second, binding: { servicePlanId: "map-plan:2", serviceId: "service:second" } },
+  ], input);
+  assert.equal(batch.adaptations.length, 2);
+  assert.equal(runtime.railwayTimetableReport().length, 1);
+  assert.equal(batch.timetable.requestedPaths, 28);
+  assert.ok(batch.timetable.rejectedPaths.length > 0);
+  assert.equal(batch.timetable.assessment.verdict, "conditional");
+});
+
+test("a rejected member rolls a batch back without leaving a timetable", () => {
+  const { runtime, state, servicePlan, input } = setup();
+  const before = JSON.stringify({ game: runtime.game.snapshot(), state: snapshotOperationalState(state) });
+  assert.throws(() => runtime.assessServicePlanTimetableBatch([
+    { servicePlan, binding: { servicePlanId: "map-plan:1", serviceId: "service:actual" } },
+    { servicePlan: { ...servicePlan, servicePlanId: "map-plan:stale", revision: { state: "stale" } }, binding: { servicePlanId: "map-plan:stale", serviceId: "service:actual" } },
+  ], input), /not ready/);
+  assert.equal(JSON.stringify({ game: runtime.game.snapshot(), state: snapshotOperationalState(state) }), before);
+});

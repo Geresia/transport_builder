@@ -1813,17 +1813,16 @@ async function main() {
       const ready = servicePlanManagement?.readyPlans() ?? [];
       if (!ready.length) throw new Error("시간표 심사 준비가 끝난 운행계획이 없습니다. 서비스 연결, 기술사양·차량·선로 사실, 지도 및 용량 application 상태를 확인하세요.");
       const plans = servicePlanEditor?.output().export?.plans ?? [];
-      const checkpoint = runtime.save();
       try {
         const assessed = ready.map(({ servicePlanId, serviceId }) => {
           const plan = plans.find((entry) => entry.servicePlanId === servicePlanId);
-          const result = runtime.assessServicePlanTimetable(plan, { servicePlanId, serviceId }, servicePlanPrescreenContext());
+          const result = { timetable: plan ? { servicePlan: plan, binding: { servicePlanId, serviceId } } : null };
           if (!result.timetable) throw new Error(`운행계획 ${servicePlanId}은(는) 다시 확인이 필요합니다.`);
           return result.timetable;
         });
+        runtime.assessServicePlanTimetableBatch(assessed, servicePlanPrescreenContext());
         $("scenario-service-plan-result").textContent = `${assessed.length}개 운행계획을 B13 시간표 심사에 제출했습니다. 승인과 활성화는 다음 단계에서 별도로 진행합니다.`;
       } catch (error) {
-        runtime.load(checkpoint);
         throw error;
       }
     }));
