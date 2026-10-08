@@ -123,6 +123,65 @@ test("a host batch assessment can be recorded without reopening the unsafe per-p
   assert.equal(env.calls.assess, 0, "recording does not call the panel's individual assess command");
 });
 
+test("one B13 batch remains one shared lifecycle through approval, activation and runtime save/load", () => {
+  const env = mount(undefined, { assessmentEnabled: false });
+  const secondLine = addLine(env.w.state, ["A", "B"]);
+  secondLine.trackSegmentIds = ["ab"];
+  secondLine.managementServiceId = "service:second";
+  secondLine.suspended = false;
+  env.w.state.railCapacityApplications.push({ ...structuredClone(env.w.state.railCapacityApplications[0]), operationalLineId: secondLine.id });
+  env.hold.input.technicalSpecs[secondLine.id] = structuredClone(env.hold.input.technicalSpecs[env.w.line.id]);
+  env.w.runtime.game.services.push({ id: "service:second", operationalLineId: secondLine.id, commercialSpeedKph: 30, operatorId: "player", status: "open" });
+
+  const second = structuredClone(env.w.plan);
+  second.servicePlanId = "map-plan:2";
+  second.servicePlanRevision = "map-revision:2";
+  second.operationalLineId = String(secondLine.id);
+  // The services share physical track but use non-overlapping bands, so they can
+  // live in one B13 timetable without this regression test depending on a reject.
+  second.serviceBands[0].startMinute = 480;
+  second.serviceBands[0].endMinute = 540;
+  env.hold.plans = [env.w.plan, second];
+  env.hold.bindings = [
+    { servicePlanId: "map-plan:1", serviceId: "service:actual" },
+    { servicePlanId: "map-plan:2", serviceId: "service:second" },
+  ];
+  const entries = env.hold.plans.map((servicePlan) => ({
+    servicePlan,
+    binding: env.hold.bindings.find((binding) => binding.servicePlanId === servicePlan.servicePlanId),
+  }));
+
+  const batch = env.w.runtime.assessServicePlanTimetableBatch(entries, env.hold.input);
+  assert.equal(batch.timetable.assessment.verdict, "possible");
+  assert.equal(env.w.runtime.railwayTimetableReport().length, 1, "one batch makes one engine timetable");
+  assert.equal(env.panel.recordBatchAssessment({ entries, result: batch }), true);
+  const timetableId = batch.timetable.id;
+  assert.deepEqual(env.panel.results().map((row) => row.timetableId), [timetableId, timetableId]);
+  assert.deepEqual(env.panel.results().map((row) => row.stale), [false, false]);
+
+  click(env.container, "approve", "map-plan:1");
+  assert.deepEqual(env.panel.results().map((row) => [row.engineStatus, row.canActivate]), [["approved", true], ["approved", true]]);
+  click(env.container, "activate", "map-plan:2");
+  assert.equal(env.w.runtime.railwayTimetableReport()[0].status, "active");
+  assert.equal(env.w.runtime.game.services.find((service) => service.id === "service:actual").activeTimetableId, timetableId);
+  assert.equal(env.w.runtime.game.services.find((service) => service.id === "service:second").activeTimetableId, timetableId);
+
+  const savedRuntime = env.w.runtime.save();
+  const savedLifecycle = env.panel.serialize();
+  const restored = world();
+  restored.runtime.load(savedRuntime);
+  const afterLoad = mount(restored, { assessmentEnabled: false });
+  afterLoad.hold.input.technicalSpecs[secondLine.id] = structuredClone(env.hold.input.technicalSpecs[secondLine.id]);
+  afterLoad.hold.plans = structuredClone(env.hold.plans);
+  afterLoad.hold.bindings = structuredClone(env.hold.bindings);
+  assert.deepEqual(afterLoad.panel.loadDoc(savedLifecycle), { ok: true, issues: [] });
+  assert.deepEqual(afterLoad.panel.results().map((row) => [row.timetableId, row.engineStatus, row.stale]), [
+    [timetableId, "active", false],
+    [timetableId, "active", false],
+  ]);
+  assert.equal(afterLoad.calls.assess + afterLoad.calls.approve + afterLoad.calls.activate, 0, "restoring the shared record issues no lifecycle command");
+});
+
 test("a plan with no connected service cannot be assessed; a click that gets through anyway reaches no engine call", () => {
   const env = mount();
   env.hold.bindings = [];

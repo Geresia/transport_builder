@@ -31,6 +31,30 @@ B13 시간표 엔진을 다시 만들지 않고, 서비스 계획 하나의 **�
 
 ## Mount API
 
+## B16 integrated batch host
+
+`ScenarioRuntime.assessServicePlanTimetableBatch(entries, input)` is the only
+safe host command when more than one ready map plan is being assessed together.
+B13 allocates shared track, junction and terminal resources across the whole
+day-type timetable. Calling the single-plan command once per plan can therefore
+hide a conflict that the combined request must see.
+
+The game host mounts this panel with `assessmentEnabled: false`, keeps the
+panel's per-card assessment button disabled, and submits the current ready
+plans through the batch command. When the command succeeds it immediately
+calls:
+
+```js
+panel.recordBatchAssessment({ entries, result });
+```
+
+Each participating map plan receives a lifecycle record with the same
+`timetableId`. Approval or activation of that timetable is still one engine
+command; refreshing the panel updates every card sharing that ID. Save the
+panel document together with the runtime save, load the runtime first, then
+call `panel.loadDoc(...)`. A batch member that changes afterward becomes stale
+and cannot approve or activate the shared timetable from its card.
+
 ```js
 import { mountRailwayTimetableLifecyclePanel } from "./railway-timetable-lifecycle-ui.mjs";
 
