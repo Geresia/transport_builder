@@ -56,12 +56,17 @@ function dayTypeAt(simMinutes) {
   return weekday >= 5 ? "weekend" : "weekday";
 }
 
-function startTrain(state, line, serviceStationIds, scheduledDepartureMinute = null, scheduledReturnMinute = null, scheduledCompletionMinute = null, terminalResourceId = null) {
+function startTrain(state, line, serviceStationIds, scheduledDepartureMinute = null, scheduledReturnMinute = null, scheduledCompletionMinute = null, terminalResourceId = null, timetableId = null, managementServiceId = null) {
   const train = { id: state.nextTrainId++, lineId: line.id, segIndex: 0, t: 0, dir: 1, dwell: DWELL_SECONDS, serviceStationIds };
   if (scheduledDepartureMinute !== null) train.scheduledDepartureMinute = scheduledDepartureMinute;
   if (scheduledReturnMinute !== null) train.scheduledReturnMinute = scheduledReturnMinute;
   if (scheduledCompletionMinute !== null) train.scheduledCompletionMinute = scheduledCompletionMinute;
   if (terminalResourceId !== null) train.terminalResourceId = terminalResourceId;
+  // A scheduled train retains the exact operational timetable and management
+  // service that dispatched it. This is provenance, not a new dispatch rule:
+  // legacy frequency trains deliberately keep neither field.
+  if (typeof timetableId === "string" && timetableId !== "") train.timetableId = timetableId;
+  if (typeof managementServiceId === "string" && managementServiceId !== "") train.managementServiceId = managementServiceId;
   train.trafficOperatingDay = Math.floor((scheduledDepartureMinute ?? state.simMinutes) / 1440);
   state.trains.push(train);
   recordRailwayTraffic(state, line.id, train.trafficOperatingDay, "dispatchedTrains");
@@ -92,7 +97,8 @@ function dispatchScheduledTrains(state, line, schedule, allowDispatch = true) {
         const order = activeRailwayControlOrder(state, line.id);
         const groups = effectiveLineStationGroups(state, line);
         groups.forEach((stationIds, index) => startTrain(state, line, stationIds, absoluteMinute, returnMinute, completionMinute,
-          order?.retainedServices?.[index]?.terminalResourceIds?.[0] ?? trip.terminalResourceId ?? null));
+          order?.retainedServices?.[index]?.terminalResourceIds?.[0] ?? trip.terminalResourceId ?? null,
+          schedule.timetableId ?? null, schedule.serviceId ?? null));
       }
       else {
         schedule.missedDepartures = (schedule.missedDepartures ?? 0) + 1;

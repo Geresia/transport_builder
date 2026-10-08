@@ -97,6 +97,8 @@ test("active timetable dispatches at exact accepted minutes instead of frequency
   dispatchTrains(state);
   assert.equal(state.trains.length, 1);
   assert.equal(state.trains[0].scheduledDepartureMinute, 361);
+  assert.equal(state.trains[0].timetableId, assessed.id, "a dispatched train keeps the active timetable provenance");
+  assert.equal(state.trains[0].managementServiceId, service.id, "a dispatched train keeps the management service provenance");
   assert.ok(state.trains[0].scheduledReturnMinute > assessed.acceptedPaths.find((entry) => entry.direction === "forward").arrivalMinute);
   assert.equal(state.trains[0].terminalResourceId, "terminal:C:1");
   assert.deepEqual(line.railwayTrafficControl.sectionJunctionClearanceMinutes, { ab: 1, bc: 1 });
@@ -128,6 +130,23 @@ test("a train waits at the far terminal until its accepted inbound path", () => 
   state.simMinutes = 400;
   stepTrains(state, 1);
   assert.ok(train.t > heldPosition);
+});
+
+test("legacy frequency and hand-written schedules do not invent timetable provenance", () => {
+  const { state, line } = fixture();
+  line.timetableDispatches = { weekday: { dayType: "weekday", departureMinutes: [361], lastCheckedSimMinute: 360 } };
+  state.simMinutes = 361;
+  dispatchTrains(state);
+  assert.equal("timetableId" in state.trains[0], false);
+  assert.equal("managementServiceId" in state.trains[0], false);
+
+  line.timetableDispatches = undefined;
+  line.lastDispatch = 0;
+  state.trains = [];
+  state.simMinutes = 2;
+  dispatchTrains(state);
+  assert.equal("timetableId" in state.trains[0], false);
+  assert.equal("managementServiceId" in state.trains[0], false);
 });
 
 test("suspension consumes missed timetable paths instead of backfilling them on resume", () => {
