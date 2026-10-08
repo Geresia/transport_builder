@@ -1,0 +1,633 @@
+{
+  "schema": "transitline.service-plan-geometry/1",
+  "contractVersion": 1,
+  "servicePlanId": "service-plan:9d6e169bd88b1259",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "key": "example:radial:service-midway-turnback",
+  "name": "Full line plus peak trains that turn back at the third station",
+  "railGeometryId": "rail-geometry:b7a0eb99dfb49cef",
+  "railGeometryRevision": "rail-geometry-revision:3403ad89a5fdc0cb",
+  "revision": {
+    "state": "current",
+    "designedRailGeometryRevision": "rail-geometry-revision:3403ad89a5fdc0cb",
+    "currentRailGeometryRevision": "rail-geometry-revision:3403ad89a5fdc0cb"
+  },
+  "operationalLineId": "line:1",
+  "capacityApplicationId": null,
+  "capacityApplicationRevision": null,
+  "capacityApplicationState": null,
+  "active": true,
+  "planKind": "regular",
+  "playerInputs": {
+    "planKind": "regular",
+    "operatingPattern": "short-turn",
+    "operationalLineId": "line:1",
+    "assumptions": [],
+    "depotRefs": null,
+    "basis": "player"
+  },
+  "route": {
+    "sectionIds": [
+      "rail-section:a313651c76603b96",
+      "rail-section:0f9605c63320a140",
+      "rail-section:aeac86fb60845a0d"
+    ],
+    "playerFromStationId": null,
+    "playerToStationId": null,
+    "fromStationId": "stn:cbcf9940f43b2516",
+    "toStationId": "stn:12eab25d4b99dd0f",
+    "stationIds": [
+      "stn:cbcf9940f43b2516",
+      "stn:350dbe3a0551f15c",
+      "stn:1c7dc899c704388b",
+      "stn:12eab25d4b99dd0f"
+    ],
+    "sections": [
+      {
+        "order": 1,
+        "sectionId": "rail-section:a313651c76603b96",
+        "enterStationId": "stn:cbcf9940f43b2516",
+        "exitStationId": "stn:350dbe3a0551f15c",
+        "traversal": "forward",
+        "trackSegmentId": null,
+        "unknown": [
+          "trackSegmentId"
+        ],
+        "unknownReasons": {
+          "trackSegmentId": "capacity-application-not-supplied"
+        }
+      },
+      {
+        "order": 2,
+        "sectionId": "rail-section:0f9605c63320a140",
+        "enterStationId": "stn:350dbe3a0551f15c",
+        "exitStationId": "stn:1c7dc899c704388b",
+        "traversal": "forward",
+        "trackSegmentId": null,
+        "unknown": [
+          "trackSegmentId"
+        ],
+        "unknownReasons": {
+          "trackSegmentId": "capacity-application-not-supplied"
+        }
+      },
+      {
+        "order": 3,
+        "sectionId": "rail-section:aeac86fb60845a0d",
+        "enterStationId": "stn:1c7dc899c704388b",
+        "exitStationId": "stn:12eab25d4b99dd0f",
+        "traversal": "forward",
+        "trackSegmentId": null,
+        "unknown": [
+          "trackSegmentId"
+        ],
+        "unknownReasons": {
+          "trackSegmentId": "capacity-application-not-supplied"
+        }
+      }
+    ],
+    "links": [
+      {
+        "fromSectionId": "rail-section:a313651c76603b96",
+        "toSectionId": "rail-section:0f9605c63320a140",
+        "viaStationId": "stn:350dbe3a0551f15c",
+        "sharedStation": true,
+        "physicalJoin": true,
+        "unknown": [],
+        "unknownReasons": {}
+      },
+      {
+        "fromSectionId": "rail-section:0f9605c63320a140",
+        "toSectionId": "rail-section:aeac86fb60845a0d",
+        "viaStationId": "stn:1c7dc899c704388b",
+        "sharedStation": true,
+        "physicalJoin": true,
+        "unknown": [],
+        "unknownReasons": {}
+      }
+    ],
+    "stationsShared": true,
+    "physicallyJoined": true,
+    "includesExternal": false,
+    "externalSectionIds": [],
+    "coversWholeGeometry": true,
+    "omittedSectionIds": [],
+    "missingSectionIds": [],
+    "unknown": [],
+    "unknownReasons": {}
+  },
+  "directions": [
+    {
+      "directionId": "service-direction:a2f2f92edf1d53a8",
+      "key": "direction-4",
+      "label": "Short inbound",
+      "fromStationId": "stn:1c7dc899c704388b",
+      "toStationId": "stn:cbcf9940f43b2516",
+      "orderedSectionIds": [
+        "rail-section:0f9605c63320a140",
+        "rail-section:a313651c76603b96"
+      ],
+      "orderedStationIds": [
+        "stn:1c7dc899c704388b",
+        "stn:350dbe3a0551f15c",
+        "stn:cbcf9940f43b2516"
+      ],
+      "physicalConnection": true,
+      "reversalTurnbackIds": [],
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "directionId": "service-direction:a4f2fc54e51d5d1a",
+      "key": "direction-2",
+      "label": "Inbound",
+      "fromStationId": "stn:12eab25d4b99dd0f",
+      "toStationId": "stn:cbcf9940f43b2516",
+      "orderedSectionIds": [
+        "rail-section:aeac86fb60845a0d",
+        "rail-section:0f9605c63320a140",
+        "rail-section:a313651c76603b96"
+      ],
+      "orderedStationIds": [
+        "stn:12eab25d4b99dd0f",
+        "stn:1c7dc899c704388b",
+        "stn:350dbe3a0551f15c",
+        "stn:cbcf9940f43b2516"
+      ],
+      "physicalConnection": true,
+      "reversalTurnbackIds": [],
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "directionId": "service-direction:a5f2fde7e61d5ead",
+      "key": "direction-3",
+      "label": "Short outbound",
+      "fromStationId": "stn:cbcf9940f43b2516",
+      "toStationId": "stn:1c7dc899c704388b",
+      "orderedSectionIds": [
+        "rail-section:a313651c76603b96",
+        "rail-section:0f9605c63320a140"
+      ],
+      "orderedStationIds": [
+        "stn:cbcf9940f43b2516",
+        "stn:350dbe3a0551f15c",
+        "stn:1c7dc899c704388b"
+      ],
+      "physicalConnection": true,
+      "reversalTurnbackIds": [
+        "service-turnback:5c719248f33e5d92"
+      ],
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "directionId": "service-direction:a7f3010de41d5b87",
+      "key": "direction-1",
+      "label": "Outbound",
+      "fromStationId": "stn:cbcf9940f43b2516",
+      "toStationId": "stn:12eab25d4b99dd0f",
+      "orderedSectionIds": [
+        "rail-section:a313651c76603b96",
+        "rail-section:0f9605c63320a140",
+        "rail-section:aeac86fb60845a0d"
+      ],
+      "orderedStationIds": [
+        "stn:cbcf9940f43b2516",
+        "stn:350dbe3a0551f15c",
+        "stn:1c7dc899c704388b",
+        "stn:12eab25d4b99dd0f"
+      ],
+      "physicalConnection": true,
+      "reversalTurnbackIds": [],
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "serviceBands": [
+    {
+      "bandId": "service-band:81933fb7cfb305ad",
+      "key": "band-1",
+      "label": "Weekday peak",
+      "periodId": "weekday",
+      "startMinute": 420,
+      "endMinute": 540,
+      "directionKeys": [
+        "direction-1",
+        "direction-2"
+      ],
+      "operating": true,
+      "playerRequestedHeadwayMinutes": 6,
+      "playerRequestedTrainsets": 6,
+      "playerRequestedFormationCars": 8,
+      "basis": "player",
+      "note": null,
+      "unknown": [],
+      "unknownReasons": {}
+    },
+    {
+      "bandId": "service-band:8293414accb300f4",
+      "key": "band-2",
+      "label": "Peak, short working",
+      "periodId": "weekday",
+      "startMinute": 420,
+      "endMinute": 540,
+      "directionKeys": [
+        "direction-3",
+        "direction-4"
+      ],
+      "operating": true,
+      "playerRequestedHeadwayMinutes": 12,
+      "playerRequestedTrainsets": 2,
+      "playerRequestedFormationCars": 8,
+      "basis": "player",
+      "note": null,
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "terminals": [
+    {
+      "stationId": "stn:12eab25d4b99dd0f",
+      "roles": [
+        "route-end"
+      ],
+      "playerSelectedTerminalResourceIds": [],
+      "facilities": null,
+      "unknown": [
+        "facilities"
+      ],
+      "unknownReasons": {
+        "facilities": "no-terminal-data"
+      }
+    },
+    {
+      "stationId": "stn:1c7dc899c704388b",
+      "roles": [
+        "turnback"
+      ],
+      "playerSelectedTerminalResourceIds": [],
+      "facilities": null,
+      "unknown": [
+        "facilities"
+      ],
+      "unknownReasons": {
+        "facilities": "no-terminal-data"
+      }
+    },
+    {
+      "stationId": "stn:cbcf9940f43b2516",
+      "roles": [
+        "route-start"
+      ],
+      "playerSelectedTerminalResourceIds": [],
+      "facilities": null,
+      "unknown": [
+        "facilities"
+      ],
+      "unknownReasons": {
+        "facilities": "no-terminal-data"
+      }
+    }
+  ],
+  "turnbacks": [
+    {
+      "turnbackId": "service-turnback:5c719248f33e5d92",
+      "key": "turnback-1",
+      "stationId": "stn:1c7dc899c704388b",
+      "intent": "intermediate",
+      "playerSelected": true,
+      "terminalResourceId": null,
+      "turnbackCandidateId": null,
+      "onRoute": true,
+      "position": "middle",
+      "facilityFacts": {
+        "terminalResourceIdsAtStation": null,
+        "terminalResourceKnown": null,
+        "unknown": [
+          "terminalResourceIdsAtStation",
+          "terminalResourceKnown"
+        ],
+        "unknownReasons": {
+          "terminalResourceIdsAtStation": "no-terminal-data",
+          "terminalResourceKnown": "no-terminal-selected"
+        }
+      },
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "vehicleIntent": {
+    "vehicleModelId": null,
+    "requestedCars": null,
+    "requestedTrainsets": null,
+    "playerSelected": false,
+    "unknown": [
+      "requestedCars",
+      "requestedTrainsets",
+      "vehicleModelId"
+    ],
+    "unknownReasons": {
+      "requestedCars": "requestedCars-not-stated",
+      "requestedTrainsets": "requestedTrainsets-not-stated",
+      "vehicleModelId": "vehicleModelId-not-stated"
+    }
+  },
+  "spatialFacts": {
+    "sections": [
+      {
+        "sectionId": "rail-section:a313651c76603b96",
+        "sourceKind": "plan",
+        "planId": "plan:0ecd95b1d71018d3",
+        "externalLineId": null,
+        "fromStationId": "stn:cbcf9940f43b2516",
+        "toStationId": "stn:350dbe3a0551f15c",
+        "lengthMeters": 2223.9,
+        "minimumCurveRadiusMeters": 4746,
+        "groundGradientPermille": null,
+        "directionMode": "double",
+        "directionModeBasis": "player",
+        "blockIds": [
+          "rail-block:b2e9c7835aacdd7d"
+        ],
+        "junctionResourceIds": null,
+        "closureTarget": true,
+        "unknown": [
+          "groundGradientPermille",
+          "junctionResourceIds"
+        ],
+        "unknownReasons": {
+          "groundGradientPermille": "no-layer",
+          "junctionResourceIds": "no-junction-data"
+        }
+      },
+      {
+        "sectionId": "rail-section:0f9605c63320a140",
+        "sourceKind": "plan",
+        "planId": "plan:0ecd95b1d71018d3",
+        "externalLineId": null,
+        "fromStationId": "stn:350dbe3a0551f15c",
+        "toStationId": "stn:1c7dc899c704388b",
+        "lengthMeters": 2913.6,
+        "minimumCurveRadiusMeters": 4746,
+        "groundGradientPermille": null,
+        "directionMode": "double",
+        "directionModeBasis": "player",
+        "blockIds": [
+          "rail-block:832d9880c287a506"
+        ],
+        "junctionResourceIds": null,
+        "closureTarget": true,
+        "unknown": [
+          "groundGradientPermille",
+          "junctionResourceIds"
+        ],
+        "unknownReasons": {
+          "groundGradientPermille": "no-layer",
+          "junctionResourceIds": "no-junction-data"
+        }
+      },
+      {
+        "sectionId": "rail-section:aeac86fb60845a0d",
+        "sourceKind": "plan",
+        "planId": "plan:0ecd95b1d71018d3",
+        "externalLineId": null,
+        "fromStationId": "stn:1c7dc899c704388b",
+        "toStationId": "stn:12eab25d4b99dd0f",
+        "lengthMeters": 3737.2,
+        "minimumCurveRadiusMeters": 6898,
+        "groundGradientPermille": null,
+        "directionMode": "double",
+        "directionModeBasis": "player",
+        "blockIds": [
+          "rail-block:532f4d0c311ed332"
+        ],
+        "junctionResourceIds": null,
+        "closureTarget": true,
+        "unknown": [
+          "groundGradientPermille",
+          "junctionResourceIds"
+        ],
+        "unknownReasons": {
+          "groundGradientPermille": "no-layer",
+          "junctionResourceIds": "no-junction-data"
+        }
+      }
+    ],
+    "spatialFlags": [
+      "terminal-data-missing"
+    ],
+    "dataQuality": "low"
+  },
+  "unknown": [
+    "capacityApplicationId",
+    "capacityApplicationRevision",
+    "route:section:rail-section:0f9605c63320a140:trackSegmentId",
+    "route:section:rail-section:a313651c76603b96:trackSegmentId",
+    "route:section:rail-section:aeac86fb60845a0d:trackSegmentId",
+    "section:rail-section:0f9605c63320a140:groundGradientPermille",
+    "section:rail-section:0f9605c63320a140:junctionResourceIds",
+    "section:rail-section:a313651c76603b96:groundGradientPermille",
+    "section:rail-section:a313651c76603b96:junctionResourceIds",
+    "section:rail-section:aeac86fb60845a0d:groundGradientPermille",
+    "section:rail-section:aeac86fb60845a0d:junctionResourceIds",
+    "terminal:stn:12eab25d4b99dd0f:facilities",
+    "terminal:stn:1c7dc899c704388b:facilities",
+    "terminal:stn:cbcf9940f43b2516:facilities",
+    "turnback:service-turnback:5c719248f33e5d92:facility:terminalResourceIdsAtStation",
+    "turnback:service-turnback:5c719248f33e5d92:facility:terminalResourceKnown",
+    "vehicleIntent:requestedCars",
+    "vehicleIntent:requestedTrainsets",
+    "vehicleIntent:vehicleModelId"
+  ],
+  "unknownReasons": {
+    "capacityApplicationId": "capacity-application-not-supplied",
+    "capacityApplicationRevision": "capacity-application-not-supplied",
+    "route:section:rail-section:0f9605c63320a140:trackSegmentId": "capacity-application-not-supplied",
+    "route:section:rail-section:a313651c76603b96:trackSegmentId": "capacity-application-not-supplied",
+    "route:section:rail-section:aeac86fb60845a0d:trackSegmentId": "capacity-application-not-supplied",
+    "section:rail-section:0f9605c63320a140:groundGradientPermille": "no-layer",
+    "section:rail-section:0f9605c63320a140:junctionResourceIds": "no-junction-data",
+    "section:rail-section:a313651c76603b96:groundGradientPermille": "no-layer",
+    "section:rail-section:a313651c76603b96:junctionResourceIds": "no-junction-data",
+    "section:rail-section:aeac86fb60845a0d:groundGradientPermille": "no-layer",
+    "section:rail-section:aeac86fb60845a0d:junctionResourceIds": "no-junction-data",
+    "terminal:stn:12eab25d4b99dd0f:facilities": "no-terminal-data",
+    "terminal:stn:1c7dc899c704388b:facilities": "no-terminal-data",
+    "terminal:stn:cbcf9940f43b2516:facilities": "no-terminal-data",
+    "turnback:service-turnback:5c719248f33e5d92:facility:terminalResourceIdsAtStation": "no-terminal-data",
+    "turnback:service-turnback:5c719248f33e5d92:facility:terminalResourceKnown": "no-terminal-selected",
+    "vehicleIntent:requestedCars": "requestedCars-not-stated",
+    "vehicleIntent:requestedTrainsets": "requestedTrainsets-not-stated",
+    "vehicleIntent:vehicleModelId": "vehicleModelId-not-stated"
+  },
+  "servicePlanRevision": "service-plan-revision:850fa238407a7ff6",
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "rail-capacity-geometry",
+      "quality": "low",
+      "name": "RailCapacityGeometry rail-geometry:b7a0eb99dfb49cef",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "midway-turnback-no-facility-data"
+    ],
+    "synthetic": true,
+    "note": "Synthetic: the service plan is what a player might write with the editor, the track facts (track count, block boundaries, terminals) and the operational line application are written by hand for this example in the shape of transitline.rail-capacity-geometry/1 and transitline.rail-capacity-application/1. The plans are real plan examples of this pack. A requested headway, trainset count or car count says what the player asked for, not that it can be run.",
+    "existingRail": false,
+    "input": {
+      "drawnGeometry": {
+        "key": "example:radial:geometry-no-terminals",
+        "name": "Spoke with no terminal data stated",
+        "planIds": [
+          "plan:0ecd95b1d71018d3"
+        ],
+        "designedRevisions": {
+          "plans": {
+            "plan:0ecd95b1d71018d3": "plan-revision:a1748c9a1569ac0c"
+          },
+          "routes": {}
+        },
+        "sectionFacts": [
+          {
+            "ref": {
+              "planId": "plan:0ecd95b1d71018d3",
+              "segmentId": "seg:3dfc854cd7a7747a"
+            },
+            "basis": "player",
+            "directionMode": "double"
+          },
+          {
+            "ref": {
+              "planId": "plan:0ecd95b1d71018d3",
+              "segmentId": "seg:9756d646c00e7a0c"
+            },
+            "basis": "player",
+            "directionMode": "double"
+          },
+          {
+            "ref": {
+              "planId": "plan:0ecd95b1d71018d3",
+              "segmentId": "seg:093a835d10ac7a0b"
+            },
+            "basis": "player",
+            "directionMode": "double"
+          }
+        ],
+        "blockBoundaries": []
+      },
+      "application": null,
+      "savedDocument": {
+        "version": 1,
+        "packId": "example-radial",
+        "packVersion": "0.1.0",
+        "plans": [
+          {
+            "key": "example:radial:service-midway-turnback",
+            "name": "Full line plus peak trains that turn back at the third station",
+            "active": true,
+            "deleted": false,
+            "planKind": "regular",
+            "operatingPattern": "short-turn",
+            "operationalLineId": "line:1",
+            "railGeometryId": "rail-geometry:b7a0eb99dfb49cef",
+            "designedRailGeometryRevision": "rail-geometry-revision:3403ad89a5fdc0cb",
+            "route": {
+              "sectionIds": [
+                "rail-section:a313651c76603b96",
+                "rail-section:0f9605c63320a140",
+                "rail-section:aeac86fb60845a0d"
+              ],
+              "fromStationId": null,
+              "toStationId": null
+            },
+            "directions": [
+              {
+                "label": "Outbound",
+                "fromStationId": "stn:cbcf9940f43b2516",
+                "toStationId": "stn:12eab25d4b99dd0f",
+                "key": "direction-1"
+              },
+              {
+                "label": "Inbound",
+                "fromStationId": "stn:12eab25d4b99dd0f",
+                "toStationId": "stn:cbcf9940f43b2516",
+                "key": "direction-2"
+              },
+              {
+                "label": "Short outbound",
+                "fromStationId": "stn:cbcf9940f43b2516",
+                "toStationId": "stn:1c7dc899c704388b",
+                "key": "direction-3"
+              },
+              {
+                "label": "Short inbound",
+                "fromStationId": "stn:1c7dc899c704388b",
+                "toStationId": "stn:cbcf9940f43b2516",
+                "key": "direction-4"
+              }
+            ],
+            "serviceBands": [
+              {
+                "label": "Weekday peak",
+                "startMinute": 420,
+                "endMinute": 540,
+                "periodId": "weekday",
+                "directionKeys": [
+                  "direction-1",
+                  "direction-2"
+                ],
+                "headwayMinutes": 6,
+                "trainsets": 6,
+                "formationCars": 8,
+                "key": "band-1"
+              },
+              {
+                "label": "Peak, short working",
+                "startMinute": 420,
+                "endMinute": 540,
+                "periodId": "weekday",
+                "directionKeys": [
+                  "direction-3",
+                  "direction-4"
+                ],
+                "headwayMinutes": 12,
+                "trainsets": 2,
+                "formationCars": 8,
+                "key": "band-2"
+              }
+            ],
+            "turnbacks": [
+              {
+                "stationId": "stn:1c7dc899c704388b",
+                "intent": "intermediate",
+                "key": "turnback-1"
+              }
+            ],
+            "depotRefs": null,
+            "assumptions": [],
+            "vehicleIntent": {
+              "vehicleModelId": null,
+              "requestedCars": null,
+              "requestedTrainsets": null
+            },
+            "seq": {
+              "direction": 4,
+              "band": 2,
+              "turnback": 1
+            }
+          }
+        ]
+      }
+    },
+    "generatedBy": "scripts/build-service-plan-examples.mjs"
+  }
+}

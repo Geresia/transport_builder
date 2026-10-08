@@ -1,0 +1,508 @@
+{
+  "schema": "transitline.service-plan-geometry/1",
+  "contractVersion": 1,
+  "servicePlanId": "service-plan:26cde38d2bbc76bf",
+  "sourcePackId": "example-corridor",
+  "sourcePackVersion": "0.1.0",
+  "key": "example:corridor:service-single-track",
+  "name": "Trunk run in both directions over a single-track middle section",
+  "railGeometryId": "rail-geometry:5a3378043647cffa",
+  "railGeometryRevision": "rail-geometry-revision:edb52fd43325c1c2",
+  "revision": {
+    "state": "current",
+    "designedRailGeometryRevision": "rail-geometry-revision:edb52fd43325c1c2",
+    "currentRailGeometryRevision": "rail-geometry-revision:edb52fd43325c1c2"
+  },
+  "operationalLineId": null,
+  "capacityApplicationId": null,
+  "capacityApplicationRevision": null,
+  "capacityApplicationState": null,
+  "active": true,
+  "planKind": "regular",
+  "playerInputs": {
+    "planKind": "regular",
+    "operatingPattern": "full",
+    "operationalLineId": null,
+    "assumptions": [],
+    "depotRefs": null,
+    "basis": "player"
+  },
+  "route": {
+    "sectionIds": [
+      "rail-section:239952a4382d2e9a",
+      "rail-section:62cd366bf315c935",
+      "rail-section:149cbaf3b7e348d9"
+    ],
+    "playerFromStationId": null,
+    "playerToStationId": null,
+    "fromStationId": "stn:8442bc4fe5e68e95",
+    "toStationId": "stn:da06a0704e508dea",
+    "stationIds": [
+      "stn:8442bc4fe5e68e95",
+      "stn:76a46fe9f1760313",
+      "stn:681d3c2bc9c10e71",
+      "stn:da06a0704e508dea"
+    ],
+    "sections": [
+      {
+        "order": 1,
+        "sectionId": "rail-section:239952a4382d2e9a",
+        "enterStationId": "stn:8442bc4fe5e68e95",
+        "exitStationId": "stn:76a46fe9f1760313",
+        "traversal": "forward",
+        "trackSegmentId": null,
+        "unknown": [
+          "trackSegmentId"
+        ],
+        "unknownReasons": {
+          "trackSegmentId": "operational-line-not-stated"
+        }
+      },
+      {
+        "order": 2,
+        "sectionId": "rail-section:62cd366bf315c935",
+        "enterStationId": "stn:76a46fe9f1760313",
+        "exitStationId": "stn:681d3c2bc9c10e71",
+        "traversal": "forward",
+        "trackSegmentId": null,
+        "unknown": [
+          "trackSegmentId"
+        ],
+        "unknownReasons": {
+          "trackSegmentId": "operational-line-not-stated"
+        }
+      },
+      {
+        "order": 3,
+        "sectionId": "rail-section:149cbaf3b7e348d9",
+        "enterStationId": "stn:681d3c2bc9c10e71",
+        "exitStationId": "stn:da06a0704e508dea",
+        "traversal": "forward",
+        "trackSegmentId": null,
+        "unknown": [
+          "trackSegmentId"
+        ],
+        "unknownReasons": {
+          "trackSegmentId": "operational-line-not-stated"
+        }
+      }
+    ],
+    "links": [
+      {
+        "fromSectionId": "rail-section:239952a4382d2e9a",
+        "toSectionId": "rail-section:62cd366bf315c935",
+        "viaStationId": "stn:76a46fe9f1760313",
+        "sharedStation": true,
+        "physicalJoin": true,
+        "unknown": [],
+        "unknownReasons": {}
+      },
+      {
+        "fromSectionId": "rail-section:62cd366bf315c935",
+        "toSectionId": "rail-section:149cbaf3b7e348d9",
+        "viaStationId": "stn:681d3c2bc9c10e71",
+        "sharedStation": true,
+        "physicalJoin": true,
+        "unknown": [],
+        "unknownReasons": {}
+      }
+    ],
+    "stationsShared": true,
+    "physicallyJoined": true,
+    "includesExternal": false,
+    "externalSectionIds": [],
+    "coversWholeGeometry": true,
+    "omittedSectionIds": [],
+    "missingSectionIds": [],
+    "unknown": [],
+    "unknownReasons": {}
+  },
+  "directions": [
+    {
+      "directionId": "service-direction:1609677fcce8942d",
+      "key": "direction-1",
+      "label": "Eastbound",
+      "fromStationId": "stn:8442bc4fe5e68e95",
+      "toStationId": "stn:da06a0704e508dea",
+      "orderedSectionIds": [
+        "rail-section:239952a4382d2e9a",
+        "rail-section:62cd366bf315c935",
+        "rail-section:149cbaf3b7e348d9"
+      ],
+      "orderedStationIds": [
+        "stn:8442bc4fe5e68e95",
+        "stn:76a46fe9f1760313",
+        "stn:681d3c2bc9c10e71",
+        "stn:da06a0704e508dea"
+      ],
+      "physicalConnection": true,
+      "reversalTurnbackIds": null,
+      "unknown": [
+        "reversalTurnbackIds"
+      ],
+      "unknownReasons": {
+        "reversalTurnbackIds": "turnbacks-not-stated"
+      }
+    },
+    {
+      "directionId": "service-direction:17096912c9e88f74",
+      "key": "direction-2",
+      "label": "Westbound",
+      "fromStationId": "stn:da06a0704e508dea",
+      "toStationId": "stn:8442bc4fe5e68e95",
+      "orderedSectionIds": [
+        "rail-section:149cbaf3b7e348d9",
+        "rail-section:62cd366bf315c935",
+        "rail-section:239952a4382d2e9a"
+      ],
+      "orderedStationIds": [
+        "stn:da06a0704e508dea",
+        "stn:681d3c2bc9c10e71",
+        "stn:76a46fe9f1760313",
+        "stn:8442bc4fe5e68e95"
+      ],
+      "physicalConnection": true,
+      "reversalTurnbackIds": null,
+      "unknown": [
+        "reversalTurnbackIds"
+      ],
+      "unknownReasons": {
+        "reversalTurnbackIds": "turnbacks-not-stated"
+      }
+    }
+  ],
+  "serviceBands": [
+    {
+      "bandId": "service-band:a42eb4c56a015c57",
+      "key": "band-1",
+      "label": "Weekday daytime",
+      "periodId": "weekday",
+      "startMinute": 540,
+      "endMinute": 1020,
+      "directionKeys": [
+        "direction-1",
+        "direction-2"
+      ],
+      "operating": true,
+      "playerRequestedHeadwayMinutes": 15,
+      "playerRequestedTrainsets": 3,
+      "playerRequestedFormationCars": 4,
+      "basis": "player",
+      "note": null,
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "terminals": [
+    {
+      "stationId": "stn:8442bc4fe5e68e95",
+      "roles": [
+        "route-start"
+      ],
+      "playerSelectedTerminalResourceIds": [],
+      "facilities": null,
+      "unknown": [
+        "facilities"
+      ],
+      "unknownReasons": {
+        "facilities": "no-terminal-data"
+      }
+    },
+    {
+      "stationId": "stn:da06a0704e508dea",
+      "roles": [
+        "route-end"
+      ],
+      "playerSelectedTerminalResourceIds": [],
+      "facilities": null,
+      "unknown": [
+        "facilities"
+      ],
+      "unknownReasons": {
+        "facilities": "no-terminal-data"
+      }
+    }
+  ],
+  "turnbacks": null,
+  "vehicleIntent": {
+    "vehicleModelId": null,
+    "requestedCars": null,
+    "requestedTrainsets": null,
+    "playerSelected": false,
+    "unknown": [
+      "requestedCars",
+      "requestedTrainsets",
+      "vehicleModelId"
+    ],
+    "unknownReasons": {
+      "requestedCars": "requestedCars-not-stated",
+      "requestedTrainsets": "requestedTrainsets-not-stated",
+      "vehicleModelId": "vehicleModelId-not-stated"
+    }
+  },
+  "spatialFacts": {
+    "sections": [
+      {
+        "sectionId": "rail-section:239952a4382d2e9a",
+        "sourceKind": "plan",
+        "planId": "plan:6c4c613145a2a1b3",
+        "externalLineId": null,
+        "fromStationId": "stn:8442bc4fe5e68e95",
+        "toStationId": "stn:76a46fe9f1760313",
+        "lengthMeters": 2223.9,
+        "minimumCurveRadiusMeters": 100000,
+        "groundGradientPermille": null,
+        "directionMode": null,
+        "directionModeBasis": null,
+        "blockIds": null,
+        "junctionResourceIds": null,
+        "closureTarget": true,
+        "unknown": [
+          "blockIds",
+          "directionMode",
+          "groundGradientPermille",
+          "junctionResourceIds"
+        ],
+        "unknownReasons": {
+          "blockIds": "no-block-data",
+          "directionMode": "track-count-not-stated",
+          "groundGradientPermille": "no-layer",
+          "junctionResourceIds": "no-junction-data"
+        }
+      },
+      {
+        "sectionId": "rail-section:62cd366bf315c935",
+        "sourceKind": "plan",
+        "planId": "plan:6c4c613145a2a1b3",
+        "externalLineId": null,
+        "fromStationId": "stn:76a46fe9f1760313",
+        "toStationId": "stn:681d3c2bc9c10e71",
+        "lengthMeters": 2223.9,
+        "minimumCurveRadiusMeters": 100000,
+        "groundGradientPermille": null,
+        "directionMode": "single",
+        "directionModeBasis": "player",
+        "blockIds": null,
+        "junctionResourceIds": null,
+        "closureTarget": true,
+        "unknown": [
+          "blockIds",
+          "groundGradientPermille",
+          "junctionResourceIds"
+        ],
+        "unknownReasons": {
+          "blockIds": "no-block-data",
+          "groundGradientPermille": "no-layer",
+          "junctionResourceIds": "no-junction-data"
+        }
+      },
+      {
+        "sectionId": "rail-section:149cbaf3b7e348d9",
+        "sourceKind": "plan",
+        "planId": "plan:6c4c613145a2a1b3",
+        "externalLineId": null,
+        "fromStationId": "stn:681d3c2bc9c10e71",
+        "toStationId": "stn:da06a0704e508dea",
+        "lengthMeters": 2223.9,
+        "minimumCurveRadiusMeters": 100000,
+        "groundGradientPermille": null,
+        "directionMode": null,
+        "directionModeBasis": null,
+        "blockIds": null,
+        "junctionResourceIds": null,
+        "closureTarget": true,
+        "unknown": [
+          "blockIds",
+          "directionMode",
+          "groundGradientPermille",
+          "junctionResourceIds"
+        ],
+        "unknownReasons": {
+          "blockIds": "no-block-data",
+          "directionMode": "track-count-not-stated",
+          "groundGradientPermille": "no-layer",
+          "junctionResourceIds": "no-junction-data"
+        }
+      }
+    ],
+    "spatialFlags": [
+      "block-data-missing",
+      "single-track-section-on-route",
+      "terminal-data-missing",
+      "track-count-unknown"
+    ],
+    "dataQuality": "low"
+  },
+  "unknown": [
+    "capacityApplicationId",
+    "capacityApplicationRevision",
+    "direction:service-direction:1609677fcce8942d:reversalTurnbackIds",
+    "direction:service-direction:17096912c9e88f74:reversalTurnbackIds",
+    "operationalLineId",
+    "route:section:rail-section:149cbaf3b7e348d9:trackSegmentId",
+    "route:section:rail-section:239952a4382d2e9a:trackSegmentId",
+    "route:section:rail-section:62cd366bf315c935:trackSegmentId",
+    "section:rail-section:149cbaf3b7e348d9:blockIds",
+    "section:rail-section:149cbaf3b7e348d9:directionMode",
+    "section:rail-section:149cbaf3b7e348d9:groundGradientPermille",
+    "section:rail-section:149cbaf3b7e348d9:junctionResourceIds",
+    "section:rail-section:239952a4382d2e9a:blockIds",
+    "section:rail-section:239952a4382d2e9a:directionMode",
+    "section:rail-section:239952a4382d2e9a:groundGradientPermille",
+    "section:rail-section:239952a4382d2e9a:junctionResourceIds",
+    "section:rail-section:62cd366bf315c935:blockIds",
+    "section:rail-section:62cd366bf315c935:groundGradientPermille",
+    "section:rail-section:62cd366bf315c935:junctionResourceIds",
+    "terminal:stn:8442bc4fe5e68e95:facilities",
+    "terminal:stn:da06a0704e508dea:facilities",
+    "turnbacks",
+    "vehicleIntent:requestedCars",
+    "vehicleIntent:requestedTrainsets",
+    "vehicleIntent:vehicleModelId"
+  ],
+  "unknownReasons": {
+    "capacityApplicationId": "operational-line-not-stated",
+    "capacityApplicationRevision": "operational-line-not-stated",
+    "direction:service-direction:1609677fcce8942d:reversalTurnbackIds": "turnbacks-not-stated",
+    "direction:service-direction:17096912c9e88f74:reversalTurnbackIds": "turnbacks-not-stated",
+    "operationalLineId": "operational-line-not-stated",
+    "route:section:rail-section:149cbaf3b7e348d9:trackSegmentId": "operational-line-not-stated",
+    "route:section:rail-section:239952a4382d2e9a:trackSegmentId": "operational-line-not-stated",
+    "route:section:rail-section:62cd366bf315c935:trackSegmentId": "operational-line-not-stated",
+    "section:rail-section:149cbaf3b7e348d9:blockIds": "no-block-data",
+    "section:rail-section:149cbaf3b7e348d9:directionMode": "track-count-not-stated",
+    "section:rail-section:149cbaf3b7e348d9:groundGradientPermille": "no-layer",
+    "section:rail-section:149cbaf3b7e348d9:junctionResourceIds": "no-junction-data",
+    "section:rail-section:239952a4382d2e9a:blockIds": "no-block-data",
+    "section:rail-section:239952a4382d2e9a:directionMode": "track-count-not-stated",
+    "section:rail-section:239952a4382d2e9a:groundGradientPermille": "no-layer",
+    "section:rail-section:239952a4382d2e9a:junctionResourceIds": "no-junction-data",
+    "section:rail-section:62cd366bf315c935:blockIds": "no-block-data",
+    "section:rail-section:62cd366bf315c935:groundGradientPermille": "no-layer",
+    "section:rail-section:62cd366bf315c935:junctionResourceIds": "no-junction-data",
+    "terminal:stn:8442bc4fe5e68e95:facilities": "no-terminal-data",
+    "terminal:stn:da06a0704e508dea:facilities": "no-terminal-data",
+    "turnbacks": "turnbacks-not-stated",
+    "vehicleIntent:requestedCars": "requestedCars-not-stated",
+    "vehicleIntent:requestedTrainsets": "requestedTrainsets-not-stated",
+    "vehicleIntent:vehicleModelId": "vehicleModelId-not-stated"
+  },
+  "servicePlanRevision": "service-plan-revision:2e4d3924d3b36b8a",
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "rail-capacity-geometry",
+      "quality": "low",
+      "name": "RailCapacityGeometry rail-geometry:5a3378043647cffa",
+      "license": "CC0-1.0"
+    }
+  ],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "source": {
+    "case": [
+      "single-track-meeting-unknown"
+    ],
+    "synthetic": true,
+    "note": "Synthetic: the service plan is what a player might write with the editor, the track facts (track count, block boundaries, terminals) and the operational line application are written by hand for this example in the shape of transitline.rail-capacity-geometry/1 and transitline.rail-capacity-application/1. The plans are real plan examples of this pack. A requested headway, trainset count or car count says what the player asked for, not that it can be run.",
+    "existingRail": false,
+    "input": {
+      "drawnGeometry": {
+        "key": "example:corridor:geometry-single",
+        "name": "Trunk, only the middle section stated as single track, no block data",
+        "planIds": [
+          "plan:6c4c613145a2a1b3"
+        ],
+        "designedRevisions": {
+          "plans": {
+            "plan:6c4c613145a2a1b3": "plan-revision:ae03542921cfc9d7"
+          },
+          "routes": {}
+        },
+        "sectionFacts": [
+          {
+            "ref": {
+              "planId": "plan:6c4c613145a2a1b3",
+              "segmentId": "seg:eb4da0e7656e2861"
+            },
+            "basis": "player",
+            "directionMode": "single"
+          }
+        ]
+      },
+      "application": null,
+      "savedDocument": {
+        "version": 1,
+        "packId": "example-corridor",
+        "packVersion": "0.1.0",
+        "plans": [
+          {
+            "key": "example:corridor:service-single-track",
+            "name": "Trunk run in both directions over a single-track middle section",
+            "active": true,
+            "deleted": false,
+            "planKind": "regular",
+            "operatingPattern": "full",
+            "operationalLineId": null,
+            "railGeometryId": "rail-geometry:5a3378043647cffa",
+            "designedRailGeometryRevision": "rail-geometry-revision:edb52fd43325c1c2",
+            "route": {
+              "sectionIds": [
+                "rail-section:239952a4382d2e9a",
+                "rail-section:62cd366bf315c935",
+                "rail-section:149cbaf3b7e348d9"
+              ],
+              "fromStationId": null,
+              "toStationId": null
+            },
+            "directions": [
+              {
+                "label": "Eastbound",
+                "fromStationId": "stn:8442bc4fe5e68e95",
+                "toStationId": "stn:da06a0704e508dea",
+                "key": "direction-1"
+              },
+              {
+                "label": "Westbound",
+                "fromStationId": "stn:da06a0704e508dea",
+                "toStationId": "stn:8442bc4fe5e68e95",
+                "key": "direction-2"
+              }
+            ],
+            "serviceBands": [
+              {
+                "label": "Weekday daytime",
+                "startMinute": 540,
+                "endMinute": 1020,
+                "periodId": "weekday",
+                "headwayMinutes": 15,
+                "trainsets": 3,
+                "formationCars": 4,
+                "key": "band-1",
+                "directionKeys": [
+                  "direction-1",
+                  "direction-2"
+                ]
+              }
+            ],
+            "turnbacks": null,
+            "depotRefs": null,
+            "assumptions": [],
+            "vehicleIntent": {
+              "vehicleModelId": null,
+              "requestedCars": null,
+              "requestedTrainsets": null
+            },
+            "seq": {
+              "direction": 2,
+              "band": 1
+            }
+          }
+        ]
+      }
+    },
+    "generatedBy": "scripts/build-service-plan-examples.mjs"
+  }
+}

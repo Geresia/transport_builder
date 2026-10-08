@@ -1,0 +1,634 @@
+{
+  "schema": "transitline.service-plan-geometry/1",
+  "contractVersion": 1,
+  "servicePlanId": "service-plan:20e5c989812638c3",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "key": "example:tokyo:service-through",
+  "name": "Through service from the new crossing onto the existing line",
+  "railGeometryId": "rail-geometry:5705466a7a7ee6ec",
+  "railGeometryRevision": "rail-geometry-revision:b25c8c51cb3b29c7",
+  "revision": {
+    "state": "current",
+    "designedRailGeometryRevision": "rail-geometry-revision:b25c8c51cb3b29c7",
+    "currentRailGeometryRevision": "rail-geometry-revision:b25c8c51cb3b29c7"
+  },
+  "operationalLineId": null,
+  "capacityApplicationId": null,
+  "capacityApplicationRevision": null,
+  "capacityApplicationState": null,
+  "active": true,
+  "planKind": "regular",
+  "playerInputs": {
+    "planKind": "regular",
+    "operatingPattern": "full",
+    "operationalLineId": null,
+    "assumptions": [
+      {
+        "assumptionId": "service-assumption:9c59ad2ecae92ccc",
+        "key": "assumption-1",
+        "text": "The existing line's owner has agreed to the through service.",
+        "basis": "player"
+      }
+    ],
+    "depotRefs": null,
+    "basis": "player"
+  },
+  "route": {
+    "sectionIds": [
+      "rail-section:bb57584698dddd58",
+      "rail-section:fa8c8f768d1968a0",
+      "rail-section:23fa09287af988a6",
+      "rail-section:eae5c8fc4e19300e"
+    ],
+    "playerFromStationId": null,
+    "playerToStationId": null,
+    "fromStationId": null,
+    "toStationId": null,
+    "stationIds": null,
+    "sections": [
+      {
+        "order": 1,
+        "sectionId": "rail-section:bb57584698dddd58",
+        "enterStationId": null,
+        "exitStationId": null,
+        "traversal": null,
+        "trackSegmentId": null,
+        "unknown": [
+          "enterStationId",
+          "exitStationId",
+          "trackSegmentId",
+          "traversal"
+        ],
+        "unknownReasons": {
+          "enterStationId": "route-sections-share-no-station",
+          "exitStationId": "route-sections-share-no-station",
+          "trackSegmentId": "operational-line-not-stated",
+          "traversal": "route-sections-share-no-station"
+        }
+      },
+      {
+        "order": 2,
+        "sectionId": "rail-section:fa8c8f768d1968a0",
+        "enterStationId": null,
+        "exitStationId": null,
+        "traversal": null,
+        "trackSegmentId": null,
+        "unknown": [
+          "enterStationId",
+          "exitStationId",
+          "trackSegmentId",
+          "traversal"
+        ],
+        "unknownReasons": {
+          "enterStationId": "route-sections-share-no-station",
+          "exitStationId": "route-sections-share-no-station",
+          "trackSegmentId": "operational-line-not-stated",
+          "traversal": "route-sections-share-no-station"
+        }
+      },
+      {
+        "order": 3,
+        "sectionId": "rail-section:23fa09287af988a6",
+        "enterStationId": null,
+        "exitStationId": null,
+        "traversal": null,
+        "trackSegmentId": null,
+        "unknown": [
+          "enterStationId",
+          "exitStationId",
+          "trackSegmentId",
+          "traversal"
+        ],
+        "unknownReasons": {
+          "enterStationId": "route-sections-share-no-station",
+          "exitStationId": "route-sections-share-no-station",
+          "trackSegmentId": "operational-line-not-stated",
+          "traversal": "route-sections-share-no-station"
+        }
+      },
+      {
+        "order": 4,
+        "sectionId": "rail-section:eae5c8fc4e19300e",
+        "enterStationId": null,
+        "exitStationId": null,
+        "traversal": null,
+        "trackSegmentId": null,
+        "unknown": [
+          "enterStationId",
+          "exitStationId",
+          "trackSegmentId",
+          "traversal"
+        ],
+        "unknownReasons": {
+          "enterStationId": "route-sections-share-no-station",
+          "exitStationId": "route-sections-share-no-station",
+          "trackSegmentId": "operational-line-not-stated",
+          "traversal": "route-sections-share-no-station"
+        }
+      }
+    ],
+    "links": [
+      {
+        "fromSectionId": "rail-section:bb57584698dddd58",
+        "toSectionId": "rail-section:fa8c8f768d1968a0",
+        "viaStationId": "stn:b811921b26eaebbd",
+        "sharedStation": true,
+        "physicalJoin": true,
+        "unknown": [],
+        "unknownReasons": {}
+      },
+      {
+        "fromSectionId": "rail-section:fa8c8f768d1968a0",
+        "toSectionId": "rail-section:23fa09287af988a6",
+        "viaStationId": null,
+        "sharedStation": false,
+        "physicalJoin": null,
+        "unknown": [
+          "physicalJoin",
+          "viaStationId"
+        ],
+        "unknownReasons": {
+          "physicalJoin": "external-alignment-not-in-source",
+          "viaStationId": "sections-share-no-station"
+        }
+      },
+      {
+        "fromSectionId": "rail-section:23fa09287af988a6",
+        "toSectionId": "rail-section:eae5c8fc4e19300e",
+        "viaStationId": "ward-edogawa",
+        "sharedStation": true,
+        "physicalJoin": null,
+        "unknown": [
+          "physicalJoin"
+        ],
+        "unknownReasons": {
+          "physicalJoin": "external-alignment-not-in-source"
+        }
+      }
+    ],
+    "stationsShared": false,
+    "physicallyJoined": null,
+    "includesExternal": true,
+    "externalSectionIds": [
+      "rail-section:23fa09287af988a6",
+      "rail-section:eae5c8fc4e19300e"
+    ],
+    "coversWholeGeometry": false,
+    "omittedSectionIds": [
+      "rail-section:0f46a8b6981e27b8",
+      "rail-section:1046aa49991e294b",
+      "rail-section:785f3d5fced8b7e9",
+      "rail-section:860b30270966df91",
+      "rail-section:a74429b170434cdb"
+    ],
+    "missingSectionIds": [],
+    "unknown": [
+      "fromStationId",
+      "physicallyJoined",
+      "stationIds",
+      "toStationId"
+    ],
+    "unknownReasons": {
+      "fromStationId": "route-sections-share-no-station",
+      "physicallyJoined": "join-state-not-in-geometry",
+      "stationIds": "route-sections-share-no-station",
+      "toStationId": "route-sections-share-no-station"
+    }
+  },
+  "directions": [
+    {
+      "directionId": "service-direction:881e197fc8fc61b9",
+      "key": "direction-1",
+      "label": "Outbound",
+      "fromStationId": "stn:b00d2c67f5415425",
+      "toStationId": "ward-koto",
+      "orderedSectionIds": null,
+      "orderedStationIds": null,
+      "physicalConnection": null,
+      "reversalTurnbackIds": null,
+      "unknown": [
+        "orderedSectionIds",
+        "orderedStationIds",
+        "physicalConnection",
+        "reversalTurnbackIds"
+      ],
+      "unknownReasons": {
+        "orderedSectionIds": "route-sections-share-no-station",
+        "orderedStationIds": "route-sections-share-no-station",
+        "physicalConnection": "route-sections-share-no-station",
+        "reversalTurnbackIds": "turnbacks-not-stated"
+      }
+    }
+  ],
+  "serviceBands": [
+    {
+      "bandId": "service-band:4fee1ac5283b31f3",
+      "key": "band-1",
+      "label": "Weekday peak",
+      "periodId": "weekday",
+      "startMinute": 420,
+      "endMinute": 540,
+      "directionKeys": [
+        "direction-1"
+      ],
+      "operating": true,
+      "playerRequestedHeadwayMinutes": 8,
+      "playerRequestedTrainsets": 6,
+      "playerRequestedFormationCars": 10,
+      "basis": "player",
+      "note": null,
+      "unknown": [],
+      "unknownReasons": {}
+    }
+  ],
+  "terminals": [],
+  "turnbacks": null,
+  "vehicleIntent": {
+    "vehicleModelId": null,
+    "requestedCars": null,
+    "requestedTrainsets": null,
+    "playerSelected": false,
+    "unknown": [
+      "requestedCars",
+      "requestedTrainsets",
+      "vehicleModelId"
+    ],
+    "unknownReasons": {
+      "requestedCars": "requestedCars-not-stated",
+      "requestedTrainsets": "requestedTrainsets-not-stated",
+      "vehicleModelId": "vehicleModelId-not-stated"
+    }
+  },
+  "spatialFacts": {
+    "sections": [
+      {
+        "sectionId": "rail-section:bb57584698dddd58",
+        "sourceKind": "plan",
+        "planId": "plan:b9b153e3df14331d",
+        "externalLineId": null,
+        "fromStationId": "stn:b00d2c67f5415425",
+        "toStationId": "stn:b811921b26eaebbd",
+        "lengthMeters": 3419.3,
+        "minimumCurveRadiusMeters": 2047,
+        "groundGradientPermille": 0,
+        "directionMode": null,
+        "directionModeBasis": null,
+        "blockIds": null,
+        "junctionResourceIds": null,
+        "closureTarget": true,
+        "unknown": [
+          "blockIds",
+          "directionMode",
+          "junctionResourceIds"
+        ],
+        "unknownReasons": {
+          "blockIds": "no-block-data",
+          "directionMode": "track-count-not-stated",
+          "junctionResourceIds": "no-junction-data"
+        }
+      },
+      {
+        "sectionId": "rail-section:fa8c8f768d1968a0",
+        "sourceKind": "plan",
+        "planId": "plan:b9b153e3df14331d",
+        "externalLineId": null,
+        "fromStationId": "stn:b811921b26eaebbd",
+        "toStationId": "stn:c247c3f5a3f53c4b",
+        "lengthMeters": 5385.4,
+        "minimumCurveRadiusMeters": 2047,
+        "groundGradientPermille": 0,
+        "directionMode": "double",
+        "directionModeBasis": "player",
+        "blockIds": null,
+        "junctionResourceIds": null,
+        "closureTarget": true,
+        "unknown": [
+          "blockIds",
+          "junctionResourceIds"
+        ],
+        "unknownReasons": {
+          "blockIds": "no-block-data",
+          "junctionResourceIds": "no-junction-data"
+        }
+      },
+      {
+        "sectionId": "rail-section:23fa09287af988a6",
+        "sourceKind": "external",
+        "planId": null,
+        "externalLineId": "ext-line:443259",
+        "fromStationId": "kanto-12203",
+        "toStationId": "ward-edogawa",
+        "lengthMeters": null,
+        "minimumCurveRadiusMeters": null,
+        "groundGradientPermille": null,
+        "directionMode": null,
+        "directionModeBasis": null,
+        "blockIds": null,
+        "junctionResourceIds": null,
+        "closureTarget": true,
+        "unknown": [
+          "blockIds",
+          "directionMode",
+          "groundGradientPermille",
+          "junctionResourceIds",
+          "lengthMeters",
+          "minimumCurveRadiusMeters"
+        ],
+        "unknownReasons": {
+          "blockIds": "external-alignment-not-in-source",
+          "directionMode": "external-track-data-not-in-source",
+          "groundGradientPermille": "external-alignment-not-in-source",
+          "junctionResourceIds": "no-junction-data",
+          "lengthMeters": "external-alignment-not-in-source",
+          "minimumCurveRadiusMeters": "external-alignment-not-in-source"
+        }
+      },
+      {
+        "sectionId": "rail-section:eae5c8fc4e19300e",
+        "sourceKind": "external",
+        "planId": null,
+        "externalLineId": "ext-line:443259",
+        "fromStationId": "ward-edogawa",
+        "toStationId": "ward-koto",
+        "lengthMeters": null,
+        "minimumCurveRadiusMeters": null,
+        "groundGradientPermille": null,
+        "directionMode": null,
+        "directionModeBasis": null,
+        "blockIds": null,
+        "junctionResourceIds": null,
+        "closureTarget": true,
+        "unknown": [
+          "blockIds",
+          "directionMode",
+          "groundGradientPermille",
+          "junctionResourceIds",
+          "lengthMeters",
+          "minimumCurveRadiusMeters"
+        ],
+        "unknownReasons": {
+          "blockIds": "external-alignment-not-in-source",
+          "directionMode": "external-track-data-not-in-source",
+          "groundGradientPermille": "external-alignment-not-in-source",
+          "junctionResourceIds": "no-junction-data",
+          "lengthMeters": "external-alignment-not-in-source",
+          "minimumCurveRadiusMeters": "external-alignment-not-in-source"
+        }
+      }
+    ],
+    "spatialFlags": [
+      "block-data-missing",
+      "external-section-on-route",
+      "route-sections-share-no-station",
+      "terminal-data-missing",
+      "track-count-unknown"
+    ],
+    "dataQuality": "low"
+  },
+  "unknown": [
+    "capacityApplicationId",
+    "capacityApplicationRevision",
+    "direction:service-direction:881e197fc8fc61b9:orderedSectionIds",
+    "direction:service-direction:881e197fc8fc61b9:orderedStationIds",
+    "direction:service-direction:881e197fc8fc61b9:physicalConnection",
+    "direction:service-direction:881e197fc8fc61b9:reversalTurnbackIds",
+    "operationalLineId",
+    "route:fromStationId",
+    "route:link:rail-section:23fa09287af988a6:rail-section:eae5c8fc4e19300e:physicalJoin",
+    "route:link:rail-section:fa8c8f768d1968a0:rail-section:23fa09287af988a6:physicalJoin",
+    "route:link:rail-section:fa8c8f768d1968a0:rail-section:23fa09287af988a6:viaStationId",
+    "route:physicallyJoined",
+    "route:section:rail-section:23fa09287af988a6:enterStationId",
+    "route:section:rail-section:23fa09287af988a6:exitStationId",
+    "route:section:rail-section:23fa09287af988a6:trackSegmentId",
+    "route:section:rail-section:23fa09287af988a6:traversal",
+    "route:section:rail-section:bb57584698dddd58:enterStationId",
+    "route:section:rail-section:bb57584698dddd58:exitStationId",
+    "route:section:rail-section:bb57584698dddd58:trackSegmentId",
+    "route:section:rail-section:bb57584698dddd58:traversal",
+    "route:section:rail-section:eae5c8fc4e19300e:enterStationId",
+    "route:section:rail-section:eae5c8fc4e19300e:exitStationId",
+    "route:section:rail-section:eae5c8fc4e19300e:trackSegmentId",
+    "route:section:rail-section:eae5c8fc4e19300e:traversal",
+    "route:section:rail-section:fa8c8f768d1968a0:enterStationId",
+    "route:section:rail-section:fa8c8f768d1968a0:exitStationId",
+    "route:section:rail-section:fa8c8f768d1968a0:trackSegmentId",
+    "route:section:rail-section:fa8c8f768d1968a0:traversal",
+    "route:stationIds",
+    "route:toStationId",
+    "section:rail-section:23fa09287af988a6:blockIds",
+    "section:rail-section:23fa09287af988a6:directionMode",
+    "section:rail-section:23fa09287af988a6:groundGradientPermille",
+    "section:rail-section:23fa09287af988a6:junctionResourceIds",
+    "section:rail-section:23fa09287af988a6:lengthMeters",
+    "section:rail-section:23fa09287af988a6:minimumCurveRadiusMeters",
+    "section:rail-section:bb57584698dddd58:blockIds",
+    "section:rail-section:bb57584698dddd58:directionMode",
+    "section:rail-section:bb57584698dddd58:junctionResourceIds",
+    "section:rail-section:eae5c8fc4e19300e:blockIds",
+    "section:rail-section:eae5c8fc4e19300e:directionMode",
+    "section:rail-section:eae5c8fc4e19300e:groundGradientPermille",
+    "section:rail-section:eae5c8fc4e19300e:junctionResourceIds",
+    "section:rail-section:eae5c8fc4e19300e:lengthMeters",
+    "section:rail-section:eae5c8fc4e19300e:minimumCurveRadiusMeters",
+    "section:rail-section:fa8c8f768d1968a0:blockIds",
+    "section:rail-section:fa8c8f768d1968a0:junctionResourceIds",
+    "turnbacks",
+    "vehicleIntent:requestedCars",
+    "vehicleIntent:requestedTrainsets",
+    "vehicleIntent:vehicleModelId"
+  ],
+  "unknownReasons": {
+    "capacityApplicationId": "operational-line-not-stated",
+    "capacityApplicationRevision": "operational-line-not-stated",
+    "direction:service-direction:881e197fc8fc61b9:orderedSectionIds": "route-sections-share-no-station",
+    "direction:service-direction:881e197fc8fc61b9:orderedStationIds": "route-sections-share-no-station",
+    "direction:service-direction:881e197fc8fc61b9:physicalConnection": "route-sections-share-no-station",
+    "direction:service-direction:881e197fc8fc61b9:reversalTurnbackIds": "turnbacks-not-stated",
+    "operationalLineId": "operational-line-not-stated",
+    "route:fromStationId": "route-sections-share-no-station",
+    "route:link:rail-section:23fa09287af988a6:rail-section:eae5c8fc4e19300e:physicalJoin": "external-alignment-not-in-source",
+    "route:link:rail-section:fa8c8f768d1968a0:rail-section:23fa09287af988a6:physicalJoin": "external-alignment-not-in-source",
+    "route:link:rail-section:fa8c8f768d1968a0:rail-section:23fa09287af988a6:viaStationId": "sections-share-no-station",
+    "route:physicallyJoined": "join-state-not-in-geometry",
+    "route:section:rail-section:23fa09287af988a6:enterStationId": "route-sections-share-no-station",
+    "route:section:rail-section:23fa09287af988a6:exitStationId": "route-sections-share-no-station",
+    "route:section:rail-section:23fa09287af988a6:trackSegmentId": "operational-line-not-stated",
+    "route:section:rail-section:23fa09287af988a6:traversal": "route-sections-share-no-station",
+    "route:section:rail-section:bb57584698dddd58:enterStationId": "route-sections-share-no-station",
+    "route:section:rail-section:bb57584698dddd58:exitStationId": "route-sections-share-no-station",
+    "route:section:rail-section:bb57584698dddd58:trackSegmentId": "operational-line-not-stated",
+    "route:section:rail-section:bb57584698dddd58:traversal": "route-sections-share-no-station",
+    "route:section:rail-section:eae5c8fc4e19300e:enterStationId": "route-sections-share-no-station",
+    "route:section:rail-section:eae5c8fc4e19300e:exitStationId": "route-sections-share-no-station",
+    "route:section:rail-section:eae5c8fc4e19300e:trackSegmentId": "operational-line-not-stated",
+    "route:section:rail-section:eae5c8fc4e19300e:traversal": "route-sections-share-no-station",
+    "route:section:rail-section:fa8c8f768d1968a0:enterStationId": "route-sections-share-no-station",
+    "route:section:rail-section:fa8c8f768d1968a0:exitStationId": "route-sections-share-no-station",
+    "route:section:rail-section:fa8c8f768d1968a0:trackSegmentId": "operational-line-not-stated",
+    "route:section:rail-section:fa8c8f768d1968a0:traversal": "route-sections-share-no-station",
+    "route:stationIds": "route-sections-share-no-station",
+    "route:toStationId": "route-sections-share-no-station",
+    "section:rail-section:23fa09287af988a6:blockIds": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:directionMode": "external-track-data-not-in-source",
+    "section:rail-section:23fa09287af988a6:groundGradientPermille": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:junctionResourceIds": "no-junction-data",
+    "section:rail-section:23fa09287af988a6:lengthMeters": "external-alignment-not-in-source",
+    "section:rail-section:23fa09287af988a6:minimumCurveRadiusMeters": "external-alignment-not-in-source",
+    "section:rail-section:bb57584698dddd58:blockIds": "no-block-data",
+    "section:rail-section:bb57584698dddd58:directionMode": "track-count-not-stated",
+    "section:rail-section:bb57584698dddd58:junctionResourceIds": "no-junction-data",
+    "section:rail-section:eae5c8fc4e19300e:blockIds": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:directionMode": "external-track-data-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:groundGradientPermille": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:junctionResourceIds": "no-junction-data",
+    "section:rail-section:eae5c8fc4e19300e:lengthMeters": "external-alignment-not-in-source",
+    "section:rail-section:eae5c8fc4e19300e:minimumCurveRadiusMeters": "external-alignment-not-in-source",
+    "section:rail-section:fa8c8f768d1968a0:blockIds": "no-block-data",
+    "section:rail-section:fa8c8f768d1968a0:junctionResourceIds": "no-junction-data",
+    "turnbacks": "turnbacks-not-stated",
+    "vehicleIntent:requestedCars": "requestedCars-not-stated",
+    "vehicleIntent:requestedTrainsets": "requestedTrainsets-not-stated",
+    "vehicleIntent:vehicleModelId": "vehicleModelId-not-stated"
+  },
+  "servicePlanRevision": "service-plan-revision:30d1534b1fb63d69",
+  "warnings": [],
+  "sourceLayers": [
+    {
+      "layer": "rail-capacity-geometry",
+      "quality": "low",
+      "name": "RailCapacityGeometry rail-geometry:5705466a7a7ee6ec",
+      "license": "ODbL-1.0"
+    }
+  ],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "source": {
+    "case": [
+      "external-through-service"
+    ],
+    "synthetic": true,
+    "note": "Synthetic: the service plan is what a player might write with the editor, the track facts (track count, block boundaries, terminals) and the operational line application are written by hand for this example in the shape of transitline.rail-capacity-geometry/1 and transitline.rail-capacity-application/1. The plans are real plan examples of this pack. A requested headway, trainset count or car count says what the player asked for, not that it can be run.",
+    "existingRail": true,
+    "input": {
+      "drawnGeometry": {
+        "key": "example:tokyo:geometry-through",
+        "name": "East river crossing and an existing line (station level only)",
+        "planIds": [
+          "plan:b9b153e3df14331d"
+        ],
+        "externalLineIds": [
+          "ext-line:443259"
+        ],
+        "designedRevisions": {
+          "plans": {
+            "plan:b9b153e3df14331d": "plan-revision:21a5fd47d9594991"
+          },
+          "routes": {}
+        },
+        "sectionFacts": [
+          {
+            "ref": {
+              "planId": "plan:b9b153e3df14331d",
+              "segmentId": "seg:4c77da73dfd17c89"
+            },
+            "basis": "player",
+            "directionMode": "double"
+          }
+        ]
+      },
+      "application": null,
+      "savedDocument": {
+        "version": 1,
+        "packId": "tokyo",
+        "packVersion": "0.1.0",
+        "plans": [
+          {
+            "key": "example:tokyo:service-through",
+            "name": "Through service from the new crossing onto the existing line",
+            "active": true,
+            "deleted": false,
+            "planKind": "regular",
+            "operatingPattern": "full",
+            "operationalLineId": null,
+            "railGeometryId": "rail-geometry:5705466a7a7ee6ec",
+            "designedRailGeometryRevision": "rail-geometry-revision:b25c8c51cb3b29c7",
+            "route": {
+              "sectionIds": [
+                "rail-section:bb57584698dddd58",
+                "rail-section:fa8c8f768d1968a0",
+                "rail-section:23fa09287af988a6",
+                "rail-section:eae5c8fc4e19300e"
+              ],
+              "fromStationId": null,
+              "toStationId": null
+            },
+            "directions": [
+              {
+                "label": "Outbound",
+                "fromStationId": "stn:b00d2c67f5415425",
+                "toStationId": "ward-koto",
+                "key": "direction-1"
+              }
+            ],
+            "serviceBands": [
+              {
+                "label": "Weekday peak",
+                "startMinute": 420,
+                "endMinute": 540,
+                "periodId": "weekday",
+                "headwayMinutes": 8,
+                "trainsets": 6,
+                "formationCars": 10,
+                "key": "band-1",
+                "directionKeys": [
+                  "direction-1"
+                ]
+              }
+            ],
+            "turnbacks": null,
+            "depotRefs": null,
+            "assumptions": [
+              {
+                "text": "The existing line's owner has agreed to the through service.",
+                "key": "assumption-1"
+              }
+            ],
+            "vehicleIntent": {
+              "vehicleModelId": null,
+              "requestedCars": null,
+              "requestedTrainsets": null
+            },
+            "seq": {
+              "direction": 1,
+              "band": 1,
+              "assumption": 1
+            }
+          }
+        ]
+      }
+    },
+    "generatedBy": "scripts/build-service-plan-examples.mjs"
+  }
+}
