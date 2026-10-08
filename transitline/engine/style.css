@@ -240,6 +240,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #scenario-panel .service-plan-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
 #scenario-panel .service-plan-management summary { cursor: pointer; color: #d5c3ff; font-weight: 600; }
 #scenario-service-plans { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-service-plan-capacity-readiness { display: grid; gap: 6px; margin-top: 8px; }
 #scenario-service-plan-assess { width: 100%; margin-top: 6px; padding: 5px; color: #d5c3ff; }
 #scenario-service-plan-result { margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
 #scenario-service-plans .svcplan-card { display: grid; gap: 4px; padding: 6px; border: 1px solid var(--chip-line); border-radius: 5px; background: var(--chip); font-size: 10px; overflow-wrap: anywhere; }

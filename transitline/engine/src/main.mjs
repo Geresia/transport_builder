@@ -16,6 +16,7 @@ import { mountStationDemandAccess } from "./map/station-demand-access-ui.mjs";
 import { mountStationDemandAllocationOverlay } from "./map/station-demand-allocation-ui.mjs";
 import { mountServicePlanEditor } from "./map/service-plan-ui.mjs";
 import { mountServicePlanAssumptionsPanel } from "./service-plan-assumptions-ui.mjs";
+import { mountCapacityReadinessPanel } from "./service-plan-capacity-readiness-ui.mjs";
 import { spatialContextFromPack } from "./map/pack-spatial.mjs";
 import { buildOverlayModel, defineViewSlots, renderDiagnosticsPanel, renderPhaseLegend } from "./map/overlay.mjs";
 import { attachDepotEditor } from "./map/depot-ui.mjs";
@@ -347,6 +348,7 @@ async function main() {
   let stationDemandAllocationOverlay = null;
   let servicePlanEditor = null;
   let servicePlanAssumptions = null;
+  let servicePlanCapacityReadiness = null;
   let servicePlanManagement = null;
   let railwayTimetableLifecycle = null;
   let stationSelection = null;
@@ -379,6 +381,7 @@ async function main() {
     stationDemandAllocationOverlay?.refresh();
     servicePlanEditor?.refresh();
     servicePlanAssumptions?.refresh();
+    servicePlanCapacityReadiness?.refresh();
     $("btn-station-3d").disabled = !stationUi?.selectedSite;
     stationSelection?.refresh();
     constructionUi?.refresh();
@@ -637,7 +640,10 @@ async function main() {
       enabled: false,
       onChange: (output) => {
         mapInputOutput = output;
-        queueMicrotask(() => refreshScenarioPanel());
+        queueMicrotask(() => {
+          servicePlanCapacityReadiness?.refresh();
+          refreshScenarioPanel();
+        });
       },
     });
     servicePlanEditor = mountServicePlanEditor({
@@ -649,6 +655,7 @@ async function main() {
       getApplications: () => runtime.railCapacityApplicationReport(),
       getDepots: () => runtime.game.depots ?? [],
       onChange: () => queueMicrotask(() => {
+        servicePlanCapacityReadiness?.refresh();
         servicePlanAssumptions?.refresh();
         servicePlanManagement?.refresh();
         railwayTimetableLifecycle?.refresh();
@@ -661,10 +668,26 @@ async function main() {
       getTechnicalProfiles: () => Object.values(TECHNICAL_PROFILES).map((profile) => ({ id: profile.id, name: profile.id })),
       storage: window.localStorage,
       onChange: () => queueMicrotask(() => {
+        servicePlanCapacityReadiness?.refresh();
         servicePlanManagement?.refresh();
         railwayTimetableLifecycle?.refresh();
         refreshScenarioPanel();
       }),
+    });
+    servicePlanCapacityReadiness = mountCapacityReadinessPanel({
+      container: $("scenario-service-plan-capacity-readiness"),
+      getServicePlans: () => servicePlanEditor?.output().export?.plans ?? [],
+      getRailGeometries: () => mapInputPipeline?.output().railGeometries ?? [],
+      getApplications: () => runtime.railCapacityApplicationReport(),
+      getAssumptions: () => servicePlanAssumptions?.output().export ?? null,
+      onOpenEditor: (request) => {
+        const button = request?.action === "open-capacity-editor" ? pipelineButton : servicePlanButton;
+        if (button && !button.classList.contains("active")) button.click();
+        message(request?.action === "open-capacity-editor"
+          ? "철도 용량 입력 도구를 열었습니다. 안내된 구간의 단·복선, 폐색, 분기기 또는 종착·회차 사실을 지정하세요."
+          : "서비스 계획 편집 도구를 열었습니다. 안내된 노선 구간 또는 회차 선택을 확인하세요.");
+      },
+      onChange: () => {},
     });
     const servicePlanButton = $("btn-service-plan");
     servicePlanButton.hidden = false;
@@ -1709,7 +1732,7 @@ async function main() {
       container: $("scenario-rail-capacity-application"),
       runtime,
       getRailGeometries: () => mapInputPipeline?.output().railGeometries ?? [],
-      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+      onChange: () => queueMicrotask(() => { servicePlanCapacityReadiness?.refresh(); refreshMapOverlay(); refreshScenarioPanel(); }),
     });
     railwayDisruptionManagement = mountRailwayDisruptionManagementPanel({
       container: $("scenario-railway-disruptions"),
