@@ -14,6 +14,7 @@ import { buildMapExport, drawnLinesFromState, existingNetworkToExternal, withRai
 import { demandSourceRefsOf } from "./map/station-demand-access.mjs";
 import { mountStationDemandAccess } from "./map/station-demand-access-ui.mjs";
 import { mountStationDemandAllocationOverlay } from "./map/station-demand-allocation-ui.mjs";
+import { mountServicePlanEditor } from "./map/service-plan-ui.mjs";
 import { spatialContextFromPack } from "./map/pack-spatial.mjs";
 import { buildOverlayModel, defineViewSlots, renderDiagnosticsPanel, renderPhaseLegend } from "./map/overlay.mjs";
 import { attachDepotEditor } from "./map/depot-ui.mjs";
@@ -35,6 +36,7 @@ import { mountRailCapacityApplicationPanel } from "./rail-capacity-application-u
 import { mountRailwayDisruptionManagementPanel } from "./railway-disruption-management-ui.mjs";
 import { mountRailwayServiceControlManagementPanel } from "./railway-service-control-management-ui.mjs";
 import { mountStationDemandAllocationManagementPanel } from "./station-demand-allocation-management-ui.mjs";
+import { mountServicePlanManagementPanel } from "./service-plan-management-ui.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
 
@@ -340,6 +342,8 @@ async function main() {
   let stationDemandAccessUi = null;
   let stationDemandAccessOutput = null;
   let stationDemandAllocationOverlay = null;
+  let servicePlanEditor = null;
+  let servicePlanManagement = null;
   let stationSelection = null;
   let stationSelectionOutput = null;
   let constructionUi = null;
@@ -368,6 +372,7 @@ async function main() {
     stationUi?.refresh(); // station sites are checked against the plans just exported, and show the engine verdict
     stationDemandAccessUi?.refresh();
     stationDemandAllocationOverlay?.refresh();
+    servicePlanEditor?.refresh();
     $("btn-station-3d").disabled = !stationUi?.selectedSite;
     stationSelection?.refresh();
     constructionUi?.refresh();
@@ -380,6 +385,7 @@ async function main() {
     railCapacityApplicationManagement?.refresh();
     railwayDisruptionManagement?.refresh();
     railwayServiceControlManagement?.refresh();
+    servicePlanManagement?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -627,6 +633,24 @@ async function main() {
         queueMicrotask(() => refreshScenarioPanel());
       },
     });
+    servicePlanEditor = mountServicePlanEditor({
+      canvas,
+      projection,
+      pack,
+      enabled: false,
+      getRailGeometries: () => mapInputPipeline?.output().railGeometries ?? [],
+      getApplications: () => runtime.railCapacityApplicationReport(),
+      getDepots: () => runtime.game.depots ?? [],
+      onChange: () => queueMicrotask(() => servicePlanManagement?.refresh()),
+    });
+    const servicePlanButton = $("btn-service-plan");
+    servicePlanButton.hidden = false;
+    servicePlanButton.addEventListener("click", () => {
+      const enabled = !servicePlanButton.classList.contains("active");
+      servicePlanButton.classList.toggle("active", enabled);
+      servicePlanEditor?.setEnabled(enabled);
+      servicePlanButton.blur();
+    });
     pipelineButton.hidden = false;
     pipelineButton.addEventListener("click", () => {
       const enabled = !pipelineButton.classList.contains("active");
@@ -696,7 +720,7 @@ async function main() {
     });
   }
   // Map editors own the pointer while active: keep exactly one drawing editor on.
-  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-station-demand-access"), $("btn-station-demand-allocation"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control")];
+  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-station-demand-access"), $("btn-station-demand-allocation"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control"), $("btn-service-plan")];
   for (const activeButton of drawingButtons) {
     activeButton.addEventListener("click", () => {
       if (!activeButton.classList.contains("active")) return;
@@ -1545,6 +1569,7 @@ async function main() {
       railwayDisruptionManagement?.refresh();
       railwayServiceControlManagement?.refresh();
       stationDemandAllocationManagement?.refresh();
+      servicePlanManagement?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1559,6 +1584,24 @@ async function main() {
       container: $("scenario-station-demand-allocation"),
       runtime,
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+    });
+    const servicePlanPrescreenContext = () => {
+      const technicalSpecs = {};
+      for (const service of runtime.game.services) {
+        const line = state.lines.find((entry) => String(entry.managementServiceId) === String(service.id));
+        const project = runtime.game.projects.find((entry) => entry.id === service.projectId);
+        // A known project profile is a real technical fact. Capacity is not
+        // derived here: absent evidence must remain unknown for E1/B13.
+        if (line && project?.technicalProfileId) technicalSpecs[String(line.id)] = { technicalProfileId: project.technicalProfileId };
+      }
+      return { technicalSpecs };
+    };
+    servicePlanManagement = mountServicePlanManagementPanel({
+      container: $("scenario-service-plans"),
+      runtime,
+      getServicePlans: () => servicePlanEditor?.output().export?.plans ?? [],
+      getPrescreenContext: servicePlanPrescreenContext,
+      onChange: () => queueMicrotask(() => refreshScenarioPanel()),
     });
     constructionContractorManagement = mountConstructionContractorPanel({
       container: $("scenario-construction-contractors"),
@@ -1618,6 +1661,7 @@ async function main() {
       railwayDisruptionManagement?.refresh();
       railwayServiceControlManagement?.refresh();
       stationDemandAllocationManagement?.refresh();
+      servicePlanManagement?.refresh();
     }), true);
 
     $("scenario-opportunity-view").addEventListener("click", () => run(() => {
@@ -1765,6 +1809,24 @@ async function main() {
       selectedLineId = result.commissioned.lineId;
       message("통합시험과 인허가를 통과해 실제 영업 노선으로 개통했습니다.");
     }));
+    $("scenario-service-plan-assess").addEventListener("click", () => run(() => {
+      const ready = servicePlanManagement?.readyPlans() ?? [];
+      if (!ready.length) throw new Error("시간표 심사 준비가 끝난 운행계획이 없습니다. 서비스 연결, 기술사양·차량·선로 사실, 지도 및 용량 application 상태를 확인하세요.");
+      const plans = servicePlanEditor?.output().export?.plans ?? [];
+      const checkpoint = runtime.save();
+      try {
+        const assessed = ready.map(({ servicePlanId, serviceId }) => {
+          const plan = plans.find((entry) => entry.servicePlanId === servicePlanId);
+          const result = runtime.assessServicePlanTimetable(plan, { servicePlanId, serviceId }, servicePlanPrescreenContext());
+          if (!result.timetable) throw new Error(`운행계획 ${servicePlanId}은(는) 다시 확인이 필요합니다.`);
+          return result.timetable;
+        });
+        $("scenario-service-plan-result").textContent = `${assessed.length}개 운행계획을 B13 시간표 심사에 제출했습니다. 승인과 활성화는 다음 단계에서 별도로 진행합니다.`;
+      } catch (error) {
+        runtime.load(checkpoint);
+        throw error;
+      }
+    }));
     $("scenario-save").addEventListener("click", () => run(() => {
       const payload = JSON.stringify({
         schemaVersion: 1,
@@ -1776,6 +1838,8 @@ async function main() {
         mapInputPipelineDoc: mapInputPipeline?.serialize() ?? null,
         stationDemandAccessDoc: stationDemandAccessUi?.serialize() ?? null,
         stationDemandAllocationDraft: stationDemandAllocationManagement?.serialize() ?? null,
+        servicePlanDoc: servicePlanEditor?.serialize() ?? null,
+        servicePlanBindingDoc: servicePlanManagement?.serialize() ?? null,
       });
       localStorage.setItem(storageKey, payload);
       message("지도·공사·차량·회사 상태와 작업면·대체수송 계획을 함께 저장했습니다.");
@@ -1798,6 +1862,10 @@ async function main() {
         stationDemandAccessOutput = stationDemandAccessUi?.output() ?? null;
       }
       if (wrapped && payload.stationDemandAllocationDraft) stationDemandAllocationManagement?.loadDoc(payload.stationDemandAllocationDraft);
+      if (wrapped && payload.servicePlanDoc) servicePlanEditor?.loadDoc(payload.servicePlanDoc);
+      else servicePlanEditor?.refresh();
+      if (wrapped && payload.servicePlanBindingDoc) servicePlanManagement?.loadDoc(payload.servicePlanBindingDoc);
+      else servicePlanManagement?.refresh();
       selectedLineId = null;
       message("통합 저장본을 불러왔습니다.");
     }));

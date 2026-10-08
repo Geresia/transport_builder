@@ -237,6 +237,20 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #scenario-panel .rail-capacity-application-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
 #scenario-panel .rail-capacity-application-management summary { cursor: pointer; color: #8cc9ff; font-weight: 600; }
 #scenario-rail-capacity-application { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-panel .service-plan-management { margin-top: 8px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 6px; }
+#scenario-panel .service-plan-management summary { cursor: pointer; color: #d5c3ff; font-weight: 600; }
+#scenario-service-plans { display: grid; gap: 6px; margin-top: 6px; }
+#scenario-service-plan-assess { width: 100%; margin-top: 6px; padding: 5px; color: #d5c3ff; }
+#scenario-service-plan-result { margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
+#scenario-service-plans .svcplan-card { display: grid; gap: 4px; padding: 6px; border: 1px solid var(--chip-line); border-radius: 5px; background: var(--chip); font-size: 10px; overflow-wrap: anywhere; }
+#scenario-service-plans .svcplan-card.ready { border-left: 3px solid var(--ok); }
+#scenario-service-plans .svcplan-card.blocked, #scenario-service-plans .svcplan-card.unsupported { border-left: 3px solid var(--danger); }
+#scenario-service-plans .svcplan-card.unknown, #scenario-service-plans .svcplan-card.unbound, #scenario-service-plans .svcplan-card.duplicate-binding { border-left: 3px solid var(--warn); }
+#scenario-service-plans .svcplan-field { grid-template-columns: 94px minmax(0, 1fr); margin: 0; font-size: 10px; }
+#scenario-service-plans select { min-width: 0; box-sizing: border-box; padding: 4px; color: var(--text); background: var(--panel); border: 1px solid var(--chip-line); border-radius: 4px; font: inherit; }
+#scenario-service-plans .svcplan-areas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; }
+#scenario-service-plans .svcplan-area, #scenario-service-plans .svcplan-readiness, #scenario-service-plans .svcplan-adapter, #scenario-service-plans .svcplan-issue, #scenario-service-plans .svcplan-check, #scenario-service-plans .svcplan-warning, #scenario-service-plans .svcplan-note { padding: 4px; background: var(--panel); font-size: 9px; }
+#scenario-service-plans .svcplan-area b { display: block; margin-top: 2px; font: 9px var(--mono); }
 #scenario-rail-capacity-application .rail-capacity-apply-notice, #scenario-rail-capacity-application .rail-capacity-apply-empty { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
 #scenario-rail-capacity-application .rail-capacity-apply-field { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 5px; align-items: center; margin: 0; font-size: 10px; }
 #scenario-rail-capacity-application select { min-width: 0; box-sizing: border-box; padding: 4px 6px; color: var(--text); background: var(--chip); border: 1px solid var(--chip-line); border-radius: 5px; font: inherit; }
