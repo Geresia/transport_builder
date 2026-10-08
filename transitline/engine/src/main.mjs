@@ -15,6 +15,7 @@ import { demandSourceRefsOf } from "./map/station-demand-access.mjs";
 import { mountStationDemandAccess } from "./map/station-demand-access-ui.mjs";
 import { mountStationDemandAllocationOverlay } from "./map/station-demand-allocation-ui.mjs";
 import { mountServicePlanEditor } from "./map/service-plan-ui.mjs";
+import { mountServicePlanAssumptionsPanel } from "./service-plan-assumptions-ui.mjs";
 import { spatialContextFromPack } from "./map/pack-spatial.mjs";
 import { buildOverlayModel, defineViewSlots, renderDiagnosticsPanel, renderPhaseLegend } from "./map/overlay.mjs";
 import { attachDepotEditor } from "./map/depot-ui.mjs";
@@ -37,6 +38,8 @@ import { mountRailwayDisruptionManagementPanel } from "./railway-disruption-mana
 import { mountRailwayServiceControlManagementPanel } from "./railway-service-control-management-ui.mjs";
 import { mountStationDemandAllocationManagementPanel } from "./station-demand-allocation-management-ui.mjs";
 import { mountServicePlanManagementPanel } from "./service-plan-management-ui.mjs";
+import { mountRailwayTimetableLifecyclePanel } from "./railway-timetable-lifecycle-ui.mjs";
+import { TECHNICAL_PROFILES } from "./management/construction.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
 
@@ -343,7 +346,9 @@ async function main() {
   let stationDemandAccessOutput = null;
   let stationDemandAllocationOverlay = null;
   let servicePlanEditor = null;
+  let servicePlanAssumptions = null;
   let servicePlanManagement = null;
+  let railwayTimetableLifecycle = null;
   let stationSelection = null;
   let stationSelectionOutput = null;
   let constructionUi = null;
@@ -373,6 +378,7 @@ async function main() {
     stationDemandAccessUi?.refresh();
     stationDemandAllocationOverlay?.refresh();
     servicePlanEditor?.refresh();
+    servicePlanAssumptions?.refresh();
     $("btn-station-3d").disabled = !stationUi?.selectedSite;
     stationSelection?.refresh();
     constructionUi?.refresh();
@@ -386,6 +392,7 @@ async function main() {
     railwayDisruptionManagement?.refresh();
     railwayServiceControlManagement?.refresh();
     servicePlanManagement?.refresh();
+    railwayTimetableLifecycle?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -641,7 +648,23 @@ async function main() {
       getRailGeometries: () => mapInputPipeline?.output().railGeometries ?? [],
       getApplications: () => runtime.railCapacityApplicationReport(),
       getDepots: () => runtime.game.depots ?? [],
-      onChange: () => queueMicrotask(() => servicePlanManagement?.refresh()),
+      onChange: () => queueMicrotask(() => {
+        servicePlanAssumptions?.refresh();
+        servicePlanManagement?.refresh();
+        railwayTimetableLifecycle?.refresh();
+      }),
+    });
+    servicePlanAssumptions = mountServicePlanAssumptionsPanel({
+      container: $("scenario-service-plan-assumptions"),
+      pack,
+      getServicePlans: () => servicePlanEditor?.output().export?.plans ?? [],
+      getTechnicalProfiles: () => Object.values(TECHNICAL_PROFILES).map((profile) => ({ id: profile.id, name: profile.id })),
+      storage: window.localStorage,
+      onChange: () => queueMicrotask(() => {
+        servicePlanManagement?.refresh();
+        railwayTimetableLifecycle?.refresh();
+        refreshScenarioPanel();
+      }),
     });
     const servicePlanButton = $("btn-service-plan");
     servicePlanButton.hidden = false;
@@ -1570,6 +1593,7 @@ async function main() {
       railwayServiceControlManagement?.refresh();
       stationDemandAllocationManagement?.refresh();
       servicePlanManagement?.refresh();
+      railwayTimetableLifecycle?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1594,13 +1618,69 @@ async function main() {
         // derived here: absent evidence must remain unknown for E1/B13.
         if (line && project?.technicalProfileId) technicalSpecs[String(line.id)] = { technicalProfileId: project.technicalProfileId };
       }
+      const assumptionOutput = servicePlanAssumptions?.output();
+      // Conflicting player statements deliberately hide this line's facts. A
+      // project-profile fallback would otherwise turn that explicit conflict
+      // into a silently usable technical specification.
+      for (const conflict of assumptionOutput?.technicalConflicts ?? []) delete technicalSpecs[String(conflict.operationalLineId)];
+      Object.assign(technicalSpecs, assumptionOutput?.technicalSpecs ?? {});
       return { technicalSpecs };
+    };
+    const servicePlanAssessmentInput = (plan) => {
+      const assumptions = servicePlanAssumptions?.assessInput(plan?.servicePlanId);
+      if (!assumptions) throw new Error("운행 전제가 없거나 지도 계획 revision과 맞지 않습니다. 운행 전제 패널에서 값을 적고 확인하세요.");
+      return { ...servicePlanPrescreenContext(), ...assumptions };
+    };
+    const servicePlanBatchAssessmentInput = (entries) => {
+      const inputs = entries.map(({ servicePlan }) => {
+        const assumptions = servicePlanAssumptions?.assessInput(servicePlan?.servicePlanId);
+        if (!assumptions) throw new Error(`운행계획 ${servicePlan?.servicePlanId ?? "(미상)"}의 전제가 없거나 낡았습니다.`);
+        return assumptions;
+      });
+      const pickOne = (field) => {
+        const values = inputs.map((input) => input[field]).filter((value) => value !== undefined);
+        const unique = [...new Set(values.map((value) => JSON.stringify(value)))];
+        if (unique.length > 1) throw new Error(`같은 시간표 묶음의 ${field} 전제가 서로 다릅니다. 같은 용량 지도 revision의 계획은 하나의 값을 명시해야 합니다.`);
+        return values[0];
+      };
+      const infrastructureAssumptions = {};
+      for (const field of ["directionMode", "minimumHeadwayMinutes"]) {
+        const values = inputs.map((input) => input.infrastructureAssumptions?.[field]).filter((value) => value !== undefined);
+        const unique = [...new Set(values.map((value) => JSON.stringify(value)))];
+        if (unique.length > 1) throw new Error(`같은 시간표 묶음의 ${field} 전제가 서로 다릅니다. 같은 용량 지도 revision의 계획은 하나의 값을 명시해야 합니다.`);
+        const value = values[0];
+        if (value !== undefined) infrastructureAssumptions[field] = value;
+      }
+      const closureWindowsBySectionId = {};
+      for (const input of inputs) for (const [sectionId, windows] of Object.entries(input.closureWindowsBySectionId ?? {})) {
+        if (sectionId in closureWindowsBySectionId && JSON.stringify(closureWindowsBySectionId[sectionId]) !== JSON.stringify(windows)) {
+          throw new Error(`구간 ${sectionId}의 폐쇄 시간창 전제가 서로 다릅니다.`);
+        }
+        closureWindowsBySectionId[sectionId] = structuredClone(windows);
+      }
+      const output = { ...servicePlanPrescreenContext() };
+      if (Object.keys(infrastructureAssumptions).length) output.infrastructureAssumptions = infrastructureAssumptions;
+      if (Object.keys(closureWindowsBySectionId).length) output.closureWindowsBySectionId = closureWindowsBySectionId;
+      for (const field of ["dayType", "minimumAcceptanceRatio"]) {
+        const value = pickOne(field);
+        if (value !== undefined) output[field] = value;
+      }
+      return output;
     };
     servicePlanManagement = mountServicePlanManagementPanel({
       container: $("scenario-service-plans"),
       runtime,
       getServicePlans: () => servicePlanEditor?.output().export?.plans ?? [],
       getPrescreenContext: servicePlanPrescreenContext,
+      onChange: () => queueMicrotask(() => refreshScenarioPanel()),
+    });
+    railwayTimetableLifecycle = mountRailwayTimetableLifecyclePanel({
+      container: $("scenario-timetable-lifecycle"),
+      runtime,
+      getServicePlans: () => servicePlanEditor?.output().export?.plans ?? [],
+      getBindings: () => servicePlanManagement?.document ?? { bindings: [] },
+      getAssessmentInput: (plan) => servicePlanAssessmentInput(plan),
+      assessmentEnabled: false,
       onChange: () => queueMicrotask(() => refreshScenarioPanel()),
     });
     constructionContractorManagement = mountConstructionContractorPanel({
@@ -1662,6 +1742,7 @@ async function main() {
       railwayServiceControlManagement?.refresh();
       stationDemandAllocationManagement?.refresh();
       servicePlanManagement?.refresh();
+      railwayTimetableLifecycle?.refresh();
     }), true);
 
     $("scenario-opportunity-view").addEventListener("click", () => run(() => {
@@ -1820,7 +1901,8 @@ async function main() {
           if (!result.timetable) throw new Error(`운행계획 ${servicePlanId}은(는) 다시 확인이 필요합니다.`);
           return result.timetable;
         });
-        runtime.assessServicePlanTimetableBatch(assessed, servicePlanPrescreenContext());
+        const result = runtime.assessServicePlanTimetableBatch(assessed, servicePlanBatchAssessmentInput(assessed));
+        if (!railwayTimetableLifecycle?.recordBatchAssessment({ entries: assessed, result })) throw new Error("시간표 심사 기록을 화면에 연결하지 못했습니다.");
         $("scenario-service-plan-result").textContent = `${assessed.length}개 운행계획을 B13 시간표 심사에 제출했습니다. 승인과 활성화는 다음 단계에서 별도로 진행합니다.`;
       } catch (error) {
         throw error;
@@ -1838,7 +1920,9 @@ async function main() {
         stationDemandAccessDoc: stationDemandAccessUi?.serialize() ?? null,
         stationDemandAllocationDraft: stationDemandAllocationManagement?.serialize() ?? null,
         servicePlanDoc: servicePlanEditor?.serialize() ?? null,
+        servicePlanAssumptionsDoc: servicePlanAssumptions?.serialize() ?? null,
         servicePlanBindingDoc: servicePlanManagement?.serialize() ?? null,
+        railwayTimetableLifecycleDoc: railwayTimetableLifecycle?.serialize() ?? null,
       });
       localStorage.setItem(storageKey, payload);
       message("지도·공사·차량·회사 상태와 작업면·대체수송 계획을 함께 저장했습니다.");
@@ -1863,8 +1947,12 @@ async function main() {
       if (wrapped && payload.stationDemandAllocationDraft) stationDemandAllocationManagement?.loadDoc(payload.stationDemandAllocationDraft);
       if (wrapped && payload.servicePlanDoc) servicePlanEditor?.loadDoc(payload.servicePlanDoc);
       else servicePlanEditor?.refresh();
+      if (wrapped && payload.servicePlanAssumptionsDoc) servicePlanAssumptions?.loadDoc(payload.servicePlanAssumptionsDoc);
+      else servicePlanAssumptions?.refresh();
       if (wrapped && payload.servicePlanBindingDoc) servicePlanManagement?.loadDoc(payload.servicePlanBindingDoc);
       else servicePlanManagement?.refresh();
+      if (wrapped && payload.railwayTimetableLifecycleDoc) railwayTimetableLifecycle?.loadDoc(payload.railwayTimetableLifecycleDoc);
+      else railwayTimetableLifecycle?.refresh();
       selectedLineId = null;
       message("통합 저장본을 불러왔습니다.");
     }));

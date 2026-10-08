@@ -622,3 +622,15 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #construction-panel .diag.info, #construction-phase-panel .diag.info { border-left-color: var(--info); color: var(--muted); }
 #construction-legend .phase-legend-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; font-size: 11px; }
 #construction-legend .phase-chip { display: inline-block; width: 28px; height: 0; border-top-width: 4px; }
+
+/* B16 timetable lifecycle: M4 injects its own compact assumptions editor; these rules keep M5's engine report readable. */
+#scenario-timetable-lifecycle { display: grid; gap: 6px; margin-top: 8px; }
+#scenario-timetable-lifecycle .ttlife-card { display: grid; gap: 4px; padding: 7px; border: 1px solid var(--chip-line); border-radius: 5px; background: var(--chip); font-size: 10px; overflow-wrap: anywhere; }
+#scenario-timetable-lifecycle .ttlife-card.stale { border-left: 3px solid var(--warn); opacity: .78; }
+#scenario-timetable-lifecycle .ttlife-head, #scenario-timetable-lifecycle .ttlife-actions, #scenario-timetable-lifecycle .ttlife-steps, #scenario-timetable-lifecycle .ttlife-metrics { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+#scenario-timetable-lifecycle .ttlife-actions button { padding: 4px 7px; font: inherit; }
+#scenario-timetable-lifecycle .ttlife-step, #scenario-timetable-lifecycle .ttlife-engine-status, #scenario-timetable-lifecycle .ttlife-verdict, #scenario-timetable-lifecycle .ttlife-fact, #scenario-timetable-lifecycle .ttlife-line, #scenario-timetable-lifecycle .ttlife-issue { padding: 3px 4px; background: var(--panel); font-size: 9px; }
+#scenario-timetable-lifecycle .ttlife-step.done, #scenario-timetable-lifecycle .ttlife-engine-status.active { color: var(--ok); }
+#scenario-timetable-lifecycle .ttlife-error, #scenario-timetable-lifecycle .ttlife-stale, #scenario-timetable-lifecycle .ttlife-violation, #scenario-timetable-lifecycle .ttlife-group-title.rejected { color: var(--danger); }
+#scenario-timetable-lifecycle .ttlife-warning, #scenario-timetable-lifecycle .ttlife-missing, #scenario-timetable-lifecycle .ttlife-stale-reason { color: var(--warn); }
+#scenario-timetable-lifecycle .ttlife-group-title, #scenario-timetable-lifecycle .ttlife-title { font-weight: 650; }

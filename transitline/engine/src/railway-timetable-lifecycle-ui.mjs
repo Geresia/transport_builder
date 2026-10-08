@@ -100,7 +100,7 @@ const el = (doc, tag, props = {}, ...kids) => { const node = doc.createElement(t
 const text = (doc, tag, className, value) => el(doc, tag, { className, textContent: value });
 const metric = (doc, label, value) => el(doc, "div", { className: "ttlife-metric" }, text(doc, "span", "", label), text(doc, "b", "", value));
 
-export function mountRailwayTimetableLifecyclePanel({ container, runtime, getServicePlans, getBindings, getAssessmentInput, onChange = () => {} } = {}) {
+export function mountRailwayTimetableLifecyclePanel({ container, runtime, getServicePlans, getBindings, getAssessmentInput, assessmentEnabled = true, onChange = () => {} } = {}) {
   if (!container) throw new Error("A railway timetable lifecycle container is required");
   for (const [name, fn] of [["getServicePlans", getServicePlans], ["getBindings", getBindings], ["getAssessmentInput", getAssessmentInput]]) {
     if (typeof fn !== "function") throw new Error(`${name}() is required`);
@@ -152,7 +152,8 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
     if (!timetable) reasons.push("timetable-missing");
     else {
       const services = listOf(timetable.operationalFacts?.serviceIds);
-      if (services.length !== 1 || services[0] !== entry.serviceId || (entry.createdAtMinute !== null && timetable.createdAtMinute !== entry.createdAtMinute)) reasons.push("timetable-mismatch");
+      const expectedServices = lifecycle.entries.filter((candidate) => candidate.timetableId === entry.timetableId).map((candidate) => candidate.serviceId).sort(cmp);
+      if (JSON.stringify(services.sort(cmp)) !== JSON.stringify(expectedServices) || (entry.createdAtMinute !== null && timetable.createdAtMinute !== entry.createdAtMinute)) reasons.push("timetable-mismatch");
     }
     return reasons;
   }
@@ -177,7 +178,7 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
     return { rows: next, orphans: lifecycle.entries.filter((e) => !present.has(e.servicePlanId)).map(clone) };
   }
 
-  const canAssess = (row) => row.serviceId !== null && !row.now.inputError && (!row.entry || row.stale || row.timetable?.status === "superseded");
+  const canAssess = (row) => assessmentEnabled && row.serviceId !== null && !row.now.inputError && (!row.entry || row.stale || row.timetable?.status === "superseded");
   const canApprove = (row) => row.entry !== null && !row.stale && row.timetable?.status === "assessed";
   const canActivate = (row) => row.entry !== null && !row.stale && row.timetable?.status === "approved";
 
@@ -229,6 +230,33 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
     lifecycle.entries = lifecycle.entries.filter((e) => e.servicePlanId !== servicePlanId);
     refresh();
     onChange();
+  }
+
+  // The host may assess several map plans as one B13 timetable. Record every
+  // participating plan against that shared engine timetable; later approval
+  // and activation remain the engine's own one-click lifecycle commands.
+  function recordBatchAssessment({ entries, result } = {}) {
+    if (!Array.isArray(entries) || !result?.timetable?.id || !Array.isArray(result.adaptations)) return false;
+    const plans = plansNow();
+    const additions = [];
+    for (const entry of entries) {
+      const servicePlanId = entry?.servicePlan?.servicePlanId;
+      const serviceId = entry?.binding?.serviceId;
+      const plan = plans.find((candidate) => candidate.servicePlanId === servicePlanId);
+      const adaptation = result.adaptations.find((candidate) => candidate.servicePlanId === servicePlanId && candidate.serviceId === serviceId);
+      if (!plan || !isText(serviceId) || !adaptation || adaptation.status !== "ready") return false;
+      const input = inputFor(plan, { servicePlanId, serviceId });
+      additions.push({ servicePlanId, serviceId, timetableId: result.timetable.id, createdAtMinute: result.timetable.createdAtMinute ?? null,
+        planDigest: digestOf(plan), inputDigest: digestOf(input), adaptation: clone(adaptation) });
+    }
+    if (new Set(additions.map((entry) => entry.servicePlanId)).size !== additions.length) return false;
+    const ids = new Set(additions.map((entry) => entry.servicePlanId));
+    lifecycle.entries = [...lifecycle.entries.filter((entry) => !ids.has(entry.servicePlanId)), ...additions.map(({ adaptation, ...entry }) => entry)]
+      .sort((left, right) => cmp(left.servicePlanId, right.servicePlanId));
+    for (const entry of additions) session.set(entry.servicePlanId, { planDigest: entry.planDigest, serviceId: entry.serviceId, inputDigest: entry.inputDigest, adaptation: entry.adaptation, error: null, notice: `Shared timetable ${entry.timetableId} assessed.` });
+    refresh();
+    onChange();
+    return true;
   }
 
   // --- rendering ---
@@ -340,6 +368,7 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
       return { ok: true, issues: [] };
     },
     get document() { return clone(lifecycle); },
+    recordBatchAssessment,
     // copies of what is on screen, for the host and tests
     results: () => rows.map((row) => ({
       servicePlanId: row.servicePlanId, serviceId: row.serviceId, timetableId: row.entry?.timetableId ?? null, stale: row.stale, staleReasons: [...row.staleReasons],

@@ -106,6 +106,23 @@ test("mounting, refreshing and loading a document run no engine command: only th
   assert.ok(shows(env.container, SCOPE_NOTICE));
 });
 
+test("a host batch assessment can be recorded without reopening the unsafe per-plan assess path", () => {
+  const env = mount(undefined, { assessmentEnabled: false });
+  assert.equal(btn(env.container, "assess").disabled, true);
+  const result = env.w.runtime.assessServicePlanTimetable(env.w.plan, { servicePlanId: "map-plan:1", serviceId: "service:actual" }, env.w.input);
+  assert.ok(result.timetable?.id);
+  assert.equal(env.panel.recordBatchAssessment({
+    entries: [{ servicePlan: env.w.plan, binding: { servicePlanId: "map-plan:1", serviceId: "service:actual" } }],
+    result: { timetable: result.timetable, adaptations: [result.adaptation] },
+  }), true);
+  const row = env.panel.results()[0];
+  assert.equal(row.timetableId, result.timetable.id);
+  assert.equal(row.stale, false);
+  assert.equal(row.canAssess, false);
+  assert.equal(row.canApprove, true);
+  assert.equal(env.calls.assess, 0, "recording does not call the panel's individual assess command");
+});
+
 test("a plan with no connected service cannot be assessed; a click that gets through anyway reaches no engine call", () => {
   const env = mount();
   env.hold.bindings = [];
