@@ -45,6 +45,7 @@ import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail
 import { applyStationDemandAccess, stationDemandAccessApplicationReport } from "./station-demand-access-integration.mjs";
 import { applyStationDemandAllocation, assessStationDemandAllocation, stationDemandAllocationApplicationReport } from "./station-demand-allocation-integration.mjs";
 import { buildStationDemandAllocationDiagnostics } from "./station-demand-allocation-diagnostics.mjs";
+import { adaptServicePlanToOperationalTimetable } from "./service-plan-timetable-adapter.mjs";
 import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from "./railway-disruption-response.mjs";
 import { clearRailwayControlOrder, createRailwayControlOrder, createRailwayControlOrderFromGeometry, railwayControlOrderReport } from "./railway-service-control.mjs";
 import { assessRailwayDetourAuthorization, authorizeRailwayDetour, railwayDetourAuthorizationReport, syncRailwayDetourAuthorizations } from "./railway-detour-authorization.mjs";
@@ -1051,6 +1052,32 @@ export class ScenarioRuntime {
       throughServices: this.game.throughServices,
     });
     return this.game.assessRailwayTimetable(draft);
+  }
+
+  // B16-E2: map ServicePlanGeometry is only an intent document.  It first has
+  // to be explicitly bound to a commissioned management service and pass the
+  // C1/E1 boundary before B13 is allowed to create a timetable assessment.
+  // A blocked/unknown map plan changes neither management nor map state.
+  assessServicePlanTimetable(servicePlan, binding, input = {}) {
+    const adaptation = adaptServicePlanToOperationalTimetable({
+      servicePlan,
+      binding,
+      operationalState: this.operationalState,
+      services: this.game.services,
+      throughServices: this.game.throughServices,
+      prescreenContext: {
+        technicalSpecs: input.technicalSpecs ?? {},
+        vehicleOrders: input.vehicleOrders ?? this.game.vehicleOrders,
+        operatingResourcePools: input.operatingResourcePools ?? this.game.operatingResourcePools,
+      },
+      dayType: input.dayType ?? undefined,
+      closureWindowsBySectionId: input.closureWindowsBySectionId ?? {},
+      infrastructureAssumptions: input.infrastructureAssumptions ?? null,
+      minimumAcceptanceRatio: input.minimumAcceptanceRatio ?? 1,
+    });
+    if (adaptation.status !== "ready" || !adaptation.operationalRequest) return { adaptation, timetable: null };
+    const timetable = this.assessOperationalRailwayTimetable(adaptation.operationalRequest);
+    return { adaptation, timetable };
   }
 
   approveRailwayTimetable(timetableId) {
