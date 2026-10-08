@@ -69,7 +69,7 @@ const clone = (value) => structuredClone(value);
 const message = (error) => (error instanceof Error ? error.message : String(error));
 const valueText = (value) => (value === null || value === undefined ? "미상" : String(value));
 
-function issueText(issue) {
+export function issueText(issue) {
   const base = ISSUE_TEXT[issue.code] ?? issue.code;
   const facts = issue.facts ?? {};
   let detail = "";
