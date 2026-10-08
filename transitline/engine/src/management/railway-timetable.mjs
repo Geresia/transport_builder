@@ -245,6 +245,22 @@ export function approveRailwayTimetable(timetable, atMinute = 0) {
   return clone(timetable);
 }
 
+// A timetable that was assessed or approved but will not be used is withdrawn, never deleted: the record stays for the audit trail and
+// for save reproducibility, and approve / activate refuse it afterwards.  An active timetable is not withdrawn; it ends by being
+// superseded when another timetable of the same day type is activated.
+export const WITHDRAWABLE_RAILWAY_TIMETABLE_STATUSES = Object.freeze(["assessed", "approved"]);
+
+export function withdrawRailwayTimetable(timetable, atMinute = 0, reason = null) {
+  if (timetable?.schema !== RAILWAY_TIMETABLE_SCHEMA || timetable.contractVersion !== 1) throw new Error("RailwayTimetable v1 is required");
+  if (!WITHDRAWABLE_RAILWAY_TIMETABLE_STATUSES.includes(timetable.status)) throw new Error(`Railway timetable cannot be withdrawn from ${timetable.status}`);
+  if (reason !== null && reason !== undefined && !(typeof reason === "string" && reason.trim() && reason.length <= 200)) throw new Error("Withdrawal reason must be a non-empty text of at most 200 characters");
+  timetable.withdrawnFromStatus = timetable.status;
+  timetable.status = "withdrawn";
+  timetable.withdrawnAtMinute = atMinute;
+  if (typeof reason === "string") timetable.withdrawalReason = reason.trim();
+  return clone(timetable);
+}
+
 export function activateRailwayTimetable(timetable, services, throughServices, timetables, atMinute = 0) {
   if (timetable.status !== "approved") throw new Error(`Railway timetable cannot be activated from ${timetable.status}`);
   const allServiceIds = uniqueText(timetable.acceptedPaths.map((entry) => entry.serviceId));

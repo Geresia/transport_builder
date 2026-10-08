@@ -58,12 +58,13 @@ const withBand = (plan, over) => ({ ...plan, serviceBands: [{ ...plan.serviceBan
 
 // The panel gets the real runtime through a wrapper that counts every call and can be told to fail.
 function mount(w = world(), over = {}) {
-  const calls = { assess: 0, approve: 0, activate: 0, report: 0, assessArgs: [] };
+  const calls = { assess: 0, approve: 0, activate: 0, withdraw: 0, report: 0, assessArgs: [] };
   const fail = {};
   const rt = w.runtime;
   const wrapped = {
     assessServicePlanTimetable: (...args) => { calls.assess += 1; calls.assessArgs.push(args); hold.duringEngine?.(); if (fail.assess) throw new Error(fail.assess); return rt.assessServicePlanTimetable(...args); },
     approveRailwayTimetable: (id) => { calls.approve += 1; hold.duringEngine?.(); if (fail.approve) throw new Error(fail.approve); return rt.approveRailwayTimetable(id); },
+    withdrawRailwayTimetable: (id, ...rest) => { calls.withdraw += 1; hold.duringEngine?.(); if (fail.withdraw) throw new Error(fail.withdraw); return rt.withdrawRailwayTimetable(id, ...rest); },
     activateRailwayTimetable: (id) => { calls.activate += 1; if (fail.activate) throw new Error(fail.activate); return rt.activateRailwayTimetable(id); },
     railwayTimetableReport: (id) => { calls.report += 1; return rt.railwayTimetableReport(id); },
   };
@@ -78,6 +79,7 @@ function mount(w = world(), over = {}) {
   return { w, container, panel, calls, fail, hold, changes, wrapped };
 }
 const timetables = (env) => env.w.runtime.railwayTimetableReport();
+const statusById = (env, id) => env.w.runtime.railwayTimetableReport(id)[0]?.status;
 const engineState = (w) => JSON.stringify({ game: w.runtime.game.snapshot(), op: snapshotOperationalState(w.state) });
 function assessed(env) { click(env.container, "assess"); return env; }
 function approved(env) { assessed(env); click(env.container, "approve"); return env; }
@@ -88,8 +90,8 @@ test("mounting needs a container, the three getters and a runtime that has the f
   assert.doesNotThrow(() => mountRailwayTimetableLifecyclePanel(ok));
   assert.throws(() => mountRailwayTimetableLifecyclePanel({ ...ok, container: null }), /container/);
   for (const name of ["getServicePlans", "getBindings", "getAssessmentInput"]) assert.throws(() => mountRailwayTimetableLifecyclePanel({ ...ok, [name]: null }), new RegExp(name));
-  for (const method of ["assessServicePlanTimetable", "approveRailwayTimetable", "activateRailwayTimetable", "railwayTimetableReport"]) {
-    const runtime = { assessServicePlanTimetable() {}, approveRailwayTimetable() {}, activateRailwayTimetable() {}, railwayTimetableReport: () => [], [method]: undefined };
+  for (const method of ["assessServicePlanTimetable", "approveRailwayTimetable", "activateRailwayTimetable", "withdrawRailwayTimetable", "railwayTimetableReport"]) {
+    const runtime = { assessServicePlanTimetable() {}, approveRailwayTimetable() {}, activateRailwayTimetable() {}, withdrawRailwayTimetable() {}, railwayTimetableReport: () => [], [method]: undefined };
     assert.throws(() => mountRailwayTimetableLifecyclePanel({ ...ok, runtime }), new RegExp(method));
   }
 });
@@ -100,7 +102,7 @@ test("mounting, refreshing and loading a document run no engine command: only th
   const env = mount(w);
   env.panel.refresh(); env.panel.refresh();
   env.panel.loadDoc(env.panel.serialize());
-  assert.deepEqual([env.calls.assess, env.calls.approve, env.calls.activate], [0, 0, 0]);
+  assert.deepEqual([env.calls.assess, env.calls.approve, env.calls.activate, env.calls.withdraw], [0, 0, 0, 0]);
   assert.deepEqual(env.changes, []);
   assert.equal(engineState(w), before);
   assert.ok(shows(env.container, SCOPE_NOTICE));
@@ -583,6 +585,190 @@ test("frozen host data works, the callback gets copies, and results() hands out 
   env.hold.bindings = { bindings: env.hold.bindings };
   env.panel.refresh();
   assert.equal(env.panel.results()[0].stale, false, "the export object and the binding document are accepted as they come from M2 and M3");
+});
+
+// --- B16-E3: withdrawing an assessed or approved timetable ---
+test("withdraw: a button for each live record, off until there is something to withdraw", () => {
+  const env = mount();
+  assert.equal(btn(env.container, "withdraw").disabled, true);
+  assert.equal(env.panel.results()[0].canWithdraw, false);
+  forceClick(env.container, "withdraw");
+  assert.equal(env.calls.withdraw, 0, "nothing assessed: no engine call");
+  click(env.container, "assess");
+  assert.equal(btn(env.container, "withdraw").disabled, false);
+  assert.equal(env.panel.results()[0].canWithdraw, true);
+});
+
+test("withdraw an assessed timetable: one engine call, the record stays as withdrawn, nothing else can be done with it, and a new assessment is possible", () => {
+  const env = assessed(mount());
+  const id = timetables(env)[0].id;
+  click(env.container, "withdraw");
+  assert.equal(env.calls.withdraw, 1);
+  const stored = timetables(env);
+  assert.equal(stored.length, 1, "the timetable is not deleted");
+  assert.equal(stored[0].status, "withdrawn");
+  assert.equal(stored[0].withdrawnFromStatus, "assessed");
+  const row = env.panel.results()[0];
+  assert.equal(row.engineStatus, "withdrawn");
+  assert.equal(row.stale, false);
+  assert.deepEqual([row.canApprove, row.canActivate, row.canWithdraw], [false, false, false]);
+  assert.equal(row.canAssess, true);
+  assert.ok(shows(env.container, "엔진 상태: 철회됨 (withdrawn)"));
+  assert.ok(shows(env.container, "철회 이력: assessed 상태에서"));
+  assert.ok(shows(env.container, `시간표 ${id} 를 철회했습니다`));
+  assert.ok(shows(env.container, "철회됨") && texts(env.container).includes("철회됨"));
+  forceClick(env.container, "approve"); forceClick(env.container, "activate"); forceClick(env.container, "withdraw");
+  assert.deepEqual([env.calls.approve, env.calls.activate, env.calls.withdraw], [0, 0, 1]);
+  assert.equal(env.changes.length, 2, "assess and withdraw each told the host");
+  click(env.container, "assess");
+  assert.equal(timetables(env).length, 2);
+  assert.equal(env.panel.results()[0].timetableId, timetables(env)[1].id);
+  assert.equal(env.panel.results()[0].engineStatus, "assessed");
+  assert.equal(statusById(env, id), "withdrawn", "the old record is still there, withdrawn");
+});
+
+test("withdraw an approved timetable: the engine records where it was withdrawn from, and it cannot be approved or activated again", () => {
+  const env = approved(mount());
+  click(env.container, "withdraw");
+  assert.equal(timetables(env)[0].withdrawnFromStatus, "approved");
+  assert.equal(env.panel.results()[0].engineStatus, "withdrawn");
+  assert.ok(shows(env.container, "철회 이력: approved 상태에서"));
+  forceClick(env.container, "activate");
+  forceClick(env.container, "approve");
+  assert.deepEqual([env.calls.approve, env.calls.activate], [1, 0]);
+  assert.equal(env.w.runtime.game.services[0].activeTimetableId, undefined);
+});
+
+test("an active timetable has no withdraw: the button is off, a click that gets through reaches no engine call, and the panel says how it ends", () => {
+  const env = mount();
+  click(env.container, "assess"); click(env.container, "approve"); click(env.container, "activate");
+  assert.equal(timetables(env)[0].status, "active");
+  assert.equal(btn(env.container, "withdraw").disabled, true);
+  assert.ok(shows(env.container, "개통된 시간표는 철회할 수 없습니다"));
+  forceClick(env.container, "withdraw");
+  assert.equal(env.calls.withdraw, 0);
+  assert.equal(timetables(env)[0].status, "active");
+});
+
+test("a replacement activation supersedes the active timetable, and withdrawn records stay withdrawn beside it", () => {
+  const env = approved(mount());
+  const first = timetables(env)[0].id;
+  click(env.container, "activate");
+  env.hold.plans = [withBand(env.w.plan, { playerRequestedHeadwayMinutes: 15 })];
+  env.panel.refresh();
+  click(env.container, "assess");
+  const second = timetables(env)[1].id;
+  click(env.container, "withdraw");
+  click(env.container, "assess");
+  const third = timetables(env)[2].id;
+  click(env.container, "approve"); click(env.container, "activate");
+  assert.equal(statusById(env, first), "superseded");
+  assert.equal(statusById(env, second), "withdrawn");
+  assert.equal(statusById(env, third), "active");
+  assert.equal(env.w.runtime.game.services[0].activeTimetableId, third);
+  assert.equal(env.panel.results()[0].engineStatus, "active");
+  assert.equal(env.calls.withdraw, 1);
+});
+
+test("a stale record cannot be withdrawn: the button is off and a click that gets through reaches no engine call", () => {
+  for (const approveFirst of [false, true]) {
+    const env = approveFirst ? approved(mount()) : assessed(mount());
+    env.hold.plans = [withBand(env.w.plan, { playerRequestedHeadwayMinutes: 12 })];
+    env.panel.refresh();
+    assert.equal(env.panel.results()[0].stale, true);
+    assert.equal(btn(env.container, "withdraw").disabled, true);
+    forceClick(env.container, "withdraw");
+    assert.equal(env.calls.withdraw, 0);
+    assert.ok(shows(env.container, "낡은 심사라서 실행하지 않았습니다"));
+    assert.equal(timetables(env)[0].status, approveFirst ? "approved" : "assessed");
+  }
+  const gone = assessed(mount());
+  gone.hold.plans = [];
+  gone.panel.refresh();
+  assert.equal(all(gone.container, (n) => n.tag === "button" && classes(n).includes("ttlife-withdraw")).length, 0, "a record of a plan that is not on the map has no withdraw button");
+  assert.equal(gone.calls.withdraw, 0);
+});
+
+test("a plan can only withdraw its own record, never another plan's", () => {
+  const w = world();
+  const second = { ...w.plan, servicePlanId: "map-plan:2", name: "Second", servicePlanRevision: "map-revision:2" };
+  const env = mount(w);
+  env.hold.plans = [w.plan, second];
+  env.hold.bindings = [{ servicePlanId: "map-plan:1", serviceId: "service:actual" }, { servicePlanId: "map-plan:2", serviceId: "service:actual" }];
+  env.panel.refresh();
+  click(env.container, "assess", "map-plan:1");
+  click(env.container, "assess", "map-plan:2");
+  const [one, two] = timetables(env).map((entry) => entry.id);
+  assert.notEqual(one, two);
+  click(env.container, "withdraw", "map-plan:2");
+  assert.equal(statusById(env, one), "assessed", "plan 1's timetable is untouched");
+  assert.equal(statusById(env, two), "withdrawn");
+  const rows = Object.fromEntries(env.panel.results().map((row) => [row.servicePlanId, row]));
+  assert.equal(rows["map-plan:1"].canWithdraw, true);
+  assert.equal(rows["map-plan:2"].canWithdraw, false);
+  assert.equal(env.calls.withdraw, 1);
+});
+
+test("a timetable shared with another plan says so before it is withdrawn", () => {
+  const w = world();
+  const second = { ...w.plan, servicePlanId: "map-plan:2", name: "Second", servicePlanRevision: "map-revision:2" };
+  const env = mount(w);
+  env.hold.plans = [w.plan, second];
+  env.hold.bindings = [{ servicePlanId: "map-plan:1", serviceId: "service:actual" }, { servicePlanId: "map-plan:2", serviceId: "service:other" }];
+  const entry = (servicePlanId, serviceId) => ({ servicePlanId, serviceId, timetableId: "railway-timetable:1", createdAtMinute: null, planDigest: "d", inputDigest: "i" });
+  env.panel.loadDoc({ schema: RAILWAY_TIMETABLE_LIFECYCLE_DOC_SCHEMA, version: 1, entries: [entry("map-plan:1", "service:actual"), entry("map-plan:2", "service:other")] });
+  assert.ok(shows(cardOf(env.container, "map-plan:1"), "이 시간표는 다른 계획과 함께 심사됐습니다: map-plan:2"));
+  assert.ok(shows(cardOf(env.container, "map-plan:2"), "이 시간표는 다른 계획과 함께 심사됐습니다: map-plan:1"));
+});
+
+test("the engine changed behind the panel's back: a click re-reads the status and does not call the engine for a step that is no longer open", () => {
+  const env = assessed(mount());
+  const id = timetables(env)[0].id;
+  const button = btn(env.container, "withdraw");
+  env.w.runtime.withdrawRailwayTimetable(id); // withdrawn elsewhere; the page was not refreshed
+  assert.equal(button.disabled, false, "the page still shows the old state");
+  button.fire("click");
+  assert.equal(env.calls.withdraw, 0);
+  assert.ok(shows(env.container, "이 단계는 지금 실행할 수 없습니다"));
+  assert.equal(env.panel.results()[0].engineStatus, "withdrawn");
+});
+
+test("a double click or a click from inside the withdraw call withdraws once; an engine error is shown and the record is unchanged", () => {
+  const env = assessed(mount());
+  const button = btn(env.container, "withdraw");
+  button.fire("click"); button.fire("click");
+  assert.equal(env.calls.withdraw, 1);
+  const again = assessed(mount());
+  again.hold.duringEngine = () => { again.hold.duringEngine = null; forceClick(again.container, "withdraw"); };
+  click(again.container, "withdraw");
+  assert.equal(again.calls.withdraw, 1);
+  const failing = assessed(mount());
+  failing.fail.withdraw = "engine said no";
+  const before = engineState(failing.w);
+  click(failing.container, "withdraw");
+  assert.ok(shows(failing.container, "엔진/패널 오류: engine said no"));
+  assert.equal(engineState(failing.w), before);
+  assert.equal(failing.panel.results()[0].canWithdraw, true, "it can be tried again");
+  delete failing.fail.withdraw;
+  click(failing.container, "withdraw");
+  assert.equal(failing.panel.results()[0].engineStatus, "withdrawn");
+});
+
+test("a withdrawn record survives the runtime save and load and the panel's own document", () => {
+  const env = mount();
+  click(env.container, "assess");
+  click(env.container, "withdraw");
+  const checkpoint = env.w.runtime.save();
+  env.w.runtime.load(checkpoint);
+  env.panel.refresh();
+  assert.equal(env.panel.results()[0].engineStatus, "withdrawn");
+  assert.equal(env.panel.results()[0].stale, false);
+  const saved = env.panel.serialize();
+  const fresh = mount(env.w);
+  assert.deepEqual(fresh.panel.loadDoc(saved), { ok: true, issues: [] });
+  assert.equal(fresh.panel.results()[0].engineStatus, "withdrawn");
+  assert.ok(shows(fresh.container, "엔진 상태: 철회됨 (withdrawn)"));
+  assert.equal(fresh.calls.withdraw + fresh.calls.assess + fresh.calls.approve + fresh.calls.activate, 0, "loading and refreshing run no command");
 });
 
 test("the digest changes with any change of the data and not with key order", () => {

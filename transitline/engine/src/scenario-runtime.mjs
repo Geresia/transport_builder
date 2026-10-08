@@ -1137,6 +1137,11 @@ export class ScenarioRuntime {
     }
   }
 
+  // Only assessed / approved timetables can be withdrawn; the record stays (status "withdrawn") and nothing in the map state is touched.
+  withdrawRailwayTimetable(timetableId, input = {}) {
+    return this.game.withdrawRailwayTimetable(timetableId, input);
+  }
+
   railwayTimetableReport(timetableId = null) {
     return this.game.railwayTimetableReport(timetableId);
   }

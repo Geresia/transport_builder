@@ -26,7 +26,7 @@ import { createThroughService as buildThroughService } from "./through-service.m
 import { advanceVehicleRetrofitMonth, authorizeVehicleRetrofitRetest as buildVehicleRetrofitRetest, createVehicleRetrofitProgram, mergeVehicleTechnicalOverrides, startVehicleRetrofitProgram } from "./vehicle-retrofit.mjs";
 import { activeThroughHandoverConfirmations, advanceThroughHandoverProjectMonth, awardThroughHandoverProject, cancelThroughHandoverProject, createThroughHandoverProject, grantThroughHandoverPermission, tenderThroughHandoverProject } from "./through-handover-project.mjs";
 import { createThroughHandoverPossessionPlan, settleThroughHandoverPossessionMonth, throughHandoverPossessionImpact as calculateThroughHandoverPossessionImpact } from "./through-handover-possession.mjs";
-import { activateRailwayTimetable, approveRailwayTimetable, buildRailwayTimetable } from "./railway-timetable.mjs";
+import { activateRailwayTimetable, approveRailwayTimetable, buildRailwayTimetable, withdrawRailwayTimetable } from "./railway-timetable.mjs";
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
@@ -1235,6 +1235,11 @@ export class ManagementGame {
     return this.transact("railway-timetable-activated", () => activateRailwayTimetable(
       this.requireRailwayTimetable(timetableId), this.services, this.throughServices, this.railwayTimetables, this.clock.minute,
     ));
+  }
+
+  // Assessed or approved timetables that will not be used are withdrawn (a state transition, never a deletion); see withdrawRailwayTimetable.
+  withdrawRailwayTimetable(timetableId, input = {}) {
+    return this.transact("railway-timetable-withdrawn", () => withdrawRailwayTimetable(this.requireRailwayTimetable(timetableId), this.clock.minute, input?.reason ?? null));
   }
 
   railwayTimetableReport(timetableId = null) {

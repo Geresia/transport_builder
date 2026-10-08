@@ -3,6 +3,7 @@
 //   assess    runtime.assessServicePlanTimetable(plan, binding, input)   (C1 adapter + E1 pre-screening + B13 assessment)
 //   approve   runtime.approveRailwayTimetable(timetableId)
 //   activate  runtime.activateRailwayTimetable(timetableId)
+//   withdraw  runtime.withdrawRailwayTimetable(timetableId)   (B16-E3: an assessed / approved timetable the player will not use; the record stays)
 // Mounting and refreshing call none of the three; they only read runtime.railwayTimetableReport().  Every verdict, accepted / rejected
 // path, violation and error on screen is the engine's, copied as given; the panel computes no headway, capacity or "can it run".
 // What the panel does decide is only whether an assessment is still about the same thing: it keeps a digest of the map plan, the
@@ -14,9 +15,9 @@ import { issueText } from "./service-plan-management-ui.mjs";
 export const RAILWAY_TIMETABLE_LIFECYCLE_DOC_SCHEMA = "transitline.railway-timetable-lifecycle-doc/1";
 
 export const SCOPE_NOTICE = "이 패널은 서비스 계획의 시간표 심사·승인·개통을 플레이어가 한 단계씩 실행하는 곳입니다. 심사 결과·거절 경로·오류는 모두 엔진(B13)이 만든 값이며, 패널은 최소 시격·용량·운행 가능 여부를 계산하지 않습니다. 화면을 열거나 새로 고치는 것만으로는 엔진 명령이 실행되지 않습니다.";
-export const STALE_NOTICE = "서비스 계획·연결·심사 전제가 심사한 뒤 바뀌었습니다. 이전 심사 결과는 더 이상 이 계획에 대한 것이 아니므로 숨기고, 승인과 개통을 막습니다. 다시 심사하세요.";
+export const STALE_NOTICE = "서비스 계획·연결·심사 전제가 심사한 뒤 바뀌었습니다. 이전 심사 결과는 더 이상 이 계획에 대한 것이 아니므로 숨기고, 승인·개통·철회를 막습니다. 다시 심사하세요.";
 
-const ENGINE_STATUS = Object.freeze({ assessed: "심사됨", approved: "승인됨", active: "개통됨(활성)", superseded: "다른 시간표로 대체됨" });
+const ENGINE_STATUS = Object.freeze({ assessed: "심사됨", approved: "승인됨", active: "개통됨(활성)", superseded: "다른 시간표로 대체됨", withdrawn: "철회됨" });
 const VERDICT = Object.freeze({ possible: "가능", conditional: "조건부", impossible: "불가", unknown: "미상" });
 const STALE_TEXT = Object.freeze({
   "plan-missing": "서비스 계획이 지도에서 사라짐",
@@ -105,7 +106,7 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
   for (const [name, fn] of [["getServicePlans", getServicePlans], ["getBindings", getBindings], ["getAssessmentInput", getAssessmentInput]]) {
     if (typeof fn !== "function") throw new Error(`${name}() is required`);
   }
-  for (const method of ["assessServicePlanTimetable", "approveRailwayTimetable", "activateRailwayTimetable", "railwayTimetableReport"]) {
+  for (const method of ["assessServicePlanTimetable", "approveRailwayTimetable", "activateRailwayTimetable", "withdrawRailwayTimetable", "railwayTimetableReport"]) {
     if (typeof runtime?.[method] !== "function") throw new Error(`A ScenarioRuntime with ${method} is required`);
   }
   const doc = container.ownerDocument ?? document;
@@ -178,9 +179,12 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
     return { rows: next, orphans: lifecycle.entries.filter((e) => !present.has(e.servicePlanId)).map(clone) };
   }
 
-  const canAssess = (row) => assessmentEnabled && row.serviceId !== null && !row.now.inputError && (!row.entry || row.stale || row.timetable?.status === "superseded");
+  const canAssess = (row) => assessmentEnabled && row.serviceId !== null && !row.now.inputError && (!row.entry || row.stale || ["superseded", "withdrawn"].includes(row.timetable?.status));
   const canApprove = (row) => row.entry !== null && !row.stale && row.timetable?.status === "assessed";
   const canActivate = (row) => row.entry !== null && !row.stale && row.timetable?.status === "approved";
+  // Only this plan's own record, and only while it is not stale.  Whether the engine accepts the withdrawal is the engine's call: the
+  // button follows the engine's reported status, it does not decide a transition.
+  const canWithdraw = (row) => row.entry !== null && !row.stale && ["assessed", "approved"].includes(row.timetable?.status);
 
   // --- the three steps; each one a click, each one re-checks the premises first and calls the engine at most once ---
   function act(servicePlanId, kind) {
@@ -191,7 +195,7 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
       const row = now.find((r) => r.servicePlanId === servicePlanId);
       if (!row) return;
       const remember = (extra) => session.set(servicePlanId, { planDigest: row.now.planDigest, serviceId: row.now.serviceId, inputDigest: row.now.inputDigest, adaptation: null, error: null, notice: null, ...extra });
-      const allowed = { assess: canAssess, approve: canApprove, activate: canActivate }[kind](row);
+      const allowed = { assess: canAssess, approve: canApprove, activate: canActivate, withdraw: canWithdraw }[kind](row);
       if (!allowed) {
         remember({ error: kind === "assess" ? "지금은 심사할 수 없습니다(연결·전제 입력을 확인하세요, 또는 이미 같은 전제로 심사됨)." : row.stale ? "낡은 심사라서 실행하지 않았습니다. 다시 심사하세요." : "이 단계는 지금 실행할 수 없습니다." });
         return;
@@ -217,9 +221,10 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
             if (lifecycle.entries.length !== had) onChange();
           }
         } else {
-          const name = kind === "approve" ? "approveRailwayTimetable" : "activateRailwayTimetable";
+          const name = { approve: "approveRailwayTimetable", activate: "activateRailwayTimetable", withdraw: "withdrawRailwayTimetable" }[kind];
           runtime[name](row.entry.timetableId);
-          remember({ notice: kind === "approve" ? `시간표 ${row.entry.timetableId} 를 승인했습니다.` : `시간표 ${row.entry.timetableId} 를 개통했습니다.` });
+          const done = { approve: "승인했습니다.", activate: "개통했습니다.", withdraw: "철회했습니다. 기록은 감사용으로 남습니다." }[kind];
+          remember({ notice: `시간표 ${row.entry.timetableId} 를 ${done}` });
           onChange();
         }
       } catch (e) { remember({ error: message(e) }); }
@@ -268,7 +273,7 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
     const children = [text(doc, "p", "ttlife-notice", SCOPE_NOTICE)];
     if (failure) children.push(text(doc, "div", "ttlife-error", failure));
     children.push(el(doc, "div", { className: "ttlife-metrics" }, metric(doc, "서비스 계획", String(rows.length)), metric(doc, "심사 기록", String(rows.filter((r) => r.entry).length)),
-      metric(doc, "낡은 심사", String(rows.filter((r) => r.stale).length)), metric(doc, "개통됨", String(rows.filter((r) => r.timetable?.status === "active" && !r.stale).length))));
+      metric(doc, "낡은 심사", String(rows.filter((r) => r.stale).length)), metric(doc, "개통됨", String(rows.filter((r) => r.timetable?.status === "active" && !r.stale).length)), metric(doc, "철회됨", String(rows.filter((r) => r.timetable?.status === "withdrawn" && !r.stale).length))));
     if (!rows.length && !failure) children.push(text(doc, "p", "ttlife-empty", "서비스 계획이 없습니다. 지도에서 서비스 계획을 그리고 개통 서비스에 연결하세요."));
     for (const row of rows) children.push(card(row));
     if (view.orphans.length) {
@@ -302,10 +307,14 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
     node.append(el(doc, "div", { className: "ttlife-actions" },
       button(row.entry && !row.stale ? "시간표 심사 (이미 심사됨)" : "시간표 심사", canAssess(row), "assess", row.servicePlanId),
       button("승인", canApprove(row), "approve", row.servicePlanId),
-      button("개통", canActivate(row), "activate", row.servicePlanId)));
+      button("개통", canActivate(row), "activate", row.servicePlanId),
+      button("철회", canWithdraw(row), "withdraw", row.servicePlanId)));
 
     if (row.entry) {
       node.append(text(doc, "div", "ttlife-fact", `심사 기록: 시간표 ${row.entry.timetableId}`));
+      const sharedWith = lifecycle.entries.filter((e) => e.timetableId === row.entry.timetableId && e.servicePlanId !== row.servicePlanId).map((e) => e.servicePlanId);
+      if (sharedWith.length) node.append(text(doc, "div", "ttlife-note", `이 시간표는 다른 계획과 함께 심사됐습니다: ${sharedWith.join(", ")} — 철회하면 그 계획의 기록도 철회됨으로 보입니다.`));
+      if (!row.stale && row.timetable?.status === "active") node.append(text(doc, "div", "ttlife-note", "개통된 시간표는 철회할 수 없습니다(엔진 규칙). 같은 요일 유형의 다른 시간표를 개통하면 이것이 대체됩니다."));
       if (row.stale) {
         node.append(text(doc, "div", "ttlife-stale", "낡은 심사 — 승인·개통 불가"));
         node.append(text(doc, "div", "ttlife-note", STALE_NOTICE));
@@ -330,6 +339,10 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
     const a = timetable.assessment ?? {};
     const nodes = [text(doc, "div", `ttlife-engine-status ${timetable.status}`, `엔진 상태: ${ENGINE_STATUS[timetable.status] ?? timetable.status} (${timetable.status})`),
       text(doc, "div", `ttlife-verdict ${a.verdict}`, `엔진 판정: ${VERDICT[a.verdict] ?? valueText(a.verdict)} (${valueText(a.verdict)}) · 요청 경로 ${valueText(timetable.requestedPaths)}개 · 수용된 경로 ${listOf(timetable.acceptedPaths).length}개 · 거절된 경로 ${listOf(timetable.rejectedPaths).length}개 · 수용률 ${valueText(a.acceptanceRatio)} (요구 ${valueText(timetable.minimumAcceptanceRatio)})`)];
+    if (timetable.status === "withdrawn") {
+      nodes.push(text(doc, "div", "ttlife-withdrawn", `철회 이력: ${valueText(timetable.withdrawnFromStatus)} 상태에서 ${valueText(timetable.withdrawnAtMinute)}분에 철회${timetable.withdrawalReason ? ` · 사유: ${timetable.withdrawalReason}` : ""}`));
+      nodes.push(text(doc, "div", "ttlife-note", "철회된 시간표는 승인·개통할 수 없습니다. 아래는 철회 전 심사 결과(감사용 기록)입니다. 새로 심사하세요."));
+    }
     for (const code of listOf(a.missingInputs)) nodes.push(text(doc, "div", "ttlife-missing", `부족한 입력: ${code}`));
     for (const code of listOf(a.violations)) nodes.push(text(doc, "div", "ttlife-violation", `위반: ${code}`));
     const accepted = listOf(timetable.acceptedPaths);
@@ -374,7 +387,7 @@ export function mountRailwayTimetableLifecyclePanel({ container, runtime, getSer
       servicePlanId: row.servicePlanId, serviceId: row.serviceId, timetableId: row.entry?.timetableId ?? null, stale: row.stale, staleReasons: [...row.staleReasons],
       engineStatus: row.stale ? null : (row.timetable?.status ?? null), verdict: row.stale ? null : (row.timetable?.assessment?.verdict ?? null),
       acceptedPaths: row.stale ? null : listOf(row.timetable?.acceptedPaths).length, rejectedPaths: row.stale ? null : listOf(row.timetable?.rejectedPaths).length,
-      canAssess: canAssess(row), canApprove: canApprove(row), canActivate: canActivate(row), error: row.session?.error ?? null,
+      canAssess: canAssess(row), canApprove: canApprove(row), canActivate: canActivate(row), canWithdraw: canWithdraw(row), error: row.session?.error ?? null,
     })),
   };
 }
