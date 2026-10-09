@@ -29,10 +29,11 @@ const label = (doc, name, value) => element(doc, "div", { className: "campaign-t
 const show = (value) => value === null || value === undefined ? "unknown" : Array.isArray(value) ? (value.length ? value.join(", ") : "empty list") : String(value);
 const dueText = (target) => target?.status === "past-due" ? "past due" : target?.status === "due" ? "due" : target?.status === "upcoming" ? "upcoming" : "target unknown";
 
-export function mountCampaignTimelinePanel({ container, getFactReport, getClockMinute, onReachMilestone = null } = {}) {
+export function mountCampaignTimelinePanel({ container, getFactReport, getClockMinute, getGeometryForProgram = null, onReachMilestone = null } = {}) {
   if (!container) throw new Error("A campaign timeline container is required");
   if (typeof getFactReport !== "function") throw new Error("getFactReport() is required");
   if (typeof getClockMinute !== "function") throw new Error("getClockMinute() is required");
+  if (getGeometryForProgram !== null && typeof getGeometryForProgram !== "function") throw new Error("getGeometryForProgram must be a function or null");
   if (onReachMilestone !== null && typeof onReachMilestone !== "function") throw new Error("onReachMilestone must be a function or null");
   const doc = container.ownerDocument ?? document;
   let view = null;
@@ -40,6 +41,8 @@ export function mountCampaignTimelinePanel({ container, getFactReport, getClockM
   let selectedProgramId = null;
   let selectedMilestoneId = null;
   let commandError = null;
+  let observedReferences = [];
+  let declaredWithoutObservedReferences = false;
   let destroyed = false;
 
   const selected = () => {
@@ -50,6 +53,8 @@ export function mountCampaignTimelinePanel({ container, getFactReport, getClockM
   const choose = (programId, milestoneId = null) => {
     selectedProgramId = typeof programId === "string" && programId ? programId : null;
     selectedMilestoneId = typeof milestoneId === "string" && milestoneId ? milestoneId : null;
+    observedReferences = [];
+    declaredWithoutObservedReferences = false;
     commandError = null;
     render();
   };
@@ -70,6 +75,17 @@ export function mountCampaignTimelinePanel({ container, getFactReport, getClockM
       problem = error instanceof Error ? error.message : String(error);
     }
   }
+  const referenceRows = () => observedReferences.map((entry) => ({ refKind: typeof entry.refKind === "string" ? entry.refKind : "", refId: typeof entry.refId === "string" ? entry.refId : "", state: typeof entry.state === "string" ? entry.state : "" }));
+  const updateReference = (index, patch) => { observedReferences = referenceRows().map((entry, candidate) => candidate === index ? { ...entry, ...patch } : entry); commandError = null; render(); };
+  const normalisedReferences = () => {
+    const rows = referenceRows();
+    if (!rows.length) {
+      if (!declaredWithoutObservedReferences) throw new Error("Declare no observed references explicitly, or add at least one observed reference.");
+      return [];
+    }
+    if (rows.some((entry) => !entry.refKind.trim() || !entry.refId.trim())) throw new Error("Each observed reference needs a kind and an ID.");
+    return rows.map((entry) => ({ refKind: entry.refKind.trim(), refId: entry.refId.trim(), state: entry.state.trim() || null }));
+  };
   function milestoneCard(program, milestone) {
     const chosen = selectedProgramId === program.campaignProgramId && selectedMilestoneId === milestone.milestoneId;
     const card = element(doc, "div", { className: `campaign-timeline-milestone ${chosen ? "selected" : ""}` });
@@ -79,10 +95,36 @@ export function mountCampaignTimelinePanel({ container, getFactReport, getClockM
     if (chosen) {
       card.append(text(doc, "p", "campaign-timeline-selection-note", "Selection only. The host must provide all current geometry and observed references when it records a milestone."));
       if (typeof onReachMilestone === "function" && milestone.status === "planned") {
+        if (typeof getGeometryForProgram === "function") {
+          const evidence = element(doc, "section", { className: "campaign-timeline-observed-references" }, text(doc, "h4", "", "Player-observed references"), text(doc, "p", "campaign-timeline-evidence-notice", "These are player declarations. They do not calculate or prove milestone completion."));
+          const none = element(doc, "button", { className: "campaign-timeline-declare-no-references", type: "button", textContent: declaredWithoutObservedReferences ? "No observed references declared" : "Declare no observed references" });
+          none.addEventListener("click", () => { declaredWithoutObservedReferences = !declaredWithoutObservedReferences; commandError = null; render(); });
+          const add = element(doc, "button", { className: "campaign-timeline-add-reference", type: "button", textContent: "Add observed reference" });
+          add.addEventListener("click", () => { observedReferences = [...referenceRows(), { refKind: "", refId: "", state: "" }]; declaredWithoutObservedReferences = false; commandError = null; render(); });
+          evidence.append(none, add);
+          referenceRows().forEach((entry, index) => {
+            const row = element(doc, "div", { className: "campaign-timeline-observed-reference" });
+            for (const [field, labelText] of [["refKind", "Kind"], ["refId", "ID"], ["state", "Observed state (optional)"]]) {
+              const input = element(doc, "input", { className: `campaign-timeline-reference-${field}`, type: "text", value: entry[field], placeholder: labelText });
+              input.addEventListener("change", () => updateReference(index, { [field]: input.value }));
+              row.append(input);
+            }
+            const remove = element(doc, "button", { className: "campaign-timeline-remove-reference", type: "button", textContent: "Remove reference" });
+            remove.addEventListener("click", () => { observedReferences = referenceRows().filter((_, candidate) => candidate !== index); commandError = null; render(); });
+            evidence.append(row, remove);
+          });
+          card.append(evidence);
+        }
         const reach = element(doc, "button", { className: "campaign-timeline-reach", type: "button", textContent: "Record milestone reached" });
         reach.addEventListener("click", () => {
           try {
-            onReachMilestone({ campaignProgramId: program.campaignProgramId, programId: program.programId, milestoneId: milestone.milestoneId });
+            const intent = { campaignProgramId: program.campaignProgramId, programId: program.programId, milestoneId: milestone.milestoneId };
+            if (typeof getGeometryForProgram === "function") {
+              intent.observedRefs = normalisedReferences();
+              intent.geometry = getGeometryForProgram(program.programId);
+              if (!intent.geometry) throw new Error("Current map program geometry was not provided.");
+            }
+            onReachMilestone(intent);
             commandError = null;
           } catch (error) { commandError = error instanceof Error ? error.message : String(error); }
           render();

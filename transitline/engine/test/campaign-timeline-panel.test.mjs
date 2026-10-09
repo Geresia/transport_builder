@@ -52,6 +52,40 @@ test("only an explicit selected click emits a minimal reach intent", () => {
   assert.equal(panel.output().selectedMilestoneId, "m1");
 });
 
+test("a configured milestone declaration requires explicit evidence or an explicit empty declaration and supplies current geometry", () => {
+  const root = container(); const calls = [];
+  const geometry = { schema: "transitline.regional-development-program/1", programId: "program:beta", programRevision: "r1" };
+  const panel = mountCampaignTimelinePanel({
+    container: root, getFactReport: factReport, getClockMinute: () => 0,
+    getGeometryForProgram: (programId) => programId === "program:beta" ? geometry : null,
+    onReachMilestone: (intent) => calls.push(intent),
+  });
+  byClass(root, "campaign-timeline-select-milestone").find((node) => node.textContent.includes("m1")).fire("click");
+  click(root, "campaign-timeline-reach");
+  assert.match(panel.output().commandError, /Declare no observed references/);
+  assert.deepEqual(calls, []);
+  click(root, "campaign-timeline-add-reference");
+  const kinds = byClass(root, "campaign-timeline-reference-refKind"); const ids = byClass(root, "campaign-timeline-reference-refId"); const states = byClass(root, "campaign-timeline-reference-state");
+  kinds[0].value = "development"; kinds[0].fire("change");
+  ids[0].value = "town-a"; ids[0].fire("change");
+  states[0].value = "servicing"; states[0].fire("change");
+  click(root, "campaign-timeline-reach");
+  assert.deepEqual(calls, [{ campaignProgramId: "campaign-program:2", programId: "program:beta", milestoneId: "m1", observedRefs: [{ refKind: "development", refId: "town-a", state: "servicing" }], geometry }]);
+  assert.equal(panel.output().commandError, null);
+});
+
+test("a configured milestone declaration can explicitly declare an empty observed reference list", () => {
+  const root = container(); const calls = [];
+  const panel = mountCampaignTimelinePanel({
+    container: root, getFactReport: factReport, getClockMinute: () => 0,
+    getGeometryForProgram: () => ({ programId: "program:beta" }), onReachMilestone: (intent) => calls.push(intent),
+  });
+  byClass(root, "campaign-timeline-select-milestone").find((node) => node.textContent.includes("m1")).fire("click");
+  click(root, "campaign-timeline-declare-no-references");
+  click(root, "campaign-timeline-reach");
+  assert.deepEqual(calls[0].observedRefs, []);
+});
+
 test("reached milestone stays read-only and a host command error is shown without changing view facts", () => {
   const root = container();
   const panel = mountCampaignTimelinePanel({ container: root, getFactReport: factReport, getClockMinute: () => 0, onReachMilestone: () => { throw new Error("geometry-stale"); } });

@@ -1873,9 +1873,13 @@ async function main() {
     campaignTimelinePanel = mountCampaignTimelinePanel({
       container: $("scenario-campaign-timeline"),
       getFactReport: () => runtime.campaignFactReport(),
-      // No command callback yet: this host does not collect player-observed
-      // references, so a due label must remain read-only rather than guessed.
       getClockMinute: () => runtime.game.clock.minute,
+      getGeometryForProgram: (programId) => regionalDevelopmentProgramEditor?.output()?.export?.programs?.find((program) => program.programId === programId) ?? null,
+      onReachMilestone: ({ campaignProgramId, milestoneId, observedRefs, geometry }) => {
+        const result = runtime.reachCampaignMilestone(campaignProgramId, milestoneId, observedRefs, { geometry });
+        queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); });
+        return result;
+      },
     });
     operationalCalendarPanelDay = runtime.operationalCalendarReport().currentDay;
     railwayTimetableOperationPanel = mountRailwayTimetableOperationPanel({
