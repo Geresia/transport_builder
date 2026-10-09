@@ -16,6 +16,7 @@ import { mountStationDemandAccess } from "./map/station-demand-access-ui.mjs";
 import { mountStationDemandAllocationOverlay } from "./map/station-demand-allocation-ui.mjs";
 import { mountNewTownDevelopment } from "./map/new-town-development-ui.mjs";
 import { mountRegionalDevelopmentProgramEditor } from "./map/regional-development-program-ui.mjs";
+import { mountConstruction3dCoordinateProfilePanel } from "./construction-3d-coordinate-profile-panel.mjs";
 import { mountRailwayTimetableOperationOverlay } from "./map/railway-timetable-operation-ui.mjs";
 import { mountServicePlanEditor } from "./map/service-plan-ui.mjs";
 import { mountServicePlanAssumptionsPanel } from "./service-plan-assumptions-ui.mjs";
@@ -357,6 +358,7 @@ async function main() {
   let newTownDevelopmentUi = null;
   let newTownDevelopmentOutput = null;
   let regionalDevelopmentProgramEditor = null;
+  let construction3dCoordinateProfilePanel = null;
   let stationDemandAllocationOverlay = null;
   let railwayTimetableOperationOverlay = null;
   let servicePlanEditor = null;
@@ -400,6 +402,7 @@ async function main() {
     stationDemandAccessUi?.refresh();
     newTownDevelopmentUi?.refresh();
     regionalDevelopmentProgramEditor?.refresh();
+    construction3dCoordinateProfilePanel?.refresh();
     stationDemandAllocationOverlay?.refresh();
     railwayTimetableOperationOverlay?.refresh();
     servicePlanEditor?.refresh();
@@ -494,6 +497,11 @@ async function main() {
     getMapExport: () => currentMapExport,
     getStationSites: () => stationUi?.stationExport?.sites ?? undefined,
     getServicePlans: () => servicePlanEditor?.output()?.export?.plans ?? undefined,
+    onChange: () => queueMicrotask(() => refreshScenarioPanel()),
+  });
+  construction3dCoordinateProfilePanel = mountConstruction3dCoordinateProfilePanel({
+    container: $("scenario-construction-3d-coordinates"),
+    pack,
     onChange: () => queueMicrotask(() => refreshScenarioPanel()),
   });
   if (runtime) {
@@ -2083,6 +2091,7 @@ async function main() {
         stationDemandAccessDoc: stationDemandAccessUi?.serialize() ?? null,
         newTownDevelopmentDoc: newTownDevelopmentUi?.serialize() ?? null,
         regionalDevelopmentProgramDoc: regionalDevelopmentProgramEditor?.serialize() ?? null,
+        construction3dCoordinateProfileDoc: construction3dCoordinateProfilePanel?.serialize() ?? null,
         stationDemandAllocationDraft: stationDemandAllocationManagement?.serialize() ?? null,
         servicePlanDoc: servicePlanEditor?.serialize() ?? null,
         servicePlanAssumptionsDoc: servicePlanAssumptions?.serialize() ?? null,
@@ -2117,6 +2126,8 @@ async function main() {
       newTownDevelopmentOutput = newTownDevelopmentUi?.output() ?? null;
       if (wrapped && payload.regionalDevelopmentProgramDoc) regionalDevelopmentProgramEditor?.loadDoc(payload.regionalDevelopmentProgramDoc);
       else regionalDevelopmentProgramEditor?.refresh();
+      if (wrapped && payload.construction3dCoordinateProfileDoc) construction3dCoordinateProfilePanel?.loadDoc(payload.construction3dCoordinateProfileDoc);
+      else construction3dCoordinateProfilePanel?.refresh();
       if (wrapped && payload.stationDemandAllocationDraft) stationDemandAllocationManagement?.loadDoc(payload.stationDemandAllocationDraft);
       if (wrapped && payload.servicePlanDoc) servicePlanEditor?.loadDoc(payload.servicePlanDoc);
       else servicePlanEditor?.refresh();
