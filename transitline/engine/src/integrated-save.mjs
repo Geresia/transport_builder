@@ -8,10 +8,12 @@ function mapEntries(map) {
 }
 
 export function snapshotOperationalState(state) {
+  // The keys go out in sorted order: a state object keeps the order its keys were added in, and a key added after a restore (a B15 or B19
+  // application) would otherwise sit somewhere else than in a run that never restored.  Equal states must give equal bytes.
   const plain = {};
-  for (const [key, value] of Object.entries(state)) {
+  for (const key of Object.keys(state).sort()) {
     if (["stations", "demandNodes", "rng"].includes(key)) continue;
-    plain[key] = structuredClone(value);
+    plain[key] = structuredClone(state[key]);
   }
   return {
     ...plain,

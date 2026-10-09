@@ -1324,24 +1324,30 @@ export class ScenarioRuntime {
 
   // B20-E2 is a reference record only.  The explicit demand source remains
   // owned by B19-E5 in operational state and this call never alters B15 links.
+  // `geometry` is the B20 program's map statement (transitline.regional-development-program/1); `developmentGeometry` is the B19 development
+  // map (an M1 development or export) the explicit demand source was approved against.  They are different documents, so a caller gives
+  // both.  Without `developmentGeometry` the old single `geometry` is used for both, which can only ever be "unverified" for B19.
+  newTownGeometryOf(context) {
+    return (context?.developmentGeometry !== undefined ? context.developmentGeometry : context?.geometry) ?? null;
+  }
   assessCampaignActivation(input = {}) {
-    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: input.geometry ?? null });
+    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: this.newTownGeometryOf(input) });
     const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
     return this.game.assessCampaignActivation({ ...input, intakes, sources });
   }
   recordCampaignActivation(input = {}) {
-    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: input.geometry ?? null });
+    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: this.newTownGeometryOf(input) });
     const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
     return this.game.recordCampaignActivation({ ...input, intakes, sources });
   }
   withdrawCampaignActivation(id, reason) { return this.game.withdrawCampaignActivation(id, reason); }
   campaignActivationReport(context = {}) {
-    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: context.geometry ?? null });
+    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: this.newTownGeometryOf(context) });
     const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
     return this.game.campaignActivationReport({ geometry: context.geometry ?? null, intakes, sources });
   }
   campaignFactReport(context = {}) {
-    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: context.geometry ?? null });
+    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: this.newTownGeometryOf(context) });
     const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
     return buildCampaignFactReport({ programs: this.game.campaignProgramReport(), activations: this.game.campaignActivationReport({ geometry: context.geometry ?? null, intakes, sources }), developments: this.game.newTownDevelopmentReport(), contributions: this.game.newTownRailContributionReport(), demandSources: sources, projects: this.game.projects, services: this.game.services, timetables: this.game.railwayTimetableReport() });
   }
