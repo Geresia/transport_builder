@@ -45,6 +45,8 @@ import { mountRailwayTimetableLifecyclePanel } from "./railway-timetable-lifecyc
 import { mountRailwayTimetableOperationPanel } from "./railway-timetable-operation-panel.mjs";
 import { mountOperationalCalendarPanel } from "./operational-calendar-panel.mjs";
 import { mountOperationalServiceCoveragePanel } from "./operational-service-coverage-panel.mjs";
+import { mountNewTownDevelopmentManagementPanel } from "./new-town-development-management-ui.mjs";
+import { mountNewTownRailContributionManagementPanel } from "./new-town-rail-contribution-management-panel.mjs";
 import { TECHNICAL_PROFILES } from "./management/construction.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
@@ -362,6 +364,8 @@ async function main() {
   let railwayTimetableOperationPanel = null;
   let operationalCalendarPanel = null;
   let operationalServiceCoveragePanel = null;
+  let newTownDevelopmentManagement = null;
+  let newTownRailContributionManagement = null;
   let operationalCalendarPanelDay = null;
   let stationSelection = null;
   let stationSelectionOutput = null;
@@ -413,6 +417,8 @@ async function main() {
     railwayTimetableOperationPanel?.refresh();
     operationalCalendarPanel?.refresh();
     operationalServiceCoveragePanel?.refresh();
+    newTownDevelopmentManagement?.refresh();
+    newTownRailContributionManagement?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -1676,6 +1682,8 @@ async function main() {
       railwayTimetableOperationPanel?.refresh();
       operationalCalendarPanel?.refresh();
       operationalServiceCoveragePanel?.refresh();
+      newTownDevelopmentManagement?.refresh();
+      newTownRailContributionManagement?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1788,6 +1796,28 @@ async function main() {
     operationalServiceCoveragePanel = mountOperationalServiceCoveragePanel({
       container: $("scenario-operational-service-coverage"),
       getReport: () => runtime.operationalServiceCoverageReport(),
+    });
+    // B19: M2 holds the player-authored geometry. E1/E3 keep their own transactional
+    // records in runtime.save(); these panels persist only their unsent form state.
+    const newTownGeometryExport = () => newTownDevelopmentUi?.output()?.export ?? newTownDevelopmentOutput?.export ?? null;
+    newTownDevelopmentManagement = mountNewTownDevelopmentManagementPanel({
+      container: $("scenario-new-town-developments"),
+      runtime,
+      getGeometryExport: newTownGeometryExport,
+      onChange: (event) => {
+        if (event?.kind === "command") queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); });
+      },
+    });
+    newTownRailContributionManagement = mountNewTownRailContributionManagementPanel({
+      container: $("scenario-new-town-rail-contributions"),
+      runtime,
+      getGeometryExport: newTownGeometryExport,
+      getNewTownDevelopments: () => runtime.newTownDevelopmentReport(),
+      getCurrentLinks: () => ({
+        planIds: (currentMapExport?.plans ?? []).map((plan) => plan.planId),
+        stationSiteIds: (stationUi?.stationExport?.sites ?? []).map((site) => site.stationSiteId),
+      }),
+      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
     operationalCalendarPanelDay = runtime.operationalCalendarReport().currentDay;
     railwayTimetableOperationPanel = mountRailwayTimetableOperationPanel({
@@ -2036,6 +2066,8 @@ async function main() {
         servicePlanBindingDoc: servicePlanManagement?.serialize() ?? null,
         railwayTimetableLifecycleDoc: railwayTimetableLifecycle?.serialize() ?? null,
         operationalCalendarDraftDoc: operationalCalendarPanel?.serialize() ?? null,
+        newTownDevelopmentManagementDoc: newTownDevelopmentManagement?.serialize() ?? null,
+        newTownRailContributionManagementDoc: newTownRailContributionManagement?.serialize() ?? null,
       });
       localStorage.setItem(storageKey, payload);
       message("지도·공사·차량·회사 상태와 작업면·대체수송 계획을 함께 저장했습니다.");
@@ -2071,6 +2103,10 @@ async function main() {
       else railwayTimetableLifecycle?.refresh();
       if (wrapped && payload.operationalCalendarDraftDoc) operationalCalendarPanel?.loadDoc(payload.operationalCalendarDraftDoc);
       else operationalCalendarPanel?.refresh();
+      if (wrapped && payload.newTownDevelopmentManagementDoc) newTownDevelopmentManagement?.loadDoc(payload.newTownDevelopmentManagementDoc);
+      else newTownDevelopmentManagement?.refresh();
+      if (wrapped && payload.newTownRailContributionManagementDoc) newTownRailContributionManagement?.loadDoc(payload.newTownRailContributionManagementDoc);
+      else newTownRailContributionManagement?.refresh();
       operationalServiceCoveragePanel?.refresh();
       operationalCalendarPanelDay = runtime.operationalCalendarReport().currentDay;
       selectedLineId = null;
