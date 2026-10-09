@@ -263,6 +263,7 @@ export class ScenarioRuntime {
       newTownDevelopments: this.game.newTownDevelopmentReport(),
       newTownRailContributions: this.game.newTownRailContributionReport(),
       newTownDemandIntakes: this.game.newTownDemandIntakeReport(),
+      campaignPrograms: this.game.campaignProgramReport(),
       operationalTimetableApplications: operationalTimetableApplicationReport(this.operationalState),
       operationalTimetableWarnings: structuredClone(this.operationalState?.operationalTimetableWarnings ?? []),
       railwayTraffic: railwayTrafficReport(this.operationalState),
@@ -1303,6 +1304,20 @@ export class ScenarioRuntime {
   newTownDemandIntakeReport(id = null, context = {}) {
     return this.game.newTownDemandIntakeReport(id, context);
   }
+
+  // B20-E1 delegates all campaign lifecycle changes to ManagementGame.  The
+  // runtime has no extra clock: game.clock.minute is the transition timestamp.
+  assessCampaignProgram(input = {}) { return this.game.assessCampaignProgram(input); }
+  draftCampaignProgram(input = {}) { return this.game.draftCampaignProgram(input); }
+  adoptCampaignProgram(id, context = {}) { return this.game.adoptCampaignProgram(id, context); }
+  monitorCampaignProgram(id, context = {}) { return this.game.monitorCampaignProgram(id, context); }
+  completeCampaignProgram(id, context = {}) { return this.game.completeCampaignProgram(id, context); }
+  delayCampaignProgram(id, reason) { return this.game.delayCampaignProgram(id, reason); }
+  resumeCampaignProgram(id, context = {}) { return this.game.resumeCampaignProgram(id, context); }
+  cancelCampaignProgram(id, reason) { return this.game.cancelCampaignProgram(id, reason); }
+  reachCampaignMilestone(id, milestoneId, observedRefs = [], context = {}) { return this.game.reachCampaignMilestone(id, milestoneId, observedRefs, context); }
+  campaignProgramReport(id = null) { return this.game.campaignProgramReport(id); }
+  campaignProgramHooks(id) { return this.game.campaignProgramHooks(id); }
 
   railwayTimetableReport(timetableId = null) {
     return this.game.railwayTimetableReport(timetableId);
