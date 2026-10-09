@@ -43,6 +43,7 @@ import { railwayTrafficReport } from "./railway-traffic-control.mjs";
 import { createRailwayDisruption, railwayDisruptionReport, resolveRailwayDisruption } from "./railway-disruptions.mjs";
 import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail-capacity-integration.mjs";
 import { buildRailwayTimetableOperationReport } from "./railway-timetable-operation-report.mjs";
+import { calendarSupportsDayType, normalizeOperationalCalendar, operationalDayTypeAt, operationalDayTypeAtDay } from "./operational-calendar.mjs";
 import { applyStationDemandAccess, stationDemandAccessApplicationReport } from "./station-demand-access-integration.mjs";
 import { applyStationDemandAllocation, assessStationDemandAllocation, stationDemandAllocationApplicationReport } from "./station-demand-allocation-integration.mjs";
 import { buildStationDemandAllocationDiagnostics } from "./station-demand-allocation-diagnostics.mjs";
@@ -73,6 +74,36 @@ const VEHICLE_BY_PROFILE = Object.freeze({
 function replaceState(target, source) {
   for (const key of Object.keys(target)) delete target[key];
   Object.assign(target, source);
+}
+
+// B18-E2: what changing the operating calendar to `value` would do, computed without touching anything.
+// A day type is looked up per day by the dispatcher (trains.mjs), so a change needs no re-application of the timetables: their
+// dispatch entries are keyed by day type and stay exactly as they are.  What a change CAN break is (a) a day that has already
+// begun while timetable dispatch bookkeeping exists (its departures were already dispatched or counted under the old type) and
+// (b) an active holiday timetable, which needs at least one holiday day to be applied at all (the same test activation and load use).
+function operationalCalendarChangePlan(runtime, value) {
+  const state = runtime.operationalState;
+  const { calendar, warnings } = normalizeOperationalCalendar(value);
+  const rejections = [];
+  if (warnings.length) rejections.push({ code: "operational-calendar-invalid", warnings: [...warnings] });
+  const days = new Set([...Object.keys(state.operationalCalendar?.dayTypesByOperatingDay ?? {}), ...Object.keys(calendar?.dayTypesByOperatingDay ?? {})].map(Number));
+  const changedDays = [...days].filter(Number.isInteger).sort((a, b) => a - b)
+    .map((day) => ({ day, from: operationalDayTypeAtDay(day, state.operationalCalendar), to: operationalDayTypeAtDay(day, calendar) }))
+    .filter((entry) => entry.from !== entry.to);
+  const currentDay = Math.floor(Number(state.simMinutes) / 1440);
+  const hasDispatchEntries = (state.lines ?? []).some((line) => Object.keys(line.timetableDispatches ?? {}).length > 0);
+  const started = changedDays.filter((entry) => entry.day <= currentDay).map((entry) => entry.day);
+  if (hasDispatchEntries && started.length) rejections.push({ code: "calendar-changes-started-day", days: started, currentDay });
+  const active = runtime.game.railwayTimetables.filter((entry) => entry.status === "active");
+  const orphaned = active.filter((entry) => entry.dayType === "holiday" && !calendarSupportsDayType(calendar, "holiday")).map((entry) => entry.id).sort();
+  if (orphaned.length) rejections.push({ code: "calendar-leaves-active-holiday-timetable-without-holiday-day", timetableIds: orphaned });
+  return {
+    accepted: rejections.length === 0,
+    rejections,
+    calendar: calendar === null ? null : structuredClone(calendar),
+    changedDays,
+    activeTimetables: active.map((entry) => ({ timetableId: entry.id, dayType: entry.dayType, supportedByNewCalendar: calendarSupportsDayType(calendar, entry.dayType) })).sort((a, b) => a.timetableId.localeCompare(b.timetableId)),
+  };
 }
 
 function routeFacts(project) {
@@ -1152,6 +1183,38 @@ export class ScenarioRuntime {
     return this.game.railwayTimetableReport(timetableId);
   }
 
+  // B18-E2: the operating calendar says which timetable day type each simulated day runs (weekday / weekend / holiday).
+  // assess = read-only preview of a change; set = the same check, then ONE assignment.  A rejected change throws and nothing
+  // (state, saved text, clock, RNG) has moved.  null clears the calendar (default Mon-Fri / Sat-Sun everywhere, no holiday).
+  assessOperationalCalendar(calendar) {
+    return operationalCalendarChangePlan(this, calendar);
+  }
+
+  setOperationalCalendar(calendar) {
+    const plan = operationalCalendarChangePlan(this, calendar);
+    if (!plan.accepted) throw Object.assign(new Error(`Operational calendar change rejected: ${plan.rejections.map((entry) => entry.code).join(", ")}`), { rejections: structuredClone(plan.rejections) });
+    this.operationalState.operationalCalendar = plan.calendar === null ? null : structuredClone(plan.calendar);
+    delete this.operationalState.operationalCalendarWarnings;
+    return { ...plan, calendar: plan.calendar === null ? null : structuredClone(plan.calendar) };
+  }
+
+  operationalCalendarReport() {
+    const state = this.operationalState;
+    const days = Object.entries(state.operationalCalendar?.dayTypesByOperatingDay ?? {});
+    const active = this.game.railwayTimetables.filter((entry) => entry.status === "active");
+    return {
+      schema: "transitline.operational-calendar-report/1",
+      contractVersion: 1,
+      calendar: state.operationalCalendar ? structuredClone(state.operationalCalendar) : null,
+      currentDay: Number.isFinite(state.simMinutes) ? Math.floor(state.simMinutes / 1440) : null,
+      currentDayType: operationalDayTypeAt(state.simMinutes, state.operationalCalendar),
+      holidayDays: days.filter(([, type]) => type === "holiday").map(([day]) => Number(day)).sort((a, b) => a - b),
+      supportsHoliday: calendarSupportsDayType(state.operationalCalendar, "holiday"),
+      activeTimetables: active.map((entry) => ({ timetableId: entry.id, dayType: entry.dayType, supported: calendarSupportsDayType(state.operationalCalendar, entry.dayType) })).sort((a, b) => a.timetableId.localeCompare(b.timetableId)),
+      warnings: structuredClone(state.operationalCalendarWarnings ?? []),
+    };
+  }
+
   proposeThroughHandoverProject(site, input = {}) {
     return this.game.proposeThroughHandoverProject(site, input);
   }
@@ -1575,6 +1638,12 @@ export class ScenarioRuntime {
 
   load(text) {
     const restored = loadIntegratedGame(text, { id: this.pack.manifest.id, version: this.pack.manifest.version });
+    // B18-E2: the calendar is read back before any timetable is re-applied (a holiday timetable needs it).  A save from before the
+    // calendar existed has none (null); entries the engine would never have honoured are dropped and named, not silently kept.
+    const calendar = normalizeOperationalCalendar(restored.operationalState.operationalCalendar);
+    restored.operationalState.operationalCalendar = calendar.calendar;
+    delete restored.operationalState.operationalCalendarWarnings;
+    if (calendar.warnings.length) restored.operationalState.operationalCalendarWarnings = calendar.warnings;
     restored.operationalState.operationalTimetableWarnings = [];
     for (const timetable of restored.game.railwayTimetables.filter((entry) => entry.status === "active").sort((a, b) => a.dayType.localeCompare(b.dayType))) {
       try {
