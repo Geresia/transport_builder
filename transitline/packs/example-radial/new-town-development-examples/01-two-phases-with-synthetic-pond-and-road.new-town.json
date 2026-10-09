@@ -1,0 +1,547 @@
+{
+  "schema": "transitline.new-town-development-geometry/1",
+  "contractVersion": 1,
+  "developmentId": "new-town:99712a29b1e79c63",
+  "sourcePackId": "example-radial",
+  "sourcePackVersion": "0.1.0",
+  "key": "example:radial:new-town-outer-spoke",
+  "active": true,
+  "phaseCount": 2,
+  "activePhaseCount": 2,
+  "location": [
+    0.0757,
+    0.0335
+  ],
+  "boundingBox": [
+    0.06895,
+    0.0315,
+    0.08245,
+    0.0355
+  ],
+  "phaseAreaSumSquareMeters": 594822.8,
+  "phases": [
+    {
+      "phaseId": "new-town-phase:5bba4cf89b7ec982",
+      "key": "phase-1",
+      "sequence": 1,
+      "active": true,
+      "polygon": [
+        [
+          0.06895,
+          0.0315
+        ],
+        [
+          0.07495,
+          0.0315
+        ],
+        [
+          0.07495,
+          0.0355
+        ],
+        [
+          0.06895,
+          0.0355
+        ]
+      ],
+      "location": [
+        0.07195,
+        0.0335
+      ],
+      "areaSquareMeters": 297411.4,
+      "perimeterMeters": 2226.4,
+      "playerDeclaredLandUse": "housing",
+      "playerDeclaredDeliveryOrder": 1,
+      "railAccessCandidates": [
+        {
+          "refKind": "plan-segment",
+          "planId": "plan:0ecd95b1d71018d3",
+          "segmentId": "seg:093a835d10ac7a0b",
+          "externalNetworkId": null,
+          "externalLineId": null,
+          "declaredByPlayer": true,
+          "relation": "near",
+          "distanceMeters": 497.8
+        },
+        {
+          "refKind": "plan-segment",
+          "planId": "plan:3e604547f4feb1f9",
+          "segmentId": "seg:64fff2e16a5ede5f",
+          "externalNetworkId": null,
+          "externalLineId": null,
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 497.8
+        },
+        {
+          "refKind": "plan-segment",
+          "planId": "plan:a7b82bfea8635d94",
+          "segmentId": "seg:093a835d10ac7a0b",
+          "externalNetworkId": null,
+          "externalLineId": null,
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 497.8
+        }
+      ],
+      "roadAccessCandidates": [
+        {
+          "roadRefId": "road:339df79e9918da2c",
+          "roadClass": "major",
+          "relation": "through-area",
+          "distanceMeters": 0
+        }
+      ],
+      "stationSiteRefs": [],
+      "spatialFacts": {
+        "withinPackBoundingBox": true,
+        "stationsInside": [],
+        "nearestPlannedStation": {
+          "stationId": "stn:12eab25d4b99dd0f",
+          "distanceMeters": 497.8
+        },
+        "nearestExistingStation": null,
+        "demandNodeRefsInside": [],
+        "nearestDemandNode": {
+          "nodeId": "outer-1",
+          "distanceMeters": 497.8
+        },
+        "roadsThroughArea": {
+          "highway": 0,
+          "major": 1,
+          "minor": 0
+        },
+        "waterOverlapCount": 0,
+        "intersectedBuildingCount": null,
+        "overlapsPhaseIds": [],
+        "groundElevationMeters": null,
+        "elevationRangeMeters": null,
+        "averageSlopePercent": null,
+        "maximumSlopePercent": null,
+        "railSearchRadiusMeters": 2000,
+        "roadSearchRadiusMeters": 300
+      },
+      "spatialFlags": [
+        "roads-through-area"
+      ],
+      "sourceLayers": [
+        {
+          "layer": "demand-nodes",
+          "quality": null,
+          "name": "CityPack demand points (locations only)",
+          "license": "CC0-1.0"
+        },
+        {
+          "layer": "rail",
+          "quality": "low",
+          "name": "map export: plan segments and ExternalNetwork lines (station-level, coarse)",
+          "license": "CC0-1.0"
+        },
+        {
+          "layer": "roads",
+          "quality": "low",
+          "name": "Synthetic example road (hand-written for this example)",
+          "license": "CC0-1.0"
+        },
+        {
+          "layer": "stations",
+          "quality": null,
+          "name": "map export: plan station candidates and ExternalNetwork stations",
+          "license": "CC0-1.0"
+        },
+        {
+          "layer": "water",
+          "quality": "low",
+          "name": "Synthetic example pond (hand-written for this example)",
+          "license": "CC0-1.0"
+        }
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "averageSlopePercent",
+        "elevationRangeMeters",
+        "groundElevationMeters",
+        "intersectedBuildingCount",
+        "maximumSlopePercent",
+        "nearestExistingStation"
+      ],
+      "unknownReasons": {
+        "averageSlopePercent": "no-layer",
+        "elevationRangeMeters": "no-layer",
+        "groundElevationMeters": "no-layer",
+        "intersectedBuildingCount": "no-layer",
+        "maximumSlopePercent": "no-layer",
+        "nearestExistingStation": "no-existing-stations"
+      },
+      "warnings": [
+        {
+          "code": "station-ref-ambiguous",
+          "stationId": "stn:12eab25d4b99dd0f"
+        }
+      ],
+      "phaseRevision": "new-town-phase-revision:2bddcac05ae5d64a",
+      "name": "Housing first"
+    },
+    {
+      "phaseId": "new-town-phase:5eba51b19a7ec7ef",
+      "key": "phase-2",
+      "sequence": 2,
+      "active": true,
+      "polygon": [
+        [
+          0.07645,
+          0.0315
+        ],
+        [
+          0.08245,
+          0.0315
+        ],
+        [
+          0.08245,
+          0.0355
+        ],
+        [
+          0.07645,
+          0.0355
+        ]
+      ],
+      "location": [
+        0.07945,
+        0.0335
+      ],
+      "areaSquareMeters": 297411.4,
+      "perimeterMeters": 2226.4,
+      "playerDeclaredLandUse": "employment",
+      "playerDeclaredDeliveryOrder": 2,
+      "railAccessCandidates": [
+        {
+          "refKind": "plan-segment",
+          "planId": "plan:0ecd95b1d71018d3",
+          "segmentId": "seg:093a835d10ac7a0b",
+          "externalNetworkId": null,
+          "externalLineId": null,
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 1299.4
+        },
+        {
+          "refKind": "plan-segment",
+          "planId": "plan:3e604547f4feb1f9",
+          "segmentId": "seg:64fff2e16a5ede5f",
+          "externalNetworkId": null,
+          "externalLineId": null,
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 1299.4
+        },
+        {
+          "refKind": "plan-segment",
+          "planId": "plan:a7b82bfea8635d94",
+          "segmentId": "seg:093a835d10ac7a0b",
+          "externalNetworkId": null,
+          "externalLineId": null,
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 1299.4
+        }
+      ],
+      "roadAccessCandidates": [],
+      "stationSiteRefs": null,
+      "spatialFacts": {
+        "withinPackBoundingBox": true,
+        "stationsInside": [],
+        "nearestPlannedStation": {
+          "stationId": "stn:12eab25d4b99dd0f",
+          "distanceMeters": 1299.4
+        },
+        "nearestExistingStation": null,
+        "demandNodeRefsInside": [],
+        "nearestDemandNode": {
+          "nodeId": "outer-1",
+          "distanceMeters": 1299.4
+        },
+        "roadsThroughArea": {
+          "highway": 0,
+          "major": 0,
+          "minor": 0
+        },
+        "waterOverlapCount": 1,
+        "intersectedBuildingCount": null,
+        "overlapsPhaseIds": [],
+        "groundElevationMeters": null,
+        "elevationRangeMeters": null,
+        "averageSlopePercent": null,
+        "maximumSlopePercent": null,
+        "railSearchRadiusMeters": 2000,
+        "roadSearchRadiusMeters": 300
+      },
+      "spatialFlags": [
+        "water-overlap"
+      ],
+      "sourceLayers": [
+        {
+          "layer": "demand-nodes",
+          "quality": null,
+          "name": "CityPack demand points (locations only)",
+          "license": "CC0-1.0"
+        },
+        {
+          "layer": "rail",
+          "quality": "low",
+          "name": "map export: plan segments and ExternalNetwork lines (station-level, coarse)",
+          "license": "CC0-1.0"
+        },
+        {
+          "layer": "roads",
+          "quality": "low",
+          "name": "Synthetic example road (hand-written for this example)",
+          "license": "CC0-1.0"
+        },
+        {
+          "layer": "stations",
+          "quality": null,
+          "name": "map export: plan station candidates and ExternalNetwork stations",
+          "license": "CC0-1.0"
+        },
+        {
+          "layer": "water",
+          "quality": "low",
+          "name": "Synthetic example pond (hand-written for this example)",
+          "license": "CC0-1.0"
+        }
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "averageSlopePercent",
+        "elevationRangeMeters",
+        "groundElevationMeters",
+        "intersectedBuildingCount",
+        "maximumSlopePercent",
+        "nearestExistingStation",
+        "stationSiteRefs"
+      ],
+      "unknownReasons": {
+        "averageSlopePercent": "no-layer",
+        "elevationRangeMeters": "no-layer",
+        "groundElevationMeters": "no-layer",
+        "intersectedBuildingCount": "no-layer",
+        "maximumSlopePercent": "no-layer",
+        "nearestExistingStation": "no-existing-stations",
+        "stationSiteRefs": "not-stated"
+      },
+      "warnings": [],
+      "phaseRevision": "new-town-phase-revision:b14021d5e183657b",
+      "name": "Employment beside the pond"
+    }
+  ],
+  "spatialFlags": [
+    "roads-through-area",
+    "water-overlap"
+  ],
+  "sourceLayers": [
+    {
+      "layer": "demand-nodes",
+      "quality": null,
+      "name": "CityPack demand points (locations only)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "map export: plan segments and ExternalNetwork lines (station-level, coarse)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "roads",
+      "quality": "low",
+      "name": "Synthetic example road (hand-written for this example)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "stations",
+      "quality": null,
+      "name": "map export: plan station candidates and ExternalNetwork stations",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "low",
+      "name": "Synthetic example pond (hand-written for this example)",
+      "license": "CC0-1.0"
+    }
+  ],
+  "dataQuality": "low",
+  "unknown": [],
+  "unknownReasons": {},
+  "constraintUnknown": [
+    "land-ownership",
+    "underground-conditions",
+    "zoning-and-permits",
+    "occupancy-rate"
+  ],
+  "warnings": [],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "developmentRevision": "new-town-revision:f6a726f18778b7cb",
+  "name": "Outer spoke district (example drawing)",
+  "source": {
+    "editorDocument": {
+      "key": "example:radial:new-town-outer-spoke",
+      "name": "Outer spoke district (example drawing)",
+      "active": true,
+      "deleted": false,
+      "phaseSeq": 2,
+      "phases": [
+        {
+          "key": "phase-1",
+          "active": true,
+          "deleted": false,
+          "name": "Housing first",
+          "polygon": [
+            [
+              0.06895,
+              0.0315
+            ],
+            [
+              0.07495,
+              0.0315
+            ],
+            [
+              0.07495,
+              0.035500000000000004
+            ],
+            [
+              0.06895,
+              0.035500000000000004
+            ]
+          ],
+          "playerDeclaredLandUse": "housing",
+          "playerDeclaredDeliveryOrder": 1,
+          "stationRefs": [
+            {
+              "stationId": "stn:12eab25d4b99dd0f"
+            }
+          ],
+          "railRefs": [
+            {
+              "planId": "plan:0ecd95b1d71018d3",
+              "segmentId": "seg:093a835d10ac7a0b"
+            }
+          ]
+        },
+        {
+          "key": "phase-2",
+          "active": true,
+          "deleted": false,
+          "name": "Employment beside the pond",
+          "polygon": [
+            [
+              0.07644999999999999,
+              0.0315
+            ],
+            [
+              0.08245,
+              0.0315
+            ],
+            [
+              0.08245,
+              0.035500000000000004
+            ],
+            [
+              0.07644999999999999,
+              0.035500000000000004
+            ]
+          ],
+          "playerDeclaredLandUse": "employment",
+          "playerDeclaredDeliveryOrder": 2,
+          "stationRefs": null,
+          "railRefs": null
+        }
+      ]
+    },
+    "drawnDevelopment": {
+      "key": "example:radial:new-town-outer-spoke",
+      "name": "Outer spoke district (example drawing)",
+      "active": true,
+      "phases": [
+        {
+          "key": "phase-1",
+          "name": "Housing first",
+          "sequence": 1,
+          "active": true,
+          "polygon": [
+            [
+              0.06895,
+              0.0315
+            ],
+            [
+              0.07495,
+              0.0315
+            ],
+            [
+              0.07495,
+              0.035500000000000004
+            ],
+            [
+              0.06895,
+              0.035500000000000004
+            ]
+          ],
+          "playerDeclaredLandUse": "housing",
+          "playerDeclaredDeliveryOrder": 1,
+          "access": {
+            "stationRefs": [
+              {
+                "stationId": "stn:12eab25d4b99dd0f"
+              }
+            ],
+            "railRefs": [
+              {
+                "planId": "plan:0ecd95b1d71018d3",
+                "segmentId": "seg:093a835d10ac7a0b"
+              }
+            ]
+          }
+        },
+        {
+          "key": "phase-2",
+          "name": "Employment beside the pond",
+          "sequence": 2,
+          "active": true,
+          "polygon": [
+            [
+              0.07644999999999999,
+              0.0315
+            ],
+            [
+              0.08245,
+              0.0315
+            ],
+            [
+              0.08245,
+              0.035500000000000004
+            ],
+            [
+              0.07644999999999999,
+              0.035500000000000004
+            ]
+          ],
+          "playerDeclaredLandUse": "employment",
+          "playerDeclaredDeliveryOrder": 2,
+          "access": {
+            "stationRefs": null,
+            "railRefs": null
+          }
+        }
+      ]
+    },
+    "requestedMode": "scratch",
+    "layers": [
+      "roads",
+      "water"
+    ],
+    "note": "The development is what a player might draw with the editor over the real plan examples of this pack. A land use, a delivery order or a station site is what the player declared, not a statement that anything can be built, filled or served. A distance to a line, station or road is a distance, not a connection.",
+    "generatedBy": "scripts/build-new-town-examples.mjs"
+  }
+}

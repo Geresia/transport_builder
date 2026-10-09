@@ -1,0 +1,637 @@
+{
+  "schema": "transitline.new-town-development-geometry/1",
+  "contractVersion": 1,
+  "developmentId": "new-town:18cea936039ee458",
+  "sourcePackId": "tokyo",
+  "sourcePackVersion": "0.1.0",
+  "key": "example:tokyo:new-town-edogawa-bayside",
+  "active": true,
+  "phaseCount": 2,
+  "activePhaseCount": 2,
+  "location": [
+    139.87918,
+    35.707358
+  ],
+  "boundingBox": [
+    139.87518,
+    35.7031,
+    139.88318,
+    35.7116
+  ],
+  "phaseAreaSumSquareMeters": 668151.7,
+  "phases": [
+    {
+      "phaseId": "new-town-phase:cc322ecd16db7c9f",
+      "key": "phase-1",
+      "sequence": 1,
+      "active": true,
+      "polygon": [
+        [
+          139.87518,
+          35.7071
+        ],
+        [
+          139.88318,
+          35.7071
+        ],
+        [
+          139.88318,
+          35.7116
+        ],
+        [
+          139.87518,
+          35.7116
+        ]
+      ],
+      "location": [
+        139.87918,
+        35.70935
+      ],
+      "areaSquareMeters": 362241.9,
+      "perimeterMeters": 2448.1,
+      "playerDeclaredLandUse": "housing",
+      "playerDeclaredDeliveryOrder": 1,
+      "railAccessCandidates": [
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:18819167",
+          "declaredByPlayer": false,
+          "relation": "crosses",
+          "distanceMeters": 0
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:10840434",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 90.4
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:5326726",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 90.4
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:5371620",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 90.4
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:3336657",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 231.7
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:19928461",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 305.6
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:19931515",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 305.6
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:19931516",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 305.6
+        },
+        {
+          "refKind": "plan-segment",
+          "planId": "plan:b9b153e3df14331d",
+          "segmentId": "seg:4c77da73dfd17c89",
+          "externalNetworkId": null,
+          "externalLineId": null,
+          "declaredByPlayer": true,
+          "relation": "near",
+          "distanceMeters": 424.6
+        }
+      ],
+      "roadAccessCandidates": null,
+      "stationSiteRefs": [],
+      "spatialFacts": {
+        "withinPackBoundingBox": true,
+        "stationsInside": [],
+        "nearestPlannedStation": {
+          "stationId": "stn:c247c3f5a3f53c4b",
+          "distanceMeters": 424.6
+        },
+        "nearestExistingStation": {
+          "stationId": "ward-edogawa",
+          "distanceMeters": 424.6
+        },
+        "demandNodeRefsInside": [],
+        "nearestDemandNode": {
+          "nodeId": "ward-edogawa",
+          "distanceMeters": 424.6
+        },
+        "roadsThroughArea": null,
+        "waterOverlapCount": 1,
+        "intersectedBuildingCount": null,
+        "overlapsPhaseIds": [],
+        "groundElevationMeters": null,
+        "elevationRangeMeters": null,
+        "averageSlopePercent": null,
+        "maximumSlopePercent": null,
+        "railSearchRadiusMeters": 2000,
+        "roadSearchRadiusMeters": 300
+      },
+      "spatialFlags": [
+        "water-overlap"
+      ],
+      "sourceLayers": [
+        {
+          "layer": "demand-nodes",
+          "quality": null,
+          "name": "CityPack demand points (locations only)",
+          "license": "ODbL-1.0"
+        },
+        {
+          "layer": "rail",
+          "quality": "low",
+          "name": "map export: plan segments and ExternalNetwork lines (station-level, coarse)",
+          "license": "ODbL-1.0"
+        },
+        {
+          "layer": "stations",
+          "quality": null,
+          "name": "map export: plan station candidates and ExternalNetwork stations",
+          "license": "ODbL-1.0"
+        },
+        {
+          "layer": "water",
+          "quality": "medium",
+          "name": "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json",
+          "license": "MLIT-KSJ-terms"
+        }
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "averageSlopePercent",
+        "elevationRangeMeters",
+        "groundElevationMeters",
+        "intersectedBuildingCount",
+        "maximumSlopePercent",
+        "roadAccessCandidates",
+        "roadsThroughArea"
+      ],
+      "unknownReasons": {
+        "averageSlopePercent": "no-layer",
+        "elevationRangeMeters": "no-layer",
+        "groundElevationMeters": "no-layer",
+        "intersectedBuildingCount": "no-layer",
+        "maximumSlopePercent": "no-layer",
+        "roadAccessCandidates": "no-layer",
+        "roadsThroughArea": "no-layer"
+      },
+      "warnings": [],
+      "phaseRevision": "new-town-phase-revision:3141a6ad9ca2a317",
+      "name": "Housing first"
+    },
+    {
+      "phaseId": "new-town-phase:c9322a1417db7e32",
+      "key": "phase-2",
+      "sequence": 2,
+      "active": true,
+      "polygon": [
+        [
+          139.87518,
+          35.7031
+        ],
+        [
+          139.88318,
+          35.7031
+        ],
+        [
+          139.88318,
+          35.7069
+        ],
+        [
+          139.87518,
+          35.7069
+        ]
+      ],
+      "location": [
+        139.87918,
+        35.705
+      ],
+      "areaSquareMeters": 305909.8,
+      "perimeterMeters": 2292.4,
+      "playerDeclaredLandUse": "public-space",
+      "playerDeclaredDeliveryOrder": 2,
+      "railAccessCandidates": [
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:10840434",
+          "declaredByPlayer": false,
+          "relation": "crosses",
+          "distanceMeters": 0
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:5326726",
+          "declaredByPlayer": false,
+          "relation": "crosses",
+          "distanceMeters": 0
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:5371620",
+          "declaredByPlayer": false,
+          "relation": "crosses",
+          "distanceMeters": 0
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:18819167",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 166.6
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:3336657",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 754.7
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:3351488",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 804.3
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:443259",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 804.3
+        },
+        {
+          "refKind": "external-line",
+          "planId": null,
+          "segmentId": null,
+          "externalNetworkId": "external:tokyo",
+          "externalLineId": "ext-line:9973139",
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 804.3
+        }
+      ],
+      "roadAccessCandidates": null,
+      "stationSiteRefs": null,
+      "spatialFacts": {
+        "withinPackBoundingBox": true,
+        "stationsInside": [],
+        "nearestPlannedStation": {
+          "stationId": "stn:c247c3f5a3f53c4b",
+          "distanceMeters": 828.9
+        },
+        "nearestExistingStation": {
+          "stationId": "ward-edogawa",
+          "distanceMeters": 828.9
+        },
+        "demandNodeRefsInside": [],
+        "nearestDemandNode": {
+          "nodeId": "ward-edogawa",
+          "distanceMeters": 828.9
+        },
+        "roadsThroughArea": null,
+        "waterOverlapCount": 1,
+        "intersectedBuildingCount": null,
+        "overlapsPhaseIds": [],
+        "groundElevationMeters": null,
+        "elevationRangeMeters": null,
+        "averageSlopePercent": null,
+        "maximumSlopePercent": null,
+        "railSearchRadiusMeters": 2000,
+        "roadSearchRadiusMeters": 300
+      },
+      "spatialFlags": [
+        "water-overlap"
+      ],
+      "sourceLayers": [
+        {
+          "layer": "demand-nodes",
+          "quality": null,
+          "name": "CityPack demand points (locations only)",
+          "license": "ODbL-1.0"
+        },
+        {
+          "layer": "rail",
+          "quality": "low",
+          "name": "map export: plan segments and ExternalNetwork lines (station-level, coarse)",
+          "license": "ODbL-1.0"
+        },
+        {
+          "layer": "stations",
+          "quality": null,
+          "name": "map export: plan station candidates and ExternalNetwork stations",
+          "license": "ODbL-1.0"
+        },
+        {
+          "layer": "water",
+          "quality": "medium",
+          "name": "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json",
+          "license": "MLIT-KSJ-terms"
+        }
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "averageSlopePercent",
+        "elevationRangeMeters",
+        "groundElevationMeters",
+        "intersectedBuildingCount",
+        "maximumSlopePercent",
+        "roadAccessCandidates",
+        "roadsThroughArea",
+        "stationSiteRefs"
+      ],
+      "unknownReasons": {
+        "averageSlopePercent": "no-layer",
+        "elevationRangeMeters": "no-layer",
+        "groundElevationMeters": "no-layer",
+        "intersectedBuildingCount": "no-layer",
+        "maximumSlopePercent": "no-layer",
+        "roadAccessCandidates": "no-layer",
+        "roadsThroughArea": "no-layer",
+        "stationSiteRefs": "not-stated"
+      },
+      "warnings": [],
+      "phaseRevision": "new-town-phase-revision:9ed0444e40341708",
+      "name": "Waterfront open space"
+    }
+  ],
+  "spatialFlags": [
+    "water-overlap"
+  ],
+  "sourceLayers": [
+    {
+      "layer": "demand-nodes",
+      "quality": null,
+      "name": "CityPack demand points (locations only)",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "map export: plan segments and ExternalNetwork lines (station-level, coarse)",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "stations",
+      "quality": null,
+      "name": "map export: plan station candidates and ExternalNetwork stations",
+      "license": "ODbL-1.0"
+    },
+    {
+      "layer": "water",
+      "quality": "medium",
+      "name": "国土交通省 国土数値情報 water polygons (via smartnews-smri/japan-topography), packs/tokyo/barriers.json",
+      "license": "MLIT-KSJ-terms"
+    }
+  ],
+  "dataQuality": "low",
+  "unknown": [],
+  "unknownReasons": {},
+  "constraintUnknown": [
+    "land-ownership",
+    "underground-conditions",
+    "zoning-and-permits",
+    "occupancy-rate"
+  ],
+  "warnings": [],
+  "license": {
+    "pack": "ODbL-1.0",
+    "attribution": [
+      "© OpenStreetMap contributors",
+      "境界・行政区域: 国土交通省 国土数値情報（行政区域）, via smartnews-smri/japan-topography",
+      "人口 (23区): Wikipedia \"Special wards of Tokyo\" (2020年国勢調査に基づく数値)",
+      "人口 (埼玉・千葉・神奈川・多摩地域の市区町村): Wikipedia municipality/ward articles (mostly 2020年国勢調査; designated-city wards and Tokyo's Tama-area cities are 推計人口, 2026-08-01) and 総務省統計局／千葉県 official 2020 census publications — see demand.json[].popDate and README.md",
+      "港区・中央区 町丁・字等別小地域人口 (subward.json): 「令和2年国勢調査町丁・字等別境界データ」をもとにNIIが加工, via geoshape.ex.nii.ac.jp",
+      "町丁名の読み仮名 (subward.json[].areas[].reading_kana): 日本郵便 郵便番号データ, via post.japanpost.jp",
+      "従業者数 (jobs.json): 令和3年経済センサス‐活動調査 第32-1-13表 町丁・大字別 事業所数・従業者数 (東京都), 総務省統計局 / e-Stat",
+      "建物足跡・階数 (building-population.json): © OpenStreetMap contributors, ODbL-1.0 — 港区・中央区全域, Overpass API",
+      "建物足跡 (tokyo-buildings.pmtiles): © OpenStreetMap contributors, ODbL-1.0 — 23区全域 (1,119,872棟), Overpass API",
+      "通勤OD (od.json): 令和2年国勢調査 従業地・通学地による人口・就業状態等集計 第3表, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "通学OD (od-school.json): od.json と同じ第3表・同じファイルの別列（15歳未満を含む全年齢通学者）、総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・平日 (demand.json calendar.factors.weekday): 令和3年社会生活基本調査 第10表 時間帯，行動の種類別主行動の行動者率－平日，15歳以上, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "時間帯別発生係数・土休日 (demand.json calendar.factors.saturday/.holiday): JR東日本 公式デジタル時刻表（山手線・中央線快速）の平日/土休日別運行本数から加工した推定値",
+      "病院・大学 (special-demand.json): 出典 国土交通省 国土数値情報ダウンロードサイト「学校データ (P29-23)」「医療機関データ (P04-20)」https://nlftp.mlit.go.jp/ ; 抽出・収容人数の推定を加えて加工 (「国土数値情報（学校データ・医療機関データ）」（国土交通省）をもとに作成)",
+      "就業者数 (employed.json, tokyo-buildings.pmtiles emp): 令和2年国勢調査 小地域集計 第16-2表 男女，従業地・通学地別就業者数（15歳以上）－町丁・字等, 総務省統計局 / e-Stat（政府標準利用規約 2.0）",
+      "建物ポリゴン・用途・階数 (tokyo-survey-buildings.pmtiles): 東京都都市整備局「令和3年度 区部土地利用現況調査」(CC BY 4.0) を加工して作成",
+      "建物別従業者数 (plateau-jobs-index.json が指す jobs-buildings-<市>.json, job-coefficients-<市>.json): 国土交通省 Project PLATEAU 3D都市モデル (各市の年度・URLは plateau-jobs-index.json), PDL1.0. 加工: 建物属性を町丁別・用途別に集計し経済センサス従業者数と回帰、建物ごとに配分 (推定値)。"
+    ]
+  },
+  "developmentRevision": "new-town-revision:4932833ebcacec94",
+  "name": "Edogawa bayside district (example drawing)",
+  "source": {
+    "editorDocument": {
+      "key": "example:tokyo:new-town-edogawa-bayside",
+      "name": "Edogawa bayside district (example drawing)",
+      "active": true,
+      "deleted": false,
+      "phaseSeq": 2,
+      "phases": [
+        {
+          "key": "phase-1",
+          "active": true,
+          "deleted": false,
+          "name": "Housing first",
+          "polygon": [
+            [
+              139.87518,
+              35.7071
+            ],
+            [
+              139.88318,
+              35.7071
+            ],
+            [
+              139.88318,
+              35.7116
+            ],
+            [
+              139.87518,
+              35.7116
+            ]
+          ],
+          "playerDeclaredLandUse": "housing",
+          "playerDeclaredDeliveryOrder": 1,
+          "stationRefs": [],
+          "railRefs": [
+            {
+              "planId": "plan:b9b153e3df14331d",
+              "segmentId": "seg:4c77da73dfd17c89"
+            }
+          ]
+        },
+        {
+          "key": "phase-2",
+          "active": true,
+          "deleted": false,
+          "name": "Waterfront open space",
+          "polygon": [
+            [
+              139.87518,
+              35.7031
+            ],
+            [
+              139.88318,
+              35.7031
+            ],
+            [
+              139.88318,
+              35.7069
+            ],
+            [
+              139.87518,
+              35.7069
+            ]
+          ],
+          "playerDeclaredLandUse": "public-space",
+          "playerDeclaredDeliveryOrder": 2,
+          "stationRefs": null,
+          "railRefs": null
+        }
+      ]
+    },
+    "drawnDevelopment": {
+      "key": "example:tokyo:new-town-edogawa-bayside",
+      "name": "Edogawa bayside district (example drawing)",
+      "active": true,
+      "phases": [
+        {
+          "key": "phase-1",
+          "name": "Housing first",
+          "sequence": 1,
+          "active": true,
+          "polygon": [
+            [
+              139.87518,
+              35.7071
+            ],
+            [
+              139.88318,
+              35.7071
+            ],
+            [
+              139.88318,
+              35.7116
+            ],
+            [
+              139.87518,
+              35.7116
+            ]
+          ],
+          "playerDeclaredLandUse": "housing",
+          "playerDeclaredDeliveryOrder": 1,
+          "access": {
+            "stationRefs": [],
+            "railRefs": [
+              {
+                "planId": "plan:b9b153e3df14331d",
+                "segmentId": "seg:4c77da73dfd17c89"
+              }
+            ]
+          }
+        },
+        {
+          "key": "phase-2",
+          "name": "Waterfront open space",
+          "sequence": 2,
+          "active": true,
+          "polygon": [
+            [
+              139.87518,
+              35.7031
+            ],
+            [
+              139.88318,
+              35.7031
+            ],
+            [
+              139.88318,
+              35.7069
+            ],
+            [
+              139.87518,
+              35.7069
+            ]
+          ],
+          "playerDeclaredLandUse": "public-space",
+          "playerDeclaredDeliveryOrder": 2,
+          "access": {
+            "stationRefs": null,
+            "railRefs": null
+          }
+        }
+      ]
+    },
+    "requestedMode": "existing",
+    "layers": [
+      "water"
+    ],
+    "note": "The development is what a player might draw with the editor over the real plan examples of this pack. A land use, a delivery order or a station site is what the player declared, not a statement that anything can be built, filled or served. A distance to a line, station or road is a distance, not a connection.",
+    "generatedBy": "scripts/build-new-town-examples.mjs"
+  }
+}

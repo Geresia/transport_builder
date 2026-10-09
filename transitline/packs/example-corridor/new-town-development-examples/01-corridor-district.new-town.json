@@ -1,0 +1,290 @@
+{
+  "schema": "transitline.new-town-development-geometry/1",
+  "contractVersion": 1,
+  "developmentId": "new-town:eed1b47b1b32c2b5",
+  "sourcePackId": "example-corridor",
+  "sourcePackVersion": "0.1.0",
+  "key": "example:corridor:new-town-trunk",
+  "active": true,
+  "phaseCount": 1,
+  "activePhaseCount": 1,
+  "location": [
+    -0.0045,
+    0.00235
+  ],
+  "boundingBox": [
+    -0.008,
+    0.0006,
+    -0.001,
+    0.0041
+  ],
+  "phaseAreaSumSquareMeters": 303607.5,
+  "phases": [
+    {
+      "phaseId": "new-town-phase:c312e6a0fc2529be",
+      "key": "phase-1",
+      "sequence": 1,
+      "active": true,
+      "polygon": [
+        [
+          -0.008,
+          0.0006
+        ],
+        [
+          -0.001,
+          0.0006
+        ],
+        [
+          -0.001,
+          0.0041
+        ],
+        [
+          -0.008,
+          0.0041
+        ]
+      ],
+      "location": [
+        -0.0045,
+        0.00235
+      ],
+      "areaSquareMeters": 303607.5,
+      "perimeterMeters": 2337.7,
+      "playerDeclaredLandUse": "housing",
+      "playerDeclaredDeliveryOrder": 1,
+      "railAccessCandidates": [
+        {
+          "refKind": "plan-segment",
+          "planId": "plan:6c4c613145a2a1b3",
+          "segmentId": "seg:a3ad0d61ab3ad4d7",
+          "externalNetworkId": null,
+          "externalLineId": null,
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 66.8
+        },
+        {
+          "refKind": "plan-segment",
+          "planId": "plan:6c4c613145a2a1b3",
+          "segmentId": "seg:eb4da0e7656e2861",
+          "externalNetworkId": null,
+          "externalLineId": null,
+          "declaredByPlayer": false,
+          "relation": "near",
+          "distanceMeters": 232.4
+        },
+        {
+          "refKind": "plan-segment",
+          "planId": "plan:6c4c613145a2a1b3",
+          "segmentId": "seg:ec9f04866349d294",
+          "externalNetworkId": null,
+          "externalLineId": null,
+          "declaredByPlayer": true,
+          "relation": "beyond-search-radius",
+          "distanceMeters": 2450
+        }
+      ],
+      "roadAccessCandidates": null,
+      "stationSiteRefs": null,
+      "spatialFacts": {
+        "withinPackBoundingBox": true,
+        "stationsInside": [],
+        "nearestPlannedStation": {
+          "stationId": "stn:681d3c2bc9c10e71",
+          "distanceMeters": 232.4
+        },
+        "nearestExistingStation": null,
+        "demandNodeRefsInside": [],
+        "nearestDemandNode": {
+          "nodeId": "s3",
+          "distanceMeters": 232.4
+        },
+        "roadsThroughArea": null,
+        "waterOverlapCount": null,
+        "intersectedBuildingCount": null,
+        "overlapsPhaseIds": [],
+        "groundElevationMeters": null,
+        "elevationRangeMeters": null,
+        "averageSlopePercent": null,
+        "maximumSlopePercent": null,
+        "railSearchRadiusMeters": 2000,
+        "roadSearchRadiusMeters": 300
+      },
+      "spatialFlags": [],
+      "sourceLayers": [
+        {
+          "layer": "demand-nodes",
+          "quality": null,
+          "name": "CityPack demand points (locations only)",
+          "license": "CC0-1.0"
+        },
+        {
+          "layer": "rail",
+          "quality": "low",
+          "name": "map export: plan segments and ExternalNetwork lines (station-level, coarse)",
+          "license": "CC0-1.0"
+        },
+        {
+          "layer": "stations",
+          "quality": null,
+          "name": "map export: plan station candidates and ExternalNetwork stations",
+          "license": "CC0-1.0"
+        }
+      ],
+      "dataQuality": "low",
+      "unknown": [
+        "averageSlopePercent",
+        "elevationRangeMeters",
+        "groundElevationMeters",
+        "intersectedBuildingCount",
+        "maximumSlopePercent",
+        "nearestExistingStation",
+        "roadAccessCandidates",
+        "roadsThroughArea",
+        "stationSiteRefs",
+        "waterOverlapCount"
+      ],
+      "unknownReasons": {
+        "averageSlopePercent": "no-layer",
+        "elevationRangeMeters": "no-layer",
+        "groundElevationMeters": "no-layer",
+        "intersectedBuildingCount": "no-layer",
+        "maximumSlopePercent": "no-layer",
+        "nearestExistingStation": "no-existing-stations",
+        "roadAccessCandidates": "no-layer",
+        "roadsThroughArea": "no-layer",
+        "stationSiteRefs": "not-stated",
+        "waterOverlapCount": "no-layer"
+      },
+      "warnings": [],
+      "phaseRevision": "new-town-phase-revision:51e31980cc14b85e",
+      "name": "Station side"
+    }
+  ],
+  "spatialFlags": [],
+  "sourceLayers": [
+    {
+      "layer": "demand-nodes",
+      "quality": null,
+      "name": "CityPack demand points (locations only)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "rail",
+      "quality": "low",
+      "name": "map export: plan segments and ExternalNetwork lines (station-level, coarse)",
+      "license": "CC0-1.0"
+    },
+    {
+      "layer": "stations",
+      "quality": null,
+      "name": "map export: plan station candidates and ExternalNetwork stations",
+      "license": "CC0-1.0"
+    }
+  ],
+  "dataQuality": "low",
+  "unknown": [],
+  "unknownReasons": {},
+  "constraintUnknown": [
+    "land-ownership",
+    "underground-conditions",
+    "zoning-and-permits",
+    "occupancy-rate"
+  ],
+  "warnings": [],
+  "license": {
+    "pack": "CC0-1.0",
+    "attribution": []
+  },
+  "developmentRevision": "new-town-revision:93229ce7cd633f99",
+  "name": "Corridor district (example drawing)",
+  "source": {
+    "editorDocument": {
+      "key": "example:corridor:new-town-trunk",
+      "name": "Corridor district (example drawing)",
+      "active": true,
+      "deleted": false,
+      "phaseSeq": 1,
+      "phases": [
+        {
+          "key": "phase-1",
+          "active": true,
+          "deleted": false,
+          "name": "Station side",
+          "polygon": [
+            [
+              -0.008,
+              0.0006
+            ],
+            [
+              -0.001,
+              0.0006
+            ],
+            [
+              -0.001,
+              0.0041
+            ],
+            [
+              -0.008,
+              0.0041
+            ]
+          ],
+          "playerDeclaredLandUse": "housing",
+          "playerDeclaredDeliveryOrder": 1,
+          "stationRefs": null,
+          "railRefs": [
+            {
+              "planId": "plan:6c4c613145a2a1b3",
+              "segmentId": "seg:ec9f04866349d294"
+            }
+          ]
+        }
+      ]
+    },
+    "drawnDevelopment": {
+      "key": "example:corridor:new-town-trunk",
+      "name": "Corridor district (example drawing)",
+      "active": true,
+      "phases": [
+        {
+          "key": "phase-1",
+          "name": "Station side",
+          "sequence": 1,
+          "active": true,
+          "polygon": [
+            [
+              -0.008,
+              0.0006
+            ],
+            [
+              -0.001,
+              0.0006
+            ],
+            [
+              -0.001,
+              0.0041
+            ],
+            [
+              -0.008,
+              0.0041
+            ]
+          ],
+          "playerDeclaredLandUse": "housing",
+          "playerDeclaredDeliveryOrder": 1,
+          "access": {
+            "stationRefs": null,
+            "railRefs": [
+              {
+                "planId": "plan:6c4c613145a2a1b3",
+                "segmentId": "seg:ec9f04866349d294"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "requestedMode": "scratch",
+    "layers": [],
+    "note": "The development is what a player might draw with the editor over the real plan examples of this pack. A land use, a delivery order or a station site is what the player declared, not a statement that anything can be built, filled or served. A distance to a line, station or road is a distance, not a connection.",
+    "generatedBy": "scripts/build-new-town-examples.mjs"
+  }
+}

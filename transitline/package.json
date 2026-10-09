@@ -24,6 +24,7 @@
     "station-demand-access-examples": "node scripts/build-station-demand-access-examples.mjs",
     "station-demand-allocation-overlay-examples": "node scripts/build-station-demand-allocation-overlay-examples.mjs",
     "service-plan-examples": "node scripts/build-service-plan-examples.mjs",
+    "new-town-examples": "node scripts/build-new-town-examples.mjs",
     "regen": "node packs/example-radial/generate.mjs && node packs/example-corridor/generate.mjs"
   }
 }
