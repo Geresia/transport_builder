@@ -46,6 +46,11 @@ import { assessCampaignActivation as assessCampaignActivationRecord, createCampa
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
+// What the event log keeps of a campaign command: who, which status, and the one transition just made - not the whole record, which grows
+// with its milestones and history (see `transact`).
+const campaignProgramEvent = (record) => ({ campaignProgramId: record.id, programId: record.programId, programRevision: record.programRevision, status: record.status, transition: structuredClone(record.history.at(-1) ?? null) });
+const campaignActivationEvent = (record) => ({ activationId: record.activationId, programId: record.programId, milestoneId: record.milestoneId, status: record.status });
+
 export class ManagementGame {
   constructor({ countryId = "JP", seed = 1, openingCash = 500_000_000_000, playerName = "Player Transit" } = {}) {
     this.country = getCountryProfile(countryId);
@@ -276,14 +281,17 @@ export class ManagementGame {
     return new ManagementGame({ countryId: snapshot.countryId }).restore(snapshot);
   }
 
-  transact(type, action) {
+  // `summarize(result)` (optional) is what the event log keeps instead of the whole result.  The log is part of every snapshot, and every
+  // transaction snapshots, so a result that grows with its record (a campaign program with its milestones) would make the log, the save
+  // and the cost of each later command grow quadratically over a long campaign.
+  transact(type, action, summarize = null) {
     const before = this.snapshot();
     this._transactionDepth += 1;
     try {
       const result = action();
       this.ledger.assertInvariant();
       this.player.cash = this.ledger.cash;
-      this.events.record(this.clock.minute, type, result ?? {});
+      this.events.record(this.clock.minute, type, summarize ? summarize(result) : result ?? {});
       return result;
     } catch (error) {
       this.restore(before);
@@ -1537,35 +1545,35 @@ export class ManagementGame {
     return this.transact("campaign-program-drafted", () => {
       const record = createCampaignProgramDraft({ id: this.allocateCampaignProgramId(), input, atMinute: this.clock.minute });
       this.campaignPrograms.push(record); return record;
-    });
+    }, campaignProgramEvent);
   }
 
   adoptCampaignProgram(id, context = {}) {
-    return this.transact("campaign-program-adopted", () => adoptCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }));
+    return this.transact("campaign-program-adopted", () => adoptCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }), campaignProgramEvent);
   }
 
   monitorCampaignProgram(id, context = {}) {
-    return this.transact("campaign-program-monitoring", () => monitorCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }));
+    return this.transact("campaign-program-monitoring", () => monitorCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }), campaignProgramEvent);
   }
 
   completeCampaignProgram(id, context = {}) {
-    return this.transact("campaign-program-completed", () => completeCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }));
+    return this.transact("campaign-program-completed", () => completeCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }), campaignProgramEvent);
   }
 
   delayCampaignProgram(id, reason) {
-    return this.transact("campaign-program-delayed", () => delayCampaignProgram(this.requireCampaignProgram(id), reason, { atMinute: this.clock.minute }));
+    return this.transact("campaign-program-delayed", () => delayCampaignProgram(this.requireCampaignProgram(id), reason, { atMinute: this.clock.minute }), campaignProgramEvent);
   }
 
   resumeCampaignProgram(id, context = {}) {
-    return this.transact("campaign-program-resumed", () => resumeCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }));
+    return this.transact("campaign-program-resumed", () => resumeCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }), campaignProgramEvent);
   }
 
   cancelCampaignProgram(id, reason) {
-    return this.transact("campaign-program-cancelled", () => cancelCampaignProgram(this.requireCampaignProgram(id), reason, { atMinute: this.clock.minute }));
+    return this.transact("campaign-program-cancelled", () => cancelCampaignProgram(this.requireCampaignProgram(id), reason, { atMinute: this.clock.minute }), campaignProgramEvent);
   }
 
   reachCampaignMilestone(id, milestoneId, observedRefs = [], context = {}) {
-    return this.transact("campaign-milestone-reached", () => reachCampaignMilestone(this.requireCampaignProgram(id), milestoneId, observedRefs, { geometry: context.geometry ?? null, atMinute: this.clock.minute }));
+    return this.transact("campaign-milestone-reached", () => reachCampaignMilestone(this.requireCampaignProgram(id), milestoneId, observedRefs, { geometry: context.geometry ?? null, atMinute: this.clock.minute }), (record) => ({ ...campaignProgramEvent(record), milestoneId }));
   }
 
   campaignProgramReport(id = null) {
@@ -1593,7 +1601,7 @@ export class ManagementGame {
       if (this.campaignActivations.some((entry) => entry.status === "recorded" && entry.programId === program.programId && entry.milestoneId === input.milestoneId && entry.refs.demandSourceId === input.demandSourceId)) throw new Error("Campaign activation already exists for this milestone and demand source");
       const record = createCampaignActivation({ id: this.allocateCampaignActivationId(), program, milestoneId: input.milestoneId, intakeId: input.intakeId, demandSourceId: input.demandSourceId, geometry: input.geometry ?? null, intakes: input.intakes ?? [], sources: input.sources ?? [], atMinute: this.clock.minute });
       this.campaignActivations.push(record); return record;
-    });
+    }, campaignActivationEvent);
   }
 
   withdrawCampaignActivation(id, reason) {
@@ -1601,7 +1609,7 @@ export class ManagementGame {
       const record = this.campaignActivations.find((entry) => entry.activationId === id);
       if (!record) throw new Error(`Unknown campaign activation ${id}`);
       return withdrawCampaignActivation(record, reason, this.clock.minute);
-    });
+    }, campaignActivationEvent);
   }
 
   campaignActivationReport(context = {}) {
