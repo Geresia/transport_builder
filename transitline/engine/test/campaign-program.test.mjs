@@ -32,6 +32,15 @@ test("a geometry-less draft binds its first current geometry only when adopted",
   assert.equal(adopted.sourcePack.packId, "example-radial");
 });
 
+test("management references are explicit ids and preserve null separately from an empty declaration", () => {
+  const game = new ManagementGame();
+  const draft = game.draftCampaignProgram({ geometry: geometry(), linkedDevelopmentRecordIds: null, linkedContributionIds: [], linkedDemandSourceIds: ["source:1"] });
+  assert.equal(draft.managementRefs.linkedDevelopmentRecordIds, null);
+  assert.deepEqual(draft.managementRefs.linkedContributionIds, []);
+  assert.deepEqual(draft.managementRefs.linkedDemandSourceIds, ["source:1"]);
+  assert.throws(() => game.draftCampaignProgram({ geometry: { ...geometry(), programId: "bad" }, linkedProjectIds: [""] }), /linkedProjectIds/);
+});
+
 test("reaching a milestone is an explicit declaration, not an automatic response to target month", () => {
   const game = new ManagementGame();
   const record = game.draftCampaignProgram({ geometry: geometry() });

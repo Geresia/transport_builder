@@ -266,7 +266,7 @@ export class ScenarioRuntime {
       newTownDemandIntakes: this.game.newTownDemandIntakeReport(),
       campaignPrograms: this.game.campaignProgramReport(),
       campaignActivations: this.game.campaignActivationReport(),
-      campaignFacts: buildCampaignFactReport({ programs: this.game.campaignProgramReport(), activations: this.game.campaignActivationReport(), developments: this.game.newTownDevelopmentReport(), contributions: this.game.newTownRailContributionReport(), demandSources: newTownExplicitDemandSourceReport(this.operationalState, { intakes: this.game.newTownDemandIntakeReport() }), services: this.game.services, timetables: this.game.railwayTimetableReport() }),
+      campaignFacts: buildCampaignFactReport({ programs: this.game.campaignProgramReport(), activations: this.game.campaignActivationReport(), developments: this.game.newTownDevelopmentReport(), contributions: this.game.newTownRailContributionReport(), demandSources: newTownExplicitDemandSourceReport(this.operationalState, { intakes: this.game.newTownDemandIntakeReport() }), projects: this.game.projects, services: this.game.services, timetables: this.game.railwayTimetableReport() }),
       operationalTimetableApplications: operationalTimetableApplicationReport(this.operationalState),
       operationalTimetableWarnings: structuredClone(this.operationalState?.operationalTimetableWarnings ?? []),
       railwayTraffic: railwayTrafficReport(this.operationalState),
@@ -1343,7 +1343,7 @@ export class ScenarioRuntime {
   campaignFactReport(context = {}) {
     const intakes = this.game.newTownDemandIntakeReport(null, { geometry: context.geometry ?? null });
     const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
-    return buildCampaignFactReport({ programs: this.game.campaignProgramReport(), activations: this.game.campaignActivationReport({ geometry: context.geometry ?? null, intakes, sources }), developments: this.game.newTownDevelopmentReport(), contributions: this.game.newTownRailContributionReport(), demandSources: sources, services: this.game.services, timetables: this.game.railwayTimetableReport() });
+    return buildCampaignFactReport({ programs: this.game.campaignProgramReport(), activations: this.game.campaignActivationReport({ geometry: context.geometry ?? null, intakes, sources }), developments: this.game.newTownDevelopmentReport(), contributions: this.game.newTownRailContributionReport(), demandSources: sources, projects: this.game.projects, services: this.game.services, timetables: this.game.railwayTimetableReport() });
   }
 
   railwayTimetableReport(timetableId = null) {

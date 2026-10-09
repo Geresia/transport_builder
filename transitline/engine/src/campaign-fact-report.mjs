@@ -16,10 +16,11 @@ const refs = (ids, index, fields, absentReason) => ids === null ? { items: null,
   return item ? { id, status: statusOf(item), revision: fields.map((field) => item[field]).find((value) => typeof value === "string") ?? null } : { id, status: null, revision: null, reason: absentReason };
 }).sort((a, b) => cmp(a.id, b.id)), reason: null };
 
-export function buildCampaignFactReport({ programs = [], activations = [], developments = [], contributions = [], demandSources = [], services = [], timetables = [] } = {}) {
+export function buildCampaignFactReport({ programs = [], activations = [], developments = [], contributions = [], demandSources = [], projects = [], services = [], timetables = [] } = {}) {
   const developmentIndex = byId(developments, ["id", "developmentId"]);
   const contributionIndex = byId(contributions, ["contributionId", "id"]);
   const sourceIndex = byId(demandSources, ["sourceId"]);
+  const projectIndex = byId(projects, ["id", "projectId"]);
   const serviceIndex = byId(services, ["id", "serviceId"]);
   const timetableIndex = byId(timetables, ["id", "timetableId"]);
   const activationByProgram = new Map();
@@ -27,7 +28,7 @@ export function buildCampaignFactReport({ programs = [], activations = [], devel
     const bucket = activationByProgram.get(activation.programId) ?? []; bucket.push(activation); activationByProgram.set(activation.programId, bucket);
   }
   const rows = (programs ?? []).map((program) => {
-    const links = program.links ?? {};
+    const links = program.links ?? {}; const managementRefs = program.managementRefs ?? {};
     const activationsFor = (activationByProgram.get(program.programId) ?? []).sort((a, b) => cmp(a.activationId, b.activationId)).map((activation) => ({
       activationId: activation.activationId, milestoneId: activation.milestoneId, status: activation.standing?.status ?? activation.status ?? null,
       applicable: activation.standing?.applicable ?? null, blockers: clone(activation.standing?.blockers ?? []),
@@ -41,11 +42,13 @@ export function buildCampaignFactReport({ programs = [], activations = [], devel
         linkedDevelopments: refs(milestone.linkedDevelopmentIds, developmentIndex, ["developmentRevision"], "development-not-found"),
         linkedServicePlans: milestone.linkedServicePlanIds === null ? { items: null, reason: "not-stated" } : { items: milestone.linkedServicePlanIds.map((id) => ({ id, status: null, revision: null, reason: "service-plan-report-not-provided" })), reason: null },
       })),
-      linkedDevelopments: refs(links.linkedDevelopmentIds ?? null, developmentIndex, ["developmentRevision"], "development-not-found"),
-      linkedContributions: refs(links.linkedContributionIds ?? null, contributionIndex, ["contributionRevision"], "contribution-not-found"),
-      linkedDemandSources: refs(links.linkedDemandSourceIds ?? null, sourceIndex, ["developmentRevision"], "demand-source-not-found"),
-      linkedServices: refs(links.linkedServiceIds ?? null, serviceIndex, ["revision"], "service-not-found"),
-      linkedTimetables: refs(links.linkedTimetableIds ?? null, timetableIndex, ["assessmentRevision"], "timetable-not-found"),
+      mapLinkedDevelopments: refs(links.linkedDevelopmentIds ?? null, developmentIndex, ["developmentRevision"], "development-not-found"),
+      linkedDevelopments: refs(managementRefs.linkedDevelopmentRecordIds ?? null, developmentIndex, ["developmentRevision"], "development-not-found"),
+      linkedContributions: refs(managementRefs.linkedContributionIds ?? null, contributionIndex, ["contributionRevision"], "contribution-not-found"),
+      linkedDemandSources: refs(managementRefs.linkedDemandSourceIds ?? null, sourceIndex, ["developmentRevision"], "demand-source-not-found"),
+      linkedProjects: refs(managementRefs.linkedProjectIds ?? null, projectIndex, ["revision"], "project-not-found"),
+      linkedServices: refs(managementRefs.linkedServiceIds ?? null, serviceIndex, ["revision"], "service-not-found"),
+      linkedTimetables: refs(managementRefs.linkedTimetableIds ?? null, timetableIndex, ["assessmentRevision"], "timetable-not-found"),
       history: clone(program.history ?? []),
     };
   }).sort((a, b) => cmp(a.campaignProgramId, b.campaignProgramId));

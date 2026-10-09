@@ -14,6 +14,17 @@ const integer = (value) => Number.isInteger(value) && value >= 0;
 const cmp = (a, b) => String(a).localeCompare(String(b));
 const canonical = (value) => Array.isArray(value) ? `[${value.map(canonical).join(",")}]` : value && typeof value === "object" ? `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}` : JSON.stringify(value ?? null);
 const sourcePackOf = (geometry) => ({ packId: geometry.sourcePackId.trim(), packVersion: text(geometry.sourcePackVersion) });
+const managementReferenceLists = (input = {}) => {
+  const names = ["linkedDevelopmentRecordIds", "linkedContributionIds", "linkedDemandSourceIds", "linkedProjectIds", "linkedServiceIds", "linkedTimetableIds"];
+  const out = {};
+  for (const name of names) {
+    const value = input[name];
+    if (value === null || value === undefined) { out[name] = null; continue; }
+    if (!Array.isArray(value) || value.some((entry) => !text(entry))) throw new Error(`${name} must be null or a list of non-empty ids`);
+    out[name] = [...new Set(value.map((entry) => entry.trim()))].sort(cmp);
+  }
+  return out;
+};
 
 export function checkCampaignProgramGeometry(geometry, record = null) {
   if (geometry === null || geometry === undefined) return { status: "missing", reasons: ["geometry-not-provided"] };
@@ -84,7 +95,7 @@ export function createCampaignProgramDraft({ id, input = {}, atMinute = 0 } = {}
   if (geometry !== null && check.status !== "current") throw new Error(`Campaign geometry cannot start a draft: ${check.status}`);
   const programId = geometry ? geometry.programId : text(input.programId);
   if (!programId) throw new Error("A campaign program needs a programId");
-  const record = { schema: CAMPAIGN_PROGRAM_SCHEMA, contractVersion: 1, id, programId, programRevision: geometry?.programRevision ?? null, sourcePack: geometry ? sourcePackOf(geometry) : null, status: "draft", links: geometry ? linkLists(geometry) : null, milestones: geometry ? milestonesOf(null, geometry) : null, geometry: null, delay: null, cancellation: null, history: [], createdAtMinute: atMinute, updatedAtMinute: atMinute };
+  const record = { schema: CAMPAIGN_PROGRAM_SCHEMA, contractVersion: 1, id, programId, programRevision: geometry?.programRevision ?? null, sourcePack: geometry ? sourcePackOf(geometry) : null, status: "draft", links: geometry ? linkLists(geometry) : null, managementRefs: managementReferenceLists(input), milestones: geometry ? milestonesOf(null, geometry) : null, geometry: null, delay: null, cancellation: null, history: [], createdAtMinute: atMinute, updatedAtMinute: atMinute };
   record.geometry = stateOf(check, record, atMinute); log(record, "draft", null, "draft", atMinute); return clone(record);
 }
 export function adoptCampaignProgram(record, { geometry = null, atMinute = 0 } = {}) { const check = checkCampaignProgramGeometry(geometry, record); enter(record, "adopt", check); if (record.milestones === null) { record.milestones = milestonesOf(record, geometry); record.links = linkLists(geometry); record.programRevision = geometry.programRevision; record.sourcePack = sourcePackOf(geometry); } record.geometry = stateOf(check, record, atMinute); record.status = "adopted"; log(record, "adopt", "draft", "adopted", atMinute); return clone(record); }
