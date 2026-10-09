@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { construction3dClientEnvelope } from "../src/construction-3d-client-envelope.mjs";
-import { createConstruction3dClientLoader, mountConstruction3dClientLoader } from "../src/construction-3d-client-loader.mjs";
+import { construction3dIframeTransportFactory, createConstruction3dClientLoader, createConstruction3dIframeTransport, mountConstruction3dClientLoader } from "../src/construction-3d-client-loader.mjs";
 import { buildConstruction3dPreflight } from "../src/construction-3d-preflight.mjs";
 
 const pack = { manifest: { id: "example-radial", version: "1" } };
@@ -46,4 +46,18 @@ test("mount surface opens only from its button and exposes detached state", () =
   const t = transport(); const r = root(); const panel = mountConstruction3dClientLoader({ container: r, pack, getPreflight: preflight, sessionId: "session:1", expectedOrigin: "https://unity.example", transportFactory: () => t, ...noTimer });
   assert.equal(panel.output().status, "2d-only"); find(r, "construction-3d-loader-open").fire("click"); assert.equal(panel.output().status, "connecting");
   const out = panel.output(); out.status = "changed"; assert.equal(panel.output().status, "connecting");
+});
+
+test("iframe transport pins the URL, message source, and target origin", () => {
+  const handlers = new Set(); const hostWindow = { addEventListener: (_kind, fn) => handlers.add(fn), removeEventListener: (_kind, fn) => handlers.delete(fn), fire: (event) => handlers.forEach((fn) => fn(event)) };
+  const r = root(); const frameWindow = { sent: [], postMessage(data, origin) { this.sent.push({ data, origin }); } };
+  const frame = Object.assign(new Node("iframe"), { contentWindow: frameWindow, removed: false, remove() { this.removed = true; } });
+  const iframeDom = { createElement: () => frame }; const received = [];
+  const t = createConstruction3dIframeTransport({ url: "https://unity.example/build/", expectedOrigin: "https://unity.example", container: r, hostWindow, documentRef: iframeDom }); t.subscribe((message) => received.push(message));
+  t.send(handshake()); assert.equal(frameWindow.sent[0].origin, "https://unity.example");
+  hostWindow.fire({ source: {}, origin: "https://unity.example", data: handshake() }); assert.equal(received.length, 0);
+  hostWindow.fire({ source: frameWindow, origin: "https://unity.example", data: handshake() }); assert.equal(received.length, 1);
+  t.close(); assert.equal(frame.removed, true); assert.equal(handlers.size, 0);
+  assert.throws(() => createConstruction3dIframeTransport({ url: "https://foreign.example/build", expectedOrigin: "https://unity.example", container: r, hostWindow, documentRef: iframeDom }), /origin-mismatch/);
+  assert.equal(typeof construction3dIframeTransportFactory({ url: "https://unity.example/build", container: r, hostWindow, documentRef: iframeDom }), "function");
 });

@@ -1,4 +1,4 @@
-// B21-P3 host transport loader.  It deliberately knows no Unity, iframe, or
+// B21-P3 host transport loader.  It deliberately knows no Unity binary or
 // renderer implementation.  A host supplies a narrowly scoped transport only
 // after an explicit player action; every rejected message closes that transport
 // and retains the authoritative JavaScript game in 2D-only mode.
@@ -26,6 +26,53 @@ function validPreflight(value) {
 
 function validTransport(value) {
   return isObject(value) && typeof value.send === "function" && typeof value.subscribe === "function" && typeof value.close === "function";
+}
+
+// Concrete browser transport for a pre-approved Unity WebGL URL.  It never
+// uses a wildcard origin: both the build URL and inbound message source must
+// match the host-supplied expected origin and iframe window exactly.
+export function createConstruction3dIframeTransport({ url, expectedOrigin, container, hostWindow = globalThis.window, documentRef = globalThis.document } = {}) {
+  const origin = text(expectedOrigin); const source = text(url);
+  if (!origin) throw new Error("construction-3d-iframe-expected-origin-required");
+  if (!source) throw new Error("construction-3d-iframe-url-required");
+  if (!container || typeof container.append !== "function") throw new Error("construction-3d-iframe-container-required");
+  if (!hostWindow || typeof hostWindow.addEventListener !== "function" || typeof hostWindow.removeEventListener !== "function") throw new Error("construction-3d-iframe-window-required");
+  if (!documentRef || typeof documentRef.createElement !== "function") throw new Error("construction-3d-iframe-document-required");
+  let parsed; let expected;
+  try { parsed = new URL(source); expected = new URL(origin); } catch { throw new Error("construction-3d-iframe-url-invalid"); }
+  if (parsed.origin !== expected.origin) throw new Error("construction-3d-iframe-origin-mismatch");
+  const iframe = documentRef.createElement("iframe");
+  iframe.className = "construction-3d-client-frame";
+  iframe.title = "Optional construction 3D client";
+  iframe.referrerPolicy = "no-referrer";
+  iframe.src = parsed.href;
+  container.append(iframe);
+  let listener = null; let closed = false;
+  const message = (event) => {
+    if (closed || event?.source !== iframe.contentWindow) return;
+    listener?.({ origin: event.origin, data: event.data });
+  };
+  hostWindow.addEventListener("message", message);
+  return {
+    send(envelope) {
+      if (closed || !iframe.contentWindow || typeof iframe.contentWindow.postMessage !== "function") throw new Error("construction-3d-iframe-unavailable");
+      iframe.contentWindow.postMessage(clone(envelope), expected.origin);
+    },
+    subscribe(next) {
+      if (typeof next !== "function") throw new Error("construction-3d-iframe-listener-required");
+      listener = next; return () => { if (listener === next) listener = null; };
+    },
+    close() {
+      if (closed) return;
+      closed = true; listener = null; hostWindow.removeEventListener("message", message);
+      if (typeof iframe.remove === "function") iframe.remove();
+    },
+    frame: iframe,
+  };
+}
+
+export function construction3dIframeTransportFactory(options = {}) {
+  return ({ expectedOrigin }) => createConstruction3dIframeTransport({ ...options, expectedOrigin });
 }
 
 // The transport boundary is intentionally injectable.  A WebGL iframe,
