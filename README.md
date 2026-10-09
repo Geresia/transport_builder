@@ -1,6 +1,6 @@
 # Transport Builder
 
-**Build a railway company around a city that already has a life of its own.**
+Build a railway company around a city that already has a life of its own.
 
 Transport Builder is a railway planning and management game in development, set first in Greater Tokyo. Players plan routes, compete for contracts, finance construction, procure trains, prepare depots, and bring services into operation. The ambition is to make those decisions matter together: a promising route still needs an affordable construction plan, a place to maintain its trains, and enough passengers to sustain the business once it opens.
 
@@ -16,28 +16,71 @@ A direct route may attract riders but require expensive underground construction
 
 The intended experience follows the life of a transport business:
 
-1. **Find an opportunity.** Examine demand, existing connections, and gaps in the network. Decide whether to expand the current railway or start from a blank network.
-2. **Develop a credible proposal.** Select the route, running system, structures, and station approach. Submit the plan for technical review and evaluate the commercial terms.
-3. **Win the work.** Review a tender, undertake optional due diligence, make a Bid/No-Bid decision, price the proposal, and negotiate an award.
-4. **Deliver the railway.** Coordinate civil works, stations, depot preparation, rolling-stock procurement, railway systems, and testing. Respond when costs, materials, permits, or site conditions change.
-5. **Open and operate.** Meet commissioning requirements, connect passengers to physical stations, run services, and settle the operating results.
-6. **Make the next investment.** Use the consequences of earlier choices to decide where the company should grow.
+1. Find an opportunity. Examine demand, existing connections, and gaps in the network. Decide whether to expand the current railway or start from a blank network.
+2. Develop a credible proposal. Select the route, running system, structures, and station approach. Submit the plan for technical review and evaluate the commercial terms.
+3. Win the work. Review a tender, undertake optional due diligence, make a Bid/No-Bid decision, price the proposal, and negotiate an award.
+4. Deliver the railway. Coordinate civil works, stations, depot preparation, rolling-stock procurement, railway systems, and testing. Respond when costs, materials, permits, or site conditions change.
+5. Open and operate. Meet commissioning requirements, connect passengers to physical stations, run services, and settle the operating results.
+6. Make the next investment. Use the consequences of earlier choices to decide where the company should grow.
 
 Parts of this cycle already run together in the prototype. A fully integrated, polished Greater Tokyo campaign remains a development milestone.
 
-## Why this is worth building
+## The audience and the business
 
-The central product thesis is that a recognizable city and a consequential railway business can reinforce each other. Real geography gives players a reason to care about a connection; construction and operating constraints give them a reason to think carefully before making it.
+Tokyo gives the game a clear starting audience: people who care about railways, transport networks, and the places those networks serve. A player might come for the railway they ride every day, a favorite train, or the chance to build a connection they have always thought should exist. The management game gives that interest somewhere to go after the first route is drawn.
 
-**The setting creates specific questions.** Demand is anchored in an actual metropolitan region rather than interchangeable dots. Commuting flows can reveal why a connection is useful, while existing railways make expansion a different problem from building an entirely new network. The same region can support different starting conditions without requiring a different simulation engine.
+Japan is a useful first market because railway enthusiasm already supports paid products in several forms. TOMIX lists its N700A basic model train set at JPY 16,940 including tax. JR East advertised a private railway photography session in Hachioji at JPY 30,000 for one participant. Another JR East railway experience event marked all three of its courses sold out. These are concrete examples of spending around specific trains and access to railway experiences. Sources: [TOMIX product listing](https://www.tomytec.co.jp/tomix/products/n/98573.html), [JR East photography event](https://media.jreast.co.jp/articles/6128), and [JR East sold-out experience event](https://media.jreast.co.jp/articles/6234).
 
-**The management systems give the map lasting consequences.** Routes, stations, trains, depots, contracts, schedules, and cash belong to one business. Bringing these systems together offers room for long campaigns in which an early compromise affects later expansion. The challenge is to present that depth clearly enough that players understand the outcome of a decision.
+There is also a direct precedent for selling digital railway content by route. JR EAST Train Simulator offers individual routes and vehicles as paid DLC through its [official Steam catalog](https://store.steampowered.com/dlc/2111630/?l=english). That is relevant to Transport Builder because a particular place or railway can be the reason someone buys another piece of content.
 
-**The regional pipeline is reusable work.** Public datasets are available to everyone; turning them into a consistent, attributed, validated game dataset takes additional work. The project has scripts for reconciling administrative areas, allocating neighborhood totals, preparing spatial layers, and exporting demand. That accumulated work is a foundation for producing further regions, although each city will still require source research and quality checks.
+The inference is that a focused railway game has an audience worth testing, including enthusiasts willing to spend on detail and familiarity. These examples do not measure the average railway fan's budget or tell us how many will buy a management game. Model collectors, photographers, driving-simulator players, and company-management players overlap to an unknown extent. The first commercial test should find out how much of that audience wants to run the business behind the network.
 
-**The architecture supports a broader content plan.** CityPacks are separate from the engine. New regions and authored scenarios are therefore plausible ways to extend the product without building a new game for each release. Country profiles already distinguish Japanese and Korean scenario rules, while synthetic packs allow systems to be exercised independently of the large Tokyo dataset.
+The broader audience includes players who enjoy transport planning and management without being railway specialists. For them, the entry point is a readable game about connecting demand, delivering projects, and making a company work. Familiar geography can help attract attention, but clear feedback and satisfying decisions have to carry the experience.
 
-The intended commercial direction is a paid game. Additional regions and scenario content are potential extensions, not announced products. This repository provides evidence of technical progress; it does not yet establish willingness to pay, player retention, or a validated market size. The next persuasive proof should be a playable slice that people choose to keep playing.
+## How the game could earn its keep
+
+The proposed model is a paid base game built around Greater Tokyo, followed by optional regional DLC. The base game needs to be a complete experience in its own right. An expansion should give returning players a new place and a different set of business problems, with enough local detail to justify the purchase.
+
+The commercial advantage of this approach is reuse. Passenger simulation, tendering, construction schedules, fleet procurement, depots, and company finance can support more than one region. A later release would add data, scenarios, local rules, vehicles, presentation, and testing on top of that foundation. Engine improvements could then benefit several regions at once.
+
+That can improve development economics if the cost of producing each new region stays below the contribution it earns. It is not automatic. Data cleanup, localization, balancing, licensing, support, and maintaining compatibility with earlier packs all take time. The important production measure is the actual cost of taking a region from source research to a finished expansion.
+
+A simple example shows the role of repeat purchases. At an assumed realized price of USD 30 per base-game copy, 10,000 copies would produce USD 300,000 in gross sales. If two regional expansions each reached 25% of those owners at an assumed realized price of USD 15, they would add USD 75,000 in gross sales. That would raise gross sales per original buyer from USD 30 to USD 37.50, before any sales to new players.
+
+Those numbers are an illustration, not a sales forecast or announced pricing. They exclude refunds, taxes, store and publisher shares, development, marketing, and ongoing support. Gross sales are not profit. For production decisions, the useful calculation is:
+
+```text
+Break-even base-game copies =
+  costs assigned to the base game / net contribution per copy
+
+Break-even DLC buyers =
+  costs assigned to the expansion / net contribution per DLC sale
+
+DLC attachment rate =
+  expansion buyers / eligible base-game owners
+```
+
+Net contribution needs to reflect actual receipts and variable costs rather than the storefront price. The business becomes more attractive when players return for expansions, regional production becomes repeatable, and support costs remain manageable. A strong Tokyo release is therefore the first priority: it must establish the audience and the quality standard that later DLC can build on.
+
+## A regional DLC plan for East Asia
+
+The expansion direction is to take the same transport-company game into Taiwan, South Korea, and China after Greater Tokyo. Each region would be sold as a substantial playable setting, with local demand, infrastructure, operating rules, and campaigns. The shared engine makes this possible in principle; each region still needs its own development budget and acceptance checks.
+
+| Proposed expansion | Initial locations to evaluate | The experience to build |
+|---|---|---|
+| Taiwan | Taipei first, with Taichung or Kaohsiung as later candidates | A campaign connecting urban metro, commuter rail, and regional travel, with station access and interchange decisions suited to the selected city |
+| South Korea | Seoul metropolitan area first; Busan and Daegu as later candidates | Metropolitan expansion, connections between urban and regional services, and construction and procurement scenarios using the Korean country profile |
+| China | One bounded metropolitan region, with Shanghai, Beijing, or the Pearl River Delta as candidates | A larger-scale network campaign built around the chosen region's demand, transfer patterns, infrastructure, and local business rules |
+
+These are content proposals, not completed packs or scheduled releases. Taiwan and China do not currently have integrated regional packs in this repository. Earlier Seoul, Busan, and Daegu research has been retained, and the engine already has a Korean scenario profile. That gives South Korea a starting point, but the research still needs to become a validated, playable product.
+
+The first expansion should be chosen by data availability, player interest, and production cost. A tightly scoped, well-supported city is more useful than announcing nationwide coverage. For China in particular, the scope would depend on suitable data rights, localization, and the distribution requirements of the intended market. Revenue from mainland distribution should not be assumed before that route is established.
+
+There are two reasons to pursue this regional approach. Existing players can buy another campaign without learning a different game, while each new setting gives local players a reason to discover the base product. Regional releases also provide concrete occasions for marketing: a new city, new operating challenges, and a new campaign are easier to show than a general promise of more features.
+
+Localization would be part of the expansion work. Japanese, Korean, Traditional Chinese, Simplified Chinese, and English support would need clear UI terminology, readable place names, tutorials, and support material. The Tokyo prototype does not yet deliver that full language coverage.
+
+Over time, the goal is a catalog of East Asian railway-management settings that share one maintained simulation. Its value would come from the quality of the cities and campaigns, the usefulness of the common systems, and players' willingness to return for another region.
 
 ## What exists today
 
@@ -52,7 +95,7 @@ The project is a development prototype with functioning simulation and managemen
 | Construction events | Deterministic events and responses affecting cost, time, safety, quality, and reputation | Probabilities and response coefficients are initial game-balance values |
 | Integrated scenario screen | Plan submission, project workflow, commissioning, operations, and combined save state | Planning starts from visible demand points or stations |
 | Greater Tokyo viewer | Regional layers, neighborhood statistics, building estimates, and optional 3D visualization | Coverage varies by area; visual estimates are labeled |
-| Tokyo data in the engine | Commuting and school origin–destination flows, plus the existing rail network | Buildings, terrain, and special-demand layers are not yet fully integrated into gameplay |
+| Tokyo data in the engine | Commuting and school origin-destination flows, plus the existing rail network | Buildings, terrain, and special-demand layers are not yet fully integrated into gameplay |
 | Subway Builder compatibility | Export scripts and mod build source | Loading and playing the generated mod in the actual game remain unverified |
 
 The engine uses vanilla JavaScript ES modules and Canvas 2D, with no engine build step or package installation required to run the prototype. It advances the simulation in fixed steps and preserves random state in integrated saves. The regression suite covers domain rules, map contracts, and save/resume behavior; run it against the current checkout rather than relying on an old test count.
@@ -78,13 +121,13 @@ These datasets have different dates, definitions, and levels of completeness. Th
 
 ### What is measured, and what is modeled
 
-Neighborhood population and employment totals come from identified statistical sources. Building-level residents and jobs are **modeled allocations of those totals**, not observed headcounts for individual properties.
+Neighborhood population and employment totals come from identified statistical sources. Building-level residents and jobs are modeled allocations of those totals, not observed headcounts for individual properties.
 
 For Tokyo's 23 wards, population allocation uses building use and floor information, with coefficients fitted over 3,114 neighborhood areas. The documented fit reports an R² of approximately 0.74 for population and 0.85 for workplace employment. These are model-fit measures, not validation of any particular building's occupancy.
 
-PLATEAU-based building employment allocations are available for eight cities outside the 23 wards: Saitama, Kawasaki, Sagamihara, Yokosuka, Atsugi, Fujisawa, Kamakura, and Yachiyo. Reported fit varies by city, with R² values of approximately 0.60–0.94. Where floor area is unavailable, some allocations use a disclosed proxy.
+PLATEAU-based building employment allocations are available for eight cities outside the 23 wards: Saitama, Kawasaki, Sagamihara, Yokosuka, Atsugi, Fujisawa, Kamakura, and Yachiyo. Reported fit varies by city, with R² values of approximately 0.60-0.94. Where floor area is unavailable, some allocations use a disclosed proxy.
 
-Other estimates are explicit: hospital capacity uses beds multiplied by three, university capacity uses category defaults, and illustrated Tokyo Station arrival dispersal is an assumption. The neighborhood-level commuting export disaggregates municipal OD rather than measuring neighborhood trips. Building popups retain the label **“Model estimate — not measured.”**
+Other estimates are explicit: hospital capacity uses beds multiplied by three, university capacity uses category defaults, and illustrated Tokyo Station arrival dispersal is an assumption. The neighborhood-level commuting export disaggregates municipal OD rather than measuring neighborhood trips. Building popups retain the label “Model estimate : not measured.”
 
 ### Remaining data gaps
 
@@ -98,12 +141,12 @@ The most useful next milestone is a coherent Greater Tokyo vertical slice: a pla
 
 The development priorities are:
 
-- **Close the regional gameplay loop.** Verify construction, physical station creation, walking access, and operating settlement together on the Tokyo pack.
-- **Improve planning freedom and feedback.** Move beyond the current demand-point anchors and make technical, cost, schedule, and access consequences clear during planning.
-- **Bring regional detail into decisions.** Integrate building, terrain, and special-destination information where it changes route or station choices.
-- **Make management depth readable.** Expose constraints and trade-offs through understandable controls, reports, and explanations of project verdicts.
-- **Validate playability and balance.** Test whether players understand the business loop, find the decisions satisfying, and want another attempt. Technical regression coverage cannot answer those questions.
-- **Prove the content workflow.** Use a second supported region to test how much of the pipeline transfers and how much local work remains.
+- Close the regional gameplay loop. Verify construction, physical station creation, walking access, and operating settlement together on the Tokyo pack.
+- Improve planning freedom and feedback. Move beyond the current demand-point anchors and make technical, cost, schedule, and access consequences clear during planning.
+- Bring regional detail into decisions. Integrate building, terrain, and special-destination information where it changes route or station choices.
+- Make management depth readable. Expose constraints and trade-offs through understandable controls, reports, and explanations of project verdicts.
+- Validate playability and balance. Test whether players understand the business loop, find the decisions satisfying, and want another attempt. Technical regression coverage cannot answer those questions.
+- Prove the content workflow. Use a second supported region to test how much of the pipeline transfers and how much local work remains.
 
 The [system roadmap](./transitline/docs/b12-b20-system-roadmap-2026-10-03.md) describes further work on through-running, capacity, disruption recovery, demand, and company management. It records development direction rather than a release commitment.
 
