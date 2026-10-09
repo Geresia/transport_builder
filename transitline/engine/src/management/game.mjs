@@ -27,6 +27,10 @@ import { advanceVehicleRetrofitMonth, authorizeVehicleRetrofitRetest as buildVeh
 import { activeThroughHandoverConfirmations, advanceThroughHandoverProjectMonth, awardThroughHandoverProject, cancelThroughHandoverProject, createThroughHandoverProject, grantThroughHandoverPermission, tenderThroughHandoverProject } from "./through-handover-project.mjs";
 import { createThroughHandoverPossessionPlan, settleThroughHandoverPossessionMonth, throughHandoverPossessionImpact as calculateThroughHandoverPossessionImpact } from "./through-handover-possession.mjs";
 import { activateRailwayTimetable, approveRailwayTimetable, buildRailwayTimetable, withdrawRailwayTimetable } from "./railway-timetable.mjs";
+import {
+  agreeNewTownDevelopmentRecord, assessNewTownDevelopment as assessNewTownDevelopmentRecord, cancelNewTownDevelopmentRecord, createNewTownDevelopmentDraft, delayNewTownDevelopmentRecord,
+  newTownDevelopmentHooks as buildNewTownDevelopmentHooks, proposeNewTownDevelopmentRecord, recordNewTownOccupancyRecord, resumeNewTownDevelopmentRecord, startNewTownServicingRecord,
+} from "./new-town-development.mjs";
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
@@ -67,6 +71,7 @@ export class ManagementGame {
     this.throughFareAgreements = [];
     this.throughOperatingSettlements = [];
     this.railwayTimetables = [];
+    this.newTownDevelopments = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -79,6 +84,7 @@ export class ManagementGame {
     this.nextVehicleRetrofitSequence = 1;
     this.nextThroughFareSequence = 1;
     this.nextRailwayTimetableSequence = 1;
+    this.nextNewTownDevelopmentSequence = 1;
     this.services = [];
     this.plans = [];
     this._transactionDepth = 0;
@@ -121,6 +127,7 @@ export class ManagementGame {
       throughFareAgreements: structuredClone(this.throughFareAgreements),
       throughOperatingSettlements: structuredClone(this.throughOperatingSettlements),
       railwayTimetables: structuredClone(this.railwayTimetables),
+      newTownDevelopments: structuredClone(this.newTownDevelopments),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -133,6 +140,7 @@ export class ManagementGame {
       nextVehicleRetrofitSequence: this.nextVehicleRetrofitSequence,
       nextThroughFareSequence: this.nextThroughFareSequence,
       nextRailwayTimetableSequence: this.nextRailwayTimetableSequence,
+      nextNewTownDevelopmentSequence: this.nextNewTownDevelopmentSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -150,7 +158,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "newTownDevelopments", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -203,6 +211,11 @@ export class ManagementGame {
     this.nextRailwayTimetableSequence = Math.max(
       snapshot.nextRailwayTimetableSequence ?? 1,
       this.railwayTimetables.reduce((max, timetable) => Math.max(max, Number(timetable.id?.match(/^railway-timetable:(\d+)$/)?.[1]) || 0), 0) + 1,
+    );
+    // ids are never reused: the allocator follows both the saved counter and the highest id that exists
+    this.nextNewTownDevelopmentSequence = Math.max(
+      snapshot.nextNewTownDevelopmentSequence ?? 1,
+      this.newTownDevelopments.reduce((max, development) => Math.max(max, Number(development.id?.match(/^new-town-development:(\d+)$/)?.[1]) || 0), 0) + 1,
     );
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
@@ -1242,6 +1255,73 @@ export class ManagementGame {
     return this.transact("railway-timetable-withdrawn", () => withdrawRailwayTimetable(this.requireRailwayTimetable(timetableId), this.clock.minute, input?.reason ?? null));
   }
 
+  // --- B19-E1: new-town developments.  Management facts only: no money moves, nothing is drawn from the random generator, and the map's
+  // geometry is a read-only plain object handed in by the caller (`geometry`), never stored by reference. ---
+  allocateNewTownDevelopmentId() {
+    while (this.newTownDevelopments.some((entry) => entry.id === `new-town-development:${this.nextNewTownDevelopmentSequence}`)) this.nextNewTownDevelopmentSequence += 1;
+    return `new-town-development:${this.nextNewTownDevelopmentSequence++}`;
+  }
+
+  // Read-only: what blocks each step. input: { id?, geometry? }.
+  assessNewTownDevelopment(input = {}) {
+    const record = input.id === undefined || input.id === null ? null : this.requireNewTownDevelopment(input.id);
+    return assessNewTownDevelopmentRecord({ geometry: input.geometry ?? null, record, others: this.newTownDevelopments });
+  }
+
+  draftNewTownDevelopment(input = {}) {
+    return this.transact("new-town-development-drafted", () => {
+      const record = createNewTownDevelopmentDraft({ id: this.allocateNewTownDevelopmentId(), input, atMinute: this.clock.minute, others: this.newTownDevelopments });
+      this.newTownDevelopments.push(record);
+      return structuredClone(record);
+    });
+  }
+
+  // input.id names an existing draft; without it a development is drafted and proposed in one step. input.geometry is required.
+  proposeNewTownDevelopment(input = {}) {
+    return this.transact("new-town-development-proposed", () => {
+      let record;
+      if (input.id !== undefined && input.id !== null) record = this.requireNewTownDevelopment(input.id);
+      else {
+        record = createNewTownDevelopmentDraft({ id: this.allocateNewTownDevelopmentId(), input, atMinute: this.clock.minute, others: this.newTownDevelopments });
+        this.newTownDevelopments.push(record);
+      }
+      return proposeNewTownDevelopmentRecord(record, { geometry: input.geometry ?? null, atMinute: this.clock.minute });
+    });
+  }
+
+  agreeNewTownDevelopment(id, agreement, context = {}) {
+    return this.transact("new-town-development-agreed", () => agreeNewTownDevelopmentRecord(this.requireNewTownDevelopment(id), agreement, { geometry: context?.geometry ?? null, atMinute: this.clock.minute }));
+  }
+
+  startNewTownServicing(id, context = {}) {
+    return this.transact("new-town-development-servicing-started", () => startNewTownServicingRecord(this.requireNewTownDevelopment(id), { geometry: context?.geometry ?? null, phaseIds: context?.phaseIds ?? null, atMinute: this.clock.minute }));
+  }
+
+  recordNewTownOccupancy(id, phaseId, facts, context = {}) {
+    return this.transact("new-town-development-occupancy-recorded", () => recordNewTownOccupancyRecord(this.requireNewTownDevelopment(id), phaseId, facts, { geometry: context?.geometry ?? null, atMinute: this.clock.minute }));
+  }
+
+  delayNewTownDevelopment(id, reason) {
+    return this.transact("new-town-development-delayed", () => delayNewTownDevelopmentRecord(this.requireNewTownDevelopment(id), reason, this.clock.minute));
+  }
+
+  resumeNewTownDevelopment(id, context = {}) {
+    return this.transact("new-town-development-resumed", () => resumeNewTownDevelopmentRecord(this.requireNewTownDevelopment(id), { geometry: context?.geometry ?? null, atMinute: this.clock.minute }));
+  }
+
+  cancelNewTownDevelopment(id, reason) {
+    return this.transact("new-town-development-cancelled", () => cancelNewTownDevelopmentRecord(this.requireNewTownDevelopment(id), reason, this.clock.minute));
+  }
+
+  newTownDevelopmentReport(id = null) {
+    return structuredClone(this.newTownDevelopments.filter((entry) => id === null || entry.id === id));
+  }
+
+  // stable ids and the stated facts a later demand / event bridge reads (see new-town-development.mjs)
+  newTownDevelopmentHooks(id) {
+    return buildNewTownDevelopmentHooks(this.requireNewTownDevelopment(id));
+  }
+
   railwayTimetableReport(timetableId = null) {
     return structuredClone(this.railwayTimetables.filter((entry) => timetableId === null || entry.id === timetableId));
   }
@@ -1847,6 +1927,12 @@ export class ManagementGame {
     const project = this.throughHandoverProjects.find((entry) => entry.id === id);
     if (!project) throw new Error(`Unknown through handover project ${id}`);
     return project;
+  }
+
+  requireNewTownDevelopment(id) {
+    const development = this.newTownDevelopments.find((entry) => entry.id === id);
+    if (!development) throw new Error(`Unknown new town development ${id}`);
+    return development;
   }
 
   requireVehicleRetrofit(id) {

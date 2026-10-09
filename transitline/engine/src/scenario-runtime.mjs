@@ -259,6 +259,7 @@ export class ScenarioRuntime {
       throughServices: this.game.throughServiceReport(),
       throughHandoverProjects: this.game.throughHandoverProjectReport(),
       railwayTimetables: this.game.railwayTimetableReport(),
+      newTownDevelopments: this.game.newTownDevelopmentReport(),
       operationalTimetableApplications: operationalTimetableApplicationReport(this.operationalState),
       operationalTimetableWarnings: structuredClone(this.operationalState?.operationalTimetableWarnings ?? []),
       railwayTraffic: railwayTrafficReport(this.operationalState),
@@ -1178,6 +1179,52 @@ export class ScenarioRuntime {
   // B17-E1: read-only facts about how the timetables are actually operated (see railway-timetable-operation-report.mjs); it changes nothing.
   railwayTimetableOperationReport() {
     return buildRailwayTimetableOperationReport({ operationalState: this.operationalState, timetables: this.game.railwayTimetableReport() });
+  }
+
+  // B19-E1: new-town developments are management facts only. `geometry` is the map's read-only development geometry (a plain object); a
+  // step that moves a development forward is refused without a current one. Nothing here converts a development into demand or money.
+  assessNewTownDevelopment(input = {}) {
+    return this.game.assessNewTownDevelopment(input);
+  }
+
+  draftNewTownDevelopment(input = {}) {
+    return this.game.draftNewTownDevelopment(input);
+  }
+
+  proposeNewTownDevelopment(input = {}) {
+    return this.game.proposeNewTownDevelopment(input);
+  }
+
+  agreeNewTownDevelopment(id, agreement, context = {}) {
+    return this.game.agreeNewTownDevelopment(id, agreement, context);
+  }
+
+  startNewTownServicing(id, context = {}) {
+    return this.game.startNewTownServicing(id, context);
+  }
+
+  recordNewTownOccupancy(id, phaseId, facts, context = {}) {
+    return this.game.recordNewTownOccupancy(id, phaseId, facts, context);
+  }
+
+  delayNewTownDevelopment(id, reason) {
+    return this.game.delayNewTownDevelopment(id, reason);
+  }
+
+  resumeNewTownDevelopment(id, context = {}) {
+    return this.game.resumeNewTownDevelopment(id, context);
+  }
+
+  cancelNewTownDevelopment(id, reason) {
+    return this.game.cancelNewTownDevelopment(id, reason);
+  }
+
+  newTownDevelopmentReport(id = null) {
+    return this.game.newTownDevelopmentReport(id);
+  }
+
+  newTownDevelopmentHooks(id) {
+    return this.game.newTownDevelopmentHooks(id);
   }
 
   railwayTimetableReport(timetableId = null) {
