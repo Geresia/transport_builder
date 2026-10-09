@@ -35,6 +35,13 @@ test("a missing or incompatible optional client never blocks the 2d game", () =>
   }
 });
 
+test("an empty scene cannot be offered as a 3D construction view", () => {
+  const empty = buildConstruction3dSceneManifest({ pack, coordinates, sources: [] });
+  const result = assessConstruction3dSession({ pack, client: ready, scene: empty, currentSources: [] });
+  assert.equal(result.mode, "2d-only");
+  assert.ok(result.blockers.includes("scene-has-no-sources"));
+});
+
 test("coordinate frames compare structurally and session serialization retains no client runtime", () => {
   assert.equal(sameConstruction3dCoordinateFrame(coordinates, { ...coordinates }), true);
   assert.equal(sameConstruction3dCoordinateFrame(coordinates, { ...coordinates, axis: "north-up-east" }), false);

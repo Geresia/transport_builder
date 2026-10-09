@@ -25,6 +25,7 @@ export function assessConstruction3dSession({ pack, client = null, scene = null,
     const index = new Map((Array.isArray(currentSources) ? currentSources : []).map((source) => [`${source?.sourceType}|${source?.sourceId}`, source]));
     if (!Array.isArray(currentSources)) warnings.push("current-sources-not-provided");
     if (!Array.isArray(scene.sources)) blockers.push("scene-sources-invalid");
+    else if (!scene.sources.length) blockers.push("scene-has-no-sources");
     else for (const source of scene.sources) {
       const type = text(source?.sourceType); const id = text(source?.sourceId); const revision = text(source?.sourceRevision);
       const current = type && id ? index.get(`${type}|${id}`) : null;
