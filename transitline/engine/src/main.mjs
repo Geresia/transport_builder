@@ -1919,7 +1919,10 @@ async function main() {
     });
     campaignTimelinePanel = mountCampaignTimelinePanel({
       container: $("scenario-campaign-timeline"),
-      getFactReport: () => runtime.campaignFactReport(),
+      getFactReport: () => runtime.campaignFactReport({
+        programGeometries: regionalDevelopmentProgramEditor?.output()?.export ?? null,
+        developmentGeometry: newTownGeometryExport(),
+      }),
       getClockMinute: () => runtime.game.clock.minute,
       getGeometryForProgram: (programId) => regionalDevelopmentProgramEditor?.output()?.export?.programs?.find((program) => program.programId === programId) ?? null,
       onReachMilestone: ({ campaignProgramId, milestoneId, observedRefs, geometry }) => {

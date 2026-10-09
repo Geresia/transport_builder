@@ -74,6 +74,15 @@ const VEHICLE_BY_PROFILE = Object.freeze({
   linear_metro: "linear_6car",
 });
 
+// B20 host reports can contain several current regional-program documents.
+// Keep the legacy single `geometry` input intact, while allowing a map editor
+// to provide its whole export so each activation is checked against the
+// geometry of its own program rather than an unrelated one.
+const campaignProgramGeometries = (value) => Array.isArray(value)
+  ? value
+  : Array.isArray(value?.programs) ? value.programs
+    : null;
+
 function replaceState(target, source) {
   for (const key of Object.keys(target)) delete target[key];
   Object.assign(target, source);
@@ -1359,12 +1368,26 @@ export class ScenarioRuntime {
   campaignActivationReport(context = {}) {
     const intakes = this.game.newTownDemandIntakeReport(null, { geometry: this.newTownGeometryOf(context) });
     const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
-    return this.game.campaignActivationReport({ geometry: context.geometry ?? null, intakes, sources });
+    const supplied = campaignProgramGeometries(context?.programGeometries);
+    // The original single-document overload is retained for callers which
+    // inspect one program.  A program collection is resolved per program id;
+    // if a document is absent the corresponding activation stays unverified
+    // instead of borrowing another program's geometry.
+    if (supplied === null) return this.game.campaignActivationReport({ geometry: context.geometry ?? null, intakes, sources });
+    const geometryFor = (programId) => supplied.find((geometry) => geometry?.programId === programId) ?? null;
+    const raw = this.game.campaignActivationReport({ geometry: null, intakes, sources });
+    const byActivationId = new Map();
+    for (const programId of [...new Set(raw.map((activation) => activation?.programId).filter((id) => typeof id === "string"))]) {
+      for (const activation of this.game.campaignActivationReport({ geometry: geometryFor(programId), intakes, sources })) {
+        if (activation?.programId === programId && typeof activation?.activationId === "string") byActivationId.set(activation.activationId, activation);
+      }
+    }
+    return raw.map((activation) => byActivationId.get(activation.activationId) ?? activation);
   }
   campaignFactReport(context = {}) {
     const intakes = this.game.newTownDemandIntakeReport(null, { geometry: this.newTownGeometryOf(context) });
     const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
-    return buildCampaignFactReport({ programs: this.game.campaignProgramReport(), activations: this.game.campaignActivationReport({ geometry: context.geometry ?? null, intakes, sources }), developments: this.game.newTownDevelopmentReport(), contributions: this.game.newTownRailContributionReport(), demandSources: sources, projects: this.game.projects, services: this.game.services, timetables: this.game.railwayTimetableReport() });
+    return buildCampaignFactReport({ programs: this.game.campaignProgramReport(), activations: this.campaignActivationReport({ ...context, developmentGeometry: this.newTownGeometryOf(context) }), developments: this.game.newTownDevelopmentReport(), contributions: this.game.newTownRailContributionReport(), demandSources: sources, projects: this.game.projects, services: this.game.services, timetables: this.game.railwayTimetableReport() });
   }
 
   railwayTimetableReport(timetableId = null) {

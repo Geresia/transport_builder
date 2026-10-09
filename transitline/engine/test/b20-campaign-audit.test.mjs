@@ -254,6 +254,23 @@ test("the fact report does not depend on the order of its inputs, and the stored
   assert.deepEqual(forward.milestones.map((m) => m.milestoneId), Array.from({ length: MILESTONES }, (_, i) => mid(i + 1)));
 });
 
+test("a map export with several current B20 programs verifies each activation against its own program geometry", () => {
+  const w = world();
+  const secondGeometry = programGeometry({ programId: "program-second", programRevision: "r-second" });
+  const second = w.runtime.draftCampaignProgram({ geometry: secondGeometry });
+  w.runtime.adoptCampaignProgram(second.id, { geometry: secondGeometry });
+  w.runtime.monitorCampaignProgram(second.id, { geometry: secondGeometry });
+  w.runtime.recordCampaignActivation({ campaignProgramId: second.id, milestoneId: mid(1), intakeId: INTAKE, demandSourceId: SOURCE, geometry: secondGeometry, developmentGeometry: NT });
+  const context = { programGeometries: { programs: [w.geometry, secondGeometry] }, developmentGeometry: NT };
+  const activations = w.runtime.campaignActivationReport(context);
+  assert.deepEqual(activations.map((entry) => [entry.programId, entry.standing.status]).sort((a, b) => a[0].localeCompare(b[0])), [["program-30y", "recorded"], ["program-second", "recorded"]]);
+  const facts = w.runtime.campaignFactReport(context);
+  const all = facts.programs.flatMap((program) => program.milestones.flatMap((milestone) => milestone.activations));
+  assert.deepEqual(all.map((entry) => entry.status).sort(), ["recorded", "recorded"]);
+  const incomplete = w.runtime.campaignActivationReport({ programGeometries: { programs: [w.geometry] }, developmentGeometry: NT });
+  assert.equal(incomplete.find((entry) => entry.programId === "program-second").standing.status, "stale", "a missing second geometry never borrows the first program geometry");
+});
+
 test("a campaign needs no per-day and no per-citizen work: the campaign modules have no loop over days and name no simulation, agent or random source", () => {
   const files = ["campaign-time.mjs", "campaign-fact-report.mjs", "campaign-timeline-panel.mjs", "campaign-timeline-view.mjs", "management/campaign-program.mjs", "management/campaign-activation.mjs", "map/regional-development-program.mjs", "map/regional-development-program-ui.mjs"];
   for (const name of files) {

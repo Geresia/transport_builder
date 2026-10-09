@@ -33,6 +33,13 @@ reason via `runtime.withdrawCampaignActivation()`.
 `main.mjs` mounts this panel between the B20 lifecycle panel and the read-only
 timeline, and refreshes it after map or scenario changes.
 
+For the timeline, `main.mjs` also now supplies the full regional-program export
+as `programGeometries` to `runtime.campaignFactReport()`.  The runtime resolves
+each activation by its own `programId`; a missing program document leaves only
+that activation stale instead of accidentally checking it against another
+program's geometry.  The older single-`geometry` overload remains available for
+callers that inspect one program.
+
 ## Verification
 
 `campaign-activation-management-panel.test.mjs` covers command-free mount and
