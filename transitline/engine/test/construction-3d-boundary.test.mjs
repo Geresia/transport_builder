@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { buildConstruction3dPreflight } from "../src/construction-3d-preflight.mjs";
 
 const root = fileURLToPath(new URL("../src/", import.meta.url));
-const modules = ["construction-3d-exchange.mjs", "construction-3d-adapter.mjs", "construction-3d-session-coordinator.mjs", "construction-3d-source-adapters.mjs", "construction-3d-spatial-review.mjs", "construction-3d-stage-manifest.mjs", "construction-3d-integration-audit.mjs", "construction-3d-preflight.mjs", "construction-3d-preflight-panel.mjs", "construction-3d-preflight-benchmark.mjs", "construction-3d-coordinate-profile.mjs"];
+const modules = ["construction-3d-exchange.mjs", "construction-3d-adapter.mjs", "construction-3d-client-envelope.mjs", "construction-3d-session-coordinator.mjs", "construction-3d-source-adapters.mjs", "construction-3d-spatial-review.mjs", "construction-3d-stage-manifest.mjs", "construction-3d-integration-audit.mjs", "construction-3d-preflight.mjs", "construction-3d-preflight-panel.mjs", "construction-3d-preflight-benchmark.mjs", "construction-3d-coordinate-profile.mjs"];
 test("B21-B24 contracts do not import a management/runtime owner or write host storage", () => {
   for (const name of modules) {
     const source = fs.readFileSync(`${root}${name}`, "utf8");
