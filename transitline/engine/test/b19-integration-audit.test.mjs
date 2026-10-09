@@ -196,10 +196,10 @@ test("packs are never mixed: a save refuses another pack, and another pack's map
   assert.ok(intake.standing.verification.reasons.some((r) => /pack/.test(r)), intake.standing.verification.reasons.join());
 });
 
-// Finding F-3 (see the B19-R1 doc): the scenario's own pack is compared only at E5.  E1, E3 and E4 take the pack from the geometry they are
-// handed, so a development drawn on another pack can be drafted, agreed and - the one money step - RELEASED into this scenario's ledger.
-// This states the wanted behaviour; it is `todo` until the owner decides where the guard belongs (runtime wrapper for release/propose).
-test("a contribution for a development drawn on another pack is not released into this scenario's ledger", { todo: "F-3: no scenario-pack check before E3 release" }, () => {
+// A lifecycle record can be internally consistent with another pack's
+// geometry, but the runtime must never release that contribution into this
+// scenario's ledger.
+test("a contribution for a development drawn on another pack is not released into this scenario's ledger", () => {
   const w = world();
   const geometry = geo({ sourcePackId: "r1-other-pack", sourcePackVersion: "9" });
   const dev = w.runtime.proposeNewTownDevelopment({ geometry, parties: w.k.parties });

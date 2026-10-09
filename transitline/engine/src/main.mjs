@@ -15,6 +15,7 @@ import { demandSourceRefsOf } from "./map/station-demand-access.mjs";
 import { mountStationDemandAccess } from "./map/station-demand-access-ui.mjs";
 import { mountStationDemandAllocationOverlay } from "./map/station-demand-allocation-ui.mjs";
 import { mountNewTownDevelopment } from "./map/new-town-development-ui.mjs";
+import { mountNewTownDemandOverlay } from "./map/new-town-demand-overlay-ui.mjs";
 import { mountRegionalDevelopmentProgramEditor } from "./map/regional-development-program-ui.mjs";
 import { mountConstruction3dCoordinateProfilePanel } from "./construction-3d-coordinate-profile-panel.mjs";
 import { buildConstruction3dPreflight } from "./construction-3d-preflight.mjs";
@@ -52,6 +53,7 @@ import { mountOperationalServiceCoveragePanel } from "./operational-service-cove
 import { mountNewTownDevelopmentManagementPanel } from "./new-town-development-management-ui.mjs";
 import { mountNewTownRailContributionManagementPanel } from "./new-town-rail-contribution-management-panel.mjs";
 import { mountNewTownDemandIntakePanel } from "./new-town-demand-intake-panel.mjs";
+import { buildNewTownDemandCandidates } from "./new-town-demand-candidates.mjs";
 import { mountCampaignTimelinePanel } from "./campaign-timeline-panel.mjs";
 import { TECHNICAL_PROFILES } from "./management/construction.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
@@ -360,6 +362,7 @@ async function main() {
   let stationDemandAccessOutput = null;
   let newTownDevelopmentUi = null;
   let newTownDevelopmentOutput = null;
+  let newTownDemandOverlay = null;
   let regionalDevelopmentProgramEditor = null;
   let construction3dCoordinateProfilePanel = null;
   let construction3dPreflightPanel = null;
@@ -406,6 +409,7 @@ async function main() {
     stationUi?.refresh(); // station sites are checked against the plans just exported, and show the engine verdict
     stationDemandAccessUi?.refresh();
     newTownDevelopmentUi?.refresh();
+    newTownDemandOverlay?.refresh();
     regionalDevelopmentProgramEditor?.refresh();
     construction3dCoordinateProfilePanel?.refresh();
     construction3dPreflightPanel?.refresh();
@@ -543,6 +547,20 @@ async function main() {
       getTrains: () => state.trains, getStations: () => state.stations,
       getOperationReport: () => runtime.railwayTimetableOperationReport(),
     });
+    newTownDemandOverlay = mountNewTownDemandOverlay({
+      canvas,
+      projection,
+      pack,
+      enabled: false,
+      getGeometryExport: () => newTownDevelopmentUi?.output()?.export ?? newTownDevelopmentOutput?.export ?? null,
+      getDevelopments: () => runtime.newTownDevelopmentReport(),
+      getCandidates: () => {
+        const geometry = newTownDevelopmentUi?.output()?.export ?? newTownDevelopmentOutput?.export ?? null;
+        return runtime.newTownDevelopmentReport().map((record) => buildNewTownDemandCandidates({ hooks: runtime.newTownDevelopmentHooks(record.id), geometry }));
+      },
+      getIntakes: () => runtime.newTownDemandIntakeReport(null, { geometry: newTownDevelopmentUi?.output()?.export ?? newTownDevelopmentOutput?.export ?? null }),
+      getSources: () => runtime.newTownExplicitDemandSourceReport({ geometry: newTownDevelopmentUi?.output()?.export ?? newTownDevelopmentOutput?.export ?? null }),
+    });
   }
   const stationDemandAccessButton = $("btn-station-demand-access");
   stationDemandAccessButton.hidden = false;
@@ -560,6 +578,16 @@ async function main() {
     newTownDevelopmentUi?.setEnabled(enabled);
     newTownDevelopmentButton.blur();
   });
+  const newTownDemandButton = $("btn-new-town-demand-overlay");
+  if (runtime) {
+    newTownDemandButton.hidden = false;
+    newTownDemandButton.addEventListener("click", () => {
+      const enabled = !newTownDemandButton.classList.contains("active");
+      newTownDemandButton.classList.toggle("active", enabled);
+      newTownDemandOverlay?.setEnabled(enabled);
+      newTownDemandButton.blur();
+    });
+  }
   const stationDemandAllocationButton = $("btn-station-demand-allocation");
   if (runtime) {
     stationDemandAllocationButton.hidden = false;

@@ -79,6 +79,20 @@ function replaceState(target, source) {
   Object.assign(target, source);
 }
 
+// B19-R2: a map geometry can already verify that it matches the record it was
+// created from, but the runtime also owns the scenario pack. Before the one
+// B19 contribution transition that can post cash, keep a geometry from another
+// pack out of this scenario's ledger. Missing/invalid pack facts remain the
+// lifecycle module's responsibility; this guard only rejects a stated mismatch.
+function requireScenarioPackForNewTownGeometry(runtime, geometry) {
+  const scenarioPackId = runtime?.pack?.manifest?.id;
+  const sourcePackId = geometry?.sourcePackId;
+  if (typeof scenarioPackId !== "string" || !scenarioPackId.trim()) return;
+  if (typeof sourcePackId === "string" && sourcePackId.trim() && sourcePackId.trim() !== scenarioPackId.trim()) {
+    throw new Error(`New-town geometry source pack ${sourcePackId.trim()} differs from scenario pack ${scenarioPackId.trim()}`);
+  }
+}
+
 // B18-E2: what changing the operating calendar to `value` would do, computed without touching anything.
 // A day type is looked up per day by the dispatcher (trains.mjs), so a change needs no re-application of the timetables: their
 // dispatch entries are keyed by day type and stay exactly as they are.  What a change CAN break is (a) a day that has already
@@ -1259,6 +1273,7 @@ export class ScenarioRuntime {
   }
 
   releaseNewTownRailContribution(id, context = {}) {
+    requireScenarioPackForNewTownGeometry(this, context?.geometry);
     return this.game.releaseNewTownRailContribution(id, context);
   }
 

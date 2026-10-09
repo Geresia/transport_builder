@@ -34,6 +34,7 @@ const EXAMPLE = JSON.parse(read("../../packs/example-radial/new-town-development
 const [P1, P2] = EXAMPLE.phases.map((p) => p.phaseId);
 const PARTIES = { municipality: { name: "Example City" }, developer: { name: "Example Dev" } };
 const PACK = { manifest: { id: "ntrc-panel", version: "1", data: { license: "test", attribution: [] } }, demand: { model: "gravity", points: [], attractors: [] } };
+const scenarioGeometry = () => ({ ...structuredClone(EXAMPLE), sourcePackId: PACK.manifest.id, sourcePackVersion: PACK.manifest.version });
 const COMMANDS = ["draft", "propose", "agree", "fund", "release", "delay", "resume", "terminate"].map((n) => `${n}NewTownRailContribution`);
 const READS = ["assessNewTownRailContribution", "newTownRailContributionHooks", "newTownRailContributionReport"];
 const AMOUNT = 3_000_000_000;
@@ -50,9 +51,9 @@ function spyRuntime(real) {
   });
   return { runtime: proxy, calls };
 }
-function setup({ geometry = EXAMPLE, mountIt = true } = {}) {
+function setup({ geometry = scenarioGeometry(), mountIt = true } = {}) {
   const real = new ScenarioRuntime({ pack: PACK, operationalState: createState(PACK) });
-  const development = real.proposeNewTownDevelopment({ geometry: EXAMPLE, parties: PARTIES });
+  const development = real.proposeNewTownDevelopment({ geometry, parties: PARTIES });
   real.game.projects.push({ id: "project:1", status: "active" });
   const world = { geometries: [structuredClone(geometry)], links: { planIds: ["plan:1"], stationSiteIds: ["site:1"] } };
   const { runtime, calls } = spyRuntime(real);
@@ -60,7 +61,7 @@ function setup({ geometry = EXAMPLE, mountIt = true } = {}) {
   const changes = [];
   const options = {
     container, runtime, onChange: () => changes.push(1),
-    getGeometryExport: () => ({ schema: "transitline.new-town-development-export/1", packId: "example-radial", packVersion: "0.1.0", developments: world.geometries, warnings: [] }),
+    getGeometryExport: () => ({ schema: "transitline.new-town-development-export/1", packId: geometry.sourcePackId, packVersion: geometry.sourcePackVersion, developments: world.geometries, warnings: [] }),
     getNewTownDevelopments: () => real.newTownDevelopmentReport(),
     getCurrentLinks: () => world.links,
   };
@@ -265,9 +266,9 @@ test("an amount is only a whole number the player typed: nothing is computed, co
   assert.equal(ctx.real.newTownRailContributionReport(id)[0].statedAmountYen, 42, "only surrounding blanks are ignored");
   // the development's own facts are in the engine (an occupancy fact of 9000 residents) and are not read into any amount
   const dev = ctx.development.id;
-  ctx.real.agreeNewTownDevelopment(dev, { burdens: [{ itemId: "land", bearers: ["developer"] }] }, { geometry: EXAMPLE });
-  ctx.real.startNewTownServicing(dev, { geometry: EXAMPLE });
-  ctx.real.recordNewTownOccupancy(dev, P1, { statedOccupiedUnits: 9000, unit: "residents", source: "survey" }, { geometry: EXAMPLE });
+  ctx.real.agreeNewTownDevelopment(dev, { burdens: [{ itemId: "land", bearers: ["developer"] }] }, { geometry: ctx.world.geometries[0] });
+  ctx.real.startNewTownServicing(dev, { geometry: ctx.world.geometries[0] });
+  ctx.real.recordNewTownOccupancy(dev, P1, { statedOccupiedUnits: 9000, unit: "residents", source: "survey" }, { geometry: ctx.world.geometries[0] });
   ctx.panel.refresh();
   const blank = draftIt(ctx, { amount: "" });
   assert.equal(ctx.real.newTownRailContributionReport(blank)[0].statedAmountYen, null);
@@ -304,7 +305,7 @@ test("a map that is stale, from another pack, inactive, missing or a cancelled d
   for (const [name, [make, codes, linkLine]] of Object.entries(cases)) {
     const ctx = setup();
     const id = drive(ctx, "draft");
-    ctx.world.geometries = [make(EXAMPLE)];
+    ctx.world.geometries = [make(ctx.world.geometries[0])];
     ctx.panel.refresh();
     const card = cardOf(ctx.container, id);
     for (const code of codes) assert.ok(shows(card, `(${code})`), `${name}: ${code} shown`);
@@ -321,7 +322,7 @@ test("a map that is stale, from another pack, inactive, missing or a cancelled d
     assert.equal(ctx.real.newTownRailContributionReport(id)[0].status, "terminated", `${name}: terminate needs no map`);
   }
   // the geometry is missing from the export, or two geometries share the id
-  for (const [name, geometries, line] of [["not in the export", [], "지도 export에 이 개발 ID의 geometry가 없음"], ["ambiguous", [EXAMPLE, EXAMPLE], "같은 개발 ID가 여럿"]]) {
+  for (const [name, geometries, line] of [["not in the export", [], "지도 export에 이 개발 ID의 geometry가 없음"], ["ambiguous", [scenarioGeometry(), scenarioGeometry()], "같은 개발 ID가 여럿"]]) {
     const ctx = setup();
     const id = drive(ctx, "agreed");
     ctx.world.geometries = geometries;
@@ -493,7 +494,7 @@ test("the development record, the contribution and the map are linked by develop
   assert.equal(factOf(card, "개발 기록 ID (E1)"), ctx.development.id);
   assert.equal(factOf(card, "개발 ID (지도)"), EXAMPLE.developmentId);
   assert.equal(factOf(card, "개발 revision"), EXAMPLE.developmentRevision);
-  assert.equal(factOf(card, "팩"), "example-radial 0.1.0");
+  assert.equal(factOf(card, "팩"), "ntrc-panel 1");
   assert.ok(shows(card, "지도 geometry: revision 일치 · 팩 ID 일치 · 팩 버전 일치 · 활성 예"));
   assert.ok(shows(card, "E1 개발 기록: 상태 proposed · 개발 ID 일치 · revision 일치 · 팩 ID 일치 · 팩 버전 일치"));
   const result = ctx.panel.results()[0];
@@ -572,7 +573,7 @@ test("typed input survives a redraw; blockers are explained in words with the en
 
 test("frozen inputs are fine, the panel changes none of them, and a throwing getter is shown as missing data, not as a pass", () => {
   const ctx = setup({ mountIt: false });
-  const geometries = deepFreeze([structuredClone(EXAMPLE)]);
+  const geometries = deepFreeze([scenarioGeometry()]);
   const links = deepFreeze({ planIds: ["plan:1"], stationSiteIds: ["site:1"] });
   ctx.options.getGeometryExport = () => deepFreeze({ schema: "transitline.new-town-development-export/1", developments: geometries });
   ctx.options.getCurrentLinks = () => links;
@@ -580,7 +581,7 @@ test("frozen inputs are fine, the panel changes none of them, and a throwing get
   const id = draftIt(ctx);
   click(buttonOf(cardOf(ctx.container, id), "propose"));
   assert.equal(ctx.real.newTownRailContributionReport(id)[0].status, "proposed");
-  assert.equal(JSON.stringify(geometries), JSON.stringify([EXAMPLE]));
+  assert.equal(JSON.stringify(geometries), JSON.stringify([scenarioGeometry()]));
   const broken = setup({ mountIt: false });
   broken.options.getCurrentLinks = () => { throw new Error("links broke"); };
   broken.options.getNewTownDevelopments = () => { throw new Error("records broke"); };

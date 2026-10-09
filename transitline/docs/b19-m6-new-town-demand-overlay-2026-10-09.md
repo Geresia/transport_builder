@@ -12,6 +12,16 @@
 
 수정하지 않은 곳: `main.mjs`, `index.html`, `style.css`, `management/**`, `scenario-runtime.mjs`. 아직 `main.mjs`에는 연결되지 않았습니다(호스트 연결은 별도 작업).
 
+## Host integration update (2026-10-10)
+
+`main.mjs` now mounts this overlay for scenario play and exposes the **신도시
+수요 현황** toggle. The host supplies the current M2 geometry export, E1
+development records, E2 candidates built from each current lifecycle hook,
+E4 intake records, and E5 explicit-source records. It refreshes with the map
+overlay. This remains read-only: toggling, refreshing, selecting, or drawing
+the overlay does not issue a runtime command, alter B15 links, or write a save
+field.
+
 ## mount API
 
 ```js
