@@ -49,6 +49,7 @@ import { applyStationDemandAccess, stationDemandAccessApplicationReport } from "
 import { applyStationDemandAllocation, assessStationDemandAllocation, stationDemandAllocationApplicationReport } from "./station-demand-allocation-integration.mjs";
 import { buildStationDemandAllocationDiagnostics } from "./station-demand-allocation-diagnostics.mjs";
 import { applyNewTownExplicitDemandSource, assessNewTownExplicitDemandSources, newTownExplicitDemandSourceReport, withdrawNewTownExplicitDemandSource } from "./new-town-explicit-demand-source.mjs";
+import { buildCampaignFactReport } from "./campaign-fact-report.mjs";
 import { adaptServicePlanToOperationalTimetable } from "./service-plan-timetable-adapter.mjs";
 import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from "./railway-disruption-response.mjs";
 import { clearRailwayControlOrder, createRailwayControlOrder, createRailwayControlOrderFromGeometry, railwayControlOrderReport } from "./railway-service-control.mjs";
@@ -265,6 +266,7 @@ export class ScenarioRuntime {
       newTownDemandIntakes: this.game.newTownDemandIntakeReport(),
       campaignPrograms: this.game.campaignProgramReport(),
       campaignActivations: this.game.campaignActivationReport(),
+      campaignFacts: buildCampaignFactReport({ programs: this.game.campaignProgramReport(), activations: this.game.campaignActivationReport(), developments: this.game.newTownDevelopmentReport(), contributions: this.game.newTownRailContributionReport(), demandSources: newTownExplicitDemandSourceReport(this.operationalState, { intakes: this.game.newTownDemandIntakeReport() }), services: this.game.services, timetables: this.game.railwayTimetableReport() }),
       operationalTimetableApplications: operationalTimetableApplicationReport(this.operationalState),
       operationalTimetableWarnings: structuredClone(this.operationalState?.operationalTimetableWarnings ?? []),
       railwayTraffic: railwayTrafficReport(this.operationalState),
@@ -1337,6 +1339,11 @@ export class ScenarioRuntime {
     const intakes = this.game.newTownDemandIntakeReport(null, { geometry: context.geometry ?? null });
     const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
     return this.game.campaignActivationReport({ geometry: context.geometry ?? null, intakes, sources });
+  }
+  campaignFactReport(context = {}) {
+    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: context.geometry ?? null });
+    const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
+    return buildCampaignFactReport({ programs: this.game.campaignProgramReport(), activations: this.game.campaignActivationReport({ geometry: context.geometry ?? null, intakes, sources }), developments: this.game.newTownDevelopmentReport(), contributions: this.game.newTownRailContributionReport(), demandSources: sources, services: this.game.services, timetables: this.game.railwayTimetableReport() });
   }
 
   railwayTimetableReport(timetableId = null) {
