@@ -14,6 +14,7 @@ import { buildMapExport, drawnLinesFromState, existingNetworkToExternal, withRai
 import { demandSourceRefsOf } from "./map/station-demand-access.mjs";
 import { mountStationDemandAccess } from "./map/station-demand-access-ui.mjs";
 import { mountStationDemandAllocationOverlay } from "./map/station-demand-allocation-ui.mjs";
+import { mountRailwayTimetableOperationOverlay } from "./map/railway-timetable-operation-ui.mjs";
 import { mountServicePlanEditor } from "./map/service-plan-ui.mjs";
 import { mountServicePlanAssumptionsPanel } from "./service-plan-assumptions-ui.mjs";
 import { mountCapacityReadinessPanel } from "./service-plan-capacity-readiness-ui.mjs";
@@ -346,6 +347,7 @@ async function main() {
   let stationDemandAccessUi = null;
   let stationDemandAccessOutput = null;
   let stationDemandAllocationOverlay = null;
+  let railwayTimetableOperationOverlay = null;
   let servicePlanEditor = null;
   let servicePlanAssumptions = null;
   let servicePlanCapacityReadiness = null;
@@ -379,6 +381,7 @@ async function main() {
     stationUi?.refresh(); // station sites are checked against the plans just exported, and show the engine verdict
     stationDemandAccessUi?.refresh();
     stationDemandAllocationOverlay?.refresh();
+    railwayTimetableOperationOverlay?.refresh();
     servicePlanEditor?.refresh();
     servicePlanAssumptions?.refresh();
     servicePlanCapacityReadiness?.refresh();
@@ -454,6 +457,11 @@ async function main() {
       getDemandNodes: () => state.demandNodes,
       getStations: () => state.stations,
     });
+    railwayTimetableOperationOverlay = mountRailwayTimetableOperationOverlay({
+      canvas, projection, pack, enabled: false,
+      getTimetables: () => runtime.railwayTimetableReport(), getLines: () => state.lines,
+      getTrains: () => state.trains, getStations: () => state.stations,
+    });
   }
   const stationDemandAccessButton = $("btn-station-demand-access");
   stationDemandAccessButton.hidden = false;
@@ -471,6 +479,16 @@ async function main() {
       stationDemandAllocationButton.classList.toggle("active", enabled);
       stationDemandAllocationOverlay?.setEnabled(enabled);
       stationDemandAllocationButton.blur();
+    });
+  }
+  const timetableOperationButton = $("btn-timetable-operation");
+  if (runtime) {
+    timetableOperationButton.hidden = false;
+    timetableOperationButton.addEventListener("click", () => {
+      const enabled = !timetableOperationButton.classList.contains("active");
+      timetableOperationButton.classList.toggle("active", enabled);
+      railwayTimetableOperationOverlay?.setEnabled(enabled);
+      timetableOperationButton.blur();
     });
   }
   constructionUi = attachConstructionEditor({
@@ -766,7 +784,7 @@ async function main() {
     });
   }
   // Map editors own the pointer while active: keep exactly one drawing editor on.
-  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-station-demand-access"), $("btn-station-demand-allocation"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control"), $("btn-service-plan")];
+  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-station-demand-access"), $("btn-station-demand-allocation"), $("btn-timetable-operation"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control"), $("btn-service-plan")];
   for (const activeButton of drawingButtons) {
     activeButton.addEventListener("click", () => {
       if (!activeButton.classList.contains("active")) return;
