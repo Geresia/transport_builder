@@ -17,6 +17,8 @@ import { mountStationDemandAllocationOverlay } from "./map/station-demand-alloca
 import { mountNewTownDevelopment } from "./map/new-town-development-ui.mjs";
 import { mountRegionalDevelopmentProgramEditor } from "./map/regional-development-program-ui.mjs";
 import { mountConstruction3dCoordinateProfilePanel } from "./construction-3d-coordinate-profile-panel.mjs";
+import { buildConstruction3dPreflight } from "./construction-3d-preflight.mjs";
+import { mountConstruction3dPreflightPanel } from "./construction-3d-preflight-panel.mjs";
 import { mountRailwayTimetableOperationOverlay } from "./map/railway-timetable-operation-ui.mjs";
 import { mountServicePlanEditor } from "./map/service-plan-ui.mjs";
 import { mountServicePlanAssumptionsPanel } from "./service-plan-assumptions-ui.mjs";
@@ -359,6 +361,7 @@ async function main() {
   let newTownDevelopmentOutput = null;
   let regionalDevelopmentProgramEditor = null;
   let construction3dCoordinateProfilePanel = null;
+  let construction3dPreflightPanel = null;
   let stationDemandAllocationOverlay = null;
   let railwayTimetableOperationOverlay = null;
   let servicePlanEditor = null;
@@ -403,6 +406,7 @@ async function main() {
     newTownDevelopmentUi?.refresh();
     regionalDevelopmentProgramEditor?.refresh();
     construction3dCoordinateProfilePanel?.refresh();
+    construction3dPreflightPanel?.refresh();
     stationDemandAllocationOverlay?.refresh();
     railwayTimetableOperationOverlay?.refresh();
     servicePlanEditor?.refresh();
@@ -503,6 +507,21 @@ async function main() {
     container: $("scenario-construction-3d-coordinates"),
     pack,
     onChange: () => queueMicrotask(() => refreshScenarioPanel()),
+  });
+  construction3dPreflightPanel = mountConstruction3dPreflightPanel({
+    container: $("scenario-construction-3d-preflight"),
+    getPreflight: () => buildConstruction3dPreflight({
+      pack,
+      coordinateProfile: construction3dCoordinateProfilePanel?.output() ?? null,
+      // A Unity client is deliberately not invented here. A future loader must
+      // provide its handshake before this can become 3D-available.
+      client: null,
+      campaignPrograms: runtime?.campaignProgramReport() ?? [],
+      railGeometries: mapInputPipeline?.output()?.railGeometries,
+      stationSites: stationUi?.stationExport,
+      depotSites: depotUi?.depotExport,
+      developments: newTownDevelopmentUi?.output()?.export ?? newTownDevelopmentOutput?.export,
+    }),
   });
   if (runtime) {
     stationDemandAllocationOverlay = mountStationDemandAllocationOverlay({
