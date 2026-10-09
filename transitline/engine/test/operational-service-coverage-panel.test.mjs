@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import {
   DISPATCH_SOURCES, HOLIDAY_FALLBACK_NOTICE, LIST_LIMIT, OPERATIONAL_SERVICE_COVERAGE_REPORT_SCHEMA, SCOPE_NOTICE, checkCoverageReport, mountOperationalServiceCoveragePanel,
 } from "../src/operational-service-coverage-panel.mjs";
+import { buildOperationalServiceCoverageReport } from "../src/operational-service-coverage-report.mjs";
 
 // --- a minimal DOM: elements, listeners, replaceChildren ---
 class Node_ {
@@ -36,16 +37,16 @@ const deepFreeze = (o) => { if (o && typeof o === "object") { Object.values(o).f
 const SCHEMA = OPERATIONAL_SERVICE_COVERAGE_REPORT_SCHEMA;
 const row = (id, over = {}) => ({
   operationalLineId: id, name: `Line ${id}`, managementServiceId: `service:${id}`, dispatchSource: "timetable", timetableId: `railway-timetable:${id}`, timetableDayType: "weekday",
-  timetableStatus: "active", suspended: false, ...over,
+  serviceStatus: "active", lineSuspended: false, ...over,
 });
-const report = (lines, over = {}) => ({ schema: SCHEMA, contractVersion: 1, operatingDay: 9, dayType: "weekday", lines, ...over });
+const report = (lines, over = {}) => ({ schema: SCHEMA, contractVersion: 1, currentDay: 9, currentDayType: "weekday", lines, ...over });
 // one line for each dispatch source
 const everySource = (over = {}) => report([
   row("1"),
-  row("2", { dispatchSource: "legacy-frequency", timetableId: null, timetableIdReason: "no-timetable-for-this-day-type", timetableDayType: null, timetableStatus: undefined, legacyFrequency: { high: 6, medium: 4 } }),
-  row("3", { dispatchSource: "suspended", suspended: true }),
-  row("4", { dispatchSource: "not-service-line", managementServiceId: null, managementServiceIdReason: "the-line-carries-no-management-service-id", timetableId: null, timetableDayType: null, suspended: null }),
-  row("5", { dispatchSource: "unknown", timetableId: null, timetableDayType: null, suspended: null, dispatchSourceReason: "not-recorded" }),
+  row("2", { dispatchSource: "legacy-frequency", timetableId: null, timetableDayType: null, serviceStatus: undefined, legacyFrequency: { high: 6, medium: 4 } }),
+  row("3", { dispatchSource: "suspended", lineSuspended: true }),
+  row("4", { dispatchSource: "no-operational-line", managementServiceId: null, timetableId: null, timetableDayType: null, lineSuspended: null }),
+  row("5", { dispatchSource: "unknown", timetableId: null, timetableDayType: null, lineSuspended: null }),
 ], over);
 function mount(getReport) {
   const container = newContainer();
@@ -58,6 +59,19 @@ test("mounting needs a container and a getReport function", () => {
   assert.throws(() => mountOperationalServiceCoveragePanel({ getReport: () => ({}) }), /container/);
   assert.throws(() => mountOperationalServiceCoveragePanel({ container: newContainer() }), /getReport/);
   assert.throws(() => mountOperationalServiceCoveragePanel({ container: newContainer(), getReport: {} }), /getReport/);
+});
+
+test("the panel accepts the committed B18-E4 report without a field-name adapter", () => {
+  const coverage = buildOperationalServiceCoverageReport({ operationalState: { simMinutes: 4320, lines: [] }, services: [] });
+  assert.equal(coverage.currentDay, 3);
+  assert.equal(coverage.currentDayType, "weekday");
+  assert.equal("operatingDay" in coverage, false);
+  assert.equal("dayType" in coverage, false);
+  const { container, panel } = mount(() => coverage);
+  assert.equal(checkCoverageReport(coverage).ok, true);
+  assert.equal(factValue(container, "현재 운영일 번호"), "3");
+  assert.equal(factValue(container, "오늘의 요일 유형"), "평일 (weekday)");
+  assert.equal(panel.report.currentDayTypeSource, "default-rule");
 });
 
 test("the report is read when mounted and refreshed, never when the filter changes; the panel is given no runtime to command", () => {
@@ -76,8 +90,8 @@ test("a report that is not what the panel reads is refused whole: nothing is dra
   const bad = [
     [null, "보고서가 없습니다"], [undefined, "보고서가 없습니다"], [[], "보고서가 없습니다"], ["text", "보고서가 없습니다"], [{ schema: "other/1", lines: [] }, "알 수 없는 보고서 형식"],
     [{ lines: [] }, "알 수 없는 보고서 형식"], [{ schema: SCHEMA, lines: {} }, "lines가 목록도 null도 아닙니다"], [{ schema: SCHEMA, lines: "x" }, "lines가 목록도 null도 아닙니다"],
-    [{ schema: SCHEMA }, "lines가 목록도 null도 아닙니다"], [report([], { operatingDay: -1 }), "operatingDay가 올바르지 않습니다"], [report([], { operatingDay: 1.5 }), "operatingDay가 올바르지 않습니다"],
-    [report([], { operatingDay: "3" }), "operatingDay가 올바르지 않습니다"],
+    [{ schema: SCHEMA }, "lines가 목록도 null도 아닙니다"], [report([], { currentDay: -1 }), "currentDay가 올바르지 않습니다"], [report([], { currentDay: 1.5 }), "currentDay가 올바르지 않습니다"],
+    [report([], { currentDay: "3" }), "currentDay가 올바르지 않습니다"],
   ];
   for (const [value, part] of bad) {
     const { container } = mount(() => value);
@@ -100,8 +114,8 @@ test("a report that is not what the panel reads is refused whole: nothing is dra
 
 test("every dispatch source is shown with its own word and code, and counted", () => {
   const { container } = mount(() => everySource());
-  const expected = { 1: ["시간표", "timetable"], 2: ["기존 빈도 운행", "legacy-frequency"], 3: ["운휴", "suspended"], 4: ["운행선 아님", "not-service-line"], 5: ["미상", "unknown"] };
-  assert.deepEqual(DISPATCH_SOURCES, ["timetable", "legacy-frequency", "suspended", "not-service-line", "unknown"]);
+  const expected = { 1: ["시간표", "timetable"], 2: ["기존 빈도 운행", "legacy-frequency"], 3: ["운휴", "suspended"], 4: ["운행선 아님", "no-operational-line"], 5: ["미상", "unknown"] };
+  assert.deepEqual(DISPATCH_SOURCES, ["timetable", "legacy-frequency", "suspended", "no-operational-line", "unknown"]);
   for (const [id, [word, code]] of Object.entries(expected)) {
     const card = lineCard(container, id);
     assert.equal(factValue(card, "현재 배차 원천"), `${word} (${code})`, id);
@@ -109,8 +123,7 @@ test("every dispatch source is shown with its own word and code, and counted", (
   }
   const m = metrics(container);
   assert.deepEqual([m["표시한 노선"], m["시간표"], m["기존 빈도 운행"], m["운휴"], m["운행선 아님"], m["미상"], m["원천 코드를 알 수 없음"]], ["5", "1", "1", "1", "1", "1", "0"]);
-  assert.equal(factValue(lineCard(container, "5"), "원천의 이유"), "not-recorded — 기록되지 않음");
-  assert.equal(hasFact(lineCard(container, "1"), "원천의 이유"), false, "a reason the report did not give is not invented");
+  assert.equal(hasFact(lineCard(container, "5"), "원천의 이유"), false, "the report's reasons are not invented as a different field");
 });
 
 test("a source code the panel does not know, or a missing one, is shown as it is and is never taken for one of the five", () => {
@@ -127,17 +140,17 @@ test("a source code the panel does not know, or a missing one, is shown as it is
 });
 
 test("the current operating day and its day type are shown as reported: weekday, weekend, holiday, unknown and a type the panel does not know", () => {
-  for (const [dayType, text] of [["weekday", "평일 (weekday)"], ["weekend", "주말 (weekend)"], ["holiday", "휴일 (holiday)"], [null, "미상"], ["carnival", "carnival (carnival)"]]) {
-    const { container } = mount(() => report([], { dayType, operatingDay: 12 }));
+  for (const [currentDayType, text] of [["weekday", "평일 (weekday)"], ["weekend", "주말 (weekend)"], ["holiday", "휴일 (holiday)"], [null, "미상"], ["carnival", "carnival (carnival)"]]) {
+    const { container } = mount(() => report([], { currentDayType, currentDay: 12 }));
     assert.equal(factValue(container, "현재 운영일 번호"), "12");
-    assert.equal(factValue(container, "오늘의 요일 유형"), text, String(dayType));
+    assert.equal(factValue(container, "오늘의 요일 유형"), text, String(currentDayType));
   }
-  assert.equal(factValue(mount(() => report([], { operatingDay: 0 })).container, "현재 운영일 번호"), "0", "day 0 is a day");
-  assert.equal(factValue(mount(() => report([], { operatingDay: null })).container, "현재 운영일 번호"), "미상", "null is unknown");
-  assert.equal(factValue(mount(() => report([], { operatingDay: undefined })).container, "현재 운영일 번호"), "미상");
+  assert.equal(factValue(mount(() => report([], { currentDay: 0 })).container, "현재 운영일 번호"), "0", "day 0 is a day");
+  assert.equal(factValue(mount(() => report([], { currentDay: null })).container, "현재 운영일 번호"), "미상", "null is unknown");
+  assert.equal(factValue(mount(() => report([], { currentDay: undefined })).container, "현재 운영일 번호"), "미상");
   assert.equal(byClass(mount(() => report([])).container, "cov-daytype-source").length, 0, "no source is shown when the report gives none");
-  assert.equal(factValue(mount(() => report([], { dayTypeSource: "calendar" })).container, "요일 유형의 출처"), "calendar");
-  assert.equal(factValue(mount(() => report([], { dayTypeSource: null })).container, "요일 유형의 출처"), "미상");
+  assert.equal(factValue(mount(() => report([], { currentDayTypeSource: "calendar" })).container, "요일 유형의 출처"), "calendar");
+  assert.equal(factValue(mount(() => report([], { currentDayTypeSource: null })).container, "요일 유형의 출처"), "미상");
 });
 
 test("the timetable id, its day type and its status are shown as facts, and a missing id keeps its reason", () => {
@@ -145,14 +158,14 @@ test("the timetable id, its day type and its status are shown as facts, and a mi
   const timetable = lineCard(container, "1");
   assert.equal(factValue(timetable, "시간표 ID"), "railway-timetable:1");
   assert.equal(factValue(timetable, "시간표의 요일 유형"), "평일 (weekday)");
-  assert.equal(factValue(timetable, "시간표 상태"), "active");
+  assert.equal(factValue(timetable, "서비스 상태"), "active");
   const frequency = lineCard(container, "2");
-  assert.equal(factValue(frequency, "시간표 ID"), "미상 (no-timetable-for-this-day-type — 오늘의 요일 유형에 맞는 시간표가 없음)");
+  assert.equal(factValue(frequency, "시간표 ID"), "미상");
   assert.equal(factValue(frequency, "시간표의 요일 유형"), "미상");
-  assert.equal(hasFact(frequency, "시간표 상태"), false, "a status the report did not give is not shown");
+  assert.equal(hasFact(frequency, "서비스 상태"), false, "a status the report did not give is not shown");
   assert.equal(factValue(frequency, "노선에 설정된 기존 빈도"), "{\"high\":6,\"medium\":4}");
-  assert.equal(factValue(lineCard(container, "4"), "경영 서비스"), "미상 (the-line-carries-no-management-service-id — 노선에 경영 서비스 ID가 없음)");
-  const odd = mount(() => report([row("7", { timetableDayType: "holiday" })], { dayType: "weekday" })).container;
+  assert.equal(factValue(lineCard(container, "4"), "경영 서비스"), "미상");
+  const odd = mount(() => report([row("7", { timetableDayType: "holiday" })], { currentDayType: "weekday" })).container;
   assert.equal(factValue(lineCard(odd, "7"), "시간표의 요일 유형"), "휴일 (holiday)");
   assert.ok(shows(lineCard(odd, "7"), "시간표의 요일 유형(holiday)과 오늘의 요일 유형(weekday)이 다르게 보고되었습니다 — 보고서 값 그대로입니다"));
   assert.equal(byClass(lineCard(container, "1"), "cov-daytype-differs").length, 0);
@@ -164,7 +177,7 @@ test("on a holiday with no timetable the fact 'old frequency' and its limit are 
     row("2"),
     row("3", { dispatchSource: "suspended", timetableId: null }),
     row("4", { dispatchSource: "legacy-frequency", timetableId: "railway-timetable:9" }),
-  ], { dayType: "holiday" });
+  ], { currentDayType: "holiday" });
   const { container } = mount(() => holiday);
   assert.ok(shows(lineCard(container, "1"), HOLIDAY_FALLBACK_NOTICE));
   assert.equal(byClass(lineCard(container, "1"), "cov-holiday-fallback").length, 1);
@@ -173,19 +186,19 @@ test("on a holiday with no timetable the fact 'old frequency' and its limit are 
   assert.equal(metrics(container)["휴일인데 시간표 없이 기존 빈도로 운행"], "1");
   assert.match(HOLIDAY_FALLBACK_NOTICE, /추정하지 않습니다/);
   assert.ok(!/부족|나쁘|좋|낮|높|문제|위험|안전|정상|비정상/.test(HOLIDAY_FALLBACK_NOTICE), "the notice states the fact and the limit, nothing else");
-  const weekday = mount(() => report(holiday.lines, { dayType: "weekday" })).container;
+  const weekday = mount(() => report(holiday.lines, { currentDayType: "weekday" })).container;
   assert.equal(byClass(weekday, "cov-holiday-fallback").length, 0, "the same line on a weekday has no such notice");
   assert.equal(metrics(weekday)["휴일인데 시간표 없이 기존 빈도로 운행"], "0");
-  const unknownDay = mount(() => report(holiday.lines, { dayType: null })).container;
+  const unknownDay = mount(() => report(holiday.lines, { currentDayType: null })).container;
   assert.equal(byClass(unknownDay, "cov-holiday-fallback").length, 0, "an unknown day type is not assumed to be a holiday");
 });
 
 test("null, false, 0 and an empty list are four different things on screen", () => {
   const { container } = mount(() => report([
-    row("1", { suspended: false, legacyFrequency: 0 }),
-    row("2", { suspended: null, legacyFrequency: [] }),
-    row("3", { suspended: true, legacyFrequency: {} }),
-    row("4", { suspended: undefined, legacyFrequency: null, name: null }),
+    row("1", { lineSuspended: false, legacyFrequency: 0 }),
+    row("2", { lineSuspended: null, legacyFrequency: [] }),
+    row("3", { lineSuspended: true, legacyFrequency: {} }),
+    row("4", { lineSuspended: undefined, legacyFrequency: null, name: null }),
   ]));
   const field = (id, label) => factValue(lineCard(container, id), label);
   assert.equal(field("1", "노선 정지"), "아니오");
@@ -279,9 +292,9 @@ test("the report is not changed by showing it: a frozen report works; the panel 
   panel.setFilter({ dispatchSource: "timetable" }); panel.refresh(); panel.setFilter({});
   assert.deepEqual(frozen, original);
   const copy = panel.report;
-  copy.lines.length = 0; copy.dayType = "tampered";
+  copy.lines.length = 0; copy.currentDayType = "tampered";
   assert.equal(panel.report.lines.length, 5);
-  assert.equal(panel.report.dayType, "weekday");
+  assert.equal(panel.report.currentDayType, "weekday");
   const first = texts(container);
   assert.deepEqual(texts(mount(() => structuredClone(original)).container), first);
   const shuffled = structuredClone(original);
@@ -292,7 +305,7 @@ test("the report is not changed by showing it: a frozen report works; the panel 
 test("nothing is estimated: no quality, capacity, cost, demand or crowding wording or figure appears besides the two fixed notices", () => {
   const { container } = mount(() => report([
     row("1", { dispatchSource: "legacy-frequency", timetableId: null, timetableDayType: null, legacyFrequency: { high: 6 } }), row("2", { dispatchSource: "suspended" }),
-  ], { dayType: "holiday" }));
+  ], { currentDayType: "holiday" }));
   const body = texts(container).join("\n").replace(SCOPE_NOTICE, "").replace(HOLIDAY_FALLBACK_NOTICE, "");
   assert.ok(!/품질|수송력|비용|수요|혼잡|승객|운임|지연|가능|불가/.test(body), body);
   assert.ok(!/[0-9]+[ \t]*(원|엔|명|%)/.test(body), "no money, head-count or percentage figure on one line");

@@ -6,24 +6,24 @@
 //
 // THE REPORT CONTRACT THIS PANEL READS (B18-E4 had no committed report when this was written; every field name is here, in one place):
 //   schema            "transitline.operational-service-coverage-report/1"
-//   operatingDay      integer | null              the current operating-day number
-//   dayType           "weekday"|"weekend"|"holiday"|null     what the engine runs on that day
-//   dayTypeSource     string | null | (absent)    where that day type comes from, shown as given
+//   currentDay        integer | null              the current operating-day number
+//   currentDayType    "weekday"|"weekend"|"holiday"|null     what the engine runs on that day
+//   currentDayTypeSource string | null             where that day type came from
 //   lines             array | null                one row per line (null = the report does not include lines)
 //     operationalLineId, name, managementServiceId (+managementServiceIdReason),
-//     dispatchSource  "timetable"|"legacy-frequency"|"suspended"|"not-service-line"|"unknown"   (+dispatchSourceReason)
-//     timetableId (+timetableIdReason), timetableDayType, timetableStatus, suspended (boolean|null), legacyFrequency (any|absent)
-//   issues, limits    optional arrays, shown word for word
+//     dispatchSource  "timetable"|"legacy-frequency"|"suspended"|"no-operational-line"|"unknown"
+//     timetableId, timetableDayType, serviceStatus, lineSuspended (boolean|null), legacyFrequency (any|absent)
+//     reasons, warnings are the report's fact/warning codes; this panel does not reinterpret them.
 
 export const OPERATIONAL_SERVICE_COVERAGE_REPORT_SCHEMA = "transitline.operational-service-coverage-report/1";
-export const DISPATCH_SOURCES = Object.freeze(["timetable", "legacy-frequency", "suspended", "not-service-line", "unknown"]);
+export const DISPATCH_SOURCES = Object.freeze(["timetable", "legacy-frequency", "suspended", "no-operational-line", "unknown"]);
 export const LIST_LIMIT = 100;
 
 export const SCOPE_NOTICE = "이 패널은 엔진이 만든 운영일·시간표 커버리지 보고서(B18-E4)를 읽어서 보여 줍니다. 엔진 명령을 실행하지 않고, 서비스 품질·수송력·비용·수요·혼잡을 추정하지 않으며, 가능/불가를 판정하지 않고, 아무것도 저장하지 않습니다. 모르는 값은 '미상', 0·아니오·빈 목록은 각각 그대로 구분해 표시합니다.";
 export const HOLIDAY_FALLBACK_NOTICE = "오늘은 휴일인데 이 노선에는 시간표가 없어, 엔진이 기존 노선 빈도(frequency)로 열차를 내고 있다는 것이 보고서의 사실입니다. 이 화면은 그 운행이 얼마나 충분한지(서비스 품질·수송력·비용·혼잡)를 추정하지 않습니다.";
 
 const SOURCE_TEXT = Object.freeze({
-  timetable: "시간표", "legacy-frequency": "기존 빈도 운행", suspended: "운휴", "not-service-line": "운행선 아님", unknown: "미상",
+  timetable: "시간표", "legacy-frequency": "기존 빈도 운행", suspended: "운휴", "no-operational-line": "운행선 아님", unknown: "미상",
 });
 const DAY_TYPE_TEXT = Object.freeze({ weekday: "평일", weekend: "주말", holiday: "휴일" });
 const REASON_TEXT = Object.freeze({
@@ -59,7 +59,7 @@ export function checkCoverageReport(value) {
   if (!isObject(value)) return { ok: false, problem: "보고서가 없습니다(getReport()가 객체를 주지 않음)." };
   if (value.schema !== OPERATIONAL_SERVICE_COVERAGE_REPORT_SCHEMA) return { ok: false, problem: `알 수 없는 보고서 형식입니다: ${show(value.schema)} (필요: ${OPERATIONAL_SERVICE_COVERAGE_REPORT_SCHEMA})` };
   if (value.lines !== null && !Array.isArray(value.lines)) return { ok: false, problem: "보고서의 lines가 목록도 null도 아닙니다." };
-  if (value.operatingDay !== null && value.operatingDay !== undefined && !(Number.isInteger(value.operatingDay) && value.operatingDay >= 0)) return { ok: false, problem: `보고서의 operatingDay가 올바르지 않습니다: ${show(value.operatingDay)}` };
+  if (value.currentDay !== null && value.currentDay !== undefined && !(Number.isInteger(value.currentDay) && value.currentDay >= 0)) return { ok: false, problem: `보고서의 currentDay가 올바르지 않습니다: ${show(value.currentDay)}` };
   return { ok: true, problem: null };
 }
 
@@ -91,7 +91,7 @@ export function mountOperationalServiceCoveragePanel({ container, getReport } = 
   const rowsOf = () => (report.lines === null ? null : report.lines.filter(isObject).slice().sort((a, b) => cmp(a.operationalLineId ?? "", b.operationalLineId ?? "")));
   const matches = (row) => (filter.dispatchSource === null || row.dispatchSource === filter.dispatchSource)
     && (filter.timetableId === undefined || (filter.timetableId === null ? (row.timetableId ?? null) === null : row.timetableId === filter.timetableId));
-  const isHolidayFallback = (row) => report.dayType === "holiday" && row.dispatchSource === "legacy-frequency" && (row.timetableId ?? null) === null;
+  const isHolidayFallback = (row) => report.currentDayType === "holiday" && row.dispatchSource === "legacy-frequency" && (row.timetableId ?? null) === null;
 
   function render() {
     const children = [text(doc, "p", "cov-notice", SCOPE_NOTICE)];
@@ -104,9 +104,9 @@ export function mountOperationalServiceCoveragePanel({ container, getReport } = 
 
   function header() {
     const today = el(doc, "div", { className: "cov-today" },
-      fact(doc, "현재 운영일 번호", show(report.operatingDay ?? null), "cov-fact cov-day"),
-      fact(doc, "오늘의 요일 유형", dayTypeText(report.dayType ?? null), "cov-fact cov-daytype"));
-    if (report.dayTypeSource !== undefined) today.append(fact(doc, "요일 유형의 출처", show(report.dayTypeSource), "cov-fact cov-daytype-source"));
+      fact(doc, "현재 운영일 번호", show(report.currentDay ?? null), "cov-fact cov-day"),
+      fact(doc, "오늘의 요일 유형", dayTypeText(report.currentDayType ?? null), "cov-fact cov-daytype"));
+    if (report.currentDayTypeSource !== undefined) today.append(fact(doc, "요일 유형의 출처", show(report.currentDayTypeSource), "cov-fact cov-daytype-source"));
     return [today, text(doc, "div", "cov-fact", `보고서: ${report.schema}`)];
   }
 
@@ -158,12 +158,12 @@ export function mountOperationalServiceCoveragePanel({ container, getReport } = 
     if (row.dispatchSourceReason !== undefined) card.append(fact(doc, "원천의 이유", show(row.dispatchSourceReason === null ? null : reasonText(row.dispatchSourceReason) ?? row.dispatchSourceReason)));
     card.append(fact(doc, "시간표 ID", withReason(row.timetableId ?? null, row.timetableIdReason), "cov-fact cov-timetable-id"));
     card.append(fact(doc, "시간표의 요일 유형", dayTypeText(row.timetableDayType ?? null), "cov-fact cov-timetable-daytype"));
-    if (row.timetableStatus !== undefined) card.append(fact(doc, "시간표 상태", show(row.timetableStatus), "cov-fact cov-timetable-status"));
+    if (row.serviceStatus !== undefined) card.append(fact(doc, "서비스 상태", show(row.serviceStatus), "cov-fact cov-timetable-status"));
     card.append(fact(doc, "경영 서비스", withReason(row.managementServiceId ?? null, row.managementServiceIdReason)));
-    card.append(fact(doc, "노선 정지", show(row.suspended ?? null), "cov-fact cov-suspended"));
+    card.append(fact(doc, "노선 정지", show(row.lineSuspended ?? null), "cov-fact cov-suspended"));
     if (row.legacyFrequency !== undefined) card.append(fact(doc, "노선에 설정된 기존 빈도", show(row.legacyFrequency), "cov-fact cov-frequency"));
-    if (source === "timetable" && report.dayType && row.timetableDayType && report.dayType !== row.timetableDayType) {
-      card.append(text(doc, "div", "cov-note cov-daytype-differs", `시간표의 요일 유형(${row.timetableDayType})과 오늘의 요일 유형(${report.dayType})이 다르게 보고되었습니다 — 보고서 값 그대로입니다.`));
+    if (source === "timetable" && report.currentDayType && row.timetableDayType && report.currentDayType !== row.timetableDayType) {
+      card.append(text(doc, "div", "cov-note cov-daytype-differs", `시간표의 요일 유형(${row.timetableDayType})과 오늘의 요일 유형(${report.currentDayType})이 다르게 보고되었습니다 — 보고서 값 그대로입니다.`));
     }
     if (isHolidayFallback(row)) card.append(text(doc, "div", "cov-holiday-fallback", HOLIDAY_FALLBACK_NOTICE));
     return card;

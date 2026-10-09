@@ -1,10 +1,18 @@
 # B18-M3 운영일·시간표 커버리지 패널
 
-`engine/src/operational-service-coverage-panel.mjs` (+ `engine/test/operational-service-coverage-panel.test.mjs` 16개). 기준 master `0c56381`.
+`engine/src/operational-service-coverage-panel.mjs` (+ `engine/test/operational-service-coverage-panel.test.mjs` 17개). 기준 master `0c56381`.
 
 B18-E4 커버리지 보고서를 **읽기만 해서** 현재 운영일과 요일 유형, 노선마다 지금 열차가 어디서 나오는지(시간표 / 기존 빈도 운행 / 운휴 / 운행선 아님 / 미상)를 보여 주는 독립 패널이다. 기존 파일은 하나도 바꾸지 않았다.
 
-## 먼저 알아둘 점 — 보고서 계약은 가정이다
+## 실제 E4 계약에 맞춘 통합
+
+초기 패널은 E4가 커밋되기 전에 작성되어 필드명을 가정했다. 통합 시 실제
+`transitline.operational-service-coverage-report/1` 계약으로 맞췄다. 패널은 이제
+`currentDay`, `currentDayType`, `currentDayTypeSource`, `lineSuspended` 및
+`no-operational-line`을 읽는다. 이전 `operatingDay`, `dayType`,
+`not-service-line` 어댑터는 제공하지 않는다.
+
+## 작성 당시의 계약 가정 (통합 전 기록)
 
 이 모듈을 만들 때 B18-E4 보고서는 master에도 `b18-e4-service-coverage-report` 브랜치에도 아직 없었다(브랜치는 master와 같은 커밋이고 작업 파일도 없었다). 지시문에는 `dispatchSource`의 다섯 값과 표시 항목만 있었기 때문에 **필드 이름은 이 문서가 가정한 것**이다. 이름이 다르면 E4 쪽을 아래에 맞추거나, 이 패널의 읽는 곳(모듈 머리말 표와 `lineCard`/`header`)을 고치면 된다. 필드를 읽는 곳은 그 두 군데뿐이다.
 
@@ -13,17 +21,16 @@ B18-E4 커버리지 보고서를 **읽기만 해서** 현재 운영일과 요일
 | 필드 | 값 | 없을 때 |
 |---|---|---|
 | `schema` | 위 문자열 (다르면 보고서 전체 거부) | |
-| `operatingDay` | 0 이상의 정수 또는 `null` (그 밖의 값이면 거부) | `미상` |
-| `dayType` | `weekday` / `weekend` / `holiday` / `null` (그 밖의 문자열은 원문 그대로) | `미상` |
-| `dayTypeSource` | 문자열 또는 `null` — 요일 유형이 어디서 왔는지 | 줄 자체를 안 보여 줌 |
+| `currentDay` | 0 이상의 정수 또는 `null` (그 밖의 값이면 거부) | `미상` |
+| `currentDayType` | `weekday` / `weekend` / `holiday` / `null` (그 밖의 문자열은 원문 그대로) | `미상` |
+| `currentDayTypeSource` | 문자열 또는 `null` — 요일 유형이 어디서 왔는지 | 줄 자체를 안 보여 줌 |
 | `lines` | 행의 목록, 또는 `null`(보고서에 노선이 없음). 목록도 `null`도 아니면 거부 | |
 | 행 `operationalLineId`, `name` | | `미상` |
-| 행 `dispatchSource` | `timetable` / `legacy-frequency` / `suspended` / `not-service-line` / `unknown` | 없거나 `null`이면 `미상`, 다른 코드면 "알 수 없는 원천 코드: …" |
-| 행 `dispatchSourceReason` | 문자열 (선택) | 줄을 안 보여 줌 |
+| 행 `dispatchSource` | `timetable` / `legacy-frequency` / `suspended` / `no-operational-line` / `unknown` | 없거나 `null`이면 `미상`, 다른 코드면 "알 수 없는 원천 코드: …" |
 | 행 `timetableId` (+`timetableIdReason`) | 문자열 또는 `null` | `미상` + 이유 |
-| 행 `timetableDayType`, `timetableStatus` | 문자열 / `null`(`timetableStatus`는 없으면 줄을 안 보여 줌) | `미상` |
+| 행 `timetableDayType`, `serviceStatus` | 문자열 / `null`(`serviceStatus`는 없으면 줄을 안 보여 줌) | `미상` |
 | 행 `managementServiceId` (+`…Reason`) | | `미상` + 이유 |
-| 행 `suspended` | `true` / `false` / `null` | `미상` |
+| 행 `lineSuspended` | `true` / `false` / `null` | `미상` |
 | 행 `legacyFrequency` | 아무 값(선택) | 줄을 안 보여 줌. 있으면 JSON 그대로 |
 | `issues`, `limits` | 선택. `issues`는 `{code, …}`, `limits`는 `{id, text}`의 목록 | 없으면 구역을 안 보여 줌 |
 
