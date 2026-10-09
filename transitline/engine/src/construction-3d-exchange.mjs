@@ -22,15 +22,20 @@ export function normalizeConstruction3dCoordinates(value) {
   return { schema: CONSTRUCTION_3D_COORDINATES_SCHEMA, contractVersion: 1, originLonLat: [...value.originLonLat], metersPerUnit: value.metersPerUnit, axis: value.axis, verticalDatumMeters: value.verticalDatumMeters };
 }
 
-// sources are 2D facts: { sourceType, sourceId, sourceRevision, packId?,
-// active?, geometry? }. Geometry is copied only if supplied, never invented.
+// sources are 2D facts: { sourceType, sourceId, sourceRevision, sourcePackId?,
+// active?, geometry? }. Geometry and provenance are copied only if supplied,
+// never invented from the host pack.
 export function buildConstruction3dSceneManifest({ pack, coordinates, sources = [] } = {}) {
   const packId = text(pack?.manifest?.id ?? pack?.id); if (!packId) throw new Error("3D scene needs a pack id");
   const warnings = []; const kept = new Map();
   for (const source of sources ?? []) {
     const sourceType = text(source?.sourceType); const sourceId = text(source?.sourceId); const sourceRevision = text(source?.sourceRevision);
     if (!sourceType || !sourceId || !sourceRevision) { warnings.push({ code: "scene-source-invalid" }); continue; }
-    const sourcePackId = text(source.sourcePackId ?? source.packId) ?? packId;
+    // An unknown source pack is not evidence that it belongs to the scene's
+    // pack.  Preserve null so the session gate can keep the optional client on
+    // the 2D fallback instead of presenting a falsely attributed snapshot.
+    const sourcePackId = text(source.sourcePackId ?? source.packId);
+    if (sourcePackId === null) warnings.push({ code: "scene-source-pack-unknown", sourceType, sourceId });
     const key = `${sourceType}|${sourceId}`; if (kept.has(key)) { warnings.push({ code: "scene-source-duplicate", sourceType, sourceId }); continue; }
     kept.set(key, { sourceType, sourceId, sourceRevision, sourcePackId, active: source.active === false ? false : true, geometry: source.geometry === undefined ? null : clone(source.geometry) });
   }

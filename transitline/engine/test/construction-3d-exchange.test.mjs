@@ -15,6 +15,15 @@ test("scene manifest is deterministic and contains only supplied 2D facts", () =
   assert.equal(JSON.stringify(manifest), JSON.stringify(again));
 });
 
+test("unknown source provenance stays unknown in the scene instead of borrowing the host pack", () => {
+  const unknown = { ...source, sourcePackId: null };
+  const manifest = buildConstruction3dSceneManifest({ pack, coordinates, sources: [unknown] });
+  assert.equal(manifest.sources[0].sourcePackId, null);
+  assert.deepEqual(manifest.warnings, [{ code: "scene-source-pack-unknown", sourceId: "rail-a", sourceType: "rail-geometry" }]);
+  const omitted = { ...source }; delete omitted.sourcePackId;
+  assert.equal(buildConstruction3dSceneManifest({ pack, coordinates, sources: [omitted] }).sources[0].sourcePackId, null, "omission is unknown too");
+});
+
 test("a 3D change set is only applicable for the exact pack, coordinates, and revision", () => {
   const changeSet = { schema: "transitline.construction-3d-change-set/1", contractVersion: 1, packId: "tokyo", status: "proposed", coordinates, changes: [{ sourceType: "rail-geometry", sourceId: "rail-a", sourceRevision: "r1" }] };
   assert.equal(assessConstruction3dChangeSet(changeSet, { pack, coordinates, currentSources: [source] }).applicable, true);
