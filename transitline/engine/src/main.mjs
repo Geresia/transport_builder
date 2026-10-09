@@ -15,6 +15,7 @@ import { demandSourceRefsOf } from "./map/station-demand-access.mjs";
 import { mountStationDemandAccess } from "./map/station-demand-access-ui.mjs";
 import { mountStationDemandAllocationOverlay } from "./map/station-demand-allocation-ui.mjs";
 import { mountNewTownDevelopment } from "./map/new-town-development-ui.mjs";
+import { mountRegionalDevelopmentProgramEditor } from "./map/regional-development-program-ui.mjs";
 import { mountRailwayTimetableOperationOverlay } from "./map/railway-timetable-operation-ui.mjs";
 import { mountServicePlanEditor } from "./map/service-plan-ui.mjs";
 import { mountServicePlanAssumptionsPanel } from "./service-plan-assumptions-ui.mjs";
@@ -47,6 +48,7 @@ import { mountOperationalCalendarPanel } from "./operational-calendar-panel.mjs"
 import { mountOperationalServiceCoveragePanel } from "./operational-service-coverage-panel.mjs";
 import { mountNewTownDevelopmentManagementPanel } from "./new-town-development-management-ui.mjs";
 import { mountNewTownRailContributionManagementPanel } from "./new-town-rail-contribution-management-panel.mjs";
+import { mountCampaignTimelinePanel } from "./campaign-timeline-panel.mjs";
 import { TECHNICAL_PROFILES } from "./management/construction.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
@@ -354,6 +356,7 @@ async function main() {
   let stationDemandAccessOutput = null;
   let newTownDevelopmentUi = null;
   let newTownDevelopmentOutput = null;
+  let regionalDevelopmentProgramEditor = null;
   let stationDemandAllocationOverlay = null;
   let railwayTimetableOperationOverlay = null;
   let servicePlanEditor = null;
@@ -366,6 +369,7 @@ async function main() {
   let operationalServiceCoveragePanel = null;
   let newTownDevelopmentManagement = null;
   let newTownRailContributionManagement = null;
+  let campaignTimelinePanel = null;
   let operationalCalendarPanelDay = null;
   let stationSelection = null;
   let stationSelectionOutput = null;
@@ -395,6 +399,7 @@ async function main() {
     stationUi?.refresh(); // station sites are checked against the plans just exported, and show the engine verdict
     stationDemandAccessUi?.refresh();
     newTownDevelopmentUi?.refresh();
+    regionalDevelopmentProgramEditor?.refresh();
     stationDemandAllocationOverlay?.refresh();
     railwayTimetableOperationOverlay?.refresh();
     servicePlanEditor?.refresh();
@@ -419,6 +424,7 @@ async function main() {
     operationalServiceCoveragePanel?.refresh();
     newTownDevelopmentManagement?.refresh();
     newTownRailContributionManagement?.refresh();
+    campaignTimelinePanel?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -481,6 +487,15 @@ async function main() {
     },
   });
   newTownDevelopmentOutput = newTownDevelopmentUi.output();
+  regionalDevelopmentProgramEditor = mountRegionalDevelopmentProgramEditor({
+    container: $("scenario-regional-development-programs"),
+    pack,
+    getNewTownDevelopmentExport: () => newTownDevelopmentUi?.output()?.export ?? newTownDevelopmentOutput?.export ?? null,
+    getMapExport: () => currentMapExport,
+    getStationSites: () => stationUi?.stationExport?.sites ?? undefined,
+    getServicePlans: () => servicePlanEditor?.output()?.export?.plans ?? undefined,
+    onChange: () => queueMicrotask(() => refreshScenarioPanel()),
+  });
   if (runtime) {
     stationDemandAllocationOverlay = mountStationDemandAllocationOverlay({
       canvas,
@@ -1819,6 +1834,13 @@ async function main() {
       }),
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
+    campaignTimelinePanel = mountCampaignTimelinePanel({
+      container: $("scenario-campaign-timeline"),
+      getFactReport: () => runtime.campaignFactReport(),
+      // No command callback yet: this host does not collect player-observed
+      // references, so a due label must remain read-only rather than guessed.
+      getClockMinute: () => runtime.game.clock.minute,
+    });
     operationalCalendarPanelDay = runtime.operationalCalendarReport().currentDay;
     railwayTimetableOperationPanel = mountRailwayTimetableOperationPanel({
       container: $("scenario-timetable-operation"),
@@ -2060,6 +2082,7 @@ async function main() {
         mapInputPipelineDoc: mapInputPipeline?.serialize() ?? null,
         stationDemandAccessDoc: stationDemandAccessUi?.serialize() ?? null,
         newTownDevelopmentDoc: newTownDevelopmentUi?.serialize() ?? null,
+        regionalDevelopmentProgramDoc: regionalDevelopmentProgramEditor?.serialize() ?? null,
         stationDemandAllocationDraft: stationDemandAllocationManagement?.serialize() ?? null,
         servicePlanDoc: servicePlanEditor?.serialize() ?? null,
         servicePlanAssumptionsDoc: servicePlanAssumptions?.serialize() ?? null,
@@ -2092,6 +2115,8 @@ async function main() {
       if (wrapped && payload.newTownDevelopmentDoc) newTownDevelopmentUi?.loadDoc(payload.newTownDevelopmentDoc);
       else newTownDevelopmentUi?.refresh();
       newTownDevelopmentOutput = newTownDevelopmentUi?.output() ?? null;
+      if (wrapped && payload.regionalDevelopmentProgramDoc) regionalDevelopmentProgramEditor?.loadDoc(payload.regionalDevelopmentProgramDoc);
+      else regionalDevelopmentProgramEditor?.refresh();
       if (wrapped && payload.stationDemandAllocationDraft) stationDemandAllocationManagement?.loadDoc(payload.stationDemandAllocationDraft);
       if (wrapped && payload.servicePlanDoc) servicePlanEditor?.loadDoc(payload.servicePlanDoc);
       else servicePlanEditor?.refresh();
