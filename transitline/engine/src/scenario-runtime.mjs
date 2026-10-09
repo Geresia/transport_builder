@@ -260,6 +260,7 @@ export class ScenarioRuntime {
       throughHandoverProjects: this.game.throughHandoverProjectReport(),
       railwayTimetables: this.game.railwayTimetableReport(),
       newTownDevelopments: this.game.newTownDevelopmentReport(),
+      newTownRailContributions: this.game.newTownRailContributionReport(),
       operationalTimetableApplications: operationalTimetableApplicationReport(this.operationalState),
       operationalTimetableWarnings: structuredClone(this.operationalState?.operationalTimetableWarnings ?? []),
       railwayTraffic: railwayTrafficReport(this.operationalState),
@@ -1225,6 +1226,53 @@ export class ScenarioRuntime {
 
   newTownDevelopmentHooks(id) {
     return this.game.newTownDevelopmentHooks(id);
+  }
+
+  // B19-E3: rail contributions for a new town. Amounts, parties, conditions and links are only what the caller states; an agreement or a
+  // payer's confirmed payment moves no cash and only `releaseNewTownRailContribution` can post to the ledger (once). Nothing is derived
+  // from the development's area, population or demand, and no B15 candidate is applied or B14 event fired.
+  assessNewTownRailContribution(input = {}) {
+    return this.game.assessNewTownRailContribution(input);
+  }
+
+  draftNewTownRailContribution(input = {}) {
+    return this.game.draftNewTownRailContribution(input);
+  }
+
+  proposeNewTownRailContribution(id, context = {}) {
+    return this.game.proposeNewTownRailContribution(id, context);
+  }
+
+  agreeNewTownRailContribution(id, terms = {}, context = {}) {
+    return this.game.agreeNewTownRailContribution(id, terms, context);
+  }
+
+  fundNewTownRailContribution(id, confirmation, context = {}) {
+    return this.game.fundNewTownRailContribution(id, confirmation, context);
+  }
+
+  releaseNewTownRailContribution(id, context = {}) {
+    return this.game.releaseNewTownRailContribution(id, context);
+  }
+
+  delayNewTownRailContribution(id, reason) {
+    return this.game.delayNewTownRailContribution(id, reason);
+  }
+
+  resumeNewTownRailContribution(id, context = {}) {
+    return this.game.resumeNewTownRailContribution(id, context);
+  }
+
+  terminateNewTownRailContribution(id, reason) {
+    return this.game.terminateNewTownRailContribution(id, reason);
+  }
+
+  newTownRailContributionReport(id = null) {
+    return this.game.newTownRailContributionReport(id);
+  }
+
+  newTownRailContributionHooks(id) {
+    return this.game.newTownRailContributionHooks(id);
   }
 
   railwayTimetableReport(timetableId = null) {

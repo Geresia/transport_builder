@@ -17,6 +17,7 @@ export * from "./through-handover-project.mjs";
 export * from "./through-handover-possession.mjs";
 export * from "./railway-timetable.mjs";
 export * from "./new-town-development.mjs";
+export * from "./new-town-rail-contribution.mjs";
 export * from "./technical-compatibility.mjs";
 export * from "./vehicle-retrofit.mjs";
 export * from "./through-fare.mjs";

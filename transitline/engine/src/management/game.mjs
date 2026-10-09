@@ -31,6 +31,10 @@ import {
   agreeNewTownDevelopmentRecord, assessNewTownDevelopment as assessNewTownDevelopmentRecord, cancelNewTownDevelopmentRecord, createNewTownDevelopmentDraft, delayNewTownDevelopmentRecord,
   newTownDevelopmentHooks as buildNewTownDevelopmentHooks, proposeNewTownDevelopmentRecord, recordNewTownOccupancyRecord, resumeNewTownDevelopmentRecord, startNewTownServicingRecord,
 } from "./new-town-development.mjs";
+import {
+  NEW_TOWN_RAIL_CONTRIBUTION_LEDGER_CATEGORY, agreeContributionRecord, assessContribution, createContributionDraft, delayContributionRecord, fundContributionRecord,
+  newTownRailContributionHooks as buildNewTownRailContributionHooks, proposeContributionRecord, releaseContributionRecord, resumeContributionRecord, terminateContributionRecord,
+} from "./new-town-rail-contribution.mjs";
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
@@ -72,6 +76,7 @@ export class ManagementGame {
     this.throughOperatingSettlements = [];
     this.railwayTimetables = [];
     this.newTownDevelopments = [];
+    this.newTownRailContributions = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -85,6 +90,7 @@ export class ManagementGame {
     this.nextThroughFareSequence = 1;
     this.nextRailwayTimetableSequence = 1;
     this.nextNewTownDevelopmentSequence = 1;
+    this.nextNewTownRailContributionSequence = 1;
     this.services = [];
     this.plans = [];
     this._transactionDepth = 0;
@@ -128,6 +134,7 @@ export class ManagementGame {
       throughOperatingSettlements: structuredClone(this.throughOperatingSettlements),
       railwayTimetables: structuredClone(this.railwayTimetables),
       newTownDevelopments: structuredClone(this.newTownDevelopments),
+      newTownRailContributions: structuredClone(this.newTownRailContributions),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -141,6 +148,7 @@ export class ManagementGame {
       nextThroughFareSequence: this.nextThroughFareSequence,
       nextRailwayTimetableSequence: this.nextRailwayTimetableSequence,
       nextNewTownDevelopmentSequence: this.nextNewTownDevelopmentSequence,
+      nextNewTownRailContributionSequence: this.nextNewTownRailContributionSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -158,7 +166,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "newTownDevelopments", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "newTownDevelopments", "newTownRailContributions", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -216,6 +224,10 @@ export class ManagementGame {
     this.nextNewTownDevelopmentSequence = Math.max(
       snapshot.nextNewTownDevelopmentSequence ?? 1,
       this.newTownDevelopments.reduce((max, development) => Math.max(max, Number(development.id?.match(/^new-town-development:(\d+)$/)?.[1]) || 0), 0) + 1,
+    );
+    this.nextNewTownRailContributionSequence = Math.max(
+      snapshot.nextNewTownRailContributionSequence ?? 1,
+      this.newTownRailContributions.reduce((max, contribution) => Math.max(max, Number(contribution.contributionId?.match(/^new-town-rail-contribution:(\d+)$/)?.[1]) || 0), 0) + 1,
     );
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
@@ -1322,6 +1334,104 @@ export class ManagementGame {
     return buildNewTownDevelopmentHooks(this.requireNewTownDevelopment(id));
   }
 
+  // --- B19-E3: new-town rail contributions.  The amounts, parties, conditions and links are only what the caller states.  An agreement or a
+  // payer's confirmed payment moves no cash; only `release` posts to the ledger, once, inside the transaction.  The map's geometry and the
+  // host's list of current plans / station sites are read-only plain objects handed in per call (`context.geometry`, `context.currentLinks`). ---
+  allocateNewTownRailContributionId() {
+    while (this.newTownRailContributions.some((entry) => entry.contributionId === `new-town-rail-contribution:${this.nextNewTownRailContributionSequence}`)) this.nextNewTownRailContributionSequence += 1;
+    return `new-town-rail-contribution:${this.nextNewTownRailContributionSequence++}`;
+  }
+
+  newTownRailContributionContext(record, context = {}) {
+    return {
+      development: this.newTownDevelopments.find((entry) => entry.id === record.developmentRecordId) ?? null,
+      geometry: context?.geometry ?? null,
+      projects: this.projects.map((project) => ({ id: project.id, status: project.status })),
+      currentLinks: context?.currentLinks ?? null,
+      terms: context?.terms,
+      confirmation: context?.confirmation,
+      conditionConfirmations: context?.conditionConfirmations,
+    };
+  }
+
+  // Read-only: what blocks each step and what a release would do to the ledger. input: { id, geometry?, currentLinks?, terms?, confirmation?, conditionConfirmations? }.
+  assessNewTownRailContribution(input = {}) {
+    const record = this.requireNewTownRailContribution(input?.id);
+    return assessContribution(record, this.newTownRailContributionContext(record, input));
+  }
+
+  // input: { developmentRecordId, payerKind, payeeKind, statedPurpose, statedAmountYen?, phaseIds?, linkedProjectIds?, linkedPlanIds?, linkedStationSiteIds?, conditions?, name? }
+  draftNewTownRailContribution(input = {}) {
+    return this.transact("new-town-rail-contribution-drafted", () => {
+      const development = this.newTownDevelopments.find((entry) => entry.id === input?.developmentRecordId);
+      if (!development) throw new Error(`Unknown new town development ${input?.developmentRecordId}`);
+      const record = createContributionDraft({ id: this.allocateNewTownRailContributionId(), input, development, atMinute: this.clock.minute });
+      this.newTownRailContributions.push(record);
+      return structuredClone(record);
+    });
+  }
+
+  proposeNewTownRailContribution(id, context = {}) {
+    return this.transact("new-town-rail-contribution-proposed", () => {
+      const record = this.requireNewTownRailContribution(id);
+      return proposeContributionRecord(record, this.newTownRailContributionContext(record, context), this.clock.minute);
+    });
+  }
+
+  // terms: { statedAmountYen?, conditions? } - what the draft did not state yet; both must be stated by now
+  agreeNewTownRailContribution(id, terms = {}, context = {}) {
+    return this.transact("new-town-rail-contribution-agreed", () => {
+      const record = this.requireNewTownRailContribution(id);
+      return agreeContributionRecord(record, terms, this.newTownRailContributionContext(record, context), this.clock.minute);
+    });
+  }
+
+  // confirmation: { confirmedAmountYen, confirmedBy, reference } - the payer's confirmed payment, recorded as a fact; no cash moves
+  fundNewTownRailContribution(id, confirmation, context = {}) {
+    return this.transact("new-town-rail-contribution-funded", () => {
+      const record = this.requireNewTownRailContribution(id);
+      return fundContributionRecord(record, confirmation, this.newTownRailContributionContext(record, context), this.clock.minute);
+    });
+  }
+
+  // context: { geometry, currentLinks, conditionConfirmations: [{conditionId, note?}] } - the only step that can post to the ledger
+  releaseNewTownRailContribution(id, context = {}) {
+    return this.transact("new-town-rail-contribution-released", () => {
+      const record = this.requireNewTownRailContribution(id);
+      const atMinute = this.clock.minute;
+      return releaseContributionRecord(record, this.newTownRailContributionContext(record, context), {
+        atMinute,
+        post: (amount, memo) => {
+          if (this.ledger.entries.some((entry) => entry.category === NEW_TOWN_RAIL_CONTRIBUTION_LEDGER_CATEGORY && entry.reference === record.contributionId)) throw new Error(`Contribution ${record.contributionId} already has a ledger entry`);
+          return this.ledger.post({ atMinute, amount, category: NEW_TOWN_RAIL_CONTRIBUTION_LEDGER_CATEGORY, reference: record.contributionId, memo }).id;
+        },
+      });
+    });
+  }
+
+  delayNewTownRailContribution(id, reason) {
+    return this.transact("new-town-rail-contribution-delayed", () => delayContributionRecord(this.requireNewTownRailContribution(id), reason, this.clock.minute));
+  }
+
+  resumeNewTownRailContribution(id, context = {}) {
+    return this.transact("new-town-rail-contribution-resumed", () => {
+      const record = this.requireNewTownRailContribution(id);
+      return resumeContributionRecord(record, this.newTownRailContributionContext(record, context), this.clock.minute);
+    });
+  }
+
+  terminateNewTownRailContribution(id, reason) {
+    return this.transact("new-town-rail-contribution-terminated", () => terminateContributionRecord(this.requireNewTownRailContribution(id), reason, this.clock.minute));
+  }
+
+  newTownRailContributionReport(id = null) {
+    return structuredClone(this.newTownRailContributions.filter((entry) => id === null || entry.contributionId === id));
+  }
+
+  newTownRailContributionHooks(id) {
+    return buildNewTownRailContributionHooks(this.requireNewTownRailContribution(id));
+  }
+
   railwayTimetableReport(timetableId = null) {
     return structuredClone(this.railwayTimetables.filter((entry) => timetableId === null || entry.id === timetableId));
   }
@@ -1927,6 +2037,12 @@ export class ManagementGame {
     const project = this.throughHandoverProjects.find((entry) => entry.id === id);
     if (!project) throw new Error(`Unknown through handover project ${id}`);
     return project;
+  }
+
+  requireNewTownRailContribution(id) {
+    const contribution = this.newTownRailContributions.find((entry) => entry.contributionId === id);
+    if (!contribution) throw new Error(`Unknown new town rail contribution ${id}`);
+    return contribution;
   }
 
   requireNewTownDevelopment(id) {
