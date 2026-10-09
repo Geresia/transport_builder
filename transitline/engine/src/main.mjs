@@ -42,6 +42,7 @@ import { mountStationDemandAllocationManagementPanel } from "./station-demand-al
 import { mountServicePlanManagementPanel } from "./service-plan-management-ui.mjs";
 import { mountRailwayTimetableLifecyclePanel } from "./railway-timetable-lifecycle-ui.mjs";
 import { mountRailwayTimetableOperationPanel } from "./railway-timetable-operation-panel.mjs";
+import { mountOperationalCalendarPanel } from "./operational-calendar-panel.mjs";
 import { TECHNICAL_PROFILES } from "./management/construction.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
@@ -355,6 +356,8 @@ async function main() {
   let servicePlanManagement = null;
   let railwayTimetableLifecycle = null;
   let railwayTimetableOperationPanel = null;
+  let operationalCalendarPanel = null;
+  let operationalCalendarPanelDay = null;
   let stationSelection = null;
   let stationSelectionOutput = null;
   let constructionUi = null;
@@ -402,6 +405,7 @@ async function main() {
     servicePlanManagement?.refresh();
     railwayTimetableLifecycle?.refresh();
     railwayTimetableOperationPanel?.refresh();
+    operationalCalendarPanel?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -1640,6 +1644,7 @@ async function main() {
       servicePlanManagement?.refresh();
       railwayTimetableLifecycle?.refresh();
       railwayTimetableOperationPanel?.refresh();
+      operationalCalendarPanel?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1729,6 +1734,27 @@ async function main() {
       assessmentEnabled: false,
       onChange: () => queueMicrotask(() => refreshScenarioPanel()),
     });
+    // B18: the panel owns a draft; ScenarioRuntime owns the one transactional
+    // calendar change, keeping rejected changes away from dispatch records.
+    operationalCalendarPanel = mountOperationalCalendarPanel({
+      container: $("scenario-operational-calendar"),
+      getCalendar: () => runtime.operationalCalendarReport().calendar,
+      getCurrentDay: () => runtime.operationalCalendarReport().currentDay,
+      getSaveIdentity: () => ({
+        packId: pack.manifest.id,
+        packVersion: pack.manifest.version ?? null,
+        countryId,
+        networkMode,
+        difficulty,
+        fundingMode,
+      }),
+      onApply: (calendar) => {
+        const result = runtime.setOperationalCalendar(calendar);
+        queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); });
+        return result;
+      },
+    });
+    operationalCalendarPanelDay = runtime.operationalCalendarReport().currentDay;
     railwayTimetableOperationPanel = mountRailwayTimetableOperationPanel({
       container: $("scenario-timetable-operation"),
       getReport: () => runtime.railwayTimetableOperationReport(),
@@ -1973,6 +1999,7 @@ async function main() {
         servicePlanAssumptionsDoc: servicePlanAssumptions?.serialize() ?? null,
         servicePlanBindingDoc: servicePlanManagement?.serialize() ?? null,
         railwayTimetableLifecycleDoc: railwayTimetableLifecycle?.serialize() ?? null,
+        operationalCalendarDraftDoc: operationalCalendarPanel?.serialize() ?? null,
       });
       localStorage.setItem(storageKey, payload);
       message("지도·공사·차량·회사 상태와 작업면·대체수송 계획을 함께 저장했습니다.");
@@ -2003,6 +2030,9 @@ async function main() {
       else servicePlanManagement?.refresh();
       if (wrapped && payload.railwayTimetableLifecycleDoc) railwayTimetableLifecycle?.loadDoc(payload.railwayTimetableLifecycleDoc);
       else railwayTimetableLifecycle?.refresh();
+      if (wrapped && payload.operationalCalendarDraftDoc) operationalCalendarPanel?.loadDoc(payload.operationalCalendarDraftDoc);
+      else operationalCalendarPanel?.refresh();
+      operationalCalendarPanelDay = runtime.operationalCalendarReport().currentDay;
       selectedLineId = null;
       message("통합 저장본을 불러왔습니다.");
     }));
@@ -2041,6 +2071,11 @@ async function main() {
     if (runtime) {
       railwayDisruptionManagement?.refresh();
       railwayServiceControlManagement?.refresh();
+      const operatingDay = runtime.operationalCalendarReport().currentDay;
+      if (operatingDay !== operationalCalendarPanelDay) {
+        operationalCalendarPanelDay = operatingDay;
+        operationalCalendarPanel?.refresh();
+      }
       const settlements = runtime.settleOperatingDays();
       if (settlements.length) refreshScenarioPanel();
     }
