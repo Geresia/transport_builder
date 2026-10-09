@@ -41,6 +41,7 @@ import { mountRailwayServiceControlManagementPanel } from "./railway-service-con
 import { mountStationDemandAllocationManagementPanel } from "./station-demand-allocation-management-ui.mjs";
 import { mountServicePlanManagementPanel } from "./service-plan-management-ui.mjs";
 import { mountRailwayTimetableLifecyclePanel } from "./railway-timetable-lifecycle-ui.mjs";
+import { mountRailwayTimetableOperationPanel } from "./railway-timetable-operation-panel.mjs";
 import { TECHNICAL_PROFILES } from "./management/construction.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
@@ -353,6 +354,7 @@ async function main() {
   let servicePlanCapacityReadiness = null;
   let servicePlanManagement = null;
   let railwayTimetableLifecycle = null;
+  let railwayTimetableOperationPanel = null;
   let stationSelection = null;
   let stationSelectionOutput = null;
   let constructionUi = null;
@@ -399,6 +401,7 @@ async function main() {
     railwayServiceControlManagement?.refresh();
     servicePlanManagement?.refresh();
     railwayTimetableLifecycle?.refresh();
+    railwayTimetableOperationPanel?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -1636,6 +1639,7 @@ async function main() {
       stationDemandAllocationManagement?.refresh();
       servicePlanManagement?.refresh();
       railwayTimetableLifecycle?.refresh();
+      railwayTimetableOperationPanel?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1724,6 +1728,10 @@ async function main() {
       getAssessmentInput: (plan) => servicePlanAssessmentInput(plan),
       assessmentEnabled: false,
       onChange: () => queueMicrotask(() => refreshScenarioPanel()),
+    });
+    railwayTimetableOperationPanel = mountRailwayTimetableOperationPanel({
+      container: $("scenario-timetable-operation"),
+      getReport: () => runtime.railwayTimetableOperationReport(),
     });
     constructionContractorManagement = mountConstructionContractorPanel({
       container: $("scenario-construction-contractors"),
