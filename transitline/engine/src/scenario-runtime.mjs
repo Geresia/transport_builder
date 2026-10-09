@@ -264,6 +264,7 @@ export class ScenarioRuntime {
       newTownRailContributions: this.game.newTownRailContributionReport(),
       newTownDemandIntakes: this.game.newTownDemandIntakeReport(),
       campaignPrograms: this.game.campaignProgramReport(),
+      campaignActivations: this.game.campaignActivationReport(),
       operationalTimetableApplications: operationalTimetableApplicationReport(this.operationalState),
       operationalTimetableWarnings: structuredClone(this.operationalState?.operationalTimetableWarnings ?? []),
       railwayTraffic: railwayTrafficReport(this.operationalState),
@@ -1318,6 +1319,25 @@ export class ScenarioRuntime {
   reachCampaignMilestone(id, milestoneId, observedRefs = [], context = {}) { return this.game.reachCampaignMilestone(id, milestoneId, observedRefs, context); }
   campaignProgramReport(id = null) { return this.game.campaignProgramReport(id); }
   campaignProgramHooks(id) { return this.game.campaignProgramHooks(id); }
+
+  // B20-E2 is a reference record only.  The explicit demand source remains
+  // owned by B19-E5 in operational state and this call never alters B15 links.
+  assessCampaignActivation(input = {}) {
+    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: input.geometry ?? null });
+    const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
+    return this.game.assessCampaignActivation({ ...input, intakes, sources });
+  }
+  recordCampaignActivation(input = {}) {
+    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: input.geometry ?? null });
+    const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
+    return this.game.recordCampaignActivation({ ...input, intakes, sources });
+  }
+  withdrawCampaignActivation(id, reason) { return this.game.withdrawCampaignActivation(id, reason); }
+  campaignActivationReport(context = {}) {
+    const intakes = this.game.newTownDemandIntakeReport(null, { geometry: context.geometry ?? null });
+    const sources = newTownExplicitDemandSourceReport(this.operationalState, { intakes });
+    return this.game.campaignActivationReport({ geometry: context.geometry ?? null, intakes, sources });
+  }
 
   railwayTimetableReport(timetableId = null) {
     return this.game.railwayTimetableReport(timetableId);

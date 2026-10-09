@@ -20,6 +20,7 @@ export * from "./new-town-development.mjs";
 export * from "./new-town-rail-contribution.mjs";
 export * from "./new-town-demand-intake.mjs";
 export * from "./campaign-program.mjs";
+export * from "./campaign-activation.mjs";
 export * from "./technical-compatibility.mjs";
 export * from "./vehicle-retrofit.mjs";
 export * from "./through-fare.mjs";

@@ -42,6 +42,7 @@ import {
   adoptCampaignProgram, assessCampaignProgram as assessCampaignProgramRecord, cancelCampaignProgram, campaignProgramHooks as buildCampaignProgramHooks,
   completeCampaignProgram, createCampaignProgramDraft, delayCampaignProgram, monitorCampaignProgram, reachCampaignMilestone, resumeCampaignProgram,
 } from "./campaign-program.mjs";
+import { assessCampaignActivation as assessCampaignActivationRecord, createCampaignActivation, withdrawCampaignActivation } from "./campaign-activation.mjs";
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
@@ -86,6 +87,7 @@ export class ManagementGame {
     this.newTownRailContributions = [];
     this.newTownDemandIntakes = [];
     this.campaignPrograms = [];
+    this.campaignActivations = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -102,6 +104,7 @@ export class ManagementGame {
     this.nextNewTownRailContributionSequence = 1;
     this.nextNewTownDemandIntakeSequence = 1;
     this.nextCampaignProgramSequence = 1;
+    this.nextCampaignActivationSequence = 1;
     this.services = [];
     this.plans = [];
     this._transactionDepth = 0;
@@ -148,6 +151,7 @@ export class ManagementGame {
       newTownRailContributions: structuredClone(this.newTownRailContributions),
       newTownDemandIntakes: structuredClone(this.newTownDemandIntakes),
       campaignPrograms: structuredClone(this.campaignPrograms),
+      campaignActivations: structuredClone(this.campaignActivations),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -164,6 +168,7 @@ export class ManagementGame {
       nextNewTownRailContributionSequence: this.nextNewTownRailContributionSequence,
       nextNewTownDemandIntakeSequence: this.nextNewTownDemandIntakeSequence,
       nextCampaignProgramSequence: this.nextCampaignProgramSequence,
+      nextCampaignActivationSequence: this.nextCampaignActivationSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -181,7 +186,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "newTownDevelopments", "newTownRailContributions", "newTownDemandIntakes", "campaignPrograms", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "newTownDevelopments", "newTownRailContributions", "newTownDemandIntakes", "campaignPrograms", "campaignActivations", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -251,6 +256,10 @@ export class ManagementGame {
     this.nextCampaignProgramSequence = Math.max(
       snapshot.nextCampaignProgramSequence ?? 1,
       this.campaignPrograms.reduce((max, program) => Math.max(max, Number(program.id?.match(/^campaign-program:(\d+)$/)?.[1]) || 0), 0) + 1,
+    );
+    this.nextCampaignActivationSequence = Math.max(
+      snapshot.nextCampaignActivationSequence ?? 1,
+      this.campaignActivations.reduce((max, activation) => Math.max(max, Number(activation.activationId?.match(/^campaign-activation:(\d+)$/)?.[1]) || 0), 0) + 1,
     );
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
@@ -1565,6 +1574,42 @@ export class ManagementGame {
 
   campaignProgramHooks(id) {
     return buildCampaignProgramHooks(this.requireCampaignProgram(id));
+  }
+
+  allocateCampaignActivationId() {
+    while (this.campaignActivations.some((entry) => entry.activationId === `campaign-activation:${this.nextCampaignActivationSequence}`)) this.nextCampaignActivationSequence += 1;
+    return `campaign-activation:${this.nextCampaignActivationSequence++}`;
+  }
+
+  assessCampaignActivation(input = {}) {
+    const activation = input.activationId ? this.campaignActivations.find((entry) => entry.activationId === input.activationId) ?? null : null;
+    const program = input.programId ? this.campaignPrograms.find((entry) => entry.programId === input.programId) ?? null : activation ? this.campaignPrograms.find((entry) => entry.programId === activation.programId) ?? null : null;
+    return assessCampaignActivationRecord({ activation, program, geometry: input.geometry ?? null, intakes: input.intakes ?? [], sources: input.sources ?? [] });
+  }
+
+  recordCampaignActivation(input = {}) {
+    return this.transact("campaign-activation-recorded", () => {
+      const program = this.requireCampaignProgram(input.campaignProgramId);
+      if (this.campaignActivations.some((entry) => entry.status === "recorded" && entry.programId === program.programId && entry.milestoneId === input.milestoneId && entry.refs.demandSourceId === input.demandSourceId)) throw new Error("Campaign activation already exists for this milestone and demand source");
+      const record = createCampaignActivation({ id: this.allocateCampaignActivationId(), program, milestoneId: input.milestoneId, intakeId: input.intakeId, demandSourceId: input.demandSourceId, geometry: input.geometry ?? null, intakes: input.intakes ?? [], sources: input.sources ?? [], atMinute: this.clock.minute });
+      this.campaignActivations.push(record); return record;
+    });
+  }
+
+  withdrawCampaignActivation(id, reason) {
+    return this.transact("campaign-activation-withdrawn", () => {
+      const record = this.campaignActivations.find((entry) => entry.activationId === id);
+      if (!record) throw new Error(`Unknown campaign activation ${id}`);
+      return withdrawCampaignActivation(record, reason, this.clock.minute);
+    });
+  }
+
+  campaignActivationReport(context = {}) {
+    return structuredClone(this.campaignActivations.map((activation) => {
+      const program = this.campaignPrograms.find((entry) => entry.programId === activation.programId) ?? null;
+      const assessment = assessCampaignActivationRecord({ activation, program, geometry: context.geometry ?? null, intakes: context.intakes ?? [], sources: context.sources ?? [] });
+      return { ...activation, standing: assessment };
+    }));
   }
 
   railwayTimetableReport(timetableId = null) {
