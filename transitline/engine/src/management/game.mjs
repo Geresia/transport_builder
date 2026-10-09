@@ -35,6 +35,9 @@ import {
   NEW_TOWN_RAIL_CONTRIBUTION_LEDGER_CATEGORY, agreeContributionRecord, assessContribution, createContributionDraft, delayContributionRecord, fundContributionRecord,
   newTownRailContributionHooks as buildNewTownRailContributionHooks, proposeContributionRecord, releaseContributionRecord, resumeContributionRecord, terminateContributionRecord,
 } from "./new-town-rail-contribution.mjs";
+import {
+  assessNewTownDemandIntake as assessNewTownDemandIntakeRecord, decideNewTownDemandCandidate, newTownDemandIntakeReport as buildNewTownDemandIntakeReport, revokeNewTownDemandIntakeRecord,
+} from "./new-town-demand-intake.mjs";
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
@@ -77,6 +80,7 @@ export class ManagementGame {
     this.railwayTimetables = [];
     this.newTownDevelopments = [];
     this.newTownRailContributions = [];
+    this.newTownDemandIntakes = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -91,6 +95,7 @@ export class ManagementGame {
     this.nextRailwayTimetableSequence = 1;
     this.nextNewTownDevelopmentSequence = 1;
     this.nextNewTownRailContributionSequence = 1;
+    this.nextNewTownDemandIntakeSequence = 1;
     this.services = [];
     this.plans = [];
     this._transactionDepth = 0;
@@ -135,6 +140,7 @@ export class ManagementGame {
       railwayTimetables: structuredClone(this.railwayTimetables),
       newTownDevelopments: structuredClone(this.newTownDevelopments),
       newTownRailContributions: structuredClone(this.newTownRailContributions),
+      newTownDemandIntakes: structuredClone(this.newTownDemandIntakes),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -149,6 +155,7 @@ export class ManagementGame {
       nextRailwayTimetableSequence: this.nextRailwayTimetableSequence,
       nextNewTownDevelopmentSequence: this.nextNewTownDevelopmentSequence,
       nextNewTownRailContributionSequence: this.nextNewTownRailContributionSequence,
+      nextNewTownDemandIntakeSequence: this.nextNewTownDemandIntakeSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -166,7 +173,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "newTownDevelopments", "newTownRailContributions", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "newTownDevelopments", "newTownRailContributions", "newTownDemandIntakes", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -228,6 +235,10 @@ export class ManagementGame {
     this.nextNewTownRailContributionSequence = Math.max(
       snapshot.nextNewTownRailContributionSequence ?? 1,
       this.newTownRailContributions.reduce((max, contribution) => Math.max(max, Number(contribution.contributionId?.match(/^new-town-rail-contribution:(\d+)$/)?.[1]) || 0), 0) + 1,
+    );
+    this.nextNewTownDemandIntakeSequence = Math.max(
+      snapshot.nextNewTownDemandIntakeSequence ?? 1,
+      this.newTownDemandIntakes.reduce((max, intake) => Math.max(max, Number(intake.id?.match(/^new-town-demand-intake:(\d+)$/)?.[1]) || 0), 0) + 1,
     );
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
@@ -1432,6 +1443,57 @@ export class ManagementGame {
     return buildNewTownRailContributionHooks(this.requireNewTownRailContribution(id));
   }
 
+  // --- B19-E4: the player's decision about a new-town demand candidate (B19-E2).  Only a record of the decision: nothing here reads or changes
+  // B15 state, creates a demand node, draws a random number, advances the clock or moves money.  The map's geometry is a read-only plain
+  // object handed in per call (`input.geometry`); the lifecycle record named by `developmentRecordId` is the one the candidates are read from. ---
+  allocateNewTownDemandIntakeId() {
+    while (this.newTownDemandIntakes.some((entry) => entry.id === `new-town-demand-intake:${this.nextNewTownDemandIntakeSequence}`)) this.nextNewTownDemandIntakeSequence += 1;
+    return `new-town-demand-intake:${this.nextNewTownDemandIntakeSequence++}`;
+  }
+
+  // Read-only: every candidate of the development with its decision state, standing and what blocks each decision.
+  // input: { developmentRecordId, geometry?, candidateId?, statedDemandFactIds? }
+  assessNewTownDemandIntake(input = {}) {
+    return assessNewTownDemandIntakeRecord({
+      development: this.requireNewTownDevelopment(input?.developmentRecordId), geometry: input?.geometry ?? null, intakes: this.newTownDemandIntakes,
+      candidateId: input?.candidateId ?? null, statedDemandFactIds: input?.statedDemandFactIds,
+    });
+  }
+
+  // input: { developmentRecordId, candidateId, statedDemandFactIds, geometry, note? }
+  acceptNewTownDemandCandidate(input = {}) {
+    return this.transact("new-town-demand-candidate-accepted", () => decideNewTownDemandCandidate("accept", {
+      development: this.requireNewTownDevelopment(input?.developmentRecordId), geometry: input?.geometry ?? null, intakes: this.newTownDemandIntakes,
+      candidateId: input?.candidateId, statedDemandFactIds: input?.statedDemandFactIds, note: input?.note,
+      allocateId: () => this.allocateNewTownDemandIntakeId(), atMinute: this.clock.minute,
+    }));
+  }
+
+  // input: { developmentRecordId, candidateId, reason, geometry? }
+  holdNewTownDemandCandidate(input = {}) {
+    return this.transact("new-town-demand-candidate-held", () => decideNewTownDemandCandidate("hold", {
+      development: this.requireNewTownDevelopment(input?.developmentRecordId), geometry: input?.geometry ?? null, intakes: this.newTownDemandIntakes,
+      candidateId: input?.candidateId, reason: input?.reason, allocateId: () => this.allocateNewTownDemandIntakeId(), atMinute: this.clock.minute,
+    }));
+  }
+
+  rejectNewTownDemandCandidate(input = {}) {
+    return this.transact("new-town-demand-candidate-rejected", () => decideNewTownDemandCandidate("reject", {
+      development: this.requireNewTownDevelopment(input?.developmentRecordId), geometry: input?.geometry ?? null, intakes: this.newTownDemandIntakes,
+      candidateId: input?.candidateId, reason: input?.reason, allocateId: () => this.allocateNewTownDemandIntakeId(), atMinute: this.clock.minute,
+    }));
+  }
+
+  // id: the intake record's id.  An acceptance can always be withdrawn: the map is not needed.
+  revokeNewTownDemandCandidate(id, reason) {
+    return this.transact("new-town-demand-candidate-revoked", () => revokeNewTownDemandIntakeRecord(this.requireNewTownDemandIntake(id), reason, this.clock.minute));
+  }
+
+  // Read-only copies, each with its `standing` now.  context: { geometry? }; without a geometry an acceptance is at best "unverified".
+  newTownDemandIntakeReport(id = null, context = {}) {
+    return buildNewTownDemandIntakeReport({ intakes: this.newTownDemandIntakes, developments: this.newTownDevelopments, geometry: context?.geometry ?? null, id });
+  }
+
   railwayTimetableReport(timetableId = null) {
     return structuredClone(this.railwayTimetables.filter((entry) => timetableId === null || entry.id === timetableId));
   }
@@ -2043,6 +2105,12 @@ export class ManagementGame {
     const contribution = this.newTownRailContributions.find((entry) => entry.contributionId === id);
     if (!contribution) throw new Error(`Unknown new town rail contribution ${id}`);
     return contribution;
+  }
+
+  requireNewTownDemandIntake(id) {
+    const intake = this.newTownDemandIntakes.find((entry) => entry.id === id);
+    if (!intake) throw new Error(`Unknown new town demand intake ${id}`);
+    return intake;
   }
 
   requireNewTownDevelopment(id) {

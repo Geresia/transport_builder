@@ -261,6 +261,7 @@ export class ScenarioRuntime {
       railwayTimetables: this.game.railwayTimetableReport(),
       newTownDevelopments: this.game.newTownDevelopmentReport(),
       newTownRailContributions: this.game.newTownRailContributionReport(),
+      newTownDemandIntakes: this.game.newTownDemandIntakeReport(),
       operationalTimetableApplications: operationalTimetableApplicationReport(this.operationalState),
       operationalTimetableWarnings: structuredClone(this.operationalState?.operationalTimetableWarnings ?? []),
       railwayTraffic: railwayTrafficReport(this.operationalState),
@@ -1273,6 +1274,32 @@ export class ScenarioRuntime {
 
   newTownRailContributionHooks(id) {
     return this.game.newTownRailContributionHooks(id);
+  }
+
+  // B19-E4: the player's decision about a new-town demand candidate.  Records the decision only: it reads and changes no B15 state, makes no
+  // demand node, draws no random number and moves no money.  The map's geometry is handed in per call (`input.geometry`).
+  assessNewTownDemandIntake(input = {}) {
+    return this.game.assessNewTownDemandIntake(input);
+  }
+
+  acceptNewTownDemandCandidate(input = {}) {
+    return this.game.acceptNewTownDemandCandidate(input);
+  }
+
+  holdNewTownDemandCandidate(input = {}) {
+    return this.game.holdNewTownDemandCandidate(input);
+  }
+
+  rejectNewTownDemandCandidate(input = {}) {
+    return this.game.rejectNewTownDemandCandidate(input);
+  }
+
+  revokeNewTownDemandCandidate(id, reason) {
+    return this.game.revokeNewTownDemandCandidate(id, reason);
+  }
+
+  newTownDemandIntakeReport(id = null, context = {}) {
+    return this.game.newTownDemandIntakeReport(id, context);
   }
 
   railwayTimetableReport(timetableId = null) {
