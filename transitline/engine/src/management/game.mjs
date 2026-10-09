@@ -38,6 +38,10 @@ import {
 import {
   assessNewTownDemandIntake as assessNewTownDemandIntakeRecord, decideNewTownDemandCandidate, newTownDemandIntakeReport as buildNewTownDemandIntakeReport, revokeNewTownDemandIntakeRecord,
 } from "./new-town-demand-intake.mjs";
+import {
+  adoptCampaignProgram, assessCampaignProgram as assessCampaignProgramRecord, cancelCampaignProgram, campaignProgramHooks as buildCampaignProgramHooks,
+  completeCampaignProgram, createCampaignProgramDraft, delayCampaignProgram, monitorCampaignProgram, reachCampaignMilestone, resumeCampaignProgram,
+} from "./campaign-program.mjs";
 import { acceptThroughFareAgreement as acceptFareAgreement, activateThroughFareAgreement as activateFareAgreement, createThroughFareAgreement, fileThroughFareAgreement as fileFareAgreement, setThroughFareAgreementStatus as changeThroughFareStatus } from "./through-fare.mjs";
 import { calculateThroughOperatingSettlement } from "./through-operation.mjs";
 
@@ -81,6 +85,7 @@ export class ManagementGame {
     this.newTownDevelopments = [];
     this.newTownRailContributions = [];
     this.newTownDemandIntakes = [];
+    this.campaignPrograms = [];
     this.nextConstructionEventSequence = 1;
     this.nextConstructionChangeOrderSequence = 1;
     this.nextStationDesignChangeSequence = 1;
@@ -96,6 +101,7 @@ export class ManagementGame {
     this.nextNewTownDevelopmentSequence = 1;
     this.nextNewTownRailContributionSequence = 1;
     this.nextNewTownDemandIntakeSequence = 1;
+    this.nextCampaignProgramSequence = 1;
     this.services = [];
     this.plans = [];
     this._transactionDepth = 0;
@@ -141,6 +147,7 @@ export class ManagementGame {
       newTownDevelopments: structuredClone(this.newTownDevelopments),
       newTownRailContributions: structuredClone(this.newTownRailContributions),
       newTownDemandIntakes: structuredClone(this.newTownDemandIntakes),
+      campaignPrograms: structuredClone(this.campaignPrograms),
       nextConstructionEventSequence: this.nextConstructionEventSequence,
       nextConstructionChangeOrderSequence: this.nextConstructionChangeOrderSequence,
       nextStationDesignChangeSequence: this.nextStationDesignChangeSequence,
@@ -156,6 +163,7 @@ export class ManagementGame {
       nextNewTownDevelopmentSequence: this.nextNewTownDevelopmentSequence,
       nextNewTownRailContributionSequence: this.nextNewTownRailContributionSequence,
       nextNewTownDemandIntakeSequence: this.nextNewTownDemandIntakeSequence,
+      nextCampaignProgramSequence: this.nextCampaignProgramSequence,
       services: structuredClone(this.services),
       plans: structuredClone(this.plans),
       scenario: structuredClone(this.scenario ?? null),
@@ -173,7 +181,7 @@ export class ManagementGame {
       : makeRng(snapshot.constructionEventRngState, true);
     this.ledger = new Ledger(snapshot.ledger.openingCash, snapshot.ledger.entries, snapshot.ledger.commitments);
     this.events = new EventLog(snapshot.events);
-    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "newTownDevelopments", "newTownRailContributions", "newTownDemandIntakes", "services", "plans"]) {
+    for (const key of ["player", "competitors", "manufacturers", "stationContractors", "constructionContractors", "opportunities", "contracts", "projects", "stationPackages", "vehicleOrders", "depots", "schedules", "constructionMarkers", "constructionEvents", "constructionCycleReports", "constructionFundingCases", "constructionFinancing", "operatingMonthReports", "infrastructureMaintenancePrograms", "operatingResourcePools", "trackAccessOpportunities", "trackAccessAgreements", "throughServices", "throughHandoverProjects", "vehicleRetrofitPrograms", "throughFareAgreements", "throughOperatingSettlements", "railwayTimetables", "newTownDevelopments", "newTownRailContributions", "newTownDemandIntakes", "campaignPrograms", "services", "plans"]) {
       this[key] = structuredClone(snapshot[key] ?? []);
     }
     this.constructionPriceState = structuredClone(snapshot.constructionPriceState ?? createConstructionPriceState(snapshot.countryId));
@@ -239,6 +247,10 @@ export class ManagementGame {
     this.nextNewTownDemandIntakeSequence = Math.max(
       snapshot.nextNewTownDemandIntakeSequence ?? 1,
       this.newTownDemandIntakes.reduce((max, intake) => Math.max(max, Number(intake.id?.match(/^new-town-demand-intake:(\d+)$/)?.[1]) || 0), 0) + 1,
+    );
+    this.nextCampaignProgramSequence = Math.max(
+      snapshot.nextCampaignProgramSequence ?? 1,
+      this.campaignPrograms.reduce((max, program) => Math.max(max, Number(program.id?.match(/^campaign-program:(\d+)$/)?.[1]) || 0), 0) + 1,
     );
     if (!this.stationContractors.length) this.stationContractors = createStationContractors(snapshot.countryId);
     if (!this.constructionContractors.length) this.constructionContractors = createConstructionContractors(snapshot.countryId);
@@ -1492,6 +1504,67 @@ export class ManagementGame {
   // Read-only copies, each with its `standing` now.  context: { geometry? }; without a geometry an acceptance is at best "unverified".
   newTownDemandIntakeReport(id = null, context = {}) {
     return buildNewTownDemandIntakeReport({ intakes: this.newTownDemandIntakes, developments: this.newTownDevelopments, geometry: context?.geometry ?? null, id });
+  }
+
+  // B20-E1. These records are deliberately separate from the map's programId.
+  // The map is supplied on each forward transition so a stale drawing cannot be
+  // silently adopted, monitored, completed, or used to reach a milestone.
+  allocateCampaignProgramId() {
+    while (this.campaignPrograms.some((entry) => entry.id === `campaign-program:${this.nextCampaignProgramSequence}`)) this.nextCampaignProgramSequence += 1;
+    return `campaign-program:${this.nextCampaignProgramSequence++}`;
+  }
+
+  requireCampaignProgram(id) {
+    const record = this.campaignPrograms.find((entry) => entry.id === id);
+    if (!record) throw new Error(`Unknown campaign program ${id}`);
+    return record;
+  }
+
+  assessCampaignProgram(input = {}) {
+    return assessCampaignProgramRecord({ geometry: input.geometry ?? null, record: input.id ? this.requireCampaignProgram(input.id) : null });
+  }
+
+  draftCampaignProgram(input = {}) {
+    return this.transact("campaign-program-drafted", () => {
+      const record = createCampaignProgramDraft({ id: this.allocateCampaignProgramId(), input, atMinute: this.clock.minute });
+      this.campaignPrograms.push(record); return record;
+    });
+  }
+
+  adoptCampaignProgram(id, context = {}) {
+    return this.transact("campaign-program-adopted", () => adoptCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }));
+  }
+
+  monitorCampaignProgram(id, context = {}) {
+    return this.transact("campaign-program-monitoring", () => monitorCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }));
+  }
+
+  completeCampaignProgram(id, context = {}) {
+    return this.transact("campaign-program-completed", () => completeCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }));
+  }
+
+  delayCampaignProgram(id, reason) {
+    return this.transact("campaign-program-delayed", () => delayCampaignProgram(this.requireCampaignProgram(id), reason, { atMinute: this.clock.minute }));
+  }
+
+  resumeCampaignProgram(id, context = {}) {
+    return this.transact("campaign-program-resumed", () => resumeCampaignProgram(this.requireCampaignProgram(id), { geometry: context.geometry ?? null, atMinute: this.clock.minute }));
+  }
+
+  cancelCampaignProgram(id, reason) {
+    return this.transact("campaign-program-cancelled", () => cancelCampaignProgram(this.requireCampaignProgram(id), reason, { atMinute: this.clock.minute }));
+  }
+
+  reachCampaignMilestone(id, milestoneId, observedRefs = [], context = {}) {
+    return this.transact("campaign-milestone-reached", () => reachCampaignMilestone(this.requireCampaignProgram(id), milestoneId, observedRefs, { geometry: context.geometry ?? null, atMinute: this.clock.minute }));
+  }
+
+  campaignProgramReport(id = null) {
+    return structuredClone(this.campaignPrograms.filter((entry) => id === null || entry.id === id));
+  }
+
+  campaignProgramHooks(id) {
+    return buildCampaignProgramHooks(this.requireCampaignProgram(id));
   }
 
   railwayTimetableReport(timetableId = null) {
