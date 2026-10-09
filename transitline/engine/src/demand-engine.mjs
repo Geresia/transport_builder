@@ -6,6 +6,7 @@
 import { haversineMetres } from "./projection.mjs";
 import { GridIndex } from "./spatial-index.mjs";
 import { odRowsByStation } from "./od-flows.mjs";
+import { OPERATIONAL_DAY_TYPES } from "./operational-calendar.mjs";
 
 const MIN_DISTANCE_M = 300; // floor so a point right next to itself doesn't blow up
 const OFF_HOURS_FACTOR = 0.1; // engine's own fallback for a calendar gap, not spec-mandated
@@ -195,19 +196,42 @@ function buildMatrixModel(state, demand) {
   };
 }
 
+function legacyDemandDayType(calendar, dayIndex) {
+  const sequence = calendar.dayTypes.flatMap((dt) => Array(Math.max(1, Math.round(dt.weight))).fill(dt));
+  return sequence[dayIndex % sequence.length] ?? null;
+}
+
+// B18: a stated operating day may select a demand profile only when the pack
+// explicitly supplies a profile with the *same* id.  This makes an operating
+// "holiday" use a pack's "holiday" factors without guessing whether a generic
+// operating "weekend" means the pack's Saturday or Sunday/holiday profile.
+// A mismatch is an honest legacy-calendar fallback, never zero demand.
+export function demandDayTypeForOperatingDay(state, dayIndex = Math.floor(Number(state?.simMinutes) / 1440)) {
+  const calendar = state?.calendar;
+  if (!calendar || !Number.isInteger(dayIndex)) return { dayType: null, source: "no-demand-calendar", operationalDayType: null, reason: "demand-calendar-not-provided" };
+  const legacy = legacyDemandDayType(calendar, dayIndex);
+  const stated = state?.operationalCalendar?.dayTypesByOperatingDay?.[String(dayIndex)];
+  if (OPERATIONAL_DAY_TYPES.includes(stated)) {
+    const exact = calendar.dayTypes.find((entry) => entry?.id === stated) ?? null;
+    if (exact) return { dayType: exact, source: "operational-calendar-exact", operationalDayType: stated, reason: null };
+    return { dayType: legacy, source: "demand-calendar-fallback", operationalDayType: stated, reason: "operational-day-type-has-no-exact-demand-profile" };
+  }
+  return { dayType: legacy, source: "demand-calendar-cycle", operationalDayType: null, reason: null };
+}
+
 export function currentDayTypeAndPeriod(state) {
   const { calendar, simMinutes } = state;
   const clockMinute = ((simMinutes % 1440) + 1440) % 1440;
   const dayIndex = Math.floor(simMinutes / 1440);
-  const sequence = calendar.dayTypes.flatMap((dt) => Array(Math.max(1, Math.round(dt.weight))).fill(dt));
-  const dayType = sequence[dayIndex % sequence.length];
+  const demandDay = demandDayTypeForOperatingDay(state, dayIndex);
+  const dayType = demandDay.dayType;
   let serviceMinute = clockMinute;
   let period = calendar.periods.find((p) => clockMinute >= p.startMinute && clockMinute < Math.min(p.endMinute, 1440));
   if (!period) {
     serviceMinute = clockMinute + 1440;
     period = calendar.periods.find((p) => p.endMinute > 1440 && serviceMinute >= p.startMinute && serviceMinute < p.endMinute);
   }
-  return { dayType, period, dayIndex, serviceMinute };
+  return { dayType, period, dayIndex, serviceMinute, dayTypeSource: demandDay.source, operationalDayType: demandDay.operationalDayType, dayTypeReason: demandDay.reason };
 }
 
 export function currentDemandFactor(state) {
@@ -219,6 +243,7 @@ export function currentDemandFactor(state) {
 
 export function currentDayLabel(state) {
   if (!state.calendar) return null;
-  const { dayType, period } = currentDayTypeAndPeriod(state);
-  return `${dayType.name} · ${period?.id ?? "off-hours"}`;
+  const { dayType, period, operationalDayType, dayTypeReason } = currentDayTypeAndPeriod(state);
+  const base = `${dayType?.name ?? "unknown"} · ${period?.id ?? "off-hours"}`;
+  return dayTypeReason ? `${base} · operating ${operationalDayType ?? "unknown"} (${dayTypeReason})` : base;
 }
