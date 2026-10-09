@@ -54,6 +54,7 @@ import { mountNewTownDevelopmentManagementPanel } from "./new-town-development-m
 import { mountNewTownRailContributionManagementPanel } from "./new-town-rail-contribution-management-panel.mjs";
 import { mountNewTownDemandIntakePanel } from "./new-town-demand-intake-panel.mjs";
 import { buildNewTownDemandCandidates } from "./new-town-demand-candidates.mjs";
+import { mountCampaignProgramManagementPanel } from "./campaign-program-management-panel.mjs";
 import { mountCampaignTimelinePanel } from "./campaign-timeline-panel.mjs";
 import { TECHNICAL_PROFILES } from "./management/construction.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
@@ -379,6 +380,7 @@ async function main() {
   let newTownDevelopmentManagement = null;
   let newTownRailContributionManagement = null;
   let newTownDemandIntakePanel = null;
+  let campaignProgramManagement = null;
   let campaignTimelinePanel = null;
   let operationalCalendarPanelDay = null;
   let stationSelection = null;
@@ -438,6 +440,7 @@ async function main() {
     newTownDevelopmentManagement?.refresh();
     newTownRailContributionManagement?.refresh();
     newTownDemandIntakePanel?.refresh();
+    campaignProgramManagement?.refresh();
     campaignTimelinePanel?.refresh();
   };
   window.transitlineMap = {
@@ -1896,6 +1899,12 @@ async function main() {
       container: $("scenario-new-town-demand-intakes"),
       runtime,
       getGeometryExport: newTownGeometryExport,
+      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+    });
+    campaignProgramManagement = mountCampaignProgramManagementPanel({
+      container: $("scenario-campaign-program-management"),
+      runtime,
+      getProgramGeometry: () => regionalDevelopmentProgramEditor?.output()?.export ?? null,
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
     campaignTimelinePanel = mountCampaignTimelinePanel({
