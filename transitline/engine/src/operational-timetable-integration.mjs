@@ -1,5 +1,6 @@
 import { expandPeriodicService } from "./management/railway-timetable.mjs";
 import { stableId } from "./map/ids.mjs";
+import { calendarSupportsDayType, operationalDayTypeAt } from "./operational-calendar.mjs";
 
 export const OPERATIONAL_TIMETABLE_APPLICATION_SCHEMA = "transitline.operational-timetable-application/1";
 
@@ -32,9 +33,7 @@ export function operationalInfrastructureRevision(segments = []) {
 }
 
 export function operationalDayType(simMinutes) {
-  const day = Math.floor(Number(simMinutes) / 1440);
-  const weekday = ((day % 7) + 7) % 7;
-  return weekday >= 5 ? "weekend" : "weekday";
+  return operationalDayTypeAt(simMinutes);
 }
 
 function lineForService(operationalState, services, throughServices, serviceId) {
@@ -244,7 +243,7 @@ export function carriedDispatchFacts(previous, { timetableId, serviceId, dayType
 
 export function applyActiveRailwayTimetable({ operationalState, timetable, services = [], throughServices = [] } = {}) {
   if (timetable?.schema !== "transitline.railway-timetable/1" || timetable.status !== "active") throw new Error("An active RailwayTimetable v1 is required");
-  if (timetable.dayType === "holiday") throw new Error("Holiday timetable operation requires a calendar mapping");
+  if (!calendarSupportsDayType(operationalState.operationalCalendar, timetable.dayType)) throw new Error("Holiday timetable operation requires a calendar mapping");
   const pending = [];
   const mappedLineIds = new Set();
   const liveSegments = new Map();

@@ -91,6 +91,9 @@ export function createState(pack, options = {}) {
     trackSegments: [],
     attractors: pack.demand.attractors ?? [],
     calendar: pack.demand.calendar ?? null,
+    // B18 operating day types are not demand factors.  They stay null until
+    // the scenario supplies an explicit calendar mapping.
+    operationalCalendar: options.operationalCalendar ?? null,
     lines: [], // { id, name, color, stationIds, frequency: {bandId: trainsPerHour}, lastDispatch }
     trains: [], // { lineId, segIndex, t, dir }
     passengers: [], // see passengers.mjs for shape

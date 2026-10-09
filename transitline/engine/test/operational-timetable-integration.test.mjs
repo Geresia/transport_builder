@@ -11,6 +11,7 @@ import {
 import { ScenarioRuntime } from "../src/scenario-runtime.mjs";
 import { addLine, addPhysicalStation, addTrackSegment, createState } from "../src/state.mjs";
 import { dispatchTrains, stepTrains } from "../src/trains.mjs";
+import { OPERATIONAL_CALENDAR_SCHEMA, setOperationalCalendar } from "../src/operational-calendar.mjs";
 
 function sourcePack() {
   return {
@@ -203,6 +204,12 @@ test("operational activation rejects unpaired returns, duplicate line mappings a
   };
   assert.throws(() => applyActiveRailwayTimetable({ operationalState: state, timetable: duplicateLine, services: [service, secondService] }), /Multiple timetable services/);
   assert.throws(() => applyActiveRailwayTimetable({ operationalState: state, timetable: { ...base, dayType: "holiday" }, services: [service] }), /calendar mapping/);
+  setOperationalCalendar(state, { schema: OPERATIONAL_CALENDAR_SCHEMA, contractVersion: 1, dayTypesByOperatingDay: { 7: "holiday" } });
+  applyActiveRailwayTimetable({ operationalState: state, timetable: { ...base, id: "holiday-tt", dayType: "holiday", acceptedPaths: [outbound, inbound], serviceSummary: [{ serviceId: service.id, acceptedPaths: 2 }] }, services: [service] });
+  state.simMinutes = 7 * 1440 + 400;
+  dispatchTrains(state);
+  assert.equal(line.timetableDispatches.holiday.timetableId, "holiday-tt");
+  assert.equal(state.trains.at(-1).scheduledDepartureMinute, 7 * 1440 + 400);
 });
 
 test("activation requires the exact physical sections, stable duty mates and live infrastructure revision", () => {

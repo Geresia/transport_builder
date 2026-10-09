@@ -9,6 +9,7 @@ import { recordThroughStationStop, recordThroughTrainMovement } from "./through-
 import { recordRailwayTraffic, releaseTrainSectionJunctions, signalBlockForTrain, trainSection } from "./railway-traffic-control.mjs";
 import { railwayDisruptionEffect } from "./railway-disruptions.mjs";
 import { activeRailwayControlOrder, effectiveLineStationGroups, effectiveLineStationIds } from "./railway-service-control.mjs";
+import { operationalDayTypeAt } from "./operational-calendar.mjs";
 
 function recordDisruptionDelay(state, line, train, seconds) {
   if (!(seconds > 0)) return;
@@ -50,12 +51,6 @@ export function targetTrains(state, line, bandId) {
   return (line.frequency[bandId] * lineRoundTripMinutes(state, line)) / 60;
 }
 
-function dayTypeAt(simMinutes) {
-  const day = Math.floor(simMinutes / 1440);
-  const weekday = ((day % 7) + 7) % 7;
-  return weekday >= 5 ? "weekend" : "weekday";
-}
-
 function startTrain(state, line, serviceStationIds, scheduledDepartureMinute = null, scheduledReturnMinute = null, scheduledCompletionMinute = null, terminalResourceId = null, timetableId = null, managementServiceId = null) {
   const train = { id: state.nextTrainId++, lineId: line.id, segIndex: 0, t: 0, dir: 1, dwell: DWELL_SECONDS, serviceStationIds };
   if (scheduledDepartureMinute !== null) train.scheduledDepartureMinute = scheduledDepartureMinute;
@@ -86,7 +81,7 @@ function dispatchScheduledTrains(state, line, schedule, allowDispatch = true) {
   const firstDay = Math.floor(previous / 1440);
   const lastDay = Math.floor(now / 1440);
   for (let day = firstDay; day <= lastDay; day += 1) {
-    if (dayTypeAt(day * 1440) !== schedule.dayType) continue;
+    if (operationalDayTypeAt(day * 1440, state.operationalCalendar) !== schedule.dayType) continue;
     for (const trip of schedule.roundTrips ?? schedule.departureMinutes.map((departureMinute) => ({ departureMinute, returnDepartureMinute: null }))) {
       const absoluteMinute = day * 1440 + trip.departureMinute;
       const returnMinute = trip.returnDepartureMinute === null ? null : day * 1440 + trip.returnDepartureMinute;
@@ -116,7 +111,7 @@ export function dispatchTrains(state) {
   for (const line of state.lines) {
     const groups = effectiveLineStationGroups(state, line);
     if (!groups.length) continue;
-    const currentDayType = dayTypeAt(state.simMinutes);
+    const currentDayType = operationalDayTypeAt(state.simMinutes, state.operationalCalendar);
     const scheduled = line.timetableDispatches?.[currentDayType] ?? null;
     for (const timetable of Object.values(line.timetableDispatches ?? {})) dispatchScheduledTrains(state, line, timetable, !line.suspended);
     if (line.suspended) continue;
