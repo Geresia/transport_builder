@@ -1,3 +1,4 @@
 packs/*/rail-capacity-examples/*.json text eol=lf
 packs/*/station-demand-access-examples/*.json text eol=lf
 packs/*/station-demand-allocation-overlay-examples/*.json text eol=lf
+packs/*/new-town-development-examples/*.json text eol=lf
