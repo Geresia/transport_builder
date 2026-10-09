@@ -19,7 +19,7 @@ test("only a ready client and exact current scene sources expose 3d availability
 });
 
 test("missing, stale, inactive, and other-pack sources always remain on the 2d fallback", () => {
-  for (const current of [[], [{ ...source, sourceRevision: "v2" }], [{ ...source, active: false }], [{ ...source, sourcePackId: "tokyo" }]]) {
+  for (const current of [[], [{ ...source, sourceRevision: "v2" }], [{ ...source, active: false }], [{ ...source, sourcePackId: "tokyo" }], [{ ...source, sourcePackId: null }]]) {
     const result = assessConstruction3dSession({ pack, client: ready, scene: scene(), currentSources: current });
     assert.equal(result.mode, "2d-only");
     assert.ok(result.blockers.some((entry) => entry.startsWith("scene-source-")));

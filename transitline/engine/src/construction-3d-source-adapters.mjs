@@ -14,6 +14,7 @@ export function construction3dSourcesFrom2d({ railGeometries = [], stationSites 
   const rows = []; const warnings = [];
   const add = (sourceType, sourceId, sourceRevision, sourcePackId, active, geometry) => {
     if (!sourceId || !sourceRevision) { warnings.push({ code: "source-identity-missing", sourceType, sourceId: sourceId ?? null }); return; }
+    if (!sourcePackId) warnings.push({ code: "source-pack-unknown", sourceType, sourceId });
     rows.push({ sourceType, sourceId, sourceRevision, sourcePackId: sourcePackId ?? null, active: active !== false, geometry: geometry === undefined ? null : clone(geometry) });
   };
   for (const rail of list(railGeometries, "designs")) {

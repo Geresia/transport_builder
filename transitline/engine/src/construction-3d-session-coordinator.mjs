@@ -32,6 +32,7 @@ export function assessConstruction3dSession({ pack, client = null, scene = null,
       if (!type || !id || !revision) blockers.push("scene-source-invalid");
       else if (!current) blockers.push(`scene-source-missing:${type}:${id}`);
       else if (current.active === false) blockers.push(`scene-source-inactive:${type}:${id}`);
+      else if (!text(current.sourcePackId ?? current.packId)) blockers.push(`scene-source-pack-unknown:${type}:${id}`);
       else if (text(current.sourcePackId ?? current.packId) && text(current.sourcePackId ?? current.packId) !== packId) blockers.push(`scene-source-other-pack:${type}:${id}`);
       else if (text(current.sourceRevision) !== revision) blockers.push(`scene-source-stale:${type}:${id}`);
     }

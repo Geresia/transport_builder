@@ -58,6 +58,7 @@ export function assessConstruction3dChangeSet(changeSet, { pack, coordinates, cu
     if (!type || !id || !revision) { blockers.push("change-target-invalid"); continue; }
     if (!source) blockers.push(`change-target-missing:${type}:${id}`);
     else if (source.active === false) blockers.push(`change-target-inactive:${type}:${id}`);
+    else if (!text(source.sourcePackId ?? source.packId)) blockers.push(`change-target-pack-unknown:${type}:${id}`);
     else if (text(source.sourcePackId ?? source.packId) && text(source.sourcePackId ?? source.packId) !== packId) blockers.push(`change-target-other-pack:${type}:${id}`);
     else if (source.sourceRevision !== revision) blockers.push(`change-target-stale:${type}:${id}`);
   }

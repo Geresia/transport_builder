@@ -7,7 +7,7 @@ note without claiming that a Unity renderer has been built.
 | --- | --- | --- |
 | B20-M2 | `regional-development-program-ui.mjs` (`5924649`) | Edits only map program/milestone statements; blank/null and `[]` references remain distinct. |
 | B20-M3 | `campaign-timeline-panel.mjs` (`70618f2`) | Shows the existing clock and emits only an explicit host-owned milestone intent; due never changes state. |
-| B21-C1 | `construction-3d-session-coordinator.mjs` (`3b8c8b4`) | Requires exact pack/source revisions and an optional compatible client; otherwise stays `2d-only`. |
+| B21-C1 | `construction-3d-session-coordinator.mjs` (`3b8c8b4`) | Requires stated, exact pack/source revisions and an optional compatible client; missing source-pack provenance also stays `2d-only`. |
 | B24 preflight | `construction-3d-preflight.mjs` | A saved coordinate profile is accepted only for its own pack; a missing, invalid, or other-pack profile leaves the game in `2d-only` mode. |
 
 The B20 editor is now mounted and its document is in the integrated scenario

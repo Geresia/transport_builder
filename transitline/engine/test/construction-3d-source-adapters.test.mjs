@@ -14,8 +14,13 @@ test("2D source adapter preserves source identity and supplied geometry without 
   assert.ok(output.notComputed.includes("conflict"));
 });
 test("missing and duplicate identities are warnings, not invented source IDs", () => {
-  const output = construction3dSourcesFrom2d({ stationSites: [{ stationSiteId: "s", stationSiteRevision: "r" }, { stationSiteId: "s", stationSiteRevision: "r2" }, { stationSiteId: "missing" }] });
+  const output = construction3dSourcesFrom2d({ stationSites: [{ stationSiteId: "s", stationSiteRevision: "r", sourcePackId: "p" }, { stationSiteId: "s", stationSiteRevision: "r2", sourcePackId: "p" }, { stationSiteId: "missing" }] });
   assert.equal(output.sources.length, 1);
   assert.equal(output.sources[0].sourceRevision, "r");
   assert.equal(output.warnings.length, 2);
+});
+test("a source without a stated pack is retained as unknown, not silently attributed to the host pack", () => {
+  const out = construction3dSourcesFrom2d({ stationSites: { sites: [{ stationSiteId: "station:unknown-pack", stationSiteRevision: "r1", center: [0, 0] }] } });
+  assert.equal(out.sources[0].sourcePackId, null);
+  assert.deepEqual(out.warnings, [{ code: "source-pack-unknown", sourceType: "station-site", sourceId: "station:unknown-pack" }]);
 });
