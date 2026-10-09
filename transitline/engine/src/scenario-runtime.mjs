@@ -42,6 +42,7 @@ import {
 import { railwayTrafficReport } from "./railway-traffic-control.mjs";
 import { createRailwayDisruption, railwayDisruptionReport, resolveRailwayDisruption } from "./railway-disruptions.mjs";
 import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail-capacity-integration.mjs";
+import { buildRailwayTimetableOperationReport } from "./railway-timetable-operation-report.mjs";
 import { applyStationDemandAccess, stationDemandAccessApplicationReport } from "./station-demand-access-integration.mjs";
 import { applyStationDemandAllocation, assessStationDemandAllocation, stationDemandAllocationApplicationReport } from "./station-demand-allocation-integration.mjs";
 import { buildStationDemandAllocationDiagnostics } from "./station-demand-allocation-diagnostics.mjs";
@@ -1140,6 +1141,11 @@ export class ScenarioRuntime {
   // Only assessed / approved timetables can be withdrawn; the record stays (status "withdrawn") and nothing in the map state is touched.
   withdrawRailwayTimetable(timetableId, input = {}) {
     return this.game.withdrawRailwayTimetable(timetableId, input);
+  }
+
+  // B17-E1: read-only facts about how the timetables are actually operated (see railway-timetable-operation-report.mjs); it changes nothing.
+  railwayTimetableOperationReport() {
+    return buildRailwayTimetableOperationReport({ operationalState: this.operationalState, timetables: this.game.railwayTimetableReport() });
   }
 
   railwayTimetableReport(timetableId = null) {
