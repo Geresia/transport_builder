@@ -14,6 +14,7 @@ import { buildMapExport, drawnLinesFromState, existingNetworkToExternal, withRai
 import { demandSourceRefsOf } from "./map/station-demand-access.mjs";
 import { mountStationDemandAccess } from "./map/station-demand-access-ui.mjs";
 import { mountStationDemandAllocationOverlay } from "./map/station-demand-allocation-ui.mjs";
+import { mountNewTownDevelopment } from "./map/new-town-development-ui.mjs";
 import { mountRailwayTimetableOperationOverlay } from "./map/railway-timetable-operation-ui.mjs";
 import { mountServicePlanEditor } from "./map/service-plan-ui.mjs";
 import { mountServicePlanAssumptionsPanel } from "./service-plan-assumptions-ui.mjs";
@@ -349,6 +350,8 @@ async function main() {
   let stationUi = null;
   let stationDemandAccessUi = null;
   let stationDemandAccessOutput = null;
+  let newTownDevelopmentUi = null;
+  let newTownDevelopmentOutput = null;
   let stationDemandAllocationOverlay = null;
   let railwayTimetableOperationOverlay = null;
   let servicePlanEditor = null;
@@ -387,6 +390,7 @@ async function main() {
     depotUi?.refresh(); // depot connections are checked against the plans just exported
     stationUi?.refresh(); // station sites are checked against the plans just exported, and show the engine verdict
     stationDemandAccessUi?.refresh();
+    newTownDevelopmentUi?.refresh();
     stationDemandAllocationOverlay?.refresh();
     railwayTimetableOperationOverlay?.refresh();
     servicePlanEditor?.refresh();
@@ -456,6 +460,21 @@ async function main() {
     getDemandNodes: () => currentMapExport?.demandNodes ?? [], getDemandSources: stationDemandSources, getSpatial: getCurrentSpatial,
     onChange: (out) => { stationDemandAccessOutput = out; },
   });
+  // B19 map geometry remains player-authored document state.  The lifecycle engine only
+  // receives a geometry snapshot when a later management action explicitly supplies it.
+  newTownDevelopmentUi = mountNewTownDevelopment({
+    canvas,
+    projection,
+    pack,
+    enabled: false,
+    getMapExport: () => currentMapExport ?? { plans: [], externalNetworks: [] },
+    getSpatial: getCurrentSpatial,
+    onChange: (out) => {
+      newTownDevelopmentOutput = out;
+      queueMicrotask(() => refreshScenarioPanel());
+    },
+  });
+  newTownDevelopmentOutput = newTownDevelopmentUi.output();
   if (runtime) {
     stationDemandAllocationOverlay = mountStationDemandAllocationOverlay({
       canvas,
@@ -481,6 +500,14 @@ async function main() {
     stationDemandAccessButton.classList.toggle("active", enabled);
     stationDemandAccessUi.setEnabled(enabled);
     stationDemandAccessButton.blur();
+  });
+  const newTownDevelopmentButton = $("btn-new-town-development");
+  newTownDevelopmentButton.hidden = false;
+  newTownDevelopmentButton.addEventListener("click", () => {
+    const enabled = !newTownDevelopmentButton.classList.contains("active");
+    newTownDevelopmentButton.classList.toggle("active", enabled);
+    newTownDevelopmentUi?.setEnabled(enabled);
+    newTownDevelopmentButton.blur();
   });
   const stationDemandAllocationButton = $("btn-station-demand-allocation");
   if (runtime) {
@@ -795,7 +822,7 @@ async function main() {
     });
   }
   // Map editors own the pointer while active: keep exactly one drawing editor on.
-  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-station-demand-access"), $("btn-station-demand-allocation"), $("btn-timetable-operation"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control"), $("btn-service-plan")];
+  const drawingButtons = [$("btn-depot"), $("btn-station"), $("btn-station-demand-access"), $("btn-station-demand-allocation"), $("btn-new-town-development"), $("btn-timetable-operation"), $("btn-construction"), $("btn-through-handover"), $("btn-railway-control"), $("btn-service-plan")];
   for (const activeButton of drawingButtons) {
     activeButton.addEventListener("click", () => {
       if (!activeButton.classList.contains("active")) return;
@@ -2002,6 +2029,7 @@ async function main() {
         railReplacementGeometries,
         mapInputPipelineDoc: mapInputPipeline?.serialize() ?? null,
         stationDemandAccessDoc: stationDemandAccessUi?.serialize() ?? null,
+        newTownDevelopmentDoc: newTownDevelopmentUi?.serialize() ?? null,
         stationDemandAllocationDraft: stationDemandAllocationManagement?.serialize() ?? null,
         servicePlanDoc: servicePlanEditor?.serialize() ?? null,
         servicePlanAssumptionsDoc: servicePlanAssumptions?.serialize() ?? null,
@@ -2029,6 +2057,9 @@ async function main() {
         stationDemandAccessUi?.loadDoc(payload.stationDemandAccessDoc);
         stationDemandAccessOutput = stationDemandAccessUi?.output() ?? null;
       }
+      if (wrapped && payload.newTownDevelopmentDoc) newTownDevelopmentUi?.loadDoc(payload.newTownDevelopmentDoc);
+      else newTownDevelopmentUi?.refresh();
+      newTownDevelopmentOutput = newTownDevelopmentUi?.output() ?? null;
       if (wrapped && payload.stationDemandAllocationDraft) stationDemandAllocationManagement?.loadDoc(payload.stationDemandAllocationDraft);
       if (wrapped && payload.servicePlanDoc) servicePlanEditor?.loadDoc(payload.servicePlanDoc);
       else servicePlanEditor?.refresh();

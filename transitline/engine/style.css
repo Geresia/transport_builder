@@ -582,6 +582,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #btn-construction-workfront.active { background: #ffe66d; color: #0c1114; }
 #btn-through-handover.active { background: #a78bfa; color: #0c1114; }
 #btn-station-demand-allocation.active { background: #38bdf8; color: #0c1114; }
+#btn-new-town-development.active { background: #f472b6; color: #0c1114; }
 #btn-timetable-operation.active { background: #4ade80; color: #0c1114; }
 #btn-railway-control.active { background: #fb923c; color: #0c1114; }
 #through-handover-panel .handover-bar { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
