@@ -1,0 +1,7 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { mountConstruction3dPreflightPanel } from "../src/construction-3d-preflight-panel.mjs";
+class Node { constructor(tag) { this.tag = tag; this.children = []; this.className = ""; this.textContent = ""; } append(...v) { this.children.push(...v); } replaceChildren(...v) { this.children = []; this.append(...v); } }
+const dom = { createElement: (tag) => new Node(tag) }; const container = () => Object.assign(new Node("div"), { ownerDocument: dom }); const nodes = (n) => [n, ...n.children.flatMap(nodes)]; const texts = (n) => nodes(n).map((v) => v.textContent).filter(Boolean);
+test("preflight panel only reads a valid report and distinguishes 2D fallback", () => { const root = container(); const report = { schema: "transitline.construction-3d-preflight/1", readyForOptional3d: false, fallback: "2d-only", sources: { sources: [], warnings: [] }, session: { blockers: ["scene-not-provided"], warnings: ["3d-client-unavailable"] }, audit: { blockers: [], warnings: [] } }; const panel = mountConstruction3dPreflightPanel({ container: root, getPreflight: () => report }); assert.ok(texts(root).includes("2D-only fallback")); const output = panel.output(); output.report.fallback = "changed"; assert.equal(panel.output().report.fallback, "2d-only"); });
+test("invalid host report is displayed as an error", () => { const root = container(); mountConstruction3dPreflightPanel({ container: root, getPreflight: () => null }); assert.ok(texts(root).includes("construction-3d-preflight-invalid")); });
