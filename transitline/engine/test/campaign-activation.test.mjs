@@ -32,3 +32,14 @@ test("refused activation rolls back id allocation and does not pretend missing i
   assert.throws(() => game.recordCampaignActivation({ campaignProgramId: record.id, milestoneId: "m1", intakeId: "missing", demandSourceId: "missing", geometry: geometry(), intakes: [], sources: [] }), /intake-not-found/);
   assert.deepEqual(game.snapshot(), before);
 });
+
+test("campaign program and activation survive one management save-load with their stable ids", () => {
+  const { game, record } = monitoringGame();
+  const created = game.recordCampaignActivation({ campaignProgramId: record.id, milestoneId: "m1", intakeId: intake().id, demandSourceId: source().sourceId, geometry: geometry(), intakes: [intake()], sources: [source()] });
+  const loaded = ManagementGame.load(game.save());
+  const report = loaded.campaignActivationReport({ geometry: geometry(), intakes: [intake()], sources: [source()] });
+  assert.equal(report[0].activationId, created.activationId);
+  assert.equal(report[0].standing.status, "recorded");
+  assert.equal(loaded.campaignProgramReport(record.id)[0].programRevision, "r1");
+  assert.equal(loaded.withdrawCampaignActivation(created.activationId, "after-load").status, "withdrawn");
+});
