@@ -461,6 +461,7 @@ async function main() {
       canvas, projection, pack, enabled: false,
       getTimetables: () => runtime.railwayTimetableReport(), getLines: () => state.lines,
       getTrains: () => state.trains, getStations: () => state.stations,
+      getOperationReport: () => runtime.railwayTimetableOperationReport(),
     });
   }
   const stationDemandAccessButton = $("btn-station-demand-access");
