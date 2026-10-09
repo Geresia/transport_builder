@@ -55,6 +55,7 @@ import { mountNewTownRailContributionManagementPanel } from "./new-town-rail-con
 import { mountNewTownDemandIntakePanel } from "./new-town-demand-intake-panel.mjs";
 import { buildNewTownDemandCandidates } from "./new-town-demand-candidates.mjs";
 import { mountCampaignProgramManagementPanel } from "./campaign-program-management-panel.mjs";
+import { mountCampaignActivationManagementPanel } from "./campaign-activation-management-panel.mjs";
 import { mountCampaignTimelinePanel } from "./campaign-timeline-panel.mjs";
 import { TECHNICAL_PROFILES } from "./management/construction.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
@@ -381,6 +382,7 @@ async function main() {
   let newTownRailContributionManagement = null;
   let newTownDemandIntakePanel = null;
   let campaignProgramManagement = null;
+  let campaignActivationManagement = null;
   let campaignTimelinePanel = null;
   let operationalCalendarPanelDay = null;
   let stationSelection = null;
@@ -441,6 +443,7 @@ async function main() {
     newTownRailContributionManagement?.refresh();
     newTownDemandIntakePanel?.refresh();
     campaignProgramManagement?.refresh();
+    campaignActivationManagement?.refresh();
     campaignTimelinePanel?.refresh();
   };
   window.transitlineMap = {
@@ -1905,6 +1908,13 @@ async function main() {
       container: $("scenario-campaign-program-management"),
       runtime,
       getProgramGeometry: () => regionalDevelopmentProgramEditor?.output()?.export ?? null,
+      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+    });
+    campaignActivationManagement = mountCampaignActivationManagementPanel({
+      container: $("scenario-campaign-activation-management"),
+      runtime,
+      getProgramGeometry: () => regionalDevelopmentProgramEditor?.output()?.export ?? null,
+      getDevelopmentGeometry: newTownGeometryExport,
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
     campaignTimelinePanel = mountCampaignTimelinePanel({
