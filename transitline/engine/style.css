@@ -658,3 +658,22 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 #scenario-operational-calendar .opcal-day, #scenario-operational-calendar .opcal-state { overflow-wrap: anywhere; }
 #scenario-operational-calendar .opcal-diff { grid-column: 1 / -1; color: var(--warn); }
 #scenario-operational-calendar .opcal-entry { grid-template-columns: minmax(0, 1fr) auto; }
+
+/* B18 coverage: read-only evidence of today's dispatch source for each operational line. */
+#scenario-operational-service-coverage { display: grid; gap: 6px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--chip-line); font-size: 10px; }
+#scenario-operational-service-coverage .cov-notice, #scenario-operational-service-coverage .cov-note, #scenario-operational-service-coverage .cov-fact { color: var(--muted); overflow-wrap: anywhere; }
+#scenario-operational-service-coverage .cov-error { color: var(--danger); }
+#scenario-operational-service-coverage .cov-warning, #scenario-operational-service-coverage .cov-holiday-fallback { color: var(--warn); }
+#scenario-operational-service-coverage .cov-today, #scenario-operational-service-coverage .cov-metrics, #scenario-operational-service-coverage .cov-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+#scenario-operational-service-coverage .cov-fact, #scenario-operational-service-coverage .cov-metric { display: grid; gap: 1px; padding: 3px 5px; background: var(--chip); border-radius: 4px; }
+#scenario-operational-service-coverage .cov-fact .cov-label, #scenario-operational-service-coverage .cov-metric span { font-size: 9px; }
+#scenario-operational-service-coverage .cov-fact .cov-value, #scenario-operational-service-coverage .cov-metric b { font-family: var(--mono); color: var(--text); }
+#scenario-operational-service-coverage .cov-field { display: grid; gap: 2px; }
+#scenario-operational-service-coverage select { min-width: 0; padding: 3px 4px; color: var(--text); background: var(--chip); border: 1px solid var(--chip-line); border-radius: 4px; font: inherit; }
+#scenario-operational-service-coverage .cov-section { margin-top: 3px; }
+#scenario-operational-service-coverage .cov-card { display: grid; gap: 4px; padding: 6px; border: 1px solid var(--chip-line); border-left: 3px solid var(--muted); border-radius: 4px; background: var(--chip); overflow-wrap: anywhere; }
+#scenario-operational-service-coverage .cov-card.timetable { border-left-color: var(--ok); }
+#scenario-operational-service-coverage .cov-card.legacy-frequency { border-left-color: var(--accent); }
+#scenario-operational-service-coverage .cov-card.suspended { border-left-color: var(--danger); }
+#scenario-operational-service-coverage .cov-card.no-operational-line, #scenario-operational-service-coverage .cov-card.unknown { border-left-color: var(--warn); }
+#scenario-operational-service-coverage .cov-title { color: var(--text); }

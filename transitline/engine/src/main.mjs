@@ -43,6 +43,7 @@ import { mountServicePlanManagementPanel } from "./service-plan-management-ui.mj
 import { mountRailwayTimetableLifecyclePanel } from "./railway-timetable-lifecycle-ui.mjs";
 import { mountRailwayTimetableOperationPanel } from "./railway-timetable-operation-panel.mjs";
 import { mountOperationalCalendarPanel } from "./operational-calendar-panel.mjs";
+import { mountOperationalServiceCoveragePanel } from "./operational-service-coverage-panel.mjs";
 import { TECHNICAL_PROFILES } from "./management/construction.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
 import { externalInfrastructureCatalogForRoute } from "./through-route-planning-integration.mjs";
@@ -357,6 +358,7 @@ async function main() {
   let railwayTimetableLifecycle = null;
   let railwayTimetableOperationPanel = null;
   let operationalCalendarPanel = null;
+  let operationalServiceCoveragePanel = null;
   let operationalCalendarPanelDay = null;
   let stationSelection = null;
   let stationSelectionOutput = null;
@@ -406,6 +408,7 @@ async function main() {
     railwayTimetableLifecycle?.refresh();
     railwayTimetableOperationPanel?.refresh();
     operationalCalendarPanel?.refresh();
+    operationalServiceCoveragePanel?.refresh();
   };
   window.transitlineMap = {
     setEngineReport(report) { engineReport = report; refreshMapOverlay(); },
@@ -1645,6 +1648,7 @@ async function main() {
       railwayTimetableLifecycle?.refresh();
       railwayTimetableOperationPanel?.refresh();
       operationalCalendarPanel?.refresh();
+      operationalServiceCoveragePanel?.refresh();
     };
 
     stationManagement = mountStationManagementPanel({
@@ -1753,6 +1757,10 @@ async function main() {
         queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); });
         return result;
       },
+    });
+    operationalServiceCoveragePanel = mountOperationalServiceCoveragePanel({
+      container: $("scenario-operational-service-coverage"),
+      getReport: () => runtime.operationalServiceCoverageReport(),
     });
     operationalCalendarPanelDay = runtime.operationalCalendarReport().currentDay;
     railwayTimetableOperationPanel = mountRailwayTimetableOperationPanel({
@@ -2032,6 +2040,7 @@ async function main() {
       else railwayTimetableLifecycle?.refresh();
       if (wrapped && payload.operationalCalendarDraftDoc) operationalCalendarPanel?.loadDoc(payload.operationalCalendarDraftDoc);
       else operationalCalendarPanel?.refresh();
+      operationalServiceCoveragePanel?.refresh();
       operationalCalendarPanelDay = runtime.operationalCalendarReport().currentDay;
       selectedLineId = null;
       message("통합 저장본을 불러왔습니다.");
@@ -2075,6 +2084,7 @@ async function main() {
       if (operatingDay !== operationalCalendarPanelDay) {
         operationalCalendarPanelDay = operatingDay;
         operationalCalendarPanel?.refresh();
+        operationalServiceCoveragePanel?.refresh();
       }
       const settlements = runtime.settleOperatingDays();
       if (settlements.length) refreshScenarioPanel();
