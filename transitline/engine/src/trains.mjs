@@ -101,7 +101,9 @@ function dispatchScheduledTrains(state, line, schedule, allowDispatch = true) {
           schedule.timetableId ?? null, schedule.serviceId ?? null));
       }
       else {
-        schedule.missedDepartures = (schedule.missedDepartures ?? 0) + 1;
+        // null is a restored count nobody recorded: it stays unknown instead of silently becoming "1 since the load"
+        // (the line's own railwayTraffic counter below still counts every miss).  An absent counter is a hand-made schedule: it starts at 0.
+        if (schedule.missedDepartures !== null) schedule.missedDepartures = (schedule.missedDepartures ?? 0) + 1;
         recordRailwayTraffic(state, line.id, day, "missedDepartures");
       }
     }

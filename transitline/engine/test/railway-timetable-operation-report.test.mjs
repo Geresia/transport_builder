@@ -86,7 +86,7 @@ test("an active timetable: its status, the engine's accepted / rejected path cou
   assert.deepEqual(t.trains, { live: 2, running: 2, positionUnknown: 0, done: 0, managementServiceIds: ["service:a"], trainIds: r.trains.map((x) => x.trainId) });
   assert.deepEqual(r.dispatches[0], {
     operationalLineId: String(w.line.id), dayType: "weekday", timetableId: w.timetable.id, serviceId: "service:a", blockedReason: null, lineSuspended: false,
-    scheduledDeparturesPerDay: 2, departureMinutes: [361, 371], lastCheckedSimMinute: 371, missedDepartures: null, missedDeparturesReason: r.dispatches[0].missedDeparturesReason,
+    scheduledDeparturesPerDay: 2, departureMinutes: [361, 371], lastCheckedSimMinute: 371, missedDepartures: 0,
   });
   assert.deepEqual(r.trains.map((x) => [x.provenance, x.timetableId, x.managementServiceId, x.scheduledDepartureMinute, x.status]),
     [["timetable", w.timetable.id, "service:a", 361, "running"], ["timetable", w.timetable.id, "service:a", 371, "running"]]);
@@ -180,13 +180,19 @@ test("a scheduled train from a save made before B17-E0 is reported as scheduled 
   assert.equal(r.totals.liveTrains.scheduledProvenanceUnrecorded, 1);
 });
 
-test("missed departures: an absent counter is null with a reason, a recorded miss is a number, and the line counter agrees", () => {
+test("missed departures: a freshly applied entry has a recorded 0, an unrecorded counter is null with a reason, a recorded miss is a number, and the line counter agrees", () => {
   const w = activeWorld();
   const before = report(w);
-  assert.equal(before.dispatches[0].missedDepartures, null);
-  assert.match(before.dispatches[0].missedDeparturesReason, /counter-not-created/);
-  assert.equal(row(before, w.timetable.id).missedDepartures, null);
-  assert.match(row(before, w.timetable.id).missedDeparturesReason, /counter-not-created/);
+  assert.equal(before.dispatches[0].missedDepartures, 0, "B17-E2: the engine records the 0 when it applies the timetable");
+  assert.equal("missedDeparturesReason" in before.dispatches[0], false);
+  assert.equal(row(before, w.timetable.id).missedDepartures, 0);
+  delete w.line.timetableDispatches.weekday.missedDepartures; // a hand-made schedule or an old save: nobody recorded a count
+  const unrecorded = report(w);
+  assert.equal(unrecorded.dispatches[0].missedDepartures, null);
+  assert.match(unrecorded.dispatches[0].missedDeparturesReason, /counter-not-created/);
+  assert.equal(row(unrecorded, w.timetable.id).missedDepartures, null);
+  assert.match(row(unrecorded, w.timetable.id).missedDeparturesReason, /counter-not-created/);
+  w.line.timetableDispatches.weekday.missedDepartures = 0;
   assert.equal(before.lines[0].traffic, null, "no traffic recorded yet: null with a reason, not a row of zeros");
   assert.equal(before.lines[0].trafficReason, "the-engine-has-recorded-no-traffic-for-this-line");
   assert.deepEqual(before.lines[0].trains, { live: 0, withTimetable: 0, scheduledProvenanceUnrecorded: 0, legacyFrequency: 0 });
@@ -352,7 +358,7 @@ test("the report is deterministic, independent of the order trains and timetable
   assert.deepEqual(w.line.timetableDispatches.weekday.departureMinutes, [361, 371]);
 });
 
-test("save and load: provenance, the line's traffic counters and the withdrawn history are kept; a dispatch entry's own missed counter restarts and is honestly null", () => {
+test("save and load: provenance, the line's traffic counters, the withdrawn history and the dispatch entry's own missed counter are all kept", () => {
   const w = activeWorld();
   dispatchAt(w.state, 361);
   const extra = assess(w, [plan(700, 710)]);
@@ -370,12 +376,12 @@ test("save and load: provenance, the line's traffic counters and the withdrawn h
   assert.deepEqual(after.totals, before.totals);
   assert.equal(row(after, extra.id).status, "withdrawn");
   assert.equal(row(after, extra.id).lifecycle.withdrawnFromStatus, "assessed");
-  assert.deepEqual(after.timetables.map(({ missedDepartures, missedDeparturesReason, ...rest }) => rest), before.timetables.map(({ missedDepartures, missedDeparturesReason, ...rest }) => rest));
-  // load re-applies the active timetable, so the entry's own counter is gone: the report says null and why instead of 0
-  assert.equal(after.dispatches[0].missedDepartures, null);
-  assert.match(after.dispatches[0].missedDeparturesReason, /counter-not-created/);
+  assert.deepEqual(after.timetables, before.timetables);
+  // B17-E2: load re-applies the active timetable but continues the entry's own counter and check time
+  assert.deepEqual(after.dispatches, before.dispatches);
+  assert.equal(after.dispatches[0].missedDepartures, 1);
   assert.equal(after.dispatches[0].timetableId, w.timetable.id);
-  assert.match(after.limits.find((l) => l.id === "missed-departures-counted-per-dispatch-entry").text, /loading a save/);
+  assert.match(after.limits.find((l) => l.id === "missed-departures-counted-per-dispatch-entry").text, /kept across a save and load/);
 });
 
 test("the report names no delay, cost, fare, demand, crowding or passenger figure", () => {

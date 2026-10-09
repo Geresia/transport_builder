@@ -14,7 +14,7 @@ export const TIMETABLE_STATUSES = Object.freeze(["active", "approved", "assessed
 export const TRAFFIC_COUNTERS = Object.freeze(["dispatchedTrains", "completedTrains", "scheduledDispatchedTrains", "unscheduledDispatchedTrains", "scheduledCompletedTrains", "onTimeTrains", "missedDepartures", "lateCompletedTrains"]);
 
 const COMPLETED_REASON = "finished-trains-are-removed-and-traffic-counters-are-per-line";
-const MISSED_REASON = "counter-not-created: the engine writes it on the first missed departure, so its absence is not recorded as zero";
+const MISSED_REASON = "counter-not-created: no count was recorded for this dispatch entry (a hand-made schedule, or a save from before the engine kept it), so its absence is not recorded as zero";
 
 const listOf = (value) => (Array.isArray(value) ? value : []);
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -175,7 +175,7 @@ function issuesOf({ timetables, dispatches, trains, timetablesKnown }) {
 
 const LIMITS = Object.freeze([
   { id: "completed-trains-not-attributable", text: "Finished trains are removed from the train list when they finish and the engine's traffic counters are per line, so the number of trains a timetable has completed is not known (completedTrains: null). Line counters are reported per line." },
-  { id: "missed-departures-counted-per-dispatch-entry", text: "A dispatch entry's missed-departure counter restarts whenever its timetable is applied again, which includes loading a save (the engine re-applies the active timetables on load), and it does not say why a departure was missed (a suspended line and a late check both count). The per-line traffic counter is kept across a save." },
+  { id: "missed-departures-counted-per-dispatch-entry", text: "A dispatch entry's missed-departure counter is kept across a save and load (B17-E2; only a save from before the engine kept it restores as null), and it does not say why a departure was missed (a suspended line and a late check both count). The per-line traffic counter is kept across a save." },
   { id: "live-trains-only", text: "Only trains still on the line are listed. A train marked done is normally removed in the same step; 'done' does not say whether it finished normally." },
   { id: "no-delay-cost-demand-crowding", text: "No delay, cost, demand or crowding figure is computed or restated here." },
 ]);

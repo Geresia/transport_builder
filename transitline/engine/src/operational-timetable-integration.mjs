@@ -226,6 +226,22 @@ function validatePathAgainstLine(path, route, line) {
   }
 }
 
+// The dispatch facts an already-held entry keeps for this very timetable, service and day type.  Applying an active timetable
+// again - loading a save does exactly that - must CONTINUE them: restarting would forget the departures already counted as missed
+// and re-scan departures the engine has already dispatched or missed.  Nothing here is a dispatch rule or a new counter.
+//   * no entry for this timetable            -> a fresh application: nothing missed yet (a recorded 0), checked up to now.
+//   * entry whose count was recorded         -> that count and that check time, unchanged.
+//   * entry with no recorded count (a save from before the engine kept it) -> null: unknown, never 0.
+// An unrecorded check time falls back to now, which is what trains.mjs already does for a schedule without one.
+export function carriedDispatchFacts(previous, { timetableId, serviceId, dayType }, simMinutes) {
+  const held = previous !== null && typeof previous === "object" && previous.timetableId === timetableId && previous.serviceId === serviceId && previous.dayType === dayType;
+  if (!held) return { lastCheckedSimMinute: simMinutes, missedDepartures: 0 };
+  return {
+    lastCheckedSimMinute: Number.isFinite(previous.lastCheckedSimMinute) ? previous.lastCheckedSimMinute : simMinutes,
+    missedDepartures: Number.isInteger(previous.missedDepartures) && previous.missedDepartures >= 0 ? previous.missedDepartures : null,
+  };
+}
+
 export function applyActiveRailwayTimetable({ operationalState, timetable, services = [], throughServices = [] } = {}) {
   if (timetable?.schema !== "transitline.railway-timetable/1" || timetable.status !== "active") throw new Error("An active RailwayTimetable v1 is required");
   if (timetable.dayType === "holiday") throw new Error("Holiday timetable operation requires a calendar mapping");
@@ -261,7 +277,9 @@ export function applyActiveRailwayTimetable({ operationalState, timetable, servi
       };
     });
     if (inboundByDuty.size) throw new Error(`Timetable service ${summary.serviceId} has an inbound path without its accepted outbound duty`);
-    pending.push({ summary, resolved, departureMinutes: roundTrips.map((entry) => entry.departureMinute), roundTrips });
+    // read before anything is deleted below: the held entry of this timetable is where the dispatch facts live
+    const facts = carriedDispatchFacts(resolved.line.timetableDispatches?.[timetable.dayType], { timetableId: timetable.id, serviceId: summary.serviceId, dayType: timetable.dayType }, operationalState.simMinutes);
+    pending.push({ summary, resolved, departureMinutes: roundTrips.map((entry) => entry.departureMinute), roundTrips, facts });
   }
   const liveRevision = operationalInfrastructureRevision([...liveSegments.values()]);
   if (timetable.infrastructureRevision !== liveRevision) throw new Error(`Timetable infrastructure revision ${timetable.infrastructureRevision} is stale; live revision is ${liveRevision}`);
@@ -271,7 +289,7 @@ export function applyActiveRailwayTimetable({ operationalState, timetable, servi
     if (!Object.keys(line.timetableDispatches).length) delete line.timetableDispatches;
   }
   const applications = [];
-  for (const { summary, resolved, departureMinutes, roundTrips } of pending) {
+  for (const { summary, resolved, departureMinutes, roundTrips, facts } of pending) {
     resolved.line.railwayTrafficControl = {
       infrastructureRevision: timetable.infrastructureRevision,
       sectionDirectionModes: Object.fromEntries((timetable.sections ?? []).map((section) => [section.sectionId, section.directionMode])),
@@ -288,7 +306,8 @@ export function applyActiveRailwayTimetable({ operationalState, timetable, servi
       dayType: timetable.dayType,
       departureMinutes,
       roundTrips,
-      lastCheckedSimMinute: operationalState.simMinutes,
+      lastCheckedSimMinute: facts.lastCheckedSimMinute,
+      missedDepartures: facts.missedDepartures,
     };
     applications.push({ serviceId: summary.serviceId, operationalLineId: key(resolved.line.id), dayType: timetable.dayType, departureMinutes: clone(departureMinutes) });
   }
@@ -310,6 +329,8 @@ export function blockUnmappedRailwayTimetable({ operationalState, timetable, ser
     } catch {
       continue;
     }
+    // a blocked entry keeps the facts the held entry of this timetable already had (it never dispatches, so only the count matters)
+    const facts = carriedDispatchFacts(resolved.line.timetableDispatches?.[timetable.dayType], { timetableId: timetable.id, serviceId: summary.serviceId, dayType: timetable.dayType }, operationalState.simMinutes);
     resolved.line.timetableDispatches ??= {};
     resolved.line.timetableDispatches[timetable.dayType] = {
       schema: OPERATIONAL_TIMETABLE_APPLICATION_SCHEMA,
@@ -321,7 +342,8 @@ export function blockUnmappedRailwayTimetable({ operationalState, timetable, ser
       departureMinutes: [],
       roundTrips: [],
       blockedReason: String(reason),
-      lastCheckedSimMinute: operationalState.simMinutes,
+      lastCheckedSimMinute: facts.lastCheckedSimMinute,
+      missedDepartures: facts.missedDepartures,
     };
   }
 }

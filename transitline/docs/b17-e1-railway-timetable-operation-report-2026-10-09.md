@@ -64,7 +64,7 @@ buildRailwayTimetableOperationReport({ operationalState, timetables })   // time
 
 - 전달하지 않은 입력: `timetables: null`(전달했지만 비어 있으면 `[]`), `lines/trains/dispatches: null`.
 - 아직 만들어지지 않은 전이: `lifecycle.approvedAtMinute: null` 등(`lifecycleNote`).
-- **놓친 출발**: dispatch 항목의 카운터는 엔진이 *첫 번째로 놓쳤을 때* 비로소 만든다. 없으면 `missedDepartures: null` + `counter-not-created…`(0으로 적지 않는다). 놓친 적이 있으면 숫자. 시간표 합계는 dispatch 하나라도 `null`이면 `null`.
+- **놓친 출발**: dispatch 항목의 카운터는 시간표를 적용할 때 엔진이 기록한 `0`으로 시작하고(B17-E2), 저장·불러오기에서도 이어진다. 카운터 자체가 없는 항목(수기 일정, 이 카운터를 남기지 않던 옛 저장본)만 `missedDepartures: null` + `counter-not-created…`(0으로 적지 않는다). 시간표 합계는 dispatch 하나라도 `null`이면 `null`.
 - **완료한 열차 수**: `completedTrains: null` + `finished-trains-are-removed-and-traffic-counters-are-per-line`. 끝난 열차는 목록에서 사라지고 엔진의 통계는 노선 단위라 시간표별로 셀 수 없다. 노선별 `traffic.completedTrains` 등은 엔진이 기록한 숫자 그대로 `lines[].traffic`에 있다(기록이 없으면 `traffic: null` + 이유). 엔진이 `0`으로 기록한 것은 `0`이다.
 - 지연 합계·비율은 복사하지 않는다(`TRAFFIC_COUNTERS`는 개수만).
 
