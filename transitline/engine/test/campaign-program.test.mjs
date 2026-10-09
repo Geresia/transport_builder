@@ -38,6 +38,7 @@ test("management references are explicit ids and preserve null separately from a
   assert.equal(draft.managementRefs.linkedDevelopmentRecordIds, null);
   assert.deepEqual(draft.managementRefs.linkedContributionIds, []);
   assert.deepEqual(draft.managementRefs.linkedDemandSourceIds, ["source:1"]);
+  assert.deepEqual(game.campaignProgramHooks(draft.id).managementRefs.linkedContributionIds, []);
   assert.throws(() => game.draftCampaignProgram({ geometry: { ...geometry(), programId: "bad" }, linkedProjectIds: [""] }), /linkedProjectIds/);
 });
 
