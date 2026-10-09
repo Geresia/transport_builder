@@ -48,6 +48,7 @@ import { calendarSupportsDayType, normalizeOperationalCalendar, operationalDayTy
 import { applyStationDemandAccess, stationDemandAccessApplicationReport } from "./station-demand-access-integration.mjs";
 import { applyStationDemandAllocation, assessStationDemandAllocation, stationDemandAllocationApplicationReport } from "./station-demand-allocation-integration.mjs";
 import { buildStationDemandAllocationDiagnostics } from "./station-demand-allocation-diagnostics.mjs";
+import { applyNewTownExplicitDemandSource, assessNewTownExplicitDemandSources, newTownExplicitDemandSourceReport, withdrawNewTownExplicitDemandSource } from "./new-town-explicit-demand-source.mjs";
 import { adaptServicePlanToOperationalTimetable } from "./service-plan-timetable-adapter.mjs";
 import { applyRailwayDisruptionResponse, railwayDisruptionResponseOptions } from "./railway-disruption-response.mjs";
 import { clearRailwayControlOrder, createRailwayControlOrder, createRailwayControlOrderFromGeometry, railwayControlOrderReport } from "./railway-service-control.mjs";
@@ -270,6 +271,7 @@ export class ScenarioRuntime {
       stationDemandAccess: stationDemandAccessApplicationReport(this.operationalState),
       stationDemandAllocation: stationDemandAllocationApplicationReport(this.operationalState),
       stationDemandAllocationDiagnostics: buildStationDemandAllocationDiagnostics(this.operationalState),
+      newTownExplicitDemandSources: newTownExplicitDemandSourceReport(this.operationalState, { intakes: this.game.newTownDemandIntakeReport() }),
       railwayControlOrders: railwayControlOrderReport(this.operationalState),
       railwayDetourAuthorizations: railwayDetourAuthorizationReport(this.operationalState),
       railwayDetourOperations: railwayDetourOperationReport(this.operationalState),
@@ -1732,6 +1734,48 @@ export class ScenarioRuntime {
 
   stationDemandAllocationReport() {
     return stationDemandAllocationApplicationReport(this.operationalState);
+  }
+
+  // B19-E5: accepted new-town demand intakes (B19-E4) as explicit demand SOURCE records for a later B15 step.  Nothing here creates, deletes or
+  // merges a demand node, changes an access link, overwrites an existing source or approves a B15 policy; the figures are the player's stated
+  // facts, copied.  Only an accepted intake whose standing is current (checked against `input.geometry`) can be applied, one live source per
+  // candidate, by an explicit command.  See new-town-explicit-demand-source.mjs.
+  newTownScenarioPack() {
+    return { packId: this.pack?.manifest?.id ?? null, packVersion: this.pack?.manifest?.version ?? null };
+  }
+
+  assessNewTownExplicitDemandSources(input = {}) {
+    return assessNewTownExplicitDemandSources({
+      state: this.operationalState, intakes: this.game.newTownDemandIntakeReport(null, { geometry: input?.geometry ?? null }), scenarioPack: this.newTownScenarioPack(),
+    });
+  }
+
+  applyNewTownExplicitDemandSource(input = {}) {
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("new-town-explicit-demand-source-applied", () => applyNewTownExplicitDemandSource(this.operationalState, {
+        intakes: this.game.newTownDemandIntakeReport(null, { geometry: input?.geometry ?? null }), intakeId: input?.intakeId, scenarioPack: this.newTownScenarioPack(),
+      }));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
+  }
+
+  withdrawNewTownExplicitDemandSource(sourceId, reason) {
+    const operationalCheckpoint = snapshotOperationalState(this.operationalState);
+    try {
+      return this.game.transact("new-town-explicit-demand-source-withdrawn", () => withdrawNewTownExplicitDemandSource(this.operationalState, { sourceId, reason }));
+    } catch (error) {
+      replaceState(this.operationalState, restoreOperationalState(operationalCheckpoint));
+      this.bridge = createMapEngineBridge(this.game, this.operationalState);
+      throw error;
+    }
+  }
+
+  newTownExplicitDemandSourceReport(context = {}) {
+    return newTownExplicitDemandSourceReport(this.operationalState, { intakes: this.game.newTownDemandIntakeReport(null, { geometry: context?.geometry ?? null }) });
   }
 
   // B15-E6: read-only account of the fractional routing (shares, picks per role, unrouted reasons, known limits). It changes nothing.
