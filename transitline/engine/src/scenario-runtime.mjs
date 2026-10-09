@@ -43,6 +43,7 @@ import { railwayTrafficReport } from "./railway-traffic-control.mjs";
 import { createRailwayDisruption, railwayDisruptionReport, resolveRailwayDisruption } from "./railway-disruptions.mjs";
 import { applyRailCapacityGeometry, railCapacityApplicationReport } from "./rail-capacity-integration.mjs";
 import { buildRailwayTimetableOperationReport } from "./railway-timetable-operation-report.mjs";
+import { buildOperationalServiceCoverageReport } from "./operational-service-coverage-report.mjs";
 import { calendarSupportsDayType, normalizeOperationalCalendar, operationalDayTypeAt, operationalDayTypeAtDay } from "./operational-calendar.mjs";
 import { applyStationDemandAccess, stationDemandAccessApplicationReport } from "./station-demand-access-integration.mjs";
 import { applyStationDemandAllocation, assessStationDemandAllocation, stationDemandAllocationApplicationReport } from "./station-demand-allocation-integration.mjs";
@@ -1196,6 +1197,11 @@ export class ScenarioRuntime {
     this.operationalState.operationalCalendar = plan.calendar === null ? null : structuredClone(plan.calendar);
     delete this.operationalState.operationalCalendarWarnings;
     return { ...plan, calendar: plan.calendar === null ? null : structuredClone(plan.calendar) };
+  }
+
+  // B18-E4: read-only facts on which dispatch source (timetable, legacy frequency, suspended, none) applies to each line today.
+  operationalServiceCoverageReport() {
+    return buildOperationalServiceCoverageReport({ operationalState: this.operationalState, services: this.game.services });
   }
 
   operationalCalendarReport() {
