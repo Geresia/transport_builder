@@ -51,6 +51,7 @@ import { mountOperationalCalendarPanel } from "./operational-calendar-panel.mjs"
 import { mountOperationalServiceCoveragePanel } from "./operational-service-coverage-panel.mjs";
 import { mountNewTownDevelopmentManagementPanel } from "./new-town-development-management-ui.mjs";
 import { mountNewTownRailContributionManagementPanel } from "./new-town-rail-contribution-management-panel.mjs";
+import { mountNewTownDemandIntakePanel } from "./new-town-demand-intake-panel.mjs";
 import { mountCampaignTimelinePanel } from "./campaign-timeline-panel.mjs";
 import { TECHNICAL_PROFILES } from "./management/construction.mjs";
 import { mountMapInputPipeline } from "./map/map-input-pipeline.mjs";
@@ -374,6 +375,7 @@ async function main() {
   let operationalServiceCoveragePanel = null;
   let newTownDevelopmentManagement = null;
   let newTownRailContributionManagement = null;
+  let newTownDemandIntakePanel = null;
   let campaignTimelinePanel = null;
   let operationalCalendarPanelDay = null;
   let stationSelection = null;
@@ -431,6 +433,7 @@ async function main() {
     operationalServiceCoveragePanel?.refresh();
     newTownDevelopmentManagement?.refresh();
     newTownRailContributionManagement?.refresh();
+    newTownDemandIntakePanel?.refresh();
     campaignTimelinePanel?.refresh();
   };
   window.transitlineMap = {
@@ -1861,6 +1864,12 @@ async function main() {
       }),
       onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
     });
+    newTownDemandIntakePanel = mountNewTownDemandIntakePanel({
+      container: $("scenario-new-town-demand-intakes"),
+      runtime,
+      getGeometryExport: newTownGeometryExport,
+      onChange: () => queueMicrotask(() => { refreshMapOverlay(); refreshScenarioPanel(); }),
+    });
     campaignTimelinePanel = mountCampaignTimelinePanel({
       container: $("scenario-campaign-timeline"),
       getFactReport: () => runtime.campaignFactReport(),
@@ -2119,6 +2128,7 @@ async function main() {
         operationalCalendarDraftDoc: operationalCalendarPanel?.serialize() ?? null,
         newTownDevelopmentManagementDoc: newTownDevelopmentManagement?.serialize() ?? null,
         newTownRailContributionManagementDoc: newTownRailContributionManagement?.serialize() ?? null,
+        newTownDemandIntakePanelDoc: newTownDemandIntakePanel?.serialize() ?? null,
       });
       localStorage.setItem(storageKey, payload);
       message("지도·공사·차량·회사 상태와 작업면·대체수송 계획을 함께 저장했습니다.");
@@ -2162,6 +2172,8 @@ async function main() {
       else newTownDevelopmentManagement?.refresh();
       if (wrapped && payload.newTownRailContributionManagementDoc) newTownRailContributionManagement?.loadDoc(payload.newTownRailContributionManagementDoc);
       else newTownRailContributionManagement?.refresh();
+      if (wrapped && payload.newTownDemandIntakePanelDoc) newTownDemandIntakePanel?.loadDoc(payload.newTownDemandIntakePanelDoc);
+      else newTownDemandIntakePanel?.refresh();
       operationalServiceCoveragePanel?.refresh();
       operationalCalendarPanelDay = runtime.operationalCalendarReport().currentDay;
       selectedLineId = null;
