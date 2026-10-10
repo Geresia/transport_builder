@@ -20,6 +20,8 @@ import { mountRegionalDevelopmentProgramEditor } from "./map/regional-developmen
 import { mountConstruction3dCoordinateProfilePanel } from "./construction-3d-coordinate-profile-panel.mjs";
 import { buildConstruction3dPreflight } from "./construction-3d-preflight.mjs";
 import { mountConstruction3dPreflightPanel } from "./construction-3d-preflight-panel.mjs";
+import { construction3dIframeTransportFactory, mountConstruction3dClientLoader } from "./construction-3d-client-loader.mjs";
+import { buildConstruction3dStageManifest } from "./construction-3d-stage-manifest.mjs";
 import { mountRailwayTimetableOperationOverlay } from "./map/railway-timetable-operation-ui.mjs";
 import { mountServicePlanEditor } from "./map/service-plan-ui.mjs";
 import { mountServicePlanAssumptionsPanel } from "./service-plan-assumptions-ui.mjs";
@@ -368,6 +370,7 @@ async function main() {
   let regionalDevelopmentProgramEditor = null;
   let construction3dCoordinateProfilePanel = null;
   let construction3dPreflightPanel = null;
+  let construction3dClientLoader = null;
   let stationDemandAllocationOverlay = null;
   let railwayTimetableOperationOverlay = null;
   let servicePlanEditor = null;
@@ -417,6 +420,7 @@ async function main() {
     regionalDevelopmentProgramEditor?.refresh();
     construction3dCoordinateProfilePanel?.refresh();
     construction3dPreflightPanel?.refresh();
+    construction3dClientLoader?.refresh();
     stationDemandAllocationOverlay?.refresh();
     railwayTimetableOperationOverlay?.refresh();
     servicePlanEditor?.refresh();
@@ -536,6 +540,52 @@ async function main() {
       developments: newTownDevelopmentUi?.output()?.export ?? newTownDevelopmentOutput?.export,
     }),
   });
+  // A renderer URL is never guessed or bundled into the 2D game. A host must
+  // explicitly supply an http(s) URL (for example a locally served Unity WebGL
+  // build) before this optional bridge even exists. Invalid configuration leaves
+  // the authoritative game in 2D-only mode.
+  const rawConstruction3dUrl = params.get("construction3dUrl");
+  let construction3dUrl = null;
+  try {
+    const parsed = rawConstruction3dUrl ? new URL(rawConstruction3dUrl, location.href) : null;
+    if (parsed && ["http:", "https:"].includes(parsed.protocol) && parsed.origin !== "null") construction3dUrl = parsed;
+  } catch { /* Invalid optional URL intentionally has no side effect. */ }
+  if (construction3dUrl) {
+    const sessionId = `construction-3d:${pack.manifest.id}:${pack.manifest.version ?? "unknown"}`;
+    construction3dClientLoader = mountConstruction3dClientLoader({
+      container: $("scenario-construction-3d-client"),
+      pack,
+      getPreflight: () => buildConstruction3dPreflight({
+        pack,
+        coordinateProfile: construction3dCoordinateProfilePanel?.output() ?? null,
+        campaignPrograms: runtime?.campaignProgramReport() ?? [],
+        railGeometries: mapInputPipeline?.output()?.railGeometries,
+        stationSites: stationUi?.stationExport,
+        depotSites: depotUi?.depotExport,
+        developments: newTownDevelopmentUi?.output()?.export ?? newTownDevelopmentOutput?.export,
+      }),
+      getStage: () => {
+        const report = runtime?.report() ?? {};
+        return buildConstruction3dStageManifest({
+          pack,
+          simMinute: runtime?.game?.clock?.minute ?? null,
+          packages: (report.constructionPackages ?? []).map((entry) => ({ ...entry, id: entry.id ?? entry.constructionSiteId ?? null })),
+          workfronts: (report.workfrontAssessments ?? []).map((entry) => ({ ...entry, id: entry.id ?? entry.workfrontId ?? null })),
+          events: report.constructionEvents ?? [],
+          disruptions: (report.constructionMarkers ?? []).map((entry) => ({ ...entry, id: entry.id ?? null })),
+        });
+      },
+      sessionId,
+      expectedOrigin: construction3dUrl.origin,
+      transportFactory: construction3dIframeTransportFactory({
+        url: construction3dUrl.href,
+        // The frame slot is separate from the controls: loader rerenders never
+        // remove a connected Unity iframe.
+        container: $("scenario-construction-3d-frame"),
+      }),
+      onChange: () => queueMicrotask(() => { construction3dPreflightPanel?.refresh(); }),
+    });
+  }
   if (runtime) {
     stationDemandAllocationOverlay = mountStationDemandAllocationOverlay({
       canvas,

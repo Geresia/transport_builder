@@ -393,6 +393,10 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .construction-contractors { margin-top: 7px; border-top: 1px solid var(--panel-line); padding-top: 5px; }
 .construction-contractors summary { cursor: pointer; color: #ffd166; font-weight: 600; }
 #scenario-construction-contractors { display: grid; gap: 7px; margin-top: 7px; }
+.construction-3d-loader-notice, .construction-3d-loader-state, .construction-3d-loader-reason, .construction-3d-loader-review { margin: 6px 0 0; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+#scenario-construction-3d-client > button { width: 100%; margin-top: 6px; padding: 5px; color: #8bd3ff; }
+#scenario-construction-3d-frame:empty { display: none; }
+.construction-3d-client-frame { display: block; width: 100%; min-height: 280px; margin-top: 7px; border: 1px solid color-mix(in srgb, #8bd3ff 45%, var(--chip-line)); border-radius: 6px; background: #10141f; }
 .construction-contract-summary, .construction-contract-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .construction-contract-summary span, .construction-contract-head span { color: var(--muted); font: 10px var(--mono); }
 .construction-contract-notice, .construction-contract-error, .construction-contract-empty, .construction-contract-ready { padding: 6px; border-left: 3px solid #ffd166; background: var(--chip); color: var(--muted); font-size: 10px; line-height: 1.5; }

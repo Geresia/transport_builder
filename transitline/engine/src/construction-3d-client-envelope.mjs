@@ -5,11 +5,12 @@
 
 import { assessConstruction3dClient } from "./construction-3d-adapter.mjs";
 import { assessConstruction3dChangeSet } from "./construction-3d-exchange.mjs";
+import { assessConstruction3dSpatialReview } from "./construction-3d-spatial-review.mjs";
 import { assessConstruction3dSession } from "./construction-3d-session-coordinator.mjs";
 import { CONSTRUCTION_3D_PREFLIGHT_SCHEMA } from "./construction-3d-preflight.mjs";
 
 export const CONSTRUCTION_3D_CLIENT_ENVELOPE_SCHEMA = "transitline.construction-3d-client-envelope/1";
-export const CONSTRUCTION_3D_CLIENT_ENVELOPE_KINDS = Object.freeze(["handshake", "scene", "change-set", "close"]);
+export const CONSTRUCTION_3D_CLIENT_ENVELOPE_KINDS = Object.freeze(["handshake", "scene", "stage", "change-set", "spatial-review", "close"]);
 const clone = (value) => structuredClone(value);
 const text = (value) => typeof value === "string" && value.trim() ? value.trim() : null;
 const compare = (a, b) => String(a).localeCompare(String(b));
@@ -88,4 +89,22 @@ export function assessConstruction3dClientProposal({ pack, preflight, handshake,
   if (assessment && !assessment.applicable) blockers.push(...assessment.blockers.map((entry) => `change-set:${entry}`));
   const unique = [...new Set(blockers)].sort(compare);
   return { schema: "transitline.construction-3d-client-proposal-assessment/1", contractVersion: 1, sessionId: launch.sessionId, launch, proposal: parsed.accepted ? clone(parsed.envelope) : null, changeSet: assessment, applicable: unique.length === 0, blockers: unique, notPerformed: ["change-set-apply", "construction-approval", "cash", "ledger", "demand", "clock"] };
+}
+
+// Spatial observations travel through the same versioned session but are
+// deliberately distinct from geometry proposals.  A valid observation remains
+// a fact for a later 2D owner to decide about; this boundary never stores or
+// applies it.
+export function assessConstruction3dClientSpatialReview({ pack, preflight, handshake, review, sessionId = null, selectedSourceIds = null } = {}) {
+  const launch = prepareConstruction3dClientLaunch({ pack, preflight, handshake, sessionId, selectedSourceIds });
+  const parsed = parseConstruction3dClientEnvelope(review, { sessionId: launch.sessionId, kinds: ["spatial-review"] });
+  const facts = preflightFacts(preflight);
+  const blockers = [...launch.blockers];
+  let assessment = null;
+  if (!parsed.accepted) blockers.push(`review:${parsed.reason}`);
+  else if (facts) assessment = assessConstruction3dSpatialReview(parsed.envelope.payload, { pack, currentSources: facts.sources });
+  else blockers.push("preflight-invalid");
+  if (assessment && !assessment.applicable) blockers.push(...assessment.blockers.map((entry) => `review:${entry}`));
+  const unique = [...new Set(blockers)].sort(compare);
+  return { schema: "transitline.construction-3d-client-spatial-review-assessment/1", contractVersion: 1, sessionId: launch.sessionId, launch, review: parsed.accepted ? clone(parsed.envelope) : null, spatialReview: assessment, applicable: unique.length === 0, blockers: unique, notPerformed: ["review-store", "change-set-apply", "construction-approval", "cash", "ledger", "demand", "clock"] };
 }
