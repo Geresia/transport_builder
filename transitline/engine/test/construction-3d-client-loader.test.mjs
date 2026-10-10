@@ -1,8 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { construction3dClientEnvelope } from "../src/construction-3d-client-envelope.mjs";
+import { assessConstruction3dClientSpatialReview, construction3dClientEnvelope } from "../src/construction-3d-client-envelope.mjs";
 import { construction3dIframeTransportFactory, createConstruction3dClientLoader, createConstruction3dIframeTransport, mountConstruction3dClientLoader } from "../src/construction-3d-client-loader.mjs";
 import { buildConstruction3dPreflight } from "../src/construction-3d-preflight.mjs";
+import { buildConstruction3dStageManifest } from "../src/construction-3d-stage-manifest.mjs";
 
 const pack = { manifest: { id: "example-radial", version: "1" } };
 const coordinates = { originLonLat: [0, 0], metersPerUnit: 1, axis: "east-up-north", verticalDatumMeters: 0 };
@@ -10,6 +11,9 @@ const client = { protocol: "transitline.construction-3d-adapter/1", contractVers
 const preflight = () => buildConstruction3dPreflight({ pack, coordinates, railGeometries: { designs: [{ railGeometryId: "rail:1", railGeometryRevision: "r1", sourcePackId: "example-radial", active: true, sections: [{ alignment: [[0, 0], [1, 1]] }] }] } });
 const handshake = () => construction3dClientEnvelope({ sessionId: "session:1", kind: "handshake", payload: client });
 const proposal = (revision = "r1") => construction3dClientEnvelope({ sessionId: "session:1", kind: "change-set", payload: { schema: "transitline.construction-3d-change-set/1", contractVersion: 1, packId: "example-radial", status: "proposed", coordinates, changes: [{ sourceType: "rail-geometry", sourceId: "rail:1", sourceRevision: revision }] } });
+const review = (state = "clear", revision = "r1") => construction3dClientEnvelope({ sessionId: "session:1", kind: "spatial-review", payload: { schema: "transitline.construction-3d-spatial-review/1", contractVersion: 1, reviewId: "unity-review:1", packId: "example-radial", observations: [{ observationId: "obs:1", sourceType: "rail-geometry", sourceId: "rail:1", sourceRevision: revision, state, reason: null, geometry: null }] } });
+const stageHandshake = () => construction3dClientEnvelope({ sessionId: "session:1", kind: "handshake", payload: { ...client, capabilities: [...client.capabilities, "stage-manifest-v1"] } });
+const stage = (minute = 5) => buildConstruction3dStageManifest({ pack, simMinute: minute, packages: [{ id: "site:1", status: "awarded", location: [0, 0] }], workfronts: [{ id: "front:unknown", status: "open", location: null }], events: [] });
 const freeze = (value) => { if (value && typeof value === "object") { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };
 const noTimer = { schedule: () => 1, cancel: () => {} };
 function transport() { let listener = null; return { sent: [], closed: 0, send(value) { this.sent.push(value); }, subscribe(fn) { listener = fn; return () => { listener = null; }; }, close() { this.closed += 1; }, emit(message) { listener?.(message); } }; }
@@ -42,6 +46,40 @@ test("proposal transport is verified but never applied, and stale proposals fall
   t.emit({ origin: "https://unity.example", data: proposal("old") }); assert.equal(loader.output().status, "2d-only"); assert.equal(loader.output().reason, "proposal-rejected");
 });
 
+test("the three spatial-review observations are verified but never stored or applied", () => {
+  for (const state of ["clear", "conflict", "unknown"]) {
+    const input = freeze(preflight()); const t = transport(); const observed = [];
+    const loader = createConstruction3dClientLoader({ pack, getPreflight: () => input, sessionId: "session:1", expectedOrigin: "https://unity.example", transportFactory: () => t, onProposal: (value) => observed.push(value), ...noTimer });
+    loader.open(); t.emit({ origin: "https://unity.example", data: handshake() }); t.emit({ origin: "https://unity.example", data: review(state) });
+    assert.equal(loader.output().status, "connected"); assert.equal(observed.length, 1); assert.equal(observed[0].spatialReview.applicable, true);
+    assert.equal(observed[0].review.payload.observations[0].state, state); assert.ok(observed[0].notPerformed.includes("review-store"));
+    assert.deepEqual(input, preflight());
+  }
+});
+
+test("foreign, stale, or inactive spatial review cannot reach the host", () => {
+  const input = preflight(); const valid = assessConstruction3dClientSpatialReview({ pack, preflight: input, handshake: handshake(), review: review("clear", "old"), sessionId: "session:1" });
+  assert.equal(valid.applicable, false); assert.ok(valid.blockers.includes("review:review-source-stale:rail-geometry:rail:1"));
+  const t = transport(); const loader = createConstruction3dClientLoader({ pack, getPreflight: () => input, sessionId: "session:1", expectedOrigin: "https://unity.example", transportFactory: () => t, ...noTimer });
+  loader.open(); t.emit({ origin: "https://unity.example", data: handshake() }); t.emit({ origin: "https://unity.example", data: review("clear", "old") });
+  assert.equal(loader.output().status, "2d-only"); assert.equal(loader.output().reason, "review-rejected"); assert.equal(t.closed, 1);
+});
+
+test("a stage-capable client receives current supplied stage facts only after the scene", () => {
+  let currentStage = stage(5); const t = transport();
+  const loader = createConstruction3dClientLoader({ pack, getPreflight: preflight, getStage: () => currentStage, sessionId: "session:1", expectedOrigin: "https://unity.example", transportFactory: () => t, ...noTimer });
+  loader.open(); t.emit({ origin: "https://unity.example", data: stageHandshake() });
+  assert.equal(loader.output().stage.status, "sent"); assert.deepEqual(t.sent.map((entry) => entry.kind), ["scene", "stage"]);
+  assert.equal(t.sent[1].payload.entries.find((entry) => entry.id === "front:unknown").location, null);
+  currentStage = stage(6); loader.sendStage(); assert.equal(t.sent.length, 3); assert.equal(t.sent[2].payload.simMinute, 6);
+});
+
+test("an invalid or unsupported stage is refused without a game-side fallback mutation", () => {
+  const t = transport(); const loader = createConstruction3dClientLoader({ pack, getPreflight: preflight, getStage: () => ({ nope: true }), sessionId: "session:1", expectedOrigin: "https://unity.example", transportFactory: () => t, ...noTimer });
+  loader.open(); t.emit({ origin: "https://unity.example", data: stageHandshake() });
+  assert.equal(loader.output().status, "connected"); assert.equal(loader.output().stage.reason, "stage-invalid"); assert.equal(t.sent.length, 1);
+});
+
 test("mount surface opens only from its button and exposes detached state", () => {
   const t = transport(); const r = root(); const panel = mountConstruction3dClientLoader({ container: r, pack, getPreflight: preflight, sessionId: "session:1", expectedOrigin: "https://unity.example", transportFactory: () => t, ...noTimer });
   assert.equal(panel.output().status, "2d-only"); find(r, "construction-3d-loader-open").fire("click"); assert.equal(panel.output().status, "connecting");
@@ -60,4 +98,11 @@ test("iframe transport pins the URL, message source, and target origin", () => {
   t.close(); assert.equal(frame.removed, true); assert.equal(handlers.size, 0);
   assert.throws(() => createConstruction3dIframeTransport({ url: "https://foreign.example/build", expectedOrigin: "https://unity.example", container: r, hostWindow, documentRef: iframeDom }), /origin-mismatch/);
   assert.equal(typeof construction3dIframeTransportFactory({ url: "https://unity.example/build", container: r, hostWindow, documentRef: iframeDom }), "function");
+});
+
+test("iframe transport passes only exact parent-origin and session configuration to Unity", () => {
+  const hostWindow = { location: { origin: "https://game.example" }, addEventListener() {}, removeEventListener() {} };
+  const r = root(); const frame = Object.assign(new Node("iframe"), { contentWindow: { postMessage() {} } });
+  createConstruction3dIframeTransport({ url: "https://unity.example/build/", expectedOrigin: "https://unity.example", sessionId: "session: 1", container: r, hostWindow, documentRef: { createElement: () => frame } });
+  const url = new URL(frame.src); assert.equal(url.searchParams.get("hostOrigin"), "https://game.example"); assert.equal(url.searchParams.get("sessionId"), "session: 1");
 });

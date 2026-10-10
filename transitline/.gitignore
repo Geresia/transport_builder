@@ -12,6 +12,19 @@
 .claude-flow/CAPABILITIES.md
 .swarm/
 
+# Unity build products and per-user project state (the source project is tracked).
+unity-construction-client/[Ll]ibrary/
+unity-construction-client/[Ll]ogs/
+unity-construction-client/[Tt]emp/
+unity-construction-client/[Oo]bj/
+unity-construction-client/[Bb]uild/
+unity-construction-client/[Bb]uilds/
+unity-construction-client/[Uu]serSettings/
+unity-construction-client/.vscode/
+unity-construction-client/*.csproj
+unity-construction-client/*.sln
+unity-construction-client/*.slnx
+
 # Codex local configuration
 .codex/
 # Claude Flow runtime data

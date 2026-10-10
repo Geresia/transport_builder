@@ -2,8 +2,9 @@
 // renderer implementation.  A host supplies a narrowly scoped transport only
 // after an explicit player action; every rejected message closes that transport
 // and retains the authoritative JavaScript game in 2D-only mode.
-import { assessConstruction3dClientProposal, parseConstruction3dClientEnvelope, prepareConstruction3dClientLaunch } from "./construction-3d-client-envelope.mjs";
+import { assessConstruction3dClientProposal, assessConstruction3dClientSpatialReview, parseConstruction3dClientEnvelope, prepareConstruction3dClientLaunch } from "./construction-3d-client-envelope.mjs";
 import { CONSTRUCTION_3D_PREFLIGHT_SCHEMA } from "./construction-3d-preflight.mjs";
+import { CONSTRUCTION_3D_STAGE_MANIFEST_SCHEMA } from "./construction-3d-stage-manifest.mjs";
 
 export const CONSTRUCTION_3D_CLIENT_LOADER_SCHEMA = "transitline.construction-3d-client-loader/1";
 const clone = (value) => structuredClone(value);
@@ -15,13 +16,18 @@ function emptyState({ sessionId, expectedOrigin, reason = null } = {}) {
   return {
     schema: CONSTRUCTION_3D_CLIENT_LOADER_SCHEMA, contractVersion: 1,
     sessionId: text(sessionId), expectedOrigin: text(expectedOrigin), status: "2d-only",
-    fallback: "2d-only", reason, launch: null, proposal: null,
+    fallback: "2d-only", reason, launch: null, proposal: null, review: null, stage: null,
     notPerformed: ["unity-load", "render", "change-set-apply", "construction-approval", "cash", "ledger", "demand", "clock"],
   };
 }
 
 function validPreflight(value) {
   return isObject(value) && value.schema === CONSTRUCTION_3D_PREFLIGHT_SCHEMA && value.contractVersion === 1;
+}
+
+function validStage(value, pack) {
+  const packId = pack?.manifest?.id ?? pack?.id ?? null;
+  return isObject(value) && value.schema === CONSTRUCTION_3D_STAGE_MANIFEST_SCHEMA && value.contractVersion === 1 && value.packId === packId;
 }
 
 function validTransport(value) {
@@ -31,7 +37,7 @@ function validTransport(value) {
 // Concrete browser transport for a pre-approved Unity WebGL URL.  It never
 // uses a wildcard origin: both the build URL and inbound message source must
 // match the host-supplied expected origin and iframe window exactly.
-export function createConstruction3dIframeTransport({ url, expectedOrigin, container, hostWindow = globalThis.window, documentRef = globalThis.document } = {}) {
+export function createConstruction3dIframeTransport({ url, expectedOrigin, sessionId = null, container, hostWindow = globalThis.window, documentRef = globalThis.document } = {}) {
   const origin = text(expectedOrigin); const source = text(url);
   if (!origin) throw new Error("construction-3d-iframe-expected-origin-required");
   if (!source) throw new Error("construction-3d-iframe-url-required");
@@ -41,6 +47,15 @@ export function createConstruction3dIframeTransport({ url, expectedOrigin, conta
   let parsed; let expected;
   try { parsed = new URL(source); expected = new URL(origin); } catch { throw new Error("construction-3d-iframe-url-invalid"); }
   if (parsed.origin !== expected.origin) throw new Error("construction-3d-iframe-origin-mismatch");
+  // Unity receives the exact parent origin and session as non-authoritative
+  // transport configuration.  It still cannot apply a proposal; the host's
+  // origin and source checks remain the authoritative transport boundary.
+  let hostOrigin = null;
+  try { hostOrigin = new URL(hostWindow?.location?.origin ?? hostWindow?.location?.href).origin; } catch { /* A non-browser test transport has no parent origin. */ }
+  if (hostOrigin && text(sessionId)) {
+    parsed.searchParams.set("hostOrigin", hostOrigin);
+    parsed.searchParams.set("sessionId", text(sessionId));
+  }
   const iframe = documentRef.createElement("iframe");
   iframe.className = "construction-3d-client-frame";
   iframe.title = "Optional construction 3D client";
@@ -72,13 +87,13 @@ export function createConstruction3dIframeTransport({ url, expectedOrigin, conta
 }
 
 export function construction3dIframeTransportFactory(options = {}) {
-  return ({ expectedOrigin }) => createConstruction3dIframeTransport({ ...options, expectedOrigin });
+  return ({ expectedOrigin, sessionId }) => createConstruction3dIframeTransport({ ...options, expectedOrigin, sessionId });
 }
 
 // The transport boundary is intentionally injectable.  A WebGL iframe,
 // desktop bridge, or test double may implement {send, subscribe, close}; this
 // module neither selects nor loads a Unity binary.
-export function createConstruction3dClientLoader({ pack, getPreflight, sessionId, expectedOrigin, transportFactory, onChange = null, onProposal = null, schedule = setTimeout, cancel = clearTimeout, handshakeTimeoutMs = 15_000 } = {}) {
+export function createConstruction3dClientLoader({ pack, getPreflight, getStage = null, sessionId, expectedOrigin, transportFactory, onChange = null, onProposal = null, schedule = setTimeout, cancel = clearTimeout, handshakeTimeoutMs = 15_000 } = {}) {
   if (typeof getPreflight !== "function") throw new Error("construction-3d-loader-preflight-getter-required");
   const id = text(sessionId); const origin = text(expectedOrigin);
   if (!id) throw new Error("construction-3d-loader-session-id-required");
@@ -99,6 +114,18 @@ export function createConstruction3dClientLoader({ pack, getPreflight, sessionId
   };
   const fail = (reason, extra = {}) => { release(); return set({ ...emptyState({ sessionId: id, expectedOrigin: origin, reason }), ...extra, fallback: "2d-only" }); };
   const current = () => clone(state);
+  const sendStage = () => {
+    if (!transport || state.status !== "connected") return current();
+    const capabilities = handshake?.payload?.capabilities;
+    if (!Array.isArray(capabilities) || !capabilities.includes("stage-manifest-v1")) return current();
+    if (typeof getStage !== "function") return current();
+    let stage;
+    try { stage = getStage(); } catch (error) { return set({ ...state, stage: { status: "refused", reason: `stage:${error instanceof Error ? error.message : String(error)}` } }); }
+    if (!validStage(stage, pack)) return set({ ...state, stage: { status: "refused", reason: "stage-invalid" } });
+    const envelope = { schema: "transitline.construction-3d-client-envelope/1", contractVersion: 1, sessionId: id, kind: "stage", payload: clone(stage) };
+    try { transport.send(envelope); } catch { return set({ ...state, stage: { status: "refused", reason: "stage-send-failed" } }); }
+    return set({ ...state, stage: { status: "sent", manifest: clone(stage) } });
+  };
 
   const receive = (message) => {
     if (!transport) return current();
@@ -112,10 +139,19 @@ export function createConstruction3dClientLoader({ pack, getPreflight, sessionId
       if (!launch.ready || !launch.sceneEnvelope) return fail("handshake-rejected", { launch: clone(launch) });
       try { transport.send(clone(launch.sceneEnvelope)); } catch { return fail("scene-send-failed", { launch: clone(launch) }); }
       if (timer !== null) { cancel(timer); timer = null; }
-      return set({ ...emptyState({ sessionId: id, expectedOrigin: origin }), status: "connected", fallback: null, reason: null, launch: clone(launch) });
+      set({ ...emptyState({ sessionId: id, expectedOrigin: origin }), status: "connected", fallback: null, reason: null, launch: clone(launch) });
+      return sendStage();
     }
     if (state.status !== "connected") return current();
     if (kind === "close") { const parsed = parseConstruction3dClientEnvelope(message.data, { sessionId: id, kinds: ["close"] }); return parsed.accepted ? fail("client-closed") : fail(`close:${parsed.reason}`); }
+    if (kind === "spatial-review") {
+      const review = assessConstruction3dClientSpatialReview({ pack, preflight, handshake, review: message.data, sessionId: id });
+      if (!review.applicable) return fail("review-rejected", { launch: clone(state.launch), review: clone(review) });
+      const next = { ...state, review: clone(review) };
+      set(next);
+      if (typeof onProposal === "function") onProposal(clone(review));
+      return current();
+    }
     const proposal = assessConstruction3dClientProposal({ pack, preflight, handshake, proposal: message.data, sessionId: id });
     if (!proposal.applicable) return fail("proposal-rejected", { launch: clone(state.launch), proposal: clone(proposal) });
     const next = { ...state, proposal: clone(proposal) };
@@ -139,6 +175,7 @@ export function createConstruction3dClientLoader({ pack, getPreflight, sessionId
       return set({ ...emptyState({ sessionId: id, expectedOrigin: origin }), status: "connecting", reason: null });
     },
     receive,
+    sendStage,
     close(reason = "player-closed") { return fail(text(reason) ?? "player-closed"); },
     output: current,
     destroy() { return fail("host-destroyed"); },
@@ -158,12 +195,13 @@ export function mountConstruction3dClientLoader({ container, ...options } = {}) 
     const notice = el(doc, "p", { className: "construction-3d-loader-notice", textContent: "Optional construction 3D. The 2D game remains authoritative." });
     const state = el(doc, "div", { className: "construction-3d-loader-state", textContent: `Client state: ${out.status}` });
     const reason = el(doc, "div", { className: "construction-3d-loader-reason", textContent: out.reason === null ? "Reason: none" : `Reason: ${out.reason}` });
+    const review = el(doc, "div", { className: "construction-3d-loader-review", textContent: out.review === null ? "Spatial review: none" : `Spatial review: ${out.review.applicable ? "received (not applied)" : "rejected"}` });
     const button = el(doc, "button", { className: "construction-3d-loader-open", textContent: out.status === "connected" ? "Close 3D client" : "Open optional 3D client" });
     button.addEventListener("click", () => { if (loader.output().status === "connected") loader.close(); else loader.open(); render(); });
-    container.replaceChildren(notice, state, reason, button);
+    container.replaceChildren(notice, state, reason, review, button);
   };
   const suppliedOnChange = options.onChange;
   loader = createConstruction3dClientLoader({ ...options, onChange: (output) => { suppliedOnChange?.(output); render(); } });
   render();
-  return { ...loader, refresh() { render(); return loader.output(); } };
+  return { ...loader, refresh() { loader.sendStage(); render(); return loader.output(); } };
 }
